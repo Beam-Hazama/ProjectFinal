@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import User from '@/User/User.vue'
-import Admin from '@/Admin/LaoutAdmin.vue'
+import User from '@/page/User/User.vue'
+import Admin from '@/page/Admin/LaoutAdmin.vue'
+import adminstore from '@/page/Store/Laoutstore.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +15,11 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: Admin,
+    },
+    {
+      path: '/adminstore',
+      name: 'adminstore',
+      component : adminstore
     }
   ],
 })
