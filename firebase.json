@@ -9,30 +9,73 @@
     {
       "source": "functions",
       "codebase": "default",
+<<<<<<< HEAD
       "disallowLegacyRuntimeConfig": true,
+=======
+>>>>>>> 2718fe954e3ae172aa4026c2e8f3801481e6b263
       "ignore": [
         "node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
         "*.local"
+<<<<<<< HEAD
       ],
       "predeploy": [
         "npm --prefix \"$RESOURCE_DIR\" run lint"
+=======
+>>>>>>> 2718fe954e3ae172aa4026c2e8f3801481e6b263
       ]
     }
   ],
   "hosting": {
+<<<<<<< HEAD
     "public": "n",
+=======
+    "public": "public",
+>>>>>>> 2718fe954e3ae172aa4026c2e8f3801481e6b263
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+<<<<<<< HEAD
+=======
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+>>>>>>> 2718fe954e3ae172aa4026c2e8f3801481e6b263
     ]
   },
   "storage": {
     "rules": "storage.rules"
   },
+<<<<<<< HEAD
+=======
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "database": {
+      "port": 9000
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+>>>>>>> 2718fe954e3ae172aa4026c2e8f3801481e6b263
   "database": {
     "rules": "database.rules.json"
   }
