@@ -1,5 +1,16 @@
 <script setup>
 import bill from '@/Icon/Bill.vue';
+import { useMenuStore } from '@/stores/menu';
+import product  from '@/page/component/blockmenu.vue'
+import { onMounted, ref } from 'vue';
+
+const menu = useMenuStore()
+
+
+onMounted (()=>{
+  menu.loadProducts()
+})
+
 </script>
 
 <template>
@@ -36,7 +47,9 @@ import bill from '@/Icon/Bill.vue';
   <legend class="mt-3 ml-3 text-gray-500">เมนู</legend>
   <div class="tabs tabs-box bg-blue-300">
     <input type="radio" name="my_tabs_7" class="tab" aria-label="แนะนำ" checked/>
-    <div class="tab-content bg-base-100 border-base-300 p-6">Tab content 0</div>
+    <div class="tab-content bg-base-100 border-base-300 p-6">
+      <product :selectionRole="menu.list"></product>
+    </div>
 
     <input type="radio" name="my_tabs_7" class="tab" aria-label="ข้าว" />
     <div class="tab-content bg-base-100 border-base-300 p-6">Tab content 1</div>
