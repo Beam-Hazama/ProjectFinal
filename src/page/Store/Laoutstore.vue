@@ -6,13 +6,13 @@
         </div>
         <div class="drawer-side">
             <label for="my-drawer-2" aria-label="close sidebar" ></label>
-            <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                <li><a class="text-2xl font-bold">Admin Menu</a></li>
+            <ul class="menu p-4 w-80 min-h-full bg-blue-300 text-base-content">
+                <li><a class="text-2xl font-bold">Store Admin</a></li>
                 <li class="my-1" >
-                    <div> DashBoard </div>
-                    <div> Menu </div>
+                    <div class="bg-blue-200 collapse my-1 border"> DashBoard </div>
+                    <div class="bg-blue-200 collapse my-1 border"> Menu </div>
                 </li>
-                <li><a>Logout</a></li>
+                <li class="bg-blue-200 collapse my-1 border"><a>Logout</a></li>
             </ul>
         </div>
     </div>
