@@ -4,7 +4,7 @@ import { useCartStore } from '@/stores/cartStore';
 const cartStore = useCartStore()
 
 const checkToAddProduct = (product) =>{
-  if(product.status === 'open'){
+  if(product.Status === 'open'){
     cartStore.addToCart(product)
   }
 }

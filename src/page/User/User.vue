@@ -3,6 +3,7 @@ import bill from '@/Icon/Bill.vue';
 import { useMenuStore } from '@/stores/menu';
 import product  from '@/page/component/blockmenu.vue'
 import { onMounted, ref } from 'vue';
+import Cart from '@/Icon/Cart.vue';
 
 const menu = useMenuStore()
 
@@ -26,6 +27,7 @@ onMounted (()=>{
       src="https://imgcp.aacdn.jp/img-a/1440/auto/global-aaj-front/article/2019/01/5c35764ceeb39_5c35764136a54_283103980.jpg"
     />
   </div>
+  <button><router-link to="/Cart" class="fixed bottom-5 right-5 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl z-50" @click=""><Cart></Cart></router-link></button>
   <div class="text-center font-bold text-blue-600">Food Delivery</div>
 
   

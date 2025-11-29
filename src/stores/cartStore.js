@@ -1,21 +1,21 @@
 import { defineStore } from "pinia";
 
-//import { useOderlistStore } from "./orderList";
+import { useOderlistStore } from "@/stores/OrderList";
 
 export const useCartStore = defineStore("cart", {
   state: () => ({
     item: [],
   }),
-  /*getters: {
+  getters: {
     summaryQuantity(state) {
-      return state.item.reduce((acc, item) => acc + item.quantity, 0);
+      return state.item.reduce((acc, item) => acc + item.Quantity, 0);
     },
     summaryPrice(state) {
       return state.item.reduce((acc, item) => {
-        return acc + item.price * item.quantity;
+        return acc + item.Price * item.Quantity;
       }, 0);
     },
-  },*/
+  },
   actions: {
     loadcart() {
       const previousCart = localStorage.getItem("cart-data");
@@ -27,31 +27,35 @@ export const useCartStore = defineStore("cart", {
       const fineProductIndex = this.item.findIndex((item) => {
         return item.Name === productdata.Name;
       });
-      if (productdata.remainQuantity > 0) {
+      if (productdata.Remainquantity > 0) {
         if (fineProductIndex < 0) {
-          productdata.quantity = 1;
+          productdata.Quantity = 1;
           this.item.push(productdata);
+          localStorage.setItem("cart-data", JSON.stringify(this.item));
+          console.log('data ++')
         } else {
           const cerrentItem = this.item[fineProductIndex];
-          if(this.item[fineProductIndex].quantity < productdata.remainQuantity){
-          this.updateQuantity(fineProductIndex, cerrentItem.quantity + 1);}
+          if(this.item[fineProductIndex].Quantity < productdata.Remainquantity){
+          this.updateQuantity(fineProductIndex, cerrentItem.Quantity + 1);}
         }
       }
+      
+      localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
     /*decreaseToCart(productdata) {
       const fineProductIndex = this.item.findIndex((item) => {
-        return item.name === productdata.name;
+        return item.Name === productdata.Name;
       });
 
-      if (productdata.quantity <= 0) {
-        productdata.quantity = 0;
+      if (productdata.Quantity <= 0) {
+        productdata.Quantity = 0;
       } else {
         const cerrentItem = this.item[fineProductIndex];
-        this.updateQuantity(fineProductIndex, cerrentItem.quantity - 1,productdata.remainQuantity);
+        this.updateQuantity(fineProductIndex, cerrentItem.Quantity - 1,productdata.RemainQuantity);
       }
-    },
+    },*/
     updateQuantity(index, quantity) {
-      this.item[index].quantity = quantity;
+      this.item[index].Quantity = quantity;
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
     removeItemInCart(index) {
@@ -70,14 +74,14 @@ export const useCartStore = defineStore("cart", {
       localStorage.setItem("order-data", JSON.stringify(orderData));
       orderList.addToOrderList(orderData);
     },
-    loadCheckout() {
+    /*loadCheckout() {
       const orderData = localStorage.getItem("order-data");
-      if (orderData) {
+      /*if (orderData) {
         this.checkout = JSON.parse(orderData);
       }
-    },
+    },*/
     clearcart() {
       this.item = [];
-    },*/
+    },
   },
 });
