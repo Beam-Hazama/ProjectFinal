@@ -49,9 +49,9 @@ import { RouterLink } from 'vue-router';
         </div>
 
         <button class="w-full p-2 mt-3 rounded-lg font-medium
-                 bg-gradient-to-r from-blue-400 to-blue-600 
+                 bg-gradient-to-r from-blue-300 to-blue-600 
                  hover:from-white hover:to-white 
-                 hover:text-blue-500 hover:border hover:border-blue-500
+                 hover:text-blue-500 hover:border hover:border-blue-600
                  transition duration-300 shadow-md hover:shadow-xl">
           Login
         </button>
