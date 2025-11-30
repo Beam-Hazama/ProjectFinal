@@ -1,8 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import User from '@/page/User/User.vue'
-import Admin from '@/page/Admin/LaoutAdmin.vue'
-import adminstore from '@/page/Store/Laoutstore.vue'
 import Cart from '@/page/User/Cart.vue'
+
+import Admin from '@/page/Admin/Dashboard.vue'
+import Adminmenuslist from '@/page/Admin/Menuslist.vue'
+import Adminorderslist from '@/page/Admin/Orderslist.vue'
+
+import adminstore from '@/page/Store/Laoutstore.vue'
+
 import Login from '@/page/Login/Login.vue'
 
 const router = createRouter({
@@ -15,13 +20,23 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'admin',
+      name: 'Admin',
       component: Admin,
     },
     {
+      path: '/adminmenuslist',
+      name: 'AdminMenusList',
+      component: Adminmenuslist,
+    },
+    {
+      path: '/adminorderslist',
+      name: 'AdminOrdersList',
+      component: Adminorderslist,
+    },
+    {
       path: '/adminstore',
-      name: 'adminstore',
-      component : adminstore
+      name: 'Adminstore',
+      component: adminstore,
     },
     {
       path: '/cart',
@@ -32,8 +47,8 @@ const router = createRouter({
       path: '/Login',
       name: 'Login',
       component: Login,
-    }
+    },
   ],
-})
+});
 
 export default router
