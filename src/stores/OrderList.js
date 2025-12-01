@@ -16,20 +16,23 @@ export const useOderlistStore = defineStore('oderlist', {
   },
   actions: {
     async addToOrderList(orderData) {
-      const {userImageUrl,...orderref} = orderData
-      const productData = orderData.products.map(product =>{
-        const {status,remainQuantity,updatedAt,imageUrl,...productref} = product;
-        return productref
-      })
+      const {Menu,...orderref} = orderData
+      const cleanedMenu = Menu.map(item => {
+        const { Status, Remainquantity, ImageUrl, ...filtered } = item;
+        return filtered;
+      });
+    
       const finalOrder = {
         ...orderref,
-        products:productData
-      }
-      await addDoc(collection(db,'Order'),{
+        Menu: cleanedMenu,
+      };
+    
+      await addDoc(collection(db, 'Order'), {
         ...finalOrder,
-        statusOrder:'pending',
-        createdAt:serverTimestamp()
-      }) 
+        statusOrder: 'pending',
+        CreatedAt: serverTimestamp()
+      });
+    
       console.log('orderlist', this.list);
     },
     async loadOrder(){

@@ -18,7 +18,7 @@ onMounted (()=>{
   <div class="bg-sky-600 p-3 flex items-center justify-between">
     <div class="ml-3 badge badge-md bg-blue-200">ห้องที่</div>
     <div class="avatar w-8">
-      <div class="rounded-full"><bill></bill></div>
+      <div class="rounded-full"><RouterLink to="/bill"><bill></bill></RouterLink></div>
     </div>
   </div>
   <div class="overflow-hidden h-30">

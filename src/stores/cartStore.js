@@ -42,7 +42,7 @@ export const useCartStore = defineStore("cart", {
       
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
-    /*decreaseToCart(productdata) {
+    decreaseToCart(productdata) {
       const fineProductIndex = this.item.findIndex((item) => {
         return item.Name === productdata.Name;
       });
@@ -53,7 +53,7 @@ export const useCartStore = defineStore("cart", {
         const cerrentItem = this.item[fineProductIndex];
         this.updateQuantity(fineProductIndex, cerrentItem.Quantity - 1,productdata.RemainQuantity);
       }
-    },*/
+    },
     updateQuantity(index, quantity) {
       this.item[index].Quantity = quantity;
       localStorage.setItem("cart-data", JSON.stringify(this.item));
@@ -62,13 +62,12 @@ export const useCartStore = defineStore("cart", {
       this.item.splice(index, 1);
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
-    placeorder(userData) {
+    placeorder() {
       const orderData = {
-        ...userData,
-        totalPrice: this.summaryPrice,
-        paymentMethod: "Credit Cart",
-        orderNumber: `AA${Math.floor(Math.random() * 100000)}`,
-        products: this.item,
+        //...userData,
+        TotalPrice: this.summaryPrice,
+        OrderNumber: `${Math.floor(Math.random() * 100000)}`,
+        Menu: this.item,
       };
       const orderList = useOderlistStore();
       localStorage.setItem("order-data", JSON.stringify(orderData));
