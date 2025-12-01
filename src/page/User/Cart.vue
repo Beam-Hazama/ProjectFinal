@@ -14,7 +14,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full min-h-screen p-4 space-y-5 bg-center bg-no-repeat animate-bg bg-[url('https://webfiles.moyincloud.com/hc/theme-nova/temp/banner.jpg')] font-sans">
+  <div class="w-full min-h-screen p-4 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
 
     <div class="flex items-center gap-2 mb-2">
       <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -24,13 +24,15 @@ onMounted(() => {
             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       </div>
-      <div class="text-3xl tracking-tight text-blue-600 font-extrabold drop-shadow-sm">MY CART</div>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md">MY CART</h1>
+        <p class="text-xs text-blue-400 font-medium mx-0.5 mb-1 ">รายการอาหารของคุณ</p>
+      </div>
     </div>
-
-    <div
-      class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center mb-4 border-b border-blue-100 pb-2">
-        <span class="text-lg font-bold text-gray-700">รายการอาหารที่สั่ง</span>
+    
+    <div class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center mb-4 border-b border-blue-100 pb-4">
+        <span class="text-lg font-bold text-gray-700 mx-3">รายการอาหารที่สั่ง</span>
         <button
           class="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-1 active:scale-95">
           <span>+</span> สั่งเพิ่ม
@@ -50,19 +52,28 @@ onMounted(() => {
       <TransitionGroup name="list" tag="div" class="space-y-3">
         <div v-for="(cart, index) in cartStore.item" :key="index"
           class="group relative bg-white/60 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-100">
+          
           <div class="flex justify-between items-center">
-            <div>
-              <div class="font-bold text-gray-800 text-lg">{{ cart.Name }}</div>
-              <button class="text-xs text-gray-400 flex items-center gap-1 mt-1 hover:text-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-                แก้ไขรายละเอียด
-              </button>
+            
+            <div class="flex items-center gap-3 overflow-hidden">
+              <div class="flex-shrink-0 w-10 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-500 font-bold text-xs">
+                x{{ cart.Amount || 1 }}
+              </div>
+
+              <div class="min-w-0">
+                <div class="font-bold text-gray-800 text-lg truncate">{{ cart.Name }}</div>
+                <button class="text-xs text-gray-400 flex items-center gap-1 mt-0.5 hover:text-blue-500 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                  แก้ไขรายละเอียด
+                </button>
+              </div>
             </div>
-            <div class="text-lg font-bold text-blue-600">฿{{ formatPrice(cart.Price) }}</div>
+
+            <div class="text-lg font-bold text-blue-600 flex-shrink-0 ml-2">฿{{ formatPrice(cart.Price) }}</div>
           </div>
+
         </div>
       </TransitionGroup>
     </div>

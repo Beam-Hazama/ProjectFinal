@@ -5,7 +5,7 @@ import Cart from '@/page/User/Cart.vue'
 import Admin from '@/page/Admin/Dashboard.vue'
 import Adminmenuslist from '@/page/Admin/Menuslist.vue'
 import Adminorderslist from '@/page/Admin/Orderslist.vue'
-
+import bill from '@/page/User/bill.vue'
 import adminstore from '@/page/Store/Laoutstore.vue'
 
 import Login from '@/page/Login/Login.vue'
@@ -48,6 +48,12 @@ const router = createRouter({
       name: 'Login',
       component: Login,
     },
+    {
+      path: '/bill',
+      name: 'bill',
+      component: bill,
+    },
+
   ],
 });
 
