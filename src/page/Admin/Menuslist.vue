@@ -2,114 +2,125 @@
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/LayoutAdmin.vue';
 import { useMenuStore } from '@/stores/menu';
-import { collection, doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';
 
 const MenuStore = useMenuStore();
 
-const switchStatus = async (product) => {
-  const thisProduct = doc(db, 'products', product.id);
-  if (product.status === 'open') {
-    await updateDoc(thisProduct, { status: 'close' });
-  } else {
-    await updateDoc(thisProduct, { status: 'open' });
-  }
-};
-
-const reStock = async (product) => {
-  const thisProduct = doc(db, 'products', product.id);
-  const productRestock = product.remainQuantity + product.reStock;
-  if (product.reStock > 0) {
-    await updateDoc(thisProduct, { remainQuantity: productRestock });
-  } else {
-    await updateDoc(thisProduct, { remainQuantity: product.quantity });
-  }
-};
+// ฟังก์ชันจัดรูปแบบวันที่ (Optional)
+const formatDate = (timestamp) => {
+  if (!timestamp) return '-';
+  return timestamp.toDate().toLocaleString('th-TH');
+}
 </script>
 
 <template>
   <LayoutAdmin>
-    <div class="text text-3xl font-bold text-center my-3">Product List</div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Products</th>
-          <th>price</th>
-          <th>Quantity</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Restock</th>
-          <th>Last Update</th>
-          <th>
-            <RouterLink
-              to="/adminproductsmanage"
-              class="btn btn-soft btn-success"
-              >Add Product</RouterLink
-            >
-          </th>
-        </tr>
-      </thead>
-      <tbody v-for="product in MenuStore.list">
-        <tr>
-          <td>
-            <div class="flex items-center gap-3">
-              <div class="avatar">
-                <div class="mask mask-squircle h-12 w-12">
-                  <img
-                    :src="product.ImageUrl"
-                    alt="Avatar Tailwind CSS Component"
-                  />
-                </div>
-              </div>
-              <div>
-                <div class="font-bold">{{ product.Name }}</div>
-              </div>
-            </div>
-          </td>
-          <td>{{ product.Price }}</td>
-          <td>{{ product.Remainquantity }}/{{ product.Quantity }}</td>
-          <td>{{ product.Store }}</td>
-          <td>
-            <button
-              @click="switchStatus(product)"
-              class="btn"
-              :class="
-                product.status === 'open'
-                  ? 'btn-success btn-outline'
-                  : 'btn-error btn-outline'
-              "
-            >
-              {{ product.status }}
-            </button>
-          </td>
-          <td class="flex">
-            <input
-              type="number"
-              class="input mr-2 w-auto"
-              v-model="product.reStock"
-              min="0"
-              :max="product.quantity - product.remainQuantity"
-            />
-            <button
-              class="btn w-auto btn-info btn-soft"
-              @click="reStock(product)"
-            >
-              Refill
-            </button>
-          </td>
-          <td>{{ product.updatedAt.toDate() }}</td>
-          <th>
-            <RouterLink
-              class="btn btn-ghost btn-xs w-auto h-auto"
-              :to="{
-                name: 'adminproductsmanageupdate',
-                params: { id: product.id },
-              }"
-              >details</RouterLink
-            >
-          </th>
-        </tr>
-      </tbody>
-    </table>
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div class="text-3xl font-bold text-slate-700">Menu List</div>
+        <RouterLink to="/adminproductsmanage"
+          class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Add Product
+        </RouterLink>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+              <tr>
+                <th class="py-4 pl-6">Product Name</th>
+                <th>Price</th>
+                <th>Stock (Remain/Total)</th>
+                <th>Category (Role)</th>
+                <th>Status</th>
+                <th>Quick Restock</th>
+                <th>Last Update</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+
+            <tbody class="text-slate-600">
+              <tr v-for="product in MenuStore.list" :key="product.id"
+                class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+
+                <td class="pl-6">
+                  <div class="flex items-center gap-4">
+                    <div class="avatar">
+                      <div class="mask mask-squircle w-12 h-12 bg-slate-100">
+                        <img :src="product.ImageUrl || 'https://via.placeholder.com/150'" alt="Product Image"
+                          class="object-cover" />
+                      </div>
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-800">{{ product.Name }}</div>
+                      <div class="text-xs text-slate-400 opacity-70">ID: {{ product.id.substring(0, 6) }}...</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="font-medium">{{ product.Price?.toLocaleString() }} ฿</td>
+
+                <td>
+                  <span
+                    :class="{ 'text-red-500 font-bold': product.Remainquantity < 5, 'text-green-600': product.Remainquantity >= 5 }">
+                    {{ product.Remainquantity }}
+                  </span>
+                  <span class="text-slate-300 mx-1">/</span>
+                  {{ product.Quantity }}
+                </td>
+
+                <td>
+                  <div class="badge badge-ghost text-xs">{{ product.Store }}</div>
+                </td>
+
+                <td>
+                  <button @click="switchStatus(product)"
+                    class="btn btn-xs rounded-full px-3 font-normal border-none transition-all" :class="product.status === 'open'
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                        : 'bg-red-100 text-red-500 hover:bg-red-200'
+                      ">
+                    <span v-if="product.status === 'open'" class="flex items-center gap-1">● Open</span>
+                    <span v-else class="flex items-center gap-1">● Closed</span>
+                  </button>
+                </td>
+
+                <td>
+                  <div class="flex items-center gap-2">
+                    <input type="number"
+                      class="input input-bordered input-sm w-20 bg-white focus:outline-none focus:border-blue-500 text-center"
+                      placeholder="0" v-model="product.reStock" min="0" />
+                    <button class="btn btn-sm btn-square btn-ghost text-blue-500 hover:bg-blue-50"
+                      @click="reStock(product)" title="Add Stock">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+
+                <td class="text-xs">{{ formatDate(product.updatedAt) }}</td>
+
+                <td class="text-center">
+                  <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50" :to="{
+                    name: 'adminproductsmanageupdate',
+                    params: { id: product.id },
+                  }">
+                    details
+                  </RouterLink>
+                </td>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </LayoutAdmin>
 </template>

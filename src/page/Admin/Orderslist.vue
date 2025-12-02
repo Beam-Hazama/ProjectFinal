@@ -13,7 +13,7 @@ onMounted(() => {
 
 <template>
   <LayoutAdmin>
-    <div class="p-6"> <div class="text-3xl font-bold text-center mb-6 text-slate-700">Order List</div>
+    <div class="p-6"> <div class="text-3xl font-bold  mb-6 text-slate-700">Order List</div>
         <div class="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100">
         <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500">

@@ -33,26 +33,27 @@ const editOrder = () => {
     
     <div class="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-    <div class="px-8 pt-8 pb-4 bg-white/80 backdrop-blur-sm z-10 relative">
-      <h2 class="text-xs font-bold text-blue-600 tracking-widest uppercase mb-1">ยืนยันออเดอร์</h2>
-      <h1 class="text-3xl font-extrabold text-slate-800">Confirmation</h1>
-      <p class="text-slate-400 text-sm mt-1">กรุณาตรวจสอบรายการก่อนยืนยันออเดอร์</p>
+    <div class="px-8 pt-7 pb-4 bg-white/80 backdrop-blur-sm z-10 relative">
+      <h2 class="text-xs font-bold text-blue-400 tracking-widest uppercase mb-">ยืนยันออเดอร์</h2>
+      <h1 class="text-3xl font-extrabold text-blue-600">Confirm Order</h1>
+      <p class="text-red-700 text-sm mt-1">**ไม่สามารถยกเลิกออเดอร์ได้**</p>
+      <p class="text-red-700 text-sm mt-1">กรุณาตรวจสอบรายการอาหารก่อนยืนยันออเดอร์</p>
     </div>
 
     <div class="px-6 max-h-[40vh] overflow-y-auto custom-scrollbar relative z-10">
-      <div v-if="cartStore.item.length > 0" class="space-y-4">
-        
-        <div v-for="(cart, index) in cartStore.item" :key="index" class="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
-          
+      <div v-if="cartStore.item.length > 0" class="space-y-0.5">        
+        <div v-for="(cart, index) in cartStore.item" :key="index" class="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">                
           <div class="flex items-center gap-4"> 
             <div>
-              <h3 class="font-bold text-slate-700 text-base leading-tight ">{{ cart.Name }}</h3>
-              <p class="text-xs text-slate-400 font-medium mt-1">จำนวน: x{{ cart.Quantity }}</p>
+        
+              <div class="font-bold text-slate-700 text-base leading-tight ">{{ cart.Name }}</div>
+              <p class="text-xs text-slate-400 font-medium mt-1">จำนวน: x{{ cart.Quantity }} (฿{{ cart.Price }})</p>
+     
             </div>
           </div>
 
           <div class="text-right">
-             <span class="font-bold text-slate-800 text-lg">{{ (cart.Price * cart.Quantity).toLocaleString() }}</span>
+             <span class="font-bold text-blue-600 text-lg">{{ (cart.Price * cart.Quantity).toLocaleString() }} </span>
              <span class="text-xs text-slate-400 block">บาท</span>
           </div>
         </div>
@@ -68,13 +69,13 @@ const editOrder = () => {
       <hr class="border-dashed border-gray-300 my-2" /> 
       <div class="flex justify-between items-end mb-6 px-2">
         <div>
-          <span class="text-sm text-slate-500 font-medium">ยอดรวมทั้งสิ้น</span>
+          <span class="text-xl font-medium">ยอดรวมทั้งสิ้น</span>
         </div>
         <div class="text-right">
           <span class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
             {{ cartStore.summaryPrice.toLocaleString() }}
           </span>
-          <span class="text-sm text-slate-500 font-bold ml-1">THB</span>
+          <span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
         </div>
       </div>
 
