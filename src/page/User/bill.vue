@@ -1,5 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useOderlistStore } from '@/stores/OrderList';
+
+const Order = useOderlistStore()
 
 // จำลองข้อมูล (Mock Data)
 const receipt = ref({
@@ -21,6 +24,10 @@ const receipt = ref({
     received: 1000.00
 });
 
+onMounted(async () => {
+    await Order.loadOrder()
+})
+
 const discount = ref(50.00);
 
 // --- ส่วนการคำนวณ ---
@@ -40,9 +47,9 @@ const formatPrice = (value) => {
 
 <template>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex justify-center p-4 md:px-8 text-gray-700">
-        <div class="bg-white w-full max-w rounded-3xl shadow-xl relative flex flex-col h-fit overflow-hidden">
-            <div class="bg-white p-6 pb-2">
-                <div class="flex items-center gap-3 mb-6">
+        <div v-for="order in Order.list"class="bg-white w-full max-w rounded-3xl shadow-xl relative flex flex-col h-fit overflow-hidden">
+            <div  class="bg-white p-6 pb-2">
+                <div  class="flex items-center gap-3 mb-6">
                     <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-600/20">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -66,7 +73,7 @@ const formatPrice = (value) => {
                             class="inline-block bg-white text-blue-600 text-sm font-bold px-4 py-1.5 rounded-lg shadow-sm mb-2">
                             {{ receipt.queue }}
                         </div>
-                        <div class="text-xs  text-gray-500 mx-">{{ receipt.date }}</div>
+                        <div class="text-xs  text-gray-500 mx-">{{ order.CreatedAt.toDate().toLocaleString() }}</div>
                     </div>
                 </div>
             </div>
@@ -76,18 +83,18 @@ const formatPrice = (value) => {
                 <div class="text-right min-w-[100px]">Price</div>
             </div>
             <div class="px-8 py-2">
-                <div v-for="(item, index) in receipt.items" :key="index"
+                <div v-for="(item, index) in order.Menu" :key="index"
                     class="flex items-center py-4 border-b border-gray-100 last:border-0 group hover:bg-gray-50 transition-colors rounded-xl px-2 -mx-2">
                     <div class="w-16 text-center">
                         <span class="inline-block text-gray-500 font-bold bg-gray-100 rounded-lg py-1 px-3 text-xs">
-                            x{{ item.qty }}
+                            x{{ item.Quantity }}
                         </span>
                     </div>
                     <div class="flex-1 min-w-0 mx-4">
-                        <div class="font-bold text-gray-800 text-base md:text-lg truncate">{{ item.name }}</div>
+                        <div class="font-bold text-gray-800 text-base md:text-lg truncate">{{ item.Name }}</div>
                     </div>
                     <div class="text-right min-w-[100px] font-bold text-blue-600 text-base md:text-lg">
-                        {{ formatPrice(item.price) }}
+                        {{ formatPrice(item.Price*item.Quantity) }}
                     </div>
                 </div>
             </div>
