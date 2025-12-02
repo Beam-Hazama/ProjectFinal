@@ -90,16 +90,10 @@ onMounted(() => {
       </div>
 
       <TransitionGroup name="list" tag="div" class="space-y-3">
-        <div
-          v-for="(cart, index) in cartStore.item"
-          :key="index"
-          class="group relative bg-white/60 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-100"
-        >
+        <div v-for="(cart, index) in cartStore.item":key="index" class="group relative bg-white/60 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-100">
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-3 overflow-hidden">
-              <div
-                class="flex-shrink-0 w-10 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-500 font-bold text-xs"
-              >
+              <div class="flex-shrink-0 w-10 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-500 font-bold text-xs">
                 x{{ cart.Quantity }}
               </div>
 
@@ -107,26 +101,20 @@ onMounted(() => {
                 <div class="font-bold text-gray-800 text-lg truncate">
                   {{ cart.Name }}
                 </div>
-                <button
-                  class="text-xs text-gray-400 flex items-center gap-1 mt-0.5 hover:text-blue-500 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-                    />
+                <button class="text-xs text-gray-400 flex items-center gap-1 mt-0.5 hover:text-blue-500 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                   </svg>
                   แก้ไขรายละเอียด
                 </button>
               </div>
             </div>
+            <div>
+              {{ cart.Price }}
+            </div>
 
             <div class="text-lg font-bold text-blue-600 flex-shrink-0 ml-2">
-              ฿{{ formatPrice(cart.Price) }}
+              ฿{{ formatPrice(cart.Price * cart.Quantity) }}
             </div>
           </div>
         </div>

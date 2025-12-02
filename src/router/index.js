@@ -6,7 +6,7 @@ import Admin from '@/page/Admin/Dashboard.vue'
 import Adminmenuslist from '@/page/Admin/Menuslist.vue'
 import Adminorderslist from '@/page/Admin/Orderslist.vue'
 import bill from '@/page/User/bill.vue'
-import adminstore from '@/page/Store/Laoutstore.vue'
+import adminstore from '@/page/Store/Layoutstore.vue'
 
 import Login from '@/page/Login/Login.vue'
 
