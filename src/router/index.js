@@ -1,14 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import User from '@/page/User/User.vue'
 import Cart from '@/page/User/Cart.vue'
-
 import Admin from '@/page/Admin/Dashboard.vue'
 import Adminmenuslist from '@/page/Admin/Menuslist.vue'
 import Adminorderslist from '@/page/Admin/Orderslist.vue'
 import bill from '@/page/User/bill.vue'
-import adminstore from '@/page/Store/Layoutstore.vue'
 
 import Login from '@/page/Login/Login.vue'
+import Status from '@/page/User/Status.vue'
+import QRCode from '@/page/Admin/QRCode.vue'
+import Restaurant from '@/page/Admin/Restaurant.vue'
+import restaurant from '@/page/Restaurant/restaurant.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,11 +35,7 @@ const router = createRouter({
       name: 'AdminOrdersList',
       component: Adminorderslist,
     },
-    {
-      path: '/adminstore',
-      name: 'Adminstore',
-      component: adminstore,
-    },
+  
     {
       path: '/cart',
       name: 'Cart',
@@ -52,6 +50,26 @@ const router = createRouter({
       path: '/bill',
       name: 'bill',
       component: bill,
+    },
+    {
+      path: '/Status',
+      name: 'Status',
+      component: Status,
+    },
+    {
+      path: '/QRCode',
+      name: 'QRCode',
+      component: QRCode,
+    },
+    {
+      path: '/Admin/Restaurant',
+      name: 'Restaurant',
+      component: Restaurant,
+    },
+    {
+      path: '/Restaurant/',
+      name: '75',
+      component: restaurant,
     },
 
   ],

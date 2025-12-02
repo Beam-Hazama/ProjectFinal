@@ -84,7 +84,8 @@ const calculateExclVat = (grandTotal) => {
                     </div>
                     <div class="flex-1 min-w-0 ">
                         <div class="font-bold text-gray-800 text-base md:text-lg truncate">
-                            {{ item.Name }}</div>
+                            {{ item.Name }}<span class="text-xs text-gray-400"> (฿{{ item.Price}})</span></div>
+                        
                     </div>
                     <div class="text-right min-w-[100px] font-bold text-blue-600 text-base mx-4 md:text-lg">
                         {{ item.Price * item.Quantity }}

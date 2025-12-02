@@ -144,33 +144,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
 
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
-}
-</style>
