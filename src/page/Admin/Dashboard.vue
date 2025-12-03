@@ -1,5 +1,5 @@
 <script setup>
-import layoutAdmin from '@/page/Admin/LayoutAdmin.vue';
+import layoutAdmin from '@/page/Admin/Admin.vue';
 
 const barOption = {
   options: {

@@ -56,7 +56,7 @@ onMounted(() => {
 
        
 
-        <RouterLink to="/bill" class="btn btn-circle btn-ghost btn-sm text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+        <RouterLink to="/User/Bill" class="btn btn-circle btn-ghost btn-sm text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
           <bill class="w-6 h-6" />
         </RouterLink>
       </div>
@@ -165,7 +165,7 @@ onMounted(() => {
     </div>
 
     <RouterLink 
-      to="/Cart" 
+      to="/User/Cart" 
       class="fixed bottom-6 right-6 z-50 group"
     >
       <div class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg shadow-indigo-300 flex items-center justify-center text-white text-2xl transform transition-transform duration-300 group-hover:scale-110 group-active:scale-95">

@@ -1,6 +1,6 @@
 <script setup>
 import { db } from '@/firebase';
-import LayoutAdmin from '@/page/Admin/LayoutAdmin.vue';
+import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useMenuStore } from '@/stores/menu';
 import { doc, updateDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';

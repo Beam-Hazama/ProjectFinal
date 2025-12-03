@@ -22,32 +22,40 @@ onMounted(() => {
 <template>
   <div
     class="w-full min-h-screen p-4 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
-    <div class="flex items-center gap-2 mb-2">
-      <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    
+    <div class="flex justify-between items-start mb-2">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md">
+            MY CART
+          </h1>
+          <p class="text-xs text-blue-400 font-medium mx-0.5 mb-1">
+            รายการอาหารของคุณ
+          </p>
+        </div>
+      </div>
+
+      <router-link to="/user" 
+        class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-md transition-all duration-300 border border-white/50">
+        <span class="text-sm font-bold">ย้อนกลับ</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 group-hover:translate-x-1 transition-transform">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
         </svg>
-      </div>
-      <div>
-        <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md">
-          MY CART
-        </h1>
-        <p class="text-xs text-blue-400 font-medium mx-0.5 mb-1">
-          รายการอาหารของคุณ
-        </p>
-      </div>
+      </router-link>
     </div>
 
     <div
       class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center mb-4 border-b border-blue-100 pb-4">
         <span class="text-lg font-bold text-gray-700 mx-3">รายการอาหารที่สั่ง</span>
-        <button
-          class="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-1 active:scale-95">
-          <span>+</span> สั่งเพิ่ม
-        </button>
+        
       </div>
 
       <div v-if="!cartStore.item || cartStore.item.length === 0"

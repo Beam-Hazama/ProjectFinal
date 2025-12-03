@@ -1,43 +1,55 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import User from '@/page/User/User.vue'
-import Cart from '@/page/User/Cart.vue'
-import Admin from '@/page/Admin/Dashboard.vue'
-import Adminmenuslist from '@/page/Admin/Menuslist.vue'
-import Adminorderslist from '@/page/Admin/Orderslist.vue'
-import bill from '@/page/User/bill.vue'
-
 import Login from '@/page/Login/Login.vue'
-import Status from '@/page/User/Status.vue'
-import QRCode from '@/page/Admin/QRCode.vue'
+
+import Admin from '@/page/Admin/Admin.vue'
+import Admindashboard from '@/page/Admin/Dashboard.vue'
+import Adminmenulist from '@/page/Admin/Menulist.vue'
+import Adminorderlist from '@/page/Admin/Orderlist.vue'
+import AdminQRCode from '@/page/Admin/QRCode.vue'
 import Restaurant from '@/page/Admin/Restaurant.vue'
-import restaurant from '@/page/Restaurant/restaurant.vue'
+
+import Restaurants from '@/page/Restaurant/restaurant.vue'
+
+import User from '@/page/User/User.vue'
+import Bill from '@/page/User/Bill.vue'
+import Cart from '@/page/User/Cart.vue'
+import Status from '@/page/User/Status.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/User',
       name: 'User',
       component: User,
     },
     {
-      path: '/admin',
+      path: '/Admin',
       name: 'Admin',
       component: Admin,
     },
     {
-      path: '/adminmenuslist',
-      name: 'AdminMenusList',
-      component: Adminmenuslist,
+      path: '/Admin/Dashboard',
+      name: 'Dashboard',
+      component: Admindashboard,
     },
     {
-      path: '/adminorderslist',
-      name: 'AdminOrdersList',
-      component: Adminorderslist,
+      path: '/Admin/Menulist',
+      name: 'Menu List',
+      component: Adminmenulist,
     },
-  
     {
-      path: '/cart',
+      path: '/Admin/Orderlist',
+      name: 'Order List',
+      component: Adminorderlist,
+    },
+    {
+      path: '/User/Status',
+      name: 'Status',
+      component: Status,
+    },
+    {
+      path: '/User/Cart',
       name: 'Cart',
       component: Cart,
     },
@@ -47,19 +59,14 @@ const router = createRouter({
       component: Login,
     },
     {
-      path: '/bill',
-      name: 'bill',
-      component: bill,
+      path: '/User/Bill',
+      name: 'Bill',
+      component: Bill,
     },
     {
-      path: '/Status',
-      name: 'Status',
-      component: Status,
-    },
-    {
-      path: '/QRCode',
-      name: 'QRCode',
-      component: QRCode,
+      path: '/Admin/QRCode',
+      name: 'QR Code',
+      component: AdminQRCode,
     },
     {
       path: '/Admin/Restaurant',
@@ -67,9 +74,9 @@ const router = createRouter({
       component: Restaurant,
     },
     {
-      path: '/Restaurant/',
-      name: '75',
-      component: restaurant,
+      path: '/Restaurant',
+      name: 'Restaurants',
+      component: Restaurants,
     },
 
   ],

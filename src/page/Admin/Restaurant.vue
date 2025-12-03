@@ -1,5 +1,5 @@
 <script setup>
-import LayoutAdmin from '@/page/Admin/LayoutAdmin.vue';
+import LayoutAdmin from '@/page/Admin/Admin.vue';
 </script>
 
 <template>
