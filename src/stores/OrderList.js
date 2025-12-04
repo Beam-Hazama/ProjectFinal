@@ -7,44 +7,59 @@ export const useOderlistStore = defineStore('oderlist', {
   state: () => ({
     list: [],
   }),
-  getters:{
-    sortedOrders:(state)=>{
-        return [...state.list].sort((a,b)=> {
-            if(!a.createdAt || !b.createdAt)return 0
-            return a.createdAt.seconds - b.createdAt.seconds
-    })}
+  getters: {
+    sortedOrders: (state) => {
+      return [...state.list].sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return a.createdAt.seconds - b.createdAt.seconds;
+      });
+    },
   },
   actions: {
     async addToOrderList(orderData) {
-      const {Menu,...orderref} = orderData
-      const cleanedMenu = Menu.map(item => {
+      const { Menu, ...orderref } = orderData;
+      const cleanedMenu = Menu.map((item) => {
         const { Status, Remainquantity, ImageUrl, ...filtered } = item;
         return filtered;
       });
-    
+
       const finalOrder = {
         ...orderref,
         Menu: cleanedMenu,
       };
-    
+
       await addDoc(collection(db, 'Order'), {
         ...finalOrder,
         statusOrder: 'pending',
-        CreatedAt: serverTimestamp()
+        CreatedAt: serverTimestamp(),
       });
-    
+
       console.log('orderlist', this.list);
     },
-    async loadOrder(){
-      const orderList = query(collection(db,'Order'),where('statusOrder','==','pending'))
-      onSnapshot(orderList,(orderSnapshot)=>{
-        const order = orderSnapshot.docs.map(doc=>{
-          const convertedData = doc.data()
-          convertedData.id = doc.id
-          return convertedData
-      })
-      this.list = order
-     })
+    async loadOrder() {
+      const orderList = query(
+        collection(db, 'Order'),
+        where('statusOrder', '==', 'pending')
+      );
+      onSnapshot(orderList, (orderSnapshot) => {
+        const order = orderSnapshot.docs.map((doc) => {
+          const convertedData = doc.data();
+          convertedData.id = doc.id;
+          return convertedData;
+        });
+        this.list = order;
+      });
+    },
+    async loadOrderinadmin() {
+      const orderList = collection(db, 'Order');
+      onSnapshot(orderList, (orderSnapshot) => {
+        const order = orderSnapshot.docs.map((doc) => {
+          const convertedData = doc.data();
+          convertedData.id = doc.id;
+          return convertedData;
+        });
+        this.list = order;
+      });
     },
   },
 });

@@ -6,6 +6,7 @@ import Admindashboard from '@/page/Admin/Dashboard.vue'
 import Adminmenulist from '@/page/Admin/Menulist.vue'
 import Adminorderlist from '@/page/Admin/Orderlist.vue'
 import AdminQRCode from '@/page/Admin/QRCode.vue'
+import Managemenu from '@/page/component/Managemenu.vue'
 import Restaurant from '@/page/Admin/Restaurant.vue'
 
 import Restaurants from '@/page/Restaurant/restaurant.vue'
@@ -78,7 +79,16 @@ const router = createRouter({
       name: 'Restaurants',
       component: Restaurants,
     },
-
+    {
+      path: '/Managemenu',
+      name: 'Manageaddmenu',
+      component: Managemenu,
+    },
+    {
+      path: '/Managemenu:id',
+      name: 'Manageupdatemenu',
+      component: Managemenu,
+    },
   ],
 });
 

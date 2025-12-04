@@ -11,8 +11,6 @@ import {
 
 import { db } from '@/firebase';
 
-
-
 export const useMenuStore = defineStore('product', {
   state: () => ({
     list: [],
@@ -43,19 +41,19 @@ export const useMenuStore = defineStore('product', {
         console.log('LIST:', this.list);
       });
     },
-    /*async productUpdate(productId,productData){
+    async productUpdate(productId,productData){
       const product = {
         ...productData,
         updatedAt:new Date()
       }
-      const thisProduct = doc(db,'products',productId)
+      const thisProduct = doc(db,'Menu',productId)
       await setDoc(thisProduct,product)
     },
     category (selectRole){
       return this.list.filter(product => product.role.includes(selectRole))
-    },*/
+    },
     async addProduct(productData){
-      await addDoc(collection(db,'products'),{
+      await addDoc(collection(db,'Menu'),{
         ...productData,
         updatedAt:serverTimestamp()
       })
