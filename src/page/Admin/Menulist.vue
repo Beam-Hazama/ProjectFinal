@@ -30,16 +30,16 @@ const formatDate = (timestamp) => {
             class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Add Product
+          Add Menu
         </RouterLink>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
-            <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold  text-xs">
               <tr>
-                <th class="py-4 pl-6">Product Name</th>
+                <th class="py-4 pl-6">Menu</th>
                 <th>Price</th>
                 <th>Stock (Remain/Total)</th>
                 <th>Category (Role)</th>

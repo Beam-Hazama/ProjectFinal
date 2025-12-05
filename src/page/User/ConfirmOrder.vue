@@ -49,7 +49,6 @@ const editOrder = () => {
           class="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
           <div class="flex items-center gap-4">
             <div>
-
               <div class="font-bold text-slate-700 text-base leading-tight ">{{ cart.Name }}</div>
               <p class="text-xs text-slate-400 font-medium mt-1">จำนวน: x{{ cart.Quantity }} (฿{{ cart.Price }})</p>
 

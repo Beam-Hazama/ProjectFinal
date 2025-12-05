@@ -40,100 +40,107 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="drawer lg:drawer-open font-sans bg-slate-50 min-h-screen">
+  <div class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
     <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col relative">
-        <div class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
-            <div class="flex items-center gap-3">
-                <label for="my-drawer-2" class="btn btn-square btn-ghost btn-sm text-slate-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </label>
-                <span class="font-bold text-lg text-blue-600 tracking-wide">Admin Panel</span>
-            </div>
-            <div class="avatar w-8 h-8">
-                <div class="rounded-full bg-slate-200">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" />
-                </div>
-            </div>
+      <div class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
+        <div class="flex items-center gap-3">
+          <label for="my-drawer-2" class="btn btn-square btn-ghost btn-sm text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              class="inline-block w-6 h-6 stroke-current">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </label>
+          <span class="font-bold text-lg text-blue-600 tracking-wide">Admin Panel</span>
+        </div>
+        <div class="avatar w-8 h-8">
+          <div class="rounded-full bg-slate-200">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" />
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
+        <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
+          <ul>
+            <li>Admin</li>
+            <li>{{ route.name || 'Dashboard' }}</li>
+          </ul>
         </div>
 
-        <div class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
-            <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
-              <ul>
-                <li>Admin</li>
-                <li>{{ route.name || 'Dashboard' }}</li>
-              </ul>
-            </div>
-            
-            <slot></slot>
-        </div>
+        <slot></slot>
+      </div>
 
-        <div class="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none translate-x-1/3 -translate-y-1/3 z-0"></div>
-        <div class="fixed bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none -translate-x-1/3 translate-y-1/3 z-0"></div>
+      <div
+        class="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none translate-x-1/3 -translate-y-1/3 z-0">
+      </div>
+      <div
+        class="fixed bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none -translate-x-1/3 translate-y-1/3 z-0">
+      </div>
     </div>
-    
+
     <div class="drawer-side z-40">
       <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
-      
+
       <aside class="w-72 min-h-full bg-white shadow-xl flex flex-col border-r border-slate-100">
-        
+
         <div class="h-20 flex items-center px-6 border-b border-slate-100 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">Admin<span class="text-blue-600">.</span></h1>
-                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Management</p>
-                </div>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+              </svg>
             </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">Admin<span class="text-blue-600">.</span>
+              </h1>
+              <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Management</p>
+            </div>
+          </div>
         </div>
 
         <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
-            <router-link 
-                v-for="menu in menus" 
-                :key="menu.name"
-                :to="{ name: menu.routeName }" 
-                :class="[
-                    'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
-                    route.name === menu.routeName 
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 translate-x-1' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                ]"
-            >
-                <span v-html="menu.icon" :class="route.name === menu.routeName ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'"></span>
-                {{ menu.name }}
-                
-                <span v-if="route.name === menu.routeName" class="ml-auto w-2 h-2 rounded-full bg-white/40"></span>
-            </router-link>
+          <router-link v-for="menu in menus" :key="menu.name" :to="{ name: menu.routeName }" :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
+            route.name === menu.routeName
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 translate-x-1'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+          ]">
+            <span v-html="menu.icon"
+              :class="route.name === menu.routeName ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'"></span>
+            {{ menu.name }}
+
+            <span v-if="route.name === menu.routeName" class="ml-auto w-2 h-2 rounded-full bg-white/40"></span>
+          </router-link>
         </div>
 
         <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-            <div class="flex items-center gap-3 mb-4 px-2">
-                <div class="avatar online">
-                    <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser" />
-                    </div>
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-sm font-bold text-slate-700 truncate">Administrator</p>
-                    <p class="text-xs text-slate-400 truncate">admin@store.com</p>
-                </div>
+          <div class="flex items-center gap-3 mb-4 px-2">
+            <div class="avatar online">
+              <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser" />
+              </div>
             </div>
-            
-            <button @click="logout" class="btn btn-outline btn-error btn-sm w-full gap-2 rounded-lg font-bold">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                </svg>
-                Sign Out
-            </button>
+            <div class="overflow-hidden">
+              <p class="text-sm font-bold text-slate-700 truncate">Administrator</p>
+              <p class="text-xs text-slate-400 truncate">admin@store.com</p>
+            </div>
+          </div>
+
+          <button @click="logout" class="btn btn-outline btn-error btn-sm w-full gap-2 rounded-lg font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            Sign Out
+          </button>
         </div>
 
       </aside>
     </div>
   </div>
 </template>
-
