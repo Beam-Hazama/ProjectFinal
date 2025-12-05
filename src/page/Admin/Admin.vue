@@ -1,3 +1,7 @@
+{
+type: uploaded file
+fileName: beam-hazama/projectfinal/ProjectFinal-7d217d4f17f10d05ecb1377d7260512d69e76c85/src/page/Admin/Admin.vue
+fullContent:
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 
@@ -64,7 +68,16 @@ const logout = () => {
         <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
           <ul>
             <li>Admin</li>
-            <li>{{ route.name || 'Dashboard' }}</li>
+            
+            <li v-if="route.name === 'Manageaddmenu' || route.name === 'Manageupdatemenu'">
+              <router-link :to="{ name: 'Menu List' }" class="hover:text-blue-600">Menu List</router-link>
+            </li>
+
+            <li>
+              <span v-if="route.name === 'Manageaddmenu'">Add Menu</span>
+              <span v-else-if="route.name === 'Manageupdatemenu'" class="text-slate-600 font-medium">Edit Menu</span>
+              <span v-else>{{ route.name || 'Dashboard' }}</span>
+            </li>
           </ul>
         </div>
 
@@ -144,3 +157,4 @@ const logout = () => {
     </div>
   </div>
 </template>
+}

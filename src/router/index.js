@@ -80,12 +80,12 @@ const router = createRouter({
       component: Restaurants,
     },
     {
-      path: '/Managemenu',
+      path: '/Admin/Menulist/Addmenu',
       name: 'Manageaddmenu',
       component: Managemenu,
     },
     {
-      path: '/Managemenu:id',
+      path: '/Admin/Menulist/Edit/:id',
       name: 'Manageupdatemenu',
       component: Managemenu,
     },

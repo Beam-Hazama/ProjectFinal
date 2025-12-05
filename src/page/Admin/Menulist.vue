@@ -24,7 +24,7 @@ const formatDate = (timestamp) => {
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <div class="text-3xl font-bold text-slate-700">Menu List</div>
-        <RouterLink to="/Managemenu"
+        <RouterLink to="/Admin/Menulist/Addmenu"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-5 h-5">
@@ -41,10 +41,10 @@ const formatDate = (timestamp) => {
               <tr>
                 <th class="py-4 pl-6">Menu</th>
                 <th>Price</th>
-                <th>Stock (Remain/Total)</th>
-                <th>Category (Role)</th>
+                <th>Quantity </th>
+                <th>Category </th>
                 <th>Status</th>
-                <th>Quick Restock</th>
+                
                 <th>Last Update</th>
                 <th class="text-center">Action</th>
               </tr>
@@ -91,20 +91,7 @@ const formatDate = (timestamp) => {
                   </button>
                 </td>
 
-                <td>
-                  <div class="flex items-center gap-2">
-                    <input type="number"
-                      class="input input-bordered input-sm w-20 bg-white focus:outline-none focus:border-blue-500 text-center"
-                      placeholder="0" v-model="product.reStock" min="0" />
-                    <button class="btn btn-sm btn-square btn-ghost text-blue-500 hover:bg-blue-50"
-                      @click="reStock(product)" title="Add Stock">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                        stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
+                
 
                 <td class="text-xs">{{ formatDate(product.updatedAt) }}</td>
 
@@ -112,7 +99,7 @@ const formatDate = (timestamp) => {
                   <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50" :to="{
                     name: 'Manageupdatemenu',
                     params: { id: product.id },
-                  }"> details </RouterLink>
+                  }"> Edit </RouterLink>
                 </td>
               </tr>
             </tbody>

@@ -114,11 +114,7 @@ onMounted(async () => {
       
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div class="flex items-center gap-4">
-          <button @click="goBack" class="btn btn-circle btn-ghost bg-white shadow-sm hover:bg-slate-100 text-slate-500">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
+          
           <div>
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
               {{ mode === 'Add Product' ? 'เพิ่มเมนูอาหารใหม่' : 'แก้ไขเมนูอาหาร' }}
@@ -268,7 +264,7 @@ onMounted(async () => {
 
                 <div>
                     <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ราคาและสต็อกสินค้า</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text font-medium text-slate-600">ราคา (บาท) <span class="text-red-500">*</span></span>
@@ -296,17 +292,7 @@ onMounted(async () => {
                             />
                         </div>
 
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-medium text-slate-600">จำนวนสูงสุด (สต็อก)</span>
-                            </label>
-                            <input 
-                                type="number" 
-                                placeholder="0" 
-                                class="input input-bordered w-full text-center focus:input-primary bg-slate-50 border-slate-200" 
-                                v-model="MenuData.Quantity"
-                            />
-                        </div>
+                        
                     </div>
                 </div>
 
