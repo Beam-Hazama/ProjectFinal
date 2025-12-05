@@ -1,6 +1,6 @@
 <script setup>
 import { db } from '@/firebase';
-import LayoutAdmin from '@/page/Admin/Admin.vue';
+import Layoutrestaurant from '@/page//Restaurant/restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
 import { doc, updateDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';
@@ -9,7 +9,7 @@ import { onMounted } from 'vue';
 const MenuStore = useMenuStore();
 
 onMounted(() => {
-  MenuStore.loadMenu();
+  MenuStore.loadMenuRestaurant("อาหารตามสั่ง");
 });
 
 // ฟังก์ชันจัดรูปแบบวันที่ (Optional)
@@ -20,7 +20,7 @@ const formatDate = (timestamp) => {
 </script>
 
 <template>
-  <LayoutAdmin>
+  <Layoutrestaurant>
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <div class="text-3xl font-bold text-slate-700">Menu List</div>
@@ -91,9 +91,7 @@ const formatDate = (timestamp) => {
                   </button>
                 </td>
 
-                
-
-                <td class="text-xs">{{ formatDate(product.updatedAt) }}</td>
+                <td class="text-xs"></td>
 
                 <td class="text-center">
                   <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50" :to="{
@@ -107,5 +105,5 @@ const formatDate = (timestamp) => {
         </div>
       </div>
     </div>
-  </LayoutAdmin>
+  </Layoutrestaurant>
 </template>

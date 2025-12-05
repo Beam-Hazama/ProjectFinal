@@ -9,11 +9,6 @@ const formatPrice = (value) => {
   return new Intl.NumberFormat('th-TH').format(value);
 };
 
-const closeModal = () => {
-  const dlg = document.getElementById('my_modal_1');
-  if (dlg?.close) dlg.close();
-};
-
 onMounted(() => {
   cartStore.loadcart();
 });

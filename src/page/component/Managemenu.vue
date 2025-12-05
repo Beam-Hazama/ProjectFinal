@@ -58,7 +58,7 @@ const checkAddProduct = async (MenuData) => {
       ...MenuData,
       ImageUrl,
     })
-    router.push({ name: 'Menu List' })
+    router.push({ name: 'Admin Menu List' })
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการเพิ่ม/อัปเดตสินค้า:', error)
   }

@@ -6,10 +6,13 @@ import Admindashboard from '@/page/Admin/Dashboard.vue'
 import Adminmenulist from '@/page/Admin/Menulist.vue'
 import Adminorderlist from '@/page/Admin/Orderlist.vue'
 import AdminQRCode from '@/page/Admin/QRCode.vue'
+import Adminrestaurantlist from '@/page/Admin/Restaurant.vue'
+
 import Managemenu from '@/page/component/Managemenu.vue'
-import Restaurant from '@/page/Admin/Restaurant.vue'
 
 import Restaurants from '@/page/Restaurant/restaurant.vue'
+import Restaurantorderlist from '@/page/Restaurant/Orderlist.vue'
+import Restaurantmenulist from '@/page/Restaurant/Menulist.vue'
 
 import User from '@/page/User/User.vue'
 import Bill from '@/page/User/Bill.vue'
@@ -19,30 +22,16 @@ import Status from '@/page/User/Status.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    //user
     {
       path: '/User',
       name: 'User',
       component: User,
     },
     {
-      path: '/Admin',
-      name: 'Admin',
-      component: Admin,
-    },
-    {
-      path: '/Admin/Dashboard',
-      name: 'Dashboard',
-      component: Admindashboard,
-    },
-    {
-      path: '/Admin/Menulist',
-      name: 'Menu List',
-      component: Adminmenulist,
-    },
-    {
-      path: '/Admin/Orderlist',
-      name: 'Order List',
-      component: Adminorderlist,
+      path: '/User/Bill',
+      name: 'Bill',
+      component: Bill,
     },
     {
       path: '/User/Status',
@@ -54,15 +43,26 @@ const router = createRouter({
       name: 'Cart',
       component: Cart,
     },
+    //Admin
     {
-      path: '/Login',
-      name: 'Login',
-      component: Login,
+      path: '/Admin',
+      name: 'Admin',
+      component: Admin,
     },
     {
-      path: '/User/Bill',
-      name: 'Bill',
-      component: Bill,
+      path: '/Admin/Dashboard',
+      name: 'Admin Dashboard',
+      component: Admindashboard,
+    },
+    {
+      path: '/Admin/Menulist',
+      name: 'Admin Menu List',
+      component: Adminmenulist,
+    },
+    {
+      path: '/Admin/Orderlist',
+      name: 'Admin Order List',
+      component: Adminorderlist,
     },
     {
       path: '/Admin/QRCode',
@@ -71,23 +71,41 @@ const router = createRouter({
     },
     {
       path: '/Admin/Restaurant',
-      name: 'Restaurant',
-      component: Restaurant,
+      name: 'Admin Restaurant List',
+      component: Adminrestaurantlist,
     },
+
+    {
+      path: '/Admin/Menulist/Addmenu',
+      name: 'Admin Add menu',
+      component: Managemenu,
+    },
+    {
+      path: '/Admin/Menulist/Edit/:id',
+      name: 'Admin update menu',
+      component: Managemenu,
+    },
+
+    {
+      path: '/Login',
+      name: 'Login',
+      component: Login,
+    },
+    //Restaurant
     {
       path: '/Restaurant',
       name: 'Restaurants',
       component: Restaurants,
     },
     {
-      path: '/Admin/Menulist/Addmenu',
-      name: 'Manageaddmenu',
-      component: Managemenu,
+      path: '/Restaurant/Orderlist',
+      name: 'Restaurants Orderlist',
+      component: Restaurantorderlist,
     },
     {
-      path: '/Admin/Menulist/Edit/:id',
-      name: 'Manageupdatemenu',
-      component: Managemenu,
+      path: '/Restaurant/Menulist',
+      name: 'Restaurants Menulist',
+      component: Restaurantmenulist,
     },
   ],
 });

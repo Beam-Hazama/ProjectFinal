@@ -39,7 +39,7 @@ const popularCategories = [
 ];
 
 onMounted(() => {
-  menu.loadProducts();
+  menu.loadMenu();
 });
 </script>
 
