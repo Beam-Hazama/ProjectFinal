@@ -32,14 +32,17 @@ export const useCartStore = defineStore("cart", {
           productdata.Quantity = 1;
           this.item.push(productdata);
           localStorage.setItem("cart-data", JSON.stringify(this.item));
-          console.log('data ++')
+          console.log("data ++");
         } else {
           const cerrentItem = this.item[fineProductIndex];
-          if(this.item[fineProductIndex].Quantity < productdata.Remainquantity){
-          this.updateQuantity(fineProductIndex, cerrentItem.Quantity + 1);}
+          if (
+            this.item[fineProductIndex].Quantity < productdata.Remainquantity
+          ) {
+            this.updateQuantity(fineProductIndex, cerrentItem.Quantity + 1);
+          }
         }
       }
-      
+
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
     decreaseToCart(productdata) {
@@ -51,7 +54,11 @@ export const useCartStore = defineStore("cart", {
         productdata.Quantity = 0;
       } else {
         const cerrentItem = this.item[fineProductIndex];
-        this.updateQuantity(fineProductIndex, cerrentItem.Quantity - 1,productdata.RemainQuantity);
+        this.updateQuantity(
+          fineProductIndex,
+          cerrentItem.Quantity - 1,
+          productdata.RemainQuantity
+        );
       }
     },
     updateQuantity(index, quantity) {
@@ -62,16 +69,17 @@ export const useCartStore = defineStore("cart", {
       this.item.splice(index, 1);
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
-    placeorder() {
+    placeorder(tableId) {
+      // รับ tableId เข้ามา
       const orderData = {
-        //...userData,
         TotalPrice: this.summaryPrice,
         OrderNumber: `${Math.floor(Math.random() * 100000)}`,
+        TableID: tableId, // เพิ่มฟิลด์นี้เข้าไปในข้อมูล Order
         Menu: this.item,
       };
       const orderList = useOderlistStore();
       localStorage.setItem("order-data", JSON.stringify(orderData));
-      orderList.addToOrderList(orderData);
+      orderList.addToOrderList(orderData); // บันทึกลง Store/Firebase
     },
     /*loadCheckout() {
       const orderData = localStorage.getItem("order-data");

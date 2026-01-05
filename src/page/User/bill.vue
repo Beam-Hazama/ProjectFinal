@@ -35,7 +35,7 @@ const calculateExclVat = (grandTotal) => {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col gap-3 py-4 px-4 text-gray-700">
     
-    <div class="flex justify-between items-center  md:px-0 mb-2">
+    <div class="flex justify-between items-center md:px-0 mb-2">
       <div class="flex items-center gap-3">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

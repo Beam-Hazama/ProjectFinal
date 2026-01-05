@@ -12,6 +12,10 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss(),
   ],
+  server: {
+    host: true, // หรือใส่เป็น '0.0.0.0' เพื่อเปิดให้เครื่องอื่นเข้าถึงได้
+    port: 5173
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

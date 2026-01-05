@@ -1,5 +1,5 @@
 <script setup>
-import restaurant from './restaurant.vue';
+import restaurant from './Restaurant.vue';
 import { onMounted } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 

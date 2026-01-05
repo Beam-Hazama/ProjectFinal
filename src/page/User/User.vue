@@ -4,6 +4,10 @@ import { useMenuStore } from '@/stores/menu';
 import product from '@/page/component/blockmenu.vue'; // ตรวจสอบ path ให้ถูกต้อง
 import bill from '@/Icon/Bill.vue';
 import Cart from '@/Icon/Cart.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const tableId = route.params.tableId || 'ทั่วไป'; // ดึงค่าจาก URL
 
 const menu = useMenuStore();
 
@@ -50,7 +54,7 @@ onMounted(() => {
       <div class="flex items-center justify-between px-4 py-3">
         <div class="flex items-center gap-2">
           <span class="badge badge-lg bg-indigo-100 text-indigo-700 border-none font-medium shadow-sm">
-            ห้องที่ 101
+            ห้องที่ {{ tableId }}
           </span>
         </div>
 
