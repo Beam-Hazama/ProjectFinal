@@ -69,6 +69,16 @@ export const useCartStore = defineStore("cart", {
       this.item.splice(index, 1);
       localStorage.setItem("cart-data", JSON.stringify(this.item));
     },
+    async createOrder(tableId) {
+      const orderData = {
+        items: this.items,
+        totalPrice: this.totalPrice,
+        tableId: tableId, // รับค่าจากหน้า User.vue มาบันทึก
+        status: "pending",
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, "Orders"), orderData);
+    },
     placeorder(tableId) {
       // รับ tableId เข้ามา
       const orderData = {

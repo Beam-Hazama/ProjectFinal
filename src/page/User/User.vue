@@ -7,7 +7,8 @@ import Cart from '@/Icon/Cart.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const tableId = route.params.tableId || 'ทั่วไป'; // ดึงค่าจาก URL
+// ดึง tableId จาก URL (เช่น /User/101 จะได้ค่า 101)
+const tableId = route.params.tableId || 'ทั่วไป';
 
 const menu = useMenuStore();
 

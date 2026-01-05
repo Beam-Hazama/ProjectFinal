@@ -1,16 +1,14 @@
 <script setup>
 import QrcodeVue from 'qrcode.vue'
 import { ref, nextTick, onMounted, computed } from 'vue'
-import AdminLayout from './Admin.vue' //
+import AdminLayout from './Admin.vue' 
 import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
-const baseUrl = window.location.origin
+const baseUrl = 'http://192.168.1.40:5173'
 
-// ดึงข้อมูลจาก Store
 const rooms = computed(() => qrStore.rooms)
 
-// โหลดข้อมูลทันทีที่เปิดหน้า
 onMounted(() => {
   qrStore.fetchRooms()
 })
@@ -33,10 +31,8 @@ const openEditModal = (room) => {
   isModalOpen.value = true
 }
 
-// ฟังก์ชันแปลงวันที่จาก Firestore (Timestamp) เป็นภาษาไทย
 const formatDate = (date) => {
   if (!date) return 'กำลังโหลด...'
-  // ตรวจสอบว่าเป็น Firebase Timestamp (.toDate()) หรือไม่ ถ้าไม่ใช่ให้แปลงเป็น Date ปกติ
   const d = date.toDate ? date.toDate() : new Date(date)
   return d.toLocaleDateString('th-TH', {
     hour: '2-digit',
@@ -83,7 +79,7 @@ const printSpecificQR = async (room) => {
     <div class="p-6">
       <div class="no-print">
         <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold text-slate-800">QR Code</h1>
+          <h1 class="text-2xl font-bold text-slate-800">จัดการ QR Code สำหรับห้องพัก</h1>
           <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่มห้อง</button>
         </div>
 
@@ -92,18 +88,16 @@ const printSpecificQR = async (room) => {
             <thead>
               <tr class="bg-slate-50 text-slate-600">
                 <th>เลขห้อง</th>
-                <th>ชั้น</th>
-                <th>ตึก</th>
+                <th>ชั้น / ตึก</th>
                 <th>วันที่สร้าง</th>
-                <th>พิมพ์</th>
+                <th>พิมพ์ QR</th>
                 <th>จัดการ</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="room in rooms" :key="room.id" class="hover:bg-slate-50 border-none">
                 <td class="font-bold text-blue-600 text-lg border-none">{{ room.roomNumber }}</td>
-                <td class="border-none">{{ room.floor }}</td>
-                <td class="border-none">{{ room.building }}</td>
+                <td class="border-none">ชั้น {{ room.floor }} ตึก {{ room.building }}</td>
                 <td class="text-sm text-slate-400 border-none">
                   {{ formatDate(room.createdAt) }}
                 </td>
@@ -121,20 +115,20 @@ const printSpecificQR = async (room) => {
 
       <dialog :open="isModalOpen" class="modal bg-black/50">
         <div class="modal-box shadow-2xl">
-          <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียด' : 'เพิ่มห้องใหม่' }}</h3>
+          <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียดห้อง' : 'เพิ่มห้องใหม่' }}</h3>
           <div class="space-y-4">
             <div class="form-control">
-              <label class="label"><span class="label-text">เลขห้อง</span></label>
-              <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full" />
+              <label class="label"><span class="label-text">เลขห้อง (เช่น 101, A05)</span></label>
+              <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full" placeholder="ระบุเลขห้อง" />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="form-control">
                 <label class="label"><span class="label-text">ชั้น</span></label>
-                <input v-model="roomForm.floor" type="text" class="input input-bordered w-full" />
+                <input v-model="roomForm.floor" type="text" class="input input-bordered w-full" placeholder="ชั้น" />
               </div>
               <div class="form-control">
                 <label class="label"><span class="label-text">ตึก</span></label>
-                <input v-model="roomForm.building" type="text" class="input input-bordered w-full" />
+                <input v-model="roomForm.building" type="text" class="input input-bordered w-full" placeholder="ตึก" />
               </div>
             </div>
           </div>
@@ -142,7 +136,7 @@ const printSpecificQR = async (room) => {
             <button v-if="isEditing" @click="deleteRoom" class="btn btn-error btn-outline btn-sm">ลบห้องนี้</button>
             <div class="flex gap-2">
               <button @click="isModalOpen = false" class="btn btn-ghost btn-sm">ยกเลิก</button>
-              <button @click="saveRoom" class="btn btn-primary btn-sm px-6">บันทึก</button>
+              <button @click="saveRoom" class="btn btn-primary btn-sm px-6">บันทึกข้อมูล</button>
             </div>
           </div>
         </div>
@@ -155,6 +149,7 @@ const printSpecificQR = async (room) => {
           </div>
           <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
           <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
+          <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>
         </div>
       </div>
     </div>
@@ -170,6 +165,7 @@ const printSpecificQR = async (room) => {
   .no-print { display: none !important; }
   .print-container {
     display: flex !important;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -177,10 +173,12 @@ const printSpecificQR = async (room) => {
     position: fixed;
     top: 0; left: 0;
     background: white;
+    z-index: 9999;
   }
   .qr-print-card { text-align: center; }
-  .qr-border { padding: 25px; border: 2px solid #000; border-radius: 24px; display: inline-block; }
-  .room-title { font-size: 85px; font-weight: bold; margin-top: 35px; color: black; }
-  .room-sub { font-size: 35px; color: #333; }
+  .qr-border { padding: 25px; border: 4px solid #000; border-radius: 30px; display: inline-block; }
+  .room-title { font-size: 85px; font-weight: bold; margin-top: 35px; color: black; line-height: 1; }
+  .room-sub { font-size: 35px; color: #333; margin-top: 10px; }
+  .scan-text { font-size: 24px; color: #666; margin-top: 20px; font-weight: 500; }
 }
 </style>

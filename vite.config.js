@@ -7,18 +7,14 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-    tailwindcss(),
-  ],
-  server: {
-    host: true, // หรือใส่เป็น '0.0.0.0' เพื่อเปิดให้เครื่องอื่นเข้าถึงได้
-    port: 5173
-  },
+  plugins: [vue(),vueDevTools(),tailwindcss(),],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    host: true, // เพิ่มบรรทัดนี้ เพื่อให้สแกนเข้าผ่าน IP ได้
+    port: 5173
+  }
 })
