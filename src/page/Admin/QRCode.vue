@@ -1,62 +1,75 @@
 <script setup>
 import QrcodeVue from 'qrcode.vue'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, computed } from 'vue'
 import AdminLayout from './Admin.vue' //
+import { useQRCodeStore } from '@/stores/qrcode'
 
+const qrStore = useQRCodeStore()
 const baseUrl = window.location.origin
 
-// รายการข้อมูลห้อง (ข้อมูลเริ่มต้น)
-const rooms = ref([
-  { id: 1, roomNumber: '101', floor: '1', building: 'A', createdAt: new Date().toISOString() },
-  { id: 2, roomNumber: '205', floor: '2', building: 'B', createdAt: new Date().toISOString() },
-])
+// ดึงข้อมูลจาก Store
+const rooms = computed(() => qrStore.rooms)
 
-// สถานะ Modal และฟอร์ม
+// โหลดข้อมูลทันทีที่เปิดหน้า
+onMounted(() => {
+  qrStore.fetchRooms()
+})
+
 const isModalOpen = ref(false)
 const isEditing = ref(false)
 const currentRoomId = ref(null)
 const roomForm = ref({ roomNumber: '', floor: '', building: '' })
 
-// เปิด Modal เพิ่มข้อมูล
 const openAddModal = () => {
   isEditing.value = false
   roomForm.value = { roomNumber: '', floor: '', building: '' }
   isModalOpen.value = true
 }
 
-// เปิด Modal แก้ไขข้อมูล
 const openEditModal = (room) => {
   isEditing.value = true
   currentRoomId.value = room.id
-  roomForm.value = { ...room }
+  roomForm.value = { roomNumber: room.roomNumber, floor: room.floor, building: room.building }
   isModalOpen.value = true
 }
 
-// บันทึกข้อมูล
-const saveRoom = () => {
+// ฟังก์ชันแปลงวันที่จาก Firestore (Timestamp) เป็นภาษาไทย
+const formatDate = (date) => {
+  if (!date) return 'กำลังโหลด...'
+  // ตรวจสอบว่าเป็น Firebase Timestamp (.toDate()) หรือไม่ ถ้าไม่ใช่ให้แปลงเป็น Date ปกติ
+  const d = date.toDate ? date.toDate() : new Date(date)
+  return d.toLocaleDateString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second : '2-digit',
+  })
+}
+
+const saveRoom = async () => {
   if (!roomForm.value.roomNumber) return
-  if (isEditing.value) {
-    const index = rooms.value.findIndex(r => r.id === currentRoomId.value)
-    if (index !== -1) rooms.value[index] = { ...rooms.value[index], ...roomForm.value }
-  } else {
-    rooms.value.push({
-      id: Date.now(),
-      ...roomForm.value,
-      createdAt: new Date().toISOString()
-    })
-  }
-  isModalOpen.value = false
-}
-
-// ลบข้อมูลห้อง (เรียกจากใน Modal แก้ไข)
-const deleteRoom = () => {
-  if (confirm('คุณต้องการลบข้อมูลห้องนี้ใช่หรือไม่?')) {
-    rooms.value = rooms.value.filter(room => room.id !== currentRoomId.value)
+  try {
+    if (isEditing.value) {
+      await qrStore.updateRoom(currentRoomId.value, { ...roomForm.value })
+    } else {
+      await qrStore.addRoom({ ...roomForm.value })
+    }
     isModalOpen.value = false
+  } catch (error) {
+    console.error("Save error:", error)
   }
 }
 
-// ระบบพิมพ์ QR Code
+const deleteRoom = async () => {
+  if (confirm('ยืนยันการลบข้อมูลห้องนี้หรือไม่?')) {
+    try {
+      await qrStore.deleteRoom(currentRoomId.value)
+      isModalOpen.value = false
+    } catch (error) {
+      console.error("Delete error:", error)
+    }
+  }
+}
+
 const selectedRoom = ref(null)
 const printSpecificQR = async (room) => {
   selectedRoom.value = room
@@ -66,42 +79,39 @@ const printSpecificQR = async (room) => {
 </script>
 
 <template>
-  <AdminLayout> <div class="p-6">
+  <AdminLayout>
+    <div class="p-6">
       <div class="no-print">
         <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold text-slate-800">จัดการ QR Code</h1>
-          <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่ม QR Code</button>
+          <h1 class="text-2xl font-bold text-slate-800">QR Code</h1>
+          <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่มห้อง</button>
         </div>
 
         <div class="overflow-x-auto bg-white rounded-xl shadow border-none"> 
-          <table class="table w-full text-center border-none">
+          <table class="table w-full text-center">
             <thead>
-              <tr class="bg-slate-50 text-slate-600 border-none">
+              <tr class="bg-slate-50 text-slate-600">
                 <th>เลขห้อง</th>
                 <th>ชั้น</th>
                 <th>ตึก</th>
                 <th>วันที่สร้าง</th>
-                <th class="text-center">ปริ้น</th>
-                <th class="text-center">Action</th>
+                <th>พิมพ์</th>
+                <th>จัดการ</th>
               </tr>
             </thead>
-            <tbody class="border-none">
+            <tbody>
               <tr v-for="room in rooms" :key="room.id" class="hover:bg-slate-50 border-none">
-                <td class="font-bold text-blue-600 border-none text-lg">{{ room.roomNumber }}</td>
+                <td class="font-bold text-blue-600 text-lg border-none">{{ room.roomNumber }}</td>
                 <td class="border-none">{{ room.floor }}</td>
                 <td class="border-none">{{ room.building }}</td>
                 <td class="text-sm text-slate-400 border-none">
-                  {{ new Date(room.createdAt).toLocaleDateString('th-TH') }}
+                  {{ formatDate(room.createdAt) }}
                 </td>
                 <td class="border-none">
-                  <button @click="printSpecificQR(room)" class="btn btn-sm btn-info btn-outline">
-                    พิมพ์ QR
-                  </button>
+                  <button @click="printSpecificQR(room)" class="btn btn-sm btn-info btn-outline">พิมพ์ QR</button>
                 </td>
                 <td class="border-none">
-                  <button @click="openEditModal(room)" class="btn btn-sm btn-ghost text-info font-bold">
-                    แก้ไข
-                  </button>
+                  <button @click="openEditModal(room)" class="btn btn-sm btn-ghost text-info font-bold">แก้ไข</button>
                 </td>
               </tr>
             </tbody>
@@ -111,13 +121,7 @@ const printSpecificQR = async (room) => {
 
       <dialog :open="isModalOpen" class="modal bg-black/50">
         <div class="modal-box shadow-2xl">
-          <div v-if="isEditing" class="mb-6 p-4 bg-blue-50 rounded-xl text-center border border-blue-100">
-             <p class="text-xs text-blue-500 uppercase tracking-widest font-bold mb-1">กำลังจัดการข้อมูล</p>
-             <h2 class="text-3xl font-black text-blue-700">ห้อง {{ roomForm.roomNumber }}</h2>
-          </div>
-          
           <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียด' : 'เพิ่มห้องใหม่' }}</h3>
-          
           <div class="space-y-4">
             <div class="form-control">
               <label class="label"><span class="label-text">เลขห้อง</span></label>
@@ -134,13 +138,8 @@ const printSpecificQR = async (room) => {
               </div>
             </div>
           </div>
-
-          <div class="modal-action flex justify-between items-center mt-8">
-            <div>
-              <button v-if="isEditing" @click="deleteRoom" class="btn btn-error btn-outline btn-sm">
-                ลบข้อมูลห้องนี้
-              </button>
-            </div>
+          <div class="modal-action flex justify-between mt-8">
+            <button v-if="isEditing" @click="deleteRoom" class="btn btn-error btn-outline btn-sm">ลบห้องนี้</button>
             <div class="flex gap-2">
               <button @click="isModalOpen = false" class="btn btn-ghost btn-sm">ยกเลิก</button>
               <button @click="saveRoom" class="btn btn-primary btn-sm px-6">บันทึก</button>
@@ -163,32 +162,12 @@ const printSpecificQR = async (room) => {
 </template>
 
 <style scoped>
-/* ลบเส้นขีดใต้ในตาราง */
-.table tr, .table td, .table th {
-  border-bottom: none !important;
-  border-top: none !important;
-}
-
+.table tr, .table td { border: none !important; }
 .print-container { display: none; }
 
 @media print {
-  /* ลบหัวกระดาษ Vite App / เวลา */
   @page { margin: 0; size: auto; }
-
-  /* ซ่อน Navbar, Sidebar และส่วนประกอบ Admin ทั้งหมด */
-  .no-print, 
-  :deep(.drawer-side), :deep(.navbar), :deep(.drawer-button), 
-  :deep(.breadcrumbs), :deep(aside), :deep(header), :deep(.drawer-toggle) {
-    display: none !important;
-  }
-
-  /* เคลียร์พื้นที่ให้พิมพ์ได้เต็มหน้า */
-  :deep(.drawer-content) {
-    padding: 0 !important;
-    margin: 0 !important;
-    display: block !important;
-  }
-
+  .no-print { display: none !important; }
   .print-container {
     display: flex !important;
     justify-content: center;
@@ -198,12 +177,10 @@ const printSpecificQR = async (room) => {
     position: fixed;
     top: 0; left: 0;
     background: white;
-    z-index: 9999;
   }
-
   .qr-print-card { text-align: center; }
-  .qr-border { padding: 25px; border: 1px solid #000; border-radius: 24px; display: inline-block; }
+  .qr-border { padding: 25px; border: 2px solid #000; border-radius: 24px; display: inline-block; }
   .room-title { font-size: 85px; font-weight: bold; margin-top: 35px; color: black; }
-  .room-sub { font-size: 35px; color: #333; margin-top: 10px; }
+  .room-sub { font-size: 35px; color: #333; }
 }
 </style>
