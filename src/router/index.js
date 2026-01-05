@@ -112,6 +112,16 @@ const router = createRouter({
       name: "User",
       component: User,
     },
+    {
+      path: "/User/Cart/:tableId", // เพิ่ม :tableId ต่อท้าย
+      name: "Cart",
+      component: Cart,
+    },
+    {
+      path: "/User/Status/:tableId", // เพิ่ม :tableId
+      name: "Status",
+      component: Status,
+    },
   ],
 });
 
