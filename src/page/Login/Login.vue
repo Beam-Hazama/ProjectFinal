@@ -1,8 +1,33 @@
 <script setup>
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
+import { useAccountStore } from '@/stores/account';
+import { ref } from 'vue';
+
+import Gmail from '@/Icon/Gmail.vue';
+
+const accountStore = useAccountStore()
+const isLoggedIn = ref(false)
+const router = useRoute
+
+const loginwithgoogle = async () => {
+  isLoggedIn.value = true
+  localStorage.setItem('isLoggedIn', true)
+  accountStore.signInWithGoogle()
+}
+const login = async () => {
+  try {
+    await accountStore.signInAdmin(email.value, password.value)
+    if (accountStore.isAdmin) {
+      router.push({ name: 'Admin' })
+    }
+  } catch (error) {
+    eventStore.popupMessage('error', error.message)
+  }
+}
 </script>
 
 <template>
+  
 
   <div
     class="flex items-center justify-center min-h-screen bg-cover bg-center bg-no-repeat animate-bg
@@ -29,7 +54,7 @@ import { RouterLink } from 'vue-router';
                    focus-within:border-blue-500 focus-within:shadow-[0_0_8px_#3b82f6]
                    transition duration-200">
             <span class="text-blue-500 text-lg"></span>
-            <input type="text" class="w-full outline-none placeholder:text-blue-300" >
+            <input type="emailId" class="w-full outline-none placeholder:text-blue-300" value="">
           </div>
         </div>
 
@@ -52,9 +77,20 @@ import { RouterLink } from 'vue-router';
                  bg-gradient-to-r from-blue-300 to-blue-600 
                  hover:from-white hover:to-white 
                  hover:text-blue-500 hover:border hover:border-blue-600
-                 transition duration-300 shadow-md hover:shadow-xl">
+                 transition duration-300 shadow-md hover:shadow-xl" @click="loginwithgoogle()">
           Login
         </button>
+        <button class="w-full p-2 mt-3 rounded-lg font-medium flex  justify-center
+                 bg-gradient-to-r from-orange-300  to-orange-700   
+                 hover:from-white hover:to-white 
+                 hover:text-blue-500 hover:border hover:border-blue-600
+                 transition duration-300 shadow-md hover:shadow-xl" @click="loginwithgoogle()">
+          <gmail class="mr-5"></gmail>Login With Email 
+        </button>
+
+        <dev>
+          {{  }}
+        </dev>
 
       </div>
 
@@ -62,6 +98,7 @@ import { RouterLink } from 'vue-router';
         <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/43/64/77/3ei4enw-open-daily-from.jpg"
           class="absolute inset-0 w-full h-full object-cover">
       </div>
+      
 
     </div>
   </div>

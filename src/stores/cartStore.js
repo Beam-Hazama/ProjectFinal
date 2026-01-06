@@ -70,6 +70,7 @@ export const useCartStore = defineStore("cart", {
         Menu: this.item,
       };
       const orderList = useOderlistStore();
+      localStorage.clear("cart-data",JSON.stringify)
       localStorage.setItem("order-data", JSON.stringify(orderData));
       orderList.addToOrderList(orderData);
     },
