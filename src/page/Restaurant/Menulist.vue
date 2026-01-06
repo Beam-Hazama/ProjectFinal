@@ -1,6 +1,6 @@
 <script setup>
 import { db } from '@/firebase';
-import Layoutrestaurant from '@/page//Restaurant/restaurant.vue';
+import Layoutrestaurant from '@/page/Restaurant/Restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
 import { doc, updateDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';

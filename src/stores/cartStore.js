@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-
 import { useOderlistStore } from "@/stores/OrderList";
 
 export const useCartStore = defineStore("cart", {
   state: () => ({
     item: [],
+    tableId: null,
   }),
   getters: {
     summaryQuantity(state) {
@@ -17,10 +17,20 @@ export const useCartStore = defineStore("cart", {
     },
   },
   actions: {
-    loadcart() {
-      const previousCart = localStorage.getItem("cart-data");
+    loadcart(tableId) {
+      this.tableId = tableId;
+      const storageKey = `cart-data-${tableId}`;
+      const previousCart = localStorage.getItem(storageKey);
       if (previousCart) {
         this.item = JSON.parse(previousCart);
+      } else {
+        this.item = [];
+      }
+    },
+    saveToStorage() {
+      if (this.tableId) {
+        const storageKey = `cart-data-${this.tableId}`;
+        localStorage.setItem(storageKey, JSON.stringify(this.item));
       }
     },
     addToCart(productdata) {
@@ -29,44 +39,45 @@ export const useCartStore = defineStore("cart", {
       });
       if (productdata.Remainquantity > 0) {
         if (fineProductIndex < 0) {
-          productdata.Quantity = 1;
-          this.item.push(productdata);
-          localStorage.setItem("cart-data", JSON.stringify(this.item));
-          console.log('data ++')
+          const newItem = { ...productdata, Quantity: 1 };
+          this.item.push(newItem);
         } else {
-          const cerrentItem = this.item[fineProductIndex];
-          if(this.item[fineProductIndex].Quantity < productdata.Remainquantity){
-          this.updateQuantity(fineProductIndex, cerrentItem.Quantity + 1);}
+          const currentItem = this.item[fineProductIndex];
+          if (currentItem.Quantity < productdata.Remainquantity) {
+            this.updateQuantity(fineProductIndex, currentItem.Quantity + 1);
+          }
         }
       }
-      
-      localStorage.setItem("cart-data", JSON.stringify(this.item));
+      this.saveToStorage();
     },
     decreaseToCart(productdata) {
       const fineProductIndex = this.item.findIndex((item) => {
         return item.Name === productdata.Name;
       });
 
-      if (productdata.Quantity <= 0) {
-        productdata.Quantity = 0;
-      } else {
-        const cerrentItem = this.item[fineProductIndex];
-        this.updateQuantity(fineProductIndex, cerrentItem.Quantity - 1,productdata.RemainQuantity);
+      if (fineProductIndex !== -1) {
+        const currentItem = this.item[fineProductIndex];
+        if (currentItem.Quantity > 1) {
+          this.updateQuantity(fineProductIndex, currentItem.Quantity - 1);
+        } else {
+          this.removeItemInCart(fineProductIndex);
+        }
       }
+      this.saveToStorage();
     },
     updateQuantity(index, quantity) {
       this.item[index].Quantity = quantity;
-      localStorage.setItem("cart-data", JSON.stringify(this.item));
+      this.saveToStorage();
     },
     removeItemInCart(index) {
       this.item.splice(index, 1);
-      localStorage.setItem("cart-data", JSON.stringify(this.item));
+      this.saveToStorage();
     },
-    placeorder() {
+    placeorder(tableId) {
       const orderData = {
-        //...userData,
         TotalPrice: this.summaryPrice,
         OrderNumber: `${Math.floor(Math.random() * 100000)}`,
+        TableID: tableId,
         Menu: this.item,
       };
       const orderList = useOderlistStore();
@@ -74,14 +85,9 @@ export const useCartStore = defineStore("cart", {
       localStorage.setItem("order-data", JSON.stringify(orderData));
       orderList.addToOrderList(orderData);
     },
-    /*loadCheckout() {
-      const orderData = localStorage.getItem("order-data");
-      /*if (orderData) {
-        this.checkout = JSON.parse(orderData);
-      }
-    },*/
     clearcart() {
       this.item = [];
+      this.saveToStorage();
     },
   },
 });
