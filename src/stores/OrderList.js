@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
-
-import { collection,addDoc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 export const useOderlistStore = defineStore('oderlist', {
@@ -10,17 +9,22 @@ export const useOderlistStore = defineStore('oderlist', {
   getters: {
     sortedOrders: (state) => {
       return [...state.list].sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return a.createdAt.seconds - b.createdAt.seconds;
+        if (!a.CreatedAt || !b.CreatedAt) return 0;
+        return a.CreatedAt.seconds - b.CreatedAt.seconds;
       });
     },
   },
   actions: {
     async addToOrderList(orderData) {
       const { Menu, ...orderref } = orderData;
+      
+      // เพิ่มสถานะ itemStatus: 'pending' ให้กับแต่ละรายการอาหาร
       const cleanedMenu = Menu.map((item) => {
         const { Status, Remainquantity, ImageUrl, ...filtered } = item;
-        return filtered;
+        return {
+          ...filtered,
+          itemStatus: 'pending' // สถานะเริ่มต้นสำหรับแต่ละเมนู
+        };
       });
 
       const finalOrder = {
@@ -28,13 +32,12 @@ export const useOderlistStore = defineStore('oderlist', {
         Menu: cleanedMenu,
       };
 
+      // บันทึกลง Firestore
       await addDoc(collection(db, 'Order'), {
         ...finalOrder,
-        statusOrder: 'pending',
+        statusOrder: 'pending', // สถานะภาพรวมของออเดอร์
         CreatedAt: serverTimestamp(),
       });
-
-      console.log('orderlist', this.list);
     },
     async loadOrder() {
       const orderList = query(

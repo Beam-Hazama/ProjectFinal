@@ -79,7 +79,7 @@ const printSpecificQR = async (room) => {
     <div class="p-6">
       <div class="no-print">
         <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold text-slate-800">จัดการ QR Code สำหรับห้องพัก</h1>
+          <h1 class="text-2xl font-bold text-slate-800">QR Code</h1>
           <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่มห้อง</button>
         </div>
 
@@ -162,7 +162,24 @@ const printSpecificQR = async (room) => {
 
 @media print {
   @page { margin: 0; size: auto; }
-  .no-print { display: none !important; }
+  
+  /* ส่วนที่เพิ่ม: สั่งซ่อน Navbar, Sidebar และปุ่มต่างๆ ของ Admin Layout */
+  :deep(.drawer-side), 
+  :deep(.lg\:drawer-open),
+  :deep(.drawer-toggle),
+  :deep(.w-full.lg\:hidden),
+  :deep(.breadcrumbs),
+  .no-print {
+    display: none !important;
+  }
+
+  /* ปรับให้เนื้อหาหลัก (QR) แสดงผลเต็มหน้าจอ */
+  :deep(.drawer-content) {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .print-container {
     display: flex !important;
     flex-direction: column;
