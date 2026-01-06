@@ -118,7 +118,7 @@ const printSpecificQR = async (room) => {
           <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียดห้อง' : 'เพิ่มห้องใหม่' }}</h3>
           <div class="space-y-4">
             <div class="form-control">
-              <label class="label"><span class="label-text">เลขห้อง (เช่น 101, A05)</span></label>
+              <label class="label"><span class="label-text">เลขห้อง</span></label>
               <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full" placeholder="ระบุเลขห้อง" />
             </div>
             <div class="grid grid-cols-2 gap-4">

@@ -19,13 +19,11 @@ const imageInputMethod = ref('file');
 const RestaurantData = reactive({
   Name: '',
   ImageUrl: '',
-  Address: '',
-  Phone: '',
-  Status: 'open',
-  OpenTime: '',  // เพิ่มเวลาเปิดเริ่มต้น
+  Status: '',
+  OpenTime: '',  
   CloseTime: '',
-  CreatedAt: null, // วันที่สร้าง
-  UpdatedAt: null  // วันที่แก้ไขล่าสุด
+  CreatedAt: null, 
+  UpdatedAt: null  
 });
 
 // Watch URL เพื่ออัปเดต Preview ทันที
@@ -37,28 +35,56 @@ watch(() => RestaurantData.ImageUrl, (newVal) => {
 
 const checkSaveRestaurant = async (data) => {
   try {
-    let resId
-    let ImageUrl = data.ImageUrl || ''
+    const { id, CreatedAt, UpdatedAt, ...saveData } = data; 
+    const colName = 'Restaurant'; 
+
+    // --- ส่วนที่เพิ่ม: ตรรกะตรวจสอบสถานะจากเวลาอัตโนมัติ ---
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // แปลงเวลาปัจจุบันเป็นนาที
+
+    const [openH, openM] = saveData.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = saveData.CloseTime.split(':').map(Number);
+
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    // ตรวจสอบว่าเวลาปัจจุบันอยู่ในช่วงเวลาเปิดหรือไม่
+    let autoStatus = 'close';
+    if (closeMinutes > openMinutes) {
+      // กรณีปกติ เช่น เปิด 08:00 ปิด 20:00
+      if (currentTime >= openMinutes && currentTime < closeMinutes) {
+        autoStatus = 'open';
+      }
+    } else {
+      // กรณีเปิดข้ามคืน เช่น เปิด 17:00 ปิด 02:00
+      if (currentTime >= openMinutes || currentTime < closeMinutes) {
+        autoStatus = 'open';
+      }
+    }
+    
+    // อัปเดตสถานะใน saveData ก่อนบันทึก
+    saveData.Status = autoStatus;
+    // --------------------------------------------------
 
     if (mode.value === 'Add Restaurant') {
-      const docRef = await addDoc(collection(db, 'Restaurants'), {
-        ...data,
-        ImageUrl: ImageUrl,
-        CreatedAt: serverTimestamp(), // บันทึกเวลาที่สร้าง
+      await addDoc(collection(db, colName), {
+        ...saveData,
+        CreatedAt: serverTimestamp(),
         UpdatedAt: serverTimestamp()
-      })
-      resId = docRef.id
-    } else if (mode.value === 'Update Restaurant') {
-      resId = route.params.id
-      await updateDoc(doc(db, 'Restaurants', resId), {
-        ...data,
-        ImageUrl,
-        UpdatedAt: serverTimestamp() // ปรับปรุงเวลาที่แก้ไขล่าสุด
-      })
+      });
+    } else {
+      const docId = route.params.id;
+      const docRef = doc(db, colName, docId);
+      await updateDoc(docRef, {
+        ...saveData,
+        UpdatedAt: serverTimestamp()
+      });
     }
-    router.push({ name: 'Admin Restaurant List' })
+    
+    router.push({ name: 'Admin Restaurant List' });
   } catch (error) {
-    console.error('เกิดข้อผิดพลาด:', error)
+    console.error('Firebase Error:', error);
+    alert('บันทึกไม่สำเร็จ: ' + error.message); 
   }
 }
 
@@ -84,15 +110,19 @@ const goBack = () => {
 onMounted(async () => {
   if (route.params.id) {
     mode.value = 'Update Restaurant';
-    const resSnap = await getDoc(doc(db, 'Restaurants', route.params.id));
+    // แก้ไขชื่อ Collection ให้ตรงกับที่บันทึก (Restaurant)
+    const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
 
     if (resSnap.exists()) {
       const res = resSnap.data();
+      // นำข้อมูลที่ดึงได้ใส่กลับเข้าไปใน Reactive Object
       Object.assign(RestaurantData, res);
       imagePreview.value = res.ImageUrl;
       if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
         imageInputMethod.value = 'url';
       }
+    } else {
+      console.log("ไม่พบข้อมูลร้านค้าชิ้นนี้ในระบบ");
     }
   } else {
     mode.value = 'Add Restaurant';
