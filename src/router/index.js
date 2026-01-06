@@ -9,6 +9,7 @@ import AdminQRCode from "@/page/Admin/QRCode.vue";
 import Adminrestaurantlist from "@/page/Admin/Restaurant.vue";
 
 import Managemenu from "@/page/component/Managemenu.vue";
+import Managerestaurant from "@/page/component/Managerestaurant.vue";
 
 import Restaurants from "@/page/Restaurant/Restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
@@ -85,6 +86,16 @@ const router = createRouter({
       path: "/Admin/Menulist/Edit/:id",
       name: "Admin update menu",
       component: Managemenu,
+    },
+    {
+      path: "/Admin/Restaurant/Addrestaurant",
+      name: "Admin Add restaurant",
+      component: Managerestaurant,
+    },
+    {
+      path: "/Admin/Restaurant/Edit/:id",
+      name: "Admin update restaurant",
+      component: Managerestaurant,
     },
 
     {

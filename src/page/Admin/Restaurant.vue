@@ -23,14 +23,14 @@ const formatDate = (timestamp) => {
   <LayoutAdmin>
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
-        <div class="text-3xl font-bold text-slate-700">Menu List</div>
-        <RouterLink to="/Admin/Menulist/Addmenu"
+        <div class="text-3xl font-bold text-slate-700">Restaurant List</div>
+        <RouterLink to="/Admin/Restaurant/Addrestaurant"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Add Menu
+          Add Restaurant
         </RouterLink>
       </div>
 
