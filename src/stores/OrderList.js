@@ -1,8 +1,15 @@
-import { defineStore } from 'pinia';
-import { collection, addDoc, query, where, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { defineStore } from "pinia";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "@/firebase";
 
-export const useOderlistStore = defineStore('oderlist', {
+export const useOderlistStore = defineStore("oderlist", {
   state: () => ({
     list: [],
   }),
@@ -15,53 +22,53 @@ export const useOderlistStore = defineStore('oderlist', {
     },
   },
   actions: {
+    // ฟังก์ชันใหม่: โหลดออเดอร์เฉพาะของ User ตาม TableID
+    // src/stores/OrderList.js
+    async loadOrderUser(tableId) {
+      const orderQuery = query(
+        collection(db, "Order"),
+        where("TableID", "==", tableId), // ตรวจสอบว่าใน DB ใช้ชื่อ TableID หรือ tableId
+        where("statusOrder", "==", "pending")
+      );
+
+      onSnapshot(orderQuery, (orderSnapshot) => {
+        this.list = orderSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      });
+    },
     async addToOrderList(orderData) {
       const { Menu, ...orderref } = orderData;
-      
-      // เพิ่มสถานะ itemStatus: 'pending' ให้กับแต่ละรายการอาหาร
       const cleanedMenu = Menu.map((item) => {
         const { Status, Remainquantity, ImageUrl, ...filtered } = item;
-        return {
-          ...filtered,
-          itemStatus: 'pending' // สถานะเริ่มต้นสำหรับแต่ละเมนู
-        };
+        return { ...filtered, itemStatus: "pending" };
       });
-
-      const finalOrder = {
-        ...orderref,
-        Menu: cleanedMenu,
-      };
-
-      // บันทึกลง Firestore
-      await addDoc(collection(db, 'Order'), {
+      const finalOrder = { ...orderref, Menu: cleanedMenu };
+      await addDoc(collection(db, "Order"), {
         ...finalOrder,
-        statusOrder: 'pending', // สถานะภาพรวมของออเดอร์
+        statusOrder: "pending",
         CreatedAt: serverTimestamp(),
       });
     },
     async loadOrder() {
       const orderList = query(
-        collection(db, 'Order'),
-        where('statusOrder', '==', 'pending')
+        collection(db, "Order"),
+        where("statusOrder", "==", "pending")
       );
       onSnapshot(orderList, (orderSnapshot) => {
-        const order = orderSnapshot.docs.map((doc) => {
-          const convertedData = doc.data();
-          convertedData.id = doc.id;
-          return convertedData;
-        });
-        this.list = order;
+        this.list = orderSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
       });
     },
     async loadOrderinadmin() {
-      const orderList = collection(db, 'Order');
-      onSnapshot(orderList, (orderSnapshot) => {
-        const order = orderSnapshot.docs.map((doc) => {
-          const convertedData = doc.data();
-          convertedData.id = doc.id;
-          return convertedData;
-        });
-        this.list = order;
+      onSnapshot(collection(db, "Order"), (orderSnapshot) => {
+        this.list = orderSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
       });
     },
   },

@@ -55,7 +55,7 @@ const logout = () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </label>
-          <span class="font-bold text-lg text-blue-600 tracking-wide">Admin Panel</span>
+          
         </div>
         <div class="avatar w-8 h-8">
           <div class="rounded-full bg-slate-200">

@@ -31,8 +31,8 @@ const router = createRouter({
       component: User,
     },
     {
-      path: "/User/Bill",
-      name: "Bill",
+      path: "/User/Bill/:tableId", // ต้องมี :tableId
+      name: "user-bill",
       component: Bill,
     },
     {
@@ -114,7 +114,7 @@ const router = createRouter({
       name: "Restaurants Orderlist",
       component: Restaurantorderlist,
     },
-     {
+    {
       path: "/Restaurant/Profile",
       name: "Restaurants Profile",
       component: Restaurantprofile,
