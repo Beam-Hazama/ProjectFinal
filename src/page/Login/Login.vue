@@ -1,27 +1,34 @@
 <script setup>
-import { RouterLink, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/account';
 import { onMounted, ref } from 'vue';
 
 import Gmail from '@/Icon/Gmail.vue';
 
 const accountStore = useAccountStore()
-const isLoggedIn = ref(false)
-const router = useRoute()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 
 const login = async () => {
   try {
-    await accountStore.signInAdmin(email.value, password.value)
-    if (accountStore.isAdmin = true) {
-      router.push({ name: 'Admin' })
+    const role = await accountStore.signIn(email.value, password.value);
+
+    if (role === 'admin') {
+      router.push({ name: 'Admin' });
+    } 
+    else if (role === 'restaurant') {
+      router.push({ name: 'Restaurants' });
+    } 
+    else {
+      router.push({ name: 'Home' });
     }
+
   } catch (error) {
-    console.log('error', error.message)
+    console.error(error.message);
   }
-}
+};
 
 onMounted(async() => {
   await accountStore.checkAuthState()

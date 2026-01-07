@@ -26,7 +26,7 @@ const router = createRouter({
   routes: [
     //user
     {
-      path: "/",
+      path: "/User",
       name: "User",
       component: User,
     },
@@ -105,22 +105,22 @@ const router = createRouter({
     },
     //Restaurant
     {
-      path: "/Restaurant/:restaurantName",
+      path: "/Restaurant",//:restaurantName
       name: "Restaurants",
       component: Restaurants,
     },
     {
-      path: "/Restaurant/Orderlist/:restaurantName",
+      path: "/Restaurant/Orderlist",//:restaurantName
       name: "Restaurants Orderlist",
       component: Restaurantorderlist,
     },
     {
-      path: "/Restaurant/Profile/:restaurantName",
+      path: "/Restaurant/Profile",//:restaurantName
       name: "Restaurants Profile",
       component: Restaurantprofile,
     },
     {
-      path: "/Restaurant/Menulist/:restaurantName",
+      path: "/Restaurant/Menulist",//:restaurantName
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },

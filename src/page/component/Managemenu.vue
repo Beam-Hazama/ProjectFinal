@@ -127,7 +127,7 @@ onMounted(async () => {
         mode.value = 'Add Product';
     }
 
-    Restaurant.loadRestaurant()
+    Restaurant.loadListRestaurant()
 });
 </script>
 

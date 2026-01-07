@@ -5,9 +5,11 @@ import { useMenuStore } from '@/stores/menu';
 import { doc, updateDoc } from 'firebase/firestore';
 import { RouterLink, useRoute } from 'vue-router'; // เพิ่ม useRoute
 import { onMounted, watch } from 'vue';
+import { useRestaurant } from '@/stores/Restaurant';
 
 const MenuStore = useMenuStore();
 const route = useRoute();
+const restaurant = useRestaurant()
 
 // ดึงข้อมูลเมนูตามชื่อร้านที่ระบุใน URL
 const loadData = () => {
@@ -19,6 +21,7 @@ const loadData = () => {
 
 onMounted(() => {
   loadData();
+  restaurant.loadMenusByRestaurant()
 });
 
 // ตรวจสอบหากมีการเปลี่ยนชื่อร้านใน URL ให้โหลดข้อมูลใหม่
@@ -85,7 +88,7 @@ const formatDate = (timestamp) => {
             </thead>
 
             <tbody class="text-slate-600">
-              <tr v-for="product in MenuStore.list" :key="product.id"
+              <tr v-for="product in restaurant.menus" :key="product.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                 <td class="pl-6">
                   <div class="flex items-center gap-4">

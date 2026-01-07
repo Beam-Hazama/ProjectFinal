@@ -8,6 +8,10 @@ export const useCartStore = defineStore("cart", {
     tableId: null,
   }),
   getters: {
+    getItemById: (state) => {
+      return (productId) =>
+        state.item.find(i => i.id === productId) || null
+    },
     summaryQuantity(state) {
       return state.item.reduce((acc, item) => acc + item.Quantity, 0);
     },
@@ -33,17 +37,27 @@ export const useCartStore = defineStore("cart", {
         localStorage.setItem(storageKey, JSON.stringify(this.item));
       }
     },
-    addToCart(productdata) {
-      const index = this.item.findIndex((item) => item.Name === productdata.Name);
-      if (productdata.Remainquantity > 0) {
-        if (index < 0) {
-          this.item.push({ ...productdata, Quantity: 1 });
-        } else if (this.item[index].Quantity < productdata.Remainquantity) {
-          this.item[index].Quantity++;
-        }
+    addOrUpdateItem(product, quantity, note) {
+      const index = this.item.findIndex(i => i.id === product.id)
+    
+      if (index === -1) {
+        this.item.push({
+          id: product.id,
+          Name: product.Name,
+          Price: product.Price,
+          ImageUrl: product.ImageUrl,
+          Quantity: quantity,
+          note: note,
+          Restaurant: product.Restaurant
+        })
+      } else {
+        this.item[index].Quantity = quantity
+        this.item[index].note = note
       }
-      this.saveToStorage();
+    
+      this.saveToStorage()
     },
+    
     removeItemInCart(index) {
       this.item.splice(index, 1);
       this.saveToStorage();
