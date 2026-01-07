@@ -6,7 +6,8 @@ import Admindashboard from "@/page/Admin/Dashboard.vue";
 import Adminmenulist from "@/page/Admin/Menulist.vue";
 import Adminorderlist from "@/page/Admin/Orderlist.vue";
 import AdminQRCode from "@/page/Admin/QRCode.vue";
-import Adminrestaurantlist from "@/page/Admin/Restaurant.vue";
+import Adminrestaurantlist from "@/page/Admin/Restaurantlist.vue";
+import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
 
 import Managemenu from "@/page/component/Managemenu.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
@@ -72,9 +73,14 @@ const router = createRouter({
       component: AdminQRCode,
     },
     {
-      path: "/Admin/Restaurant",
+      path: "/Admin/Restaurantlist",
       name: "Admin Restaurant List",
       component: Adminrestaurantlist,
+    },
+    {
+      path: "/Admin/Restaurantuser",
+      name: "Admin Restaurant User",
+      component: Adminrestaurantuser,
     },
 
     {
