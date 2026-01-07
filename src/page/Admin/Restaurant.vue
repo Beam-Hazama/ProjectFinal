@@ -38,32 +38,29 @@ const deleteRestaurant = async (id, name) => {
     }
 }
 // 3. ฟังก์ชันตรวจสอบสถานะที่ "เข้มงวด" เรื่องรูปแบบเวลา
+// แก้ไขฟังก์ชัน getAutoStatus ในหน้า Restaurant.vue (หน้า List)
 const getAutoStatus = (product) => {
-    // ตรวจสอบว่ามีข้อมูลเวลาครบถ้วนหรือไม่
+    // 1. ถ้ามีการตั้งค่า Manual (force_open / force_close) ให้ใช้ค่านั้นเลย
+    if (product.ManualStatus === 'force_open') return 'open';
+    if (product.ManualStatus === 'force_close') return 'close';
+
+    // 2. ถ้าเป็น auto หรือไม่มี ManualStatus ค่อยคำนวณตามเวลา (Logic เดิมของคุณ)
     if (!product.OpenTime || !product.CloseTime) return 'close';
-
+    
     try {
-        // ล้างค่าว่างที่อาจติดมาจากการบันทึก
-        const openStr = product.OpenTime.trim();
-        const closeStr = product.CloseTime.trim();
-
-        const nowTime = now.value.getHours() * 60 + now.value.getMinutes();
-
-        const [openH, openM] = openStr.split(':').map(Number);
-        const [closeH, closeM] = closeStr.split(':').map(Number);
-
+        const now = new Date();
+        const nowTime = now.getHours() * 60 + now.getMinutes();
+        const [openH, openM] = product.OpenTime.split(':').map(Number);
+        const [closeH, closeM] = product.CloseTime.split(':').map(Number);
         const openMin = openH * 60 + openM;
         const closeMin = closeH * 60 + closeM;
 
         if (closeMin > openMin) {
-            // ช่วงเวลาปกติ 08:00 - 20:00
             return (nowTime >= openMin && nowTime < closeMin) ? 'open' : 'close';
         } else {
-            // ช่วงเวลาข้ามคืน 18:00 - 02:00
             return (nowTime >= openMin || nowTime < closeMin) ? 'open' : 'close';
         }
     } catch (e) {
-        console.error("Time calculation error:", e);
         return 'close';
     }
 }
@@ -104,6 +101,7 @@ const formatDate = (timestamp) => {
                 <th>Action</th>
               </tr>
             </thead>
+            
 
             <tbody class="text-slate-600">
               <tr v-for="product in Restaurant.list" :key="product.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -117,7 +115,7 @@ const formatDate = (timestamp) => {
                     </div>
                     <div>
                       <div class="font-bold text-slate-800">{{ product.Name }}</div>
-                      <div class="text-[10px] text-slate-400">ID: {{ product.id }}</div>
+                      
                     </div>
                   </div>
                 </td>

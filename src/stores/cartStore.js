@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import { useOderlistStore } from "@/stores/OrderList";
+import { db } from "@/firebase"; // ตรวจสอบว่านำเข้า db หรือยัง
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export const useCartStore = defineStore("cart", {
   state: () => ({
@@ -73,18 +75,42 @@ export const useCartStore = defineStore("cart", {
       this.item.splice(index, 1);
       this.saveToStorage();
     },
-    placeorder(tableId) {
-      const orderData = {
-        TotalPrice: this.summaryPrice,
-        OrderNumber: `${Math.floor(Math.random() * 100000)}`,
-        TableID: tableId,
-        Menu: this.item,
-      };
-      const orderList = useOderlistStore();
-      localStorage.clear("cart-data",JSON.stringify)
-      localStorage.setItem("order-data", JSON.stringify(orderData));
-      orderList.addToOrderList(orderData);
+    
+    // --- แก้ไขฟังก์ชัน placeorder ตรงนี้ ---
+    async placeorder(tableId) {
+      try {
+        // 1. แยกข้อมูล ตึก-ชั้น-ห้อง จาก tableId (เช่น A-3-301)
+        const locationParts = tableId ? tableId.split('-') : [];
+        const building = locationParts[0] || '-';
+        const floor = locationParts[1] || '-';
+        const room = locationParts[2] || '-';
+
+        // 2. เตรียมข้อมูลออเดอร์
+        const orderData = {
+          OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
+          tableId: tableId, // เก็บแบบรวมเดิมไว้
+          building: building, // แยกตึก
+          floor: floor,       // แยกชั้น
+          room: room,         // แยกห้อง
+          item: this.item,
+          TotalPrice: this.summaryPrice,
+          statusOrder: 'pending',
+          CreatedAt: serverTimestamp() // ใช้เวลาจาก Server Firebase
+        };
+
+        // 3. บันทึกลง Firebase Collection 'Order'
+        await addDoc(collection(db, 'Order'), orderData);
+        
+        // 4. บันทึกลง LocalStorage สำหรับหน้า Bill (ถ้าจำเป็น)
+        localStorage.setItem("order-data", JSON.stringify(orderData));
+
+        console.log("Order placed successfully with location:", building, floor, room);
+      } catch (error) {
+        console.error("Error placing order:", error);
+        alert("สั่งซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+      }
     },
+
     clearcart() {
       this.item = [];
       this.saveToStorage();

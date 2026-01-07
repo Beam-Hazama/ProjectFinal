@@ -5,7 +5,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useRestaurant } from '@/stores/Restaurant';
 
-// เพิ่ม serverTimestamp และ deleteDoc (ถ้าต้องการใช้)
+// เพิ่ม serverTimestamp และ deleteDoc
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, } from '@/firebase';
 
@@ -137,7 +137,6 @@ onMounted(async () => {
 
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div class="flex items-center gap-4">
-
                     <div>
                         <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
                             {{ mode === 'Add Product' ? 'เพิ่มเมนูอาหารใหม่' : 'แก้ไขเมนูอาหาร' }}
@@ -245,9 +244,7 @@ onMounted(async () => {
                                     <input type="text" placeholder="เช่น ข้าวกะเพราไก่ไข่ดาว"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                         v-model="MenuData.Name" />
-
                                 </div>
-
 
                                 <div class="form-control md:col-span-3">
                                     <label class="label">
@@ -263,14 +260,18 @@ onMounted(async () => {
                                         <span class="label-text font-medium text-slate-600">ร้านอาหาร</span>
                                     </label>
                                     <select
-                                        class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
-                                        v-model="MenuData.Restaurant">
+                                        class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                                        v-model="MenuData.Restaurant"
+                                        :disabled="mode === 'Update Product'">
                                         <option disabled value="">เลือกร้านอาหาร</option>
                                         <option v-for="RestaurantName in Restaurant.list" :key="RestaurantName.id"
                                             :value="RestaurantName.Name">
                                             {{ RestaurantName.Name }}
                                         </option>
                                     </select>
+                                    <p v-if="mode === 'Update Product'" class="text-[10px] text-slate-400 mt-1 italic">
+                                        * ไม่สามารถเปลี่ยนร้านค้าได้ในโหมดแก้ไข
+                                    </p>
                                 </div>
 
                                 <div class="form-control">
@@ -367,8 +368,6 @@ onMounted(async () => {
                                         </div>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
 

@@ -105,22 +105,22 @@ const router = createRouter({
     },
     //Restaurant
     {
-      path: "/Restaurant",
+      path: "/Restaurant/:restaurantName",
       name: "Restaurants",
       component: Restaurants,
     },
     {
-      path: "/Restaurant/Orderlist",
+      path: "/Restaurant/Orderlist/:restaurantName",
       name: "Restaurants Orderlist",
       component: Restaurantorderlist,
     },
     {
-      path: "/Restaurant/Profile",
+      path: "/Restaurant/Profile/:restaurantName",
       name: "Restaurants Profile",
       component: Restaurantprofile,
     },
     {
-      path: "/Restaurant/Menulist",
+      path: "/Restaurant/Menulist/:restaurantName",
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },

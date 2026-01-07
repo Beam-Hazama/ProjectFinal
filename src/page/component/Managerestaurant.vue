@@ -35,36 +35,41 @@ watch(() => RestaurantData.ImageUrl, (newVal) => {
 
 const checkSaveRestaurant = async (data) => {
   try {
+    // ตรวจสอบข้อมูลก่อนส่ง (Destructuring เอา id ออกเพื่อไม่ให้ซ้ำซ้อน)
     const { id, CreatedAt, UpdatedAt, ...saveData } = data; 
     const colName = 'Restaurant'; 
 
-    // --- ส่วนที่เพิ่ม: ตรรกะตรวจสอบสถานะจากเวลาอัตโนมัติ ---
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes(); // แปลงเวลาปัจจุบันเป็นนาที
+    // เพิ่มค่าเริ่มต้นกรณี ManualStatus เป็นค่าว่าง
+    if (!saveData.ManualStatus) {
+        saveData.ManualStatus = 'auto';
+    }
 
+    // --- ตรรกะคำนวณ Status อัตโนมัติ (ใส่ Manual Check เข้าไปด้วย) ---
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
     const [openH, openM] = saveData.OpenTime.split(':').map(Number);
     const [closeH, closeM] = saveData.CloseTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
 
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    // ตรวจสอบว่าเวลาปัจจุบันอยู่ในช่วงเวลาเปิดหรือไม่
     let autoStatus = 'close';
-    if (closeMinutes > openMinutes) {
-      // กรณีปกติ เช่น เปิด 08:00 ปิด 20:00
-      if (currentTime >= openMinutes && currentTime < closeMinutes) {
+    
+    // เช็ค ManualStatus ก่อน
+    if (saveData.ManualStatus === 'force_open') {
         autoStatus = 'open';
-      }
+    } else if (saveData.ManualStatus === 'force_close') {
+        autoStatus = 'close';
     } else {
-      // กรณีเปิดข้ามคืน เช่น เปิด 17:00 ปิด 02:00
-      if (currentTime >= openMinutes || currentTime < closeMinutes) {
-        autoStatus = 'open';
-      }
+        // ถ้าเป็น auto ค่อยเช็คตามเวลา
+        if (closeMin > openMin) {
+            if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
+        } else {
+            if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
+        }
     }
     
-    // อัปเดตสถานะใน saveData ก่อนบันทึก
+    // อัปเดต Status และ ManualStatus ลงใน saveData
     saveData.Status = autoStatus;
-    // --------------------------------------------------
 
     if (mode.value === 'Add Restaurant') {
       await addDoc(collection(db, colName), {
@@ -74,8 +79,7 @@ const checkSaveRestaurant = async (data) => {
       });
     } else {
       const docId = route.params.id;
-      const docRef = doc(db, colName, docId);
-      await updateDoc(docRef, {
+      await updateDoc(doc(db, colName, docId), {
         ...saveData,
         UpdatedAt: serverTimestamp()
       });
@@ -83,8 +87,7 @@ const checkSaveRestaurant = async (data) => {
     
     router.push({ name: 'Admin Restaurant List' });
   } catch (error) {
-    console.error('Firebase Error:', error);
-    alert('บันทึกไม่สำเร็จ: ' + error.message); 
+    console.error('Error:', error);
   }
 }
 
@@ -277,14 +280,27 @@ onMounted(async () => {
 
 
                 <div class="form-control">
+                  <label class="label"><span class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
+                  <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
+                    <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
+                    <option value="force_open">🔓 เปิดร้านทันที</option>
+                    <option value="force_close">🔒 ปิดร้านทันที</option>
+                  </select>
+                </div>
+
+                <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">สถานะร้านค้า</span>
+                    <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
-                  <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
-                    v-model="RestaurantData.Status">
+                  <select
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed "
+                    v-model="RestaurantData.Status" :disabled="true">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
+                  <p class="text-[10px] text-blue-500 mt-1 italic">
+                    {{ RestaurantData.ManualStatus === 'auto' ? '* สถานะเปลี่ยนตามเวลาอัตโนมัติ' : '* สถานะถูกกำหนดด้วยโหมด Manual' }}
+                  </p>
                 </div>
               </div>
             </div>
