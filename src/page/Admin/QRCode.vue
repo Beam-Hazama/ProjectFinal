@@ -1,5 +1,5 @@
 <script setup>
-import QrcodeVue from 'qrcode.vue'
+//import QrcodeVue from 'qrcode.vue'
 import { ref, nextTick, onMounted, computed } from 'vue'
 import AdminLayout from './Admin.vue' 
 import { useQRCodeStore } from '@/stores/qrcode'

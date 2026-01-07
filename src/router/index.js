@@ -11,13 +11,13 @@ import Adminrestaurantlist from "@/page/Admin/Restaurant.vue";
 import Managemenu from "@/page/component/Managemenu.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
 
-import Restaurants from "@/page/Restaurant/Restaurant.vue";
+import Restaurants from "@/page/Restaurant/restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
 import Restaurantmenulist from "@/page/Restaurant/Menulist.vue";
 import Restaurantprofile from "@/page/Restaurant/Profile.vue";
 
 import User from "@/page/User/User.vue";
-import Bill from "@/page/User/Bill.vue";
+import Bill from "@/page/User/bill.vue";
 import Cart from "@/page/User/Cart.vue";
 import Status from "@/page/User/Status.vue";
 
@@ -26,7 +26,7 @@ const router = createRouter({
   routes: [
     //user
     {
-      path: "/User",
+      path: "/",
       name: "User",
       component: User,
     },
