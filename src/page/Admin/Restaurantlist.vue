@@ -4,32 +4,33 @@ import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useRestaurant } from '@/stores/Restaurant';
 import { RouterLink } from 'vue-router';
 import { onMounted, onUnmounted, ref } from 'vue';
-
+// ต้องนำเข้า doc และ deleteDoc เพื่อให้ฟังก์ชันลบทำงานได้
+import { doc, deleteDoc } from 'firebase/firestore'; 
 
 const Restaurant = useRestaurant();
-// 1. ใช้ตัวแปร Reactive สำหรับเวลาปัจจุบัน
 const now = ref(new Date()); 
 let timer;
 
-onMounted(() => {
-    Restaurant.loadRestaurant();
+onMounted(async () => {
+    // เปลี่ยนจาก Restaurant.loadRestaurant() เป็น loadListRestaurant()
+    await Restaurant.loadListRestaurant(); 
     
-    // 2. อัปเดตเวลาทุก 1 วินาที เพื่อให้สถานะเปลี่ยนทันทีที่เข็มนาฬิกาเดินถึง
     timer = setInterval(() => {
         now.value = new Date();
     }, 1000);
 });
 
-
 onUnmounted(() => {
     if (timer) clearInterval(timer);
 });
-// --- ฟังก์ชันลบร้านค้า ---
+
+// ฟังก์ชันลบร้านค้า
 const deleteRestaurant = async (id, name) => {
     if (confirm(`คุณต้องการลบร้านค้า "${name}" ใช่หรือไม่?`)) {
         try {
+            // อ้างอิง Collection 'Restaurant' ให้ตรงกับ Database
             await deleteDoc(doc(db, 'Restaurant', id));
-            // หลังจากลบใน Firebase เสร็จ ให้โหลดข้อมูลใหม่ใน Store
+            // โหลดข้อมูลใหม่เพื่อให้ตารางอัปเดต
             await Restaurant.loadRestaurant();
         } catch (error) {
             console.error("Error deleting restaurant:", error);
@@ -37,40 +38,36 @@ const deleteRestaurant = async (id, name) => {
         }
     }
 }
-// 3. ฟังก์ชันตรวจสอบสถานะที่ "เข้มงวด" เรื่องรูปแบบเวลา
-// แก้ไขฟังก์ชัน getAutoStatus ในหน้า Restaurant.vue (หน้า List)
+
+// ฟังก์ชันคำนวณสถานะร้านค้า
 const getAutoStatus = (product) => {
-    // 1. ถ้ามีการตั้งค่า Manual (force_open / force_close) ให้ใช้ค่านั้นเลย
     if (product.ManualStatus === 'force_open') return 'open';
     if (product.ManualStatus === 'force_close') return 'close';
-
-    // 2. ถ้าเป็น auto หรือไม่มี ManualStatus ค่อยคำนวณตามเวลา (Logic เดิมของคุณ)
     if (!product.OpenTime || !product.CloseTime) return 'close';
     
     try {
-        const now = new Date();
-        const nowTime = now.getHours() * 60 + now.getMinutes();
+        const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
         const [openH, openM] = product.OpenTime.split(':').map(Number);
         const [closeH, closeM] = product.CloseTime.split(':').map(Number);
         const openMin = openH * 60 + openM;
         const closeMin = closeH * 60 + closeM;
 
         if (closeMin > openMin) {
-            return (nowTime >= openMin && nowTime < closeMin) ? 'open' : 'close';
+            return (currentTime >= openMin && currentTime < closeMin) ? 'open' : 'close';
         } else {
-            return (nowTime >= openMin || nowTime < closeMin) ? 'open' : 'close';
+            return (currentTime >= openMin || currentTime < closeMin) ? 'open' : 'close';
         }
     } catch (e) {
         return 'close';
     }
 }
 
+// ฟังก์ชันจัดรูปแบบวันที่
 const formatDate = (timestamp) => {
     if (!timestamp) return '-';
-    if (timestamp && typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toLocaleString('th-TH');
-    }
-    return new Date(timestamp).toLocaleString('th-TH');
+    // รองรับ Firestore Timestamp object
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('th-TH');
 }
 </script>
 
@@ -101,7 +98,6 @@ const formatDate = (timestamp) => {
                 <th>Action</th>
               </tr>
             </thead>
-            
 
             <tbody class="text-slate-600">
               <tr v-for="product in Restaurant.list" :key="product.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
@@ -115,7 +111,6 @@ const formatDate = (timestamp) => {
                     </div>
                     <div>
                       <div class="font-bold text-slate-800">{{ product.Name }}</div>
-                      
                     </div>
                   </div>
                 </td>
