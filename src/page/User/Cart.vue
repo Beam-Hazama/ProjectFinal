@@ -15,10 +15,7 @@ const tableId = route.params.tableId || '';
 const displayLocation = computed(() => {
   if (!tableId || tableId === 'ทั่วไป') return 'ทั่วไป';
   
-  // แยกข้อมูลด้วยเครื่องหมาย "-"
   const parts = tableId.split('-');
-  
-  // อิงตามลำดับ: parts[0]=ตึก, parts[1]=ชั้น, parts[2]=ห้อง
   const building = parts[0] || '-';
   const floor = parts[1] || '-';
   const room = parts[2] || '-';
@@ -30,11 +27,20 @@ const formatPrice = (value) => {
   return new Intl.NumberFormat('th-TH').format(value);
 };
 
+// ฟังก์ชันสำหรับเปิด Modal ยืนยันออเดอร์ (แก้ไขจุดนี้)
+const showConfirmModal = () => {
+  if (cartStore.item.length > 0) {
+    const modal = document.getElementById('my_modal_1');
+    if (modal) {
+      modal.showModal(); // เรียกใช้เมธอด .showModal() ของ Element <dialog>
+    }
+  }
+};
+
 onMounted(() => {
   cartStore.loadcart(tableId);
 });
 
-// ฟังก์ชันลบสินค้า (เชื่อมต่อกับ Store)
 const removeItem = (index) => {
   if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
     cartStore.removeItemInCart(index);
@@ -48,8 +54,7 @@ const removeItem = (index) => {
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </div>
         <div>
@@ -125,7 +130,7 @@ const removeItem = (index) => {
     </div>
 
     <div class="fixed bottom-6 left-0 w-full px-4 z-50">
-      <div @click="cartStore.item.length > 0 && my_modal_1.showModal()" 
+      <div @click="showConfirmModal" 
            class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-1 rounded-2xl shadow-xl shadow-blue-500/40 transform hover:-translate-y-1 active:scale-95 transition-all duration-300 cursor-pointer group"
            :class="{'grayscale opacity-50 cursor-not-allowed': cartStore.item.length === 0}">
         <div class="flex justify-between items-center px-6 py-4 bg-transparent rounded-xl border border-white/20">
