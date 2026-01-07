@@ -5,6 +5,7 @@ import AdminLayout from './Admin.vue'
 import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
+// ตรวจสอบ IP ให้ตรงกับเครื่องที่รัน Server
 const baseUrl = 'http://192.168.1.40:5173'
 
 const rooms = computed(() => qrStore.rooms)
@@ -37,12 +38,17 @@ const formatDate = (date) => {
   return d.toLocaleDateString('th-TH', {
     hour: '2-digit',
     minute: '2-digit',
-    second : '2-digit',
+    second: '2-digit',
   })
 }
 
 const saveRoom = async () => {
-  if (!roomForm.value.roomNumber) return
+  // เพิ่มการตรวจสอบข้อมูลให้ครบถ้วนก่อนบันทึก
+  if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {
+    alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง')
+    return
+  }
+  
   try {
     if (isEditing.value) {
       await qrStore.updateRoom(currentRoomId.value, { ...roomForm.value })
@@ -79,7 +85,7 @@ const printSpecificQR = async (room) => {
     <div class="p-6">
       <div class="no-print">
         <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold text-slate-800">QR Code</h1>
+          <h1 class="text-2xl font-bold text-slate-800">จัดการ QR Code รายห้อง</h1>
           <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่มห้อง</button>
         </div>
 
@@ -118,17 +124,17 @@ const printSpecificQR = async (room) => {
           <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียดห้อง' : 'เพิ่มห้องใหม่' }}</h3>
           <div class="space-y-4">
             <div class="form-control">
-              <label class="label"><span class="label-text">เลขห้อง (เช่น 101, A05)</span></label>
-              <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full" placeholder="ระบุเลขห้อง" />
+              <label class="label"><span class="label-text">เลขห้อง</span></label>
+              <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full" placeholder="ตัวอย่าง: 301" />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="form-control">
                 <label class="label"><span class="label-text">ชั้น</span></label>
-                <input v-model="roomForm.floor" type="text" class="input input-bordered w-full" placeholder="ชั้น" />
+                <input v-model="roomForm.floor" type="text" class="input input-bordered w-full" placeholder="ตัวอย่าง: 3" />
               </div>
               <div class="form-control">
                 <label class="label"><span class="label-text">ตึก</span></label>
-                <input v-model="roomForm.building" type="text" class="input input-bordered w-full" placeholder="ตึก" />
+                <input v-model="roomForm.building" type="text" class="input input-bordered w-full" placeholder="ตัวอย่าง: A" />
               </div>
             </div>
           </div>
@@ -145,7 +151,11 @@ const printSpecificQR = async (room) => {
       <div v-if="selectedRoom" class="print-container">
         <div class="qr-print-card">
           <div class="qr-border">
-            <qrcode-vue :value="`${baseUrl}/User/${selectedRoom.roomNumber}`" :size="420" level="H" />
+            <qrcode-vue 
+              :value="`${baseUrl}/User/${selectedRoom.building}-${selectedRoom.floor}-${selectedRoom.roomNumber}`" 
+              :size="420" 
+              level="H" 
+            />
           </div>
           <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
           <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
@@ -163,7 +173,6 @@ const printSpecificQR = async (room) => {
 @media print {
   @page { margin: 0; size: auto; }
   
-  /* ส่วนที่เพิ่ม: สั่งซ่อน Navbar, Sidebar และปุ่มต่างๆ ของ Admin Layout */
   :deep(.drawer-side), 
   :deep(.lg\:drawer-open),
   :deep(.drawer-toggle),
@@ -173,7 +182,6 @@ const printSpecificQR = async (room) => {
     display: none !important;
   }
 
-  /* ปรับให้เนื้อหาหลัก (QR) แสดงผลเต็มหน้าจอ */
   :deep(.drawer-content) {
     display: block !important;
     padding: 0 !important;
