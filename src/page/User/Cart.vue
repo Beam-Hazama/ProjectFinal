@@ -8,10 +8,10 @@ import Trach from '@/Icon/trach.vue';
 const cartStore = useCartStore();
 const route = useRoute();
 
-// ดึง tableId จาก URL (Params)
+
 const tableId = route.params.tableId || '';
 
-// --- ฟังก์ชันแยกข้อมูล ตึก-ชั้น-ห้อง เพื่อแสดงผลที่ Header ---
+
 const displayLocation = computed(() => {
   if (!tableId || tableId === 'ทั่วไป') return 'ทั่วไป';
   
@@ -27,12 +27,12 @@ const formatPrice = (value) => {
   return new Intl.NumberFormat('th-TH').format(value);
 };
 
-// ฟังก์ชันสำหรับเปิด Modal ยืนยันออเดอร์ (แก้ไขจุดนี้)
+
 const showConfirmModal = () => {
   if (cartStore.item.length > 0) {
     const modal = document.getElementById('my_modal_1');
     if (modal) {
-      modal.showModal(); // เรียกใช้เมธอด .showModal() ของ Element <dialog>
+      modal.showModal(); 
     }
   }
 };

@@ -4,7 +4,7 @@ import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useRestaurant } from '@/stores/Restaurant';
 import { RouterLink } from 'vue-router';
 import { onMounted, onUnmounted, ref } from 'vue';
-// ต้องนำเข้า doc และ deleteDoc เพื่อให้ฟังก์ชันลบทำงานได้
+
 import { doc, deleteDoc } from 'firebase/firestore'; 
 
 const Restaurant = useRestaurant();
@@ -12,7 +12,7 @@ const now = ref(new Date());
 let timer;
 
 onMounted(async () => {
-    // เปลี่ยนจาก Restaurant.loadRestaurant() เป็น loadListRestaurant()
+    
     await Restaurant.loadListRestaurant(); 
     
     timer = setInterval(() => {
@@ -24,13 +24,13 @@ onUnmounted(() => {
     if (timer) clearInterval(timer);
 });
 
-// ฟังก์ชันลบร้านค้า
+
 const deleteRestaurant = async (id, name) => {
     if (confirm(`คุณต้องการลบร้านค้า "${name}" ใช่หรือไม่?`)) {
         try {
-            // อ้างอิง Collection 'Restaurant' ให้ตรงกับ Database
+           
             await deleteDoc(doc(db, 'Restaurant', id));
-            // โหลดข้อมูลใหม่เพื่อให้ตารางอัปเดต
+          
             await Restaurant.loadRestaurant();
         } catch (error) {
             console.error("Error deleting restaurant:", error);
@@ -39,7 +39,7 @@ const deleteRestaurant = async (id, name) => {
     }
 }
 
-// ฟังก์ชันคำนวณสถานะร้านค้า
+
 const getAutoStatus = (product) => {
     if (product.ManualStatus === 'force_open') return 'open';
     if (product.ManualStatus === 'force_close') return 'close';
@@ -62,10 +62,10 @@ const getAutoStatus = (product) => {
     }
 }
 
-// ฟังก์ชันจัดรูปแบบวันที่
+
 const formatDate = (timestamp) => {
     if (!timestamp) return '-';
-    // รองรับ Firestore Timestamp object
+    
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleString('th-TH');
 }

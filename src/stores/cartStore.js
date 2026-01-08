@@ -20,7 +20,7 @@ export const useCartStore = defineStore("cart", {
     },
   },
   actions: {
-    // โหลดตะกร้าตามเลขโต๊ะ เพื่อให้ข้อมูลหน้า User และ Cart ตรงกันเสมอ
+    
     loadcart(tableId) {
       this.tableId = tableId;
       const storageKey = `cart-data-${tableId}`;
@@ -64,7 +64,7 @@ export const useCartStore = defineStore("cart", {
     },
     async placeorder(tableId) {
       try {
-        // อิงการแยกเลขห้อง ชั้น ตึก จาก tableId ที่ได้รับมา
+       
         const parts = tableId ? tableId.split('-') : [];
         const building = parts[0] || '-';
         const floor = parts[1] || '-';
@@ -73,9 +73,9 @@ export const useCartStore = defineStore("cart", {
         const orderData = {
           OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
           tableId: tableId,
-          building: building, // ส่งตึก
-          floor: floor,       // ส่งชั้น
-          room: room,         // ส่งห้อง
+          building: building, 
+          floor: floor,       
+          room: room,         
           item: this.item,
           TotalPrice: this.summaryPrice,
           statusOrder: 'pending',

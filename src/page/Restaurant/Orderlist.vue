@@ -6,7 +6,7 @@ import { useOderlistStore } from '@/stores/OrderList';
 const orderStore = useOderlistStore();
 
 onMounted(() => {
-  // แก้ไขตรงนี้: เปลี่ยนจาก orderStore.loadOrderinadmin() เป็น orderStore.loadOrder()
+  
   orderStore.loadOrder(); 
 });
 </script>

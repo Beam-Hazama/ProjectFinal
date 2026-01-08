@@ -22,12 +22,11 @@ export const useOderlistStore = defineStore("oderlist", {
     },
   },
   actions: {
-    // ฟังก์ชันใหม่: โหลดออเดอร์เฉพาะของ User ตาม TableID
-    // src/stores/OrderList.js
+    
     async loadOrderUser(tableId) {
       const orderQuery = query(
         collection(db, "Order"),
-        where("TableID", "==", tableId), // ตรวจสอบว่าใน DB ใช้ชื่อ TableID หรือ tableId
+        where("TableID", "==", tableId),
         where("statusOrder", "==", "pending")
       );
 

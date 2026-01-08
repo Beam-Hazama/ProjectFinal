@@ -6,23 +6,22 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const Order = useOderlistStore();
 
-// รับค่า tableId จาก URL (ตรวจสอบชื่อ param ใน router/index.js ของคุณด้วย)
-// แก้ไขบรรทัดนี้ใน bill.vue
+
 const tableId = route.params.tableId || 'ทั่วไป';
 
 const discount = ref(50.00);
 
 onMounted(async () => {
-    // เรียกใช้ฟังก์ชันที่กรองตามโต๊ะ
+  
     await Order.loadOrderUser(tableId);
 });
 
-// กรองเพื่อความชัวร์ในฝั่ง UI
+
 const userOrders = computed(() => {
     return Order.list.filter(order => order.TableID === tableId);
 });
 
-// --- ฟังก์ชันคำนวณราคา ---
+
 const calculateSubtotal = (items) => {
     if (!items) return 0;
     return items.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);

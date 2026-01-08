@@ -2,7 +2,7 @@
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'; // เพิ่ม serverTimestamp
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'; 
 import { RouterLink } from 'vue-router';
 import { onMounted } from 'vue';
 
@@ -12,28 +12,26 @@ onMounted(() => {
   MenuStore.loadMenu();
 });
 
-// แก้ไขฟังก์ชัน formatDate ให้ตรวจสอบค่าหลายๆ รูปแบบ
+
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
 
-  // ตรวจสอบว่าเป็น Firestore Timestamp (มีฟังก์ชัน toDate)
   if (typeof timestamp.toDate === 'function') {
     return timestamp.toDate().toLocaleString('th-TH');
   }
 
-  // กรณีเป็น Date Object ธรรมดา หรือ String
+ 
   return new Date(timestamp).toLocaleString('th-TH');
 }
 const deleteMenu = async (id, name) => {
   if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
     try {
-      // 1. เปลี่ยนชื่อ Collection เป็น 'Menu'
+    
       await deleteDoc(doc(db, 'Menu', id));
 
-      // 2. สั่งให้ Store โหลดข้อมูลใหม่หลังจากลบสำเร็จ
       await MenuStore.loadMenu();
 
-      // (Optional) แจ้งเตือนเล็กน้อย
+      
       console.log("ลบเมนูเรียบร้อย");
     } catch (error) {
       console.error("Error deleting menu:", error);
@@ -41,14 +39,14 @@ const deleteMenu = async (id, name) => {
     }
   }
 }
-// เพิ่มฟังก์ชันสลับสถานะ (ถ้ายังไม่มีในหน้า list)
+
 const switchStatus = async (product) => {
   try {
     const newStatus = product.Status === 'open' ? 'close' : 'open';
     const docRef = doc(db, 'Menu', product.id);
     await updateDoc(docRef, {
       Status: newStatus,
-      UpdatedAt: serverTimestamp() // บันทึกเวลาที่อัปเดตใหม่
+      UpdatedAt: serverTimestamp() 
     });
   } catch (error) {
     console.error("Error switching status:", error);

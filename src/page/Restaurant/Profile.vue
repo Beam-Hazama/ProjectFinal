@@ -21,7 +21,7 @@ const imagePreview = ref('');
 const imageInputMethod = ref('file');
 const selectedFile = ref(null);
 
-// 1. เพิ่มตัวแปรเวลาปัจจุบันและ Timer
+
 const now = ref(new Date());
 let timer;
 
@@ -31,18 +31,17 @@ const RestaurantData = reactive({
   OpenTime: '',
   CloseTime: '',
   Status: '',
-  ManualStatus: 'auto', // เพิ่มฟิลด์สำหรับเก็บการตั้งค่า Manual
+  ManualStatus: 'auto', 
   CreatedAt: null,
   UpdatedAt: null
 });
 
-// 2. ฟังก์ชันคำนวณสถานะ (ปรับปรุงให้รองรับ ManualStatus)
 const calculateStatus = () => {
-  // เช็คก่อนว่าตั้งค่าเป็นแบบ Manual หรือไม่
+ 
   if (RestaurantData.ManualStatus === 'force_open') return 'open';
   if (RestaurantData.ManualStatus === 'force_close') return 'close';
 
-  // ถ้าเป็น auto (อัตโนมัติ) ค่อยคำนวณตามเวลา
+
   if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
 
   const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
@@ -53,15 +52,15 @@ const calculateStatus = () => {
   const closeMinutes = closeH * 60 + closeM;
 
   if (closeMinutes > openMinutes) {
-    // กรณีปกติ เช่น 08:00 - 20:00
+   
     return (currentTime >= openMinutes && currentTime < closeMinutes) ? 'open' : 'close';
   } else {
-    // กรณีข้ามคืน เช่น 17:00 - 02:00
+   
     return (currentTime >= openMinutes || currentTime < closeMinutes) ? 'open' : 'close';
   }
 };
 
-// 3. Watch เพื่ออัปเดต Status เมื่อเวลาเปลี่ยน หรือเมื่อมีการเปลี่ยนค่า ManualStatus
+
 watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () => RestaurantData.ManualStatus], () => {
   RestaurantData.Status = calculateStatus();
 });
@@ -81,7 +80,7 @@ const fetchRestaurantByName = async () => {
       const data = restaurantDoc.data();
       Object.assign(RestaurantData, data);
       
-      // กำหนดค่าเริ่มต้นถ้ายังไม่มีในฐานข้อมูล
+ 
       if (!RestaurantData.ManualStatus) RestaurantData.ManualStatus = 'auto';
       
       imagePreview.value = RestaurantData.ImageUrl;
@@ -110,7 +109,7 @@ const handleFileUpload = (event) => {
 const saveProfile = async () => {
   if (!docId.value) return;
   try {
-    // บันทึกทั้ง ManualStatus และ Status ลงฐานข้อมูล
+ 
     await updateDoc(doc(db, 'Restaurant', docId.value), {
       Name: RestaurantData.Name,
       ImageUrl: RestaurantData.ImageUrl,

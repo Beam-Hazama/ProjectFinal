@@ -24,7 +24,7 @@ export const useRestaurant = defineStore('Restaurant', {
     async loadRestaurant() {
       const uid = auth.currentUser.uid;
 
-      // ดึงข้อมูลร้าน
+      
       const snap = await getDoc(doc(db, 'Restaurant', uid));
       if (!snap.exists()) throw new Error('ไม่พบข้อมูลร้าน');
 
@@ -36,13 +36,13 @@ export const useRestaurant = defineStore('Restaurant', {
         onAuthStateChanged(auth, async (user) => {
           if (!user) return reject('ยังไม่ได้ login');
 
-          // 1. ดึงชื่อร้านจาก User
+          
           const userSnap = await getDoc(doc(db, 'User', user.uid));
           if (!userSnap.exists()) return reject('ไม่พบข้อมูลร้าน');
 
           this.restaurantName = userSnap.data().restaurant;
 
-          // 2. ดึงเมนูตามชื่อร้าน
+         
           const q = query(
             collection(db, 'Menu'),
             where('Restaurant', '==', this.restaurantName)

@@ -5,23 +5,21 @@ import { useRouter } from 'vue-router';
 const cartStore = useCartStore();
 const router = useRouter();
 
-// รับ props tableId มาจากหน้า Cart.vue
+
 const props = defineProps({
   tableId: String
 })
 
 const payment = () => {
-  // 1. บันทึกออเดอร์ลงระบบ
+  
   cartStore.placeorder(props.tableId);
   
-  // 2. ปิด Modal
+
   const dlg = document.getElementById('my_modal_1')
   if (dlg?.close) dlg.close()
   
-  // 3. ล้างตะกร้าสินค้า
   cartStore.clearcart()
   
-  // 4. เปลี่ยนหน้าไปยังหน้า Status ทันที
   router.push({ name: 'Status', params: { tableId: props.tableId } });
 };
 

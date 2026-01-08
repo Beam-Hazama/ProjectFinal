@@ -7,7 +7,7 @@ const route = useRoute();
 const orderListStore = useOderlistStore();
 const tableId = route.params.tableId || 'ทั่วไป';
 
-// กรองเฉพาะออเดอร์ของโต๊ะนี้
+
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => order.TableID === tableId);
 });
@@ -17,7 +17,7 @@ const formatPrice = (value) => {
 };
 
 onMounted(() => {
-  orderListStore.loadOrder(); // โหลดข้อมูลจาก Firebase
+  orderListStore.loadOrder(); 
 });
 </script>
 

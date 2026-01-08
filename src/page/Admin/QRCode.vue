@@ -5,7 +5,7 @@ import AdminLayout from './Admin.vue'
 import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
-// ตรวจสอบ IP ให้ตรงกับเครื่องที่รัน Server
+
 const baseUrl = 'http://192.168.1.40:5173'
 
 const rooms = computed(() => qrStore.rooms)
@@ -43,7 +43,7 @@ const formatDate = (date) => {
 }
 
 const saveRoom = async () => {
-  // เพิ่มการตรวจสอบข้อมูลให้ครบถ้วนก่อนบันทึก
+ 
   if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {
     alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง')
     return

@@ -9,11 +9,10 @@ onMounted(() => {
   orderStore.loadOrder(); 
 });
 
-// ฟังก์ชันสำหรับแยกข้อมูล tableId (สมมติว่าคุณเก็บรูปแบบ "ตึก-ชั้น-ห้อง" เช่น "A-3-301")
-// หรือถ้าเก็บแยกฟิลด์อยู่แล้ว สามารถเรียกใช้ orders.RoomNumber ได้เลย
+
 const formatLocation = (tableId) => {
   if (!tableId) return '-';
-  return tableId; // แสดงค่า tableId ตรงๆ หรือปรับแต่ง logic การแสดงผลที่นี่
+  return tableId; 
 };
 </script>
 

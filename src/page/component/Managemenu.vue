@@ -5,7 +5,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useRestaurant } from '@/stores/Restaurant';
 
-// เพิ่ม serverTimestamp และ deleteDoc
+
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, } from '@/firebase';
 
@@ -30,16 +30,16 @@ const MenuData = reactive({
     Name: '',
     ImageUrl: '',
     Price: 0,
-    DiscountPrice: 0,      // เก็บราคาที่ลดแล้ว
-    DiscountStart: '',    // เก็บเวลาเริ่มโปรโมชั่น (รูปแบบ String)
-    DiscountEnd: '',      // เก็บเวลาสิ้นสุดโปรโมชั่น (รูปแบบ String)
+    DiscountPrice: 0,      
+    DiscountStart: '',    
+    DiscountEnd: '',      
     Restaurant: '',
     Description: '',
     Category: '',
     Status: '',
 });
 
-// Watch URL เพื่ออัปเดต Preview ทันที
+
 watch(() => MenuData.ImageUrl, (newVal) => {
     if (imageInputMethod.value === 'url') {
         imagePreview.value = newVal;
@@ -51,7 +51,7 @@ const checkAddProduct = async (data) => {
         let MenuId
         let ImageUrl = data.ImageUrl || ''
 
-        // เตรียมข้อมูลก่อนบันทึก: แปลงค่าวันเวลาจาก String เป็น Date Object สำหรับ Firebase
+        
         const saveData = {
             ...data,
             ImageUrl: ImageUrl,
@@ -93,7 +93,7 @@ const goBack = () => {
     router.go(-1);
 }
 
-// ฟังก์ชันแปลง Date เป็นรูปแบบที่ datetime-local รองรับ (YYYY-MM-DDThh:mm)
+
 const formatDateTimeLocal = (date) => {
     if (!date) return '';
     const d = date instanceof Date ? date : date.toDate();
@@ -114,7 +114,7 @@ onMounted(async () => {
             const res = productSnap.data();
             Object.assign(MenuData, res);
 
-            // แปลงค่าเวลาจาก Firebase Timestamp เป็น Format ของ HTML Input
+            
             if (res.DiscountStart) MenuData.DiscountStart = formatDateTimeLocal(res.DiscountStart);
             if (res.DiscountEnd) MenuData.DiscountEnd = formatDateTimeLocal(res.DiscountEnd);
 

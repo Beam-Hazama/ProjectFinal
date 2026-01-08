@@ -15,7 +15,7 @@ const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 
-// ข้อมูลร้านค้า
+
 const RestaurantData = reactive({
   Name: '',
   ImageUrl: '',
@@ -26,7 +26,6 @@ const RestaurantData = reactive({
   UpdatedAt: null  
 });
 
-// Watch URL เพื่ออัปเดต Preview ทันที
 watch(() => RestaurantData.ImageUrl, (newVal) => {
   if (imageInputMethod.value === 'url') {
     imagePreview.value = newVal;
@@ -35,16 +34,16 @@ watch(() => RestaurantData.ImageUrl, (newVal) => {
 
 const checkSaveRestaurant = async (data) => {
   try {
-    // ตรวจสอบข้อมูลก่อนส่ง (Destructuring เอา id ออกเพื่อไม่ให้ซ้ำซ้อน)
+    
     const { id, CreatedAt, UpdatedAt, ...saveData } = data; 
     const colName = 'Restaurant'; 
 
-    // เพิ่มค่าเริ่มต้นกรณี ManualStatus เป็นค่าว่าง
+    
     if (!saveData.ManualStatus) {
         saveData.ManualStatus = 'auto';
     }
 
-    // --- ตรรกะคำนวณ Status อัตโนมัติ (ใส่ Manual Check เข้าไปด้วย) ---
+   
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     const [openH, openM] = saveData.OpenTime.split(':').map(Number);
@@ -54,13 +53,13 @@ const checkSaveRestaurant = async (data) => {
 
     let autoStatus = 'close';
     
-    // เช็ค ManualStatus ก่อน
+    
     if (saveData.ManualStatus === 'force_open') {
         autoStatus = 'open';
     } else if (saveData.ManualStatus === 'force_close') {
         autoStatus = 'close';
     } else {
-        // ถ้าเป็น auto ค่อยเช็คตามเวลา
+        
         if (closeMin > openMin) {
             if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
         } else {
@@ -68,7 +67,7 @@ const checkSaveRestaurant = async (data) => {
         }
     }
     
-    // อัปเดต Status และ ManualStatus ลงใน saveData
+   
     saveData.Status = autoStatus;
 
     if (mode.value === 'Add Restaurant') {
@@ -113,12 +112,12 @@ const goBack = () => {
 onMounted(async () => {
   if (route.params.id) {
     mode.value = 'Update Restaurant';
-    // แก้ไขชื่อ Collection ให้ตรงกับที่บันทึก (Restaurant)
+    
     const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
 
     if (resSnap.exists()) {
       const res = resSnap.data();
-      // นำข้อมูลที่ดึงได้ใส่กลับเข้าไปใน Reactive Object
+     
       Object.assign(RestaurantData, res);
       imagePreview.value = res.ImageUrl;
       if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
@@ -217,19 +216,6 @@ onMounted(async () => {
           </div>
 
           <div class="p-8 lg:col-span-2 space-y-8">
-
-            <div v-if="mode === 'Update Restaurant'"
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
-                <span class="text-sm font-semibold text-slate-700">{{ formatDate(RestaurantData.CreatedAt) }}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
-                <span class="text-sm font-semibold text-slate-700">{{ formatDate(RestaurantData.UpdatedAt) }}</span>
-              </div>
-            </div>
-
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

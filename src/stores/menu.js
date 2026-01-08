@@ -7,8 +7,7 @@ import { db } from '@/firebase';
 export const useMenuStore = defineStore('product', {
   state: () => ({
     list: [],
-    //imageList:[],
-    //loaded:false
+    
   }),
   actions: {
     /*async getImageUrl(productId){

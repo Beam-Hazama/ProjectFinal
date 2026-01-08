@@ -26,14 +26,14 @@ import Status from "@/page/User/Status.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    //user
+    
     {
       path: "/User",
       name: "User",
       component: User,
     },
     {
-      path: "/User/Bill/:tableId", // ต้องมี :tableId
+      path: "/User/Bill/:tableId", 
       name: "user-bill",
       component: Bill,
     },
@@ -47,7 +47,7 @@ const router = createRouter({
       name: "Cart",
       component: Cart,
     },
-    //Admin
+   
     {
       path: "/Admin",
       name: "Admin",
@@ -95,12 +95,12 @@ const router = createRouter({
       component: Managemenu,
     },
     {
-      path: "/Admin/Restaurant/Adduser", // พาธที่เรียกใน browser
+      path: "/Admin/Restaurant/Adduser", 
       name: "Admin Add User",
       component: Manageuser,
     },
     {
-      path: "/Admin/Restaurant/Adduser/:id", // พาธที่เรียกใน browser
+      path: "/Admin/Restaurant/Edituser/:id", 
       name: "Admin Update User",
       component: Manageuser,
     },
@@ -111,7 +111,7 @@ const router = createRouter({
       component: Managerestaurant,
     },
     {
-      path: "/Admin/Restaurantuser/Edit/:id",
+      path: "/Admin/Restaurant/Edit/:id",
       name: "Admin update restaurant",
       component: Managerestaurant,
     },
@@ -121,39 +121,39 @@ const router = createRouter({
       name: "Login",
       component: Login,
     },
-    //Restaurant
+    
     {
-      path: "/Restaurant", //:restaurantName
+      path: "/Restaurant", 
       name: "Restaurants",
       component: Restaurants,
     },
     {
-      path: "/Restaurant/Orderlist", //:restaurantName
+      path: "/Restaurant/Orderlist", 
       name: "Restaurants Orderlist",
       component: Restaurantorderlist,
     },
     {
-      path: "/Restaurant/Profile", //:restaurantName
+      path: "/Restaurant/Profile", 
       name: "Restaurants Profile",
       component: Restaurantprofile,
     },
     {
-      path: "/Restaurant/Menulist", //:restaurantName
+      path: "/Restaurant/Menulist", 
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },
     {
-      path: "/User/:tableId", // เพิ่ม :tableId เพื่อรับค่าจาก URL
+      path: "/User/:tableId", 
       name: "User",
       component: User,
     },
     {
-      path: "/User/Cart/:tableId", // เพิ่ม :tableId ต่อท้าย
+      path: "/User/Cart/:tableId", 
       name: "Cart",
       component: Cart,
     },
     {
-      path: "/User/Status/:tableId", // เพิ่ม :tableId
+      path: "/User/Status/:tableId", 
       name: "Status",
       component: Status,
     },

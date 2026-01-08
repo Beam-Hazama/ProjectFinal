@@ -29,9 +29,9 @@ const menus = [
 ];
 
 const logout = () => {
-    // Logic logout
+ 
     console.log('Logout clicked');
-    // router.push('/login');
+   
 }
 </script>
 

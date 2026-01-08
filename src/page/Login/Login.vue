@@ -7,15 +7,14 @@ import Gmail from '@/Icon/Gmail.vue';
 const accountStore = useAccountStore()
 const router = useRouter()
 
-// เปลี่ยนชื่อตัวแปรจาก email เป็น username เพื่อให้ตรงกับการใช้งานจริง
 const username = ref('') 
 const password = ref('')
-const errorMessage = ref('') // เพิ่มสำหรับแสดงข้อความผิดพลาด
+const errorMessage = ref('') 
 
 const login = async () => {
   try {
     errorMessage.value = ''
-    // ส่ง username.value ไปยัง Store (ซึ่ง Store จะไปหาอีเมลให้เอง)
+   
     const role = await accountStore.signIn(username.value, password.value);
 
     if (role === 'admin') {
@@ -30,7 +29,7 @@ const login = async () => {
 
   } catch (error) {
     console.error(error.message);
-    errorMessage.value = error.message; // เก็บข้อความ Error ไว้แสดงบนหน้าจอ
+    errorMessage.value = error.message;
   }
 };
 

@@ -1,41 +1,36 @@
 import { defineStore } from 'pinia';
 import { 
-  onAuthStateChanged, 
-  signOut, 
-  signInWithEmailAndPassword 
-} from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { auth, db } from '@/firebase';
+  collection, 
+  query, 
+  where, 
+  getDocs 
+} from 'firebase/firestore';
+import { db } from '@/firebase'; // นำเข้า db จาก firebase.js
 
 export const useAccountStore = defineStore('user-account', {
   state: () => ({
     isLoggedIn: false,
     role: null,
-    user: {},
+    user: null, // เก็บข้อมูลผู้ใช้ที่พบจาก Firestore
   }),
   actions: {
+    // ปรับปรุงฟังก์ชันตรวจสอบสถานะให้ดึงจาก Session/LocalStorage แทน Firebase Auth
     async checkAuthState() {
-      return new Promise((resolve) => {
-        onAuthStateChanged(auth, async (user) => {
-          if (!user) {
-            this.user = null;
-            this.isLoggedIn = false;
-            this.role = null;
-            return resolve(false);
-          }
-          this.user = user;
-          this.isLoggedIn = true;
-          const snap = await getDoc(doc(db, 'User', user.uid));
-          this.role = snap.exists() ? snap.data().role : null;
-          resolve(true);
-        });
-      });
+      const savedUser = localStorage.getItem('user-session');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        this.user = userData;
+        this.isLoggedIn = true;
+        this.role = userData.role;
+        return true;
+      }
+      return false;
     },
 
-    // ล็อกอินด้วย Username
+    // ล็อกอินด้วยการค้นหาใน Firestore ตรงๆ
     async signIn(username, password) {
       try {
-        // 1. ค้นหา Email จาก Username ใน Firestore
+        // 1. ค้นหาเอกสารในคอลเลกชัน 'User' ที่มีฟิลด์ username ตรงกับที่ระบุ
         const userQuery = query(
           collection(db, 'User'), 
           where('username', '==', username)
@@ -47,30 +42,34 @@ export const useAccountStore = defineStore('user-account', {
           throw new Error('ไม่พบ Username นี้ในระบบ');
         }
 
-        const userData = querySnapshot.docs[0].data();
-        const email = userData.email; // นี่คือ Email ปลอมที่เราสร้างไว้ตอน Add User
+        // 2. ตรวจสอบรหัสผ่าน (เปรียบเทียบค่าตรงๆ)
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
 
-        // 2. ใช้ Email ล็อกอินเบื้องหลัง
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        
-        this.user = result.user;
+        if (userData.password !== password) {
+          throw new Error('Username หรือ Password ไม่ถูกต้อง');
+        }
+
+        // 3. ตั้งค่าข้อมูลลง Store และบันทึกลง LocalStorage เพื่อจำการ Login
+        const userInfo = { uid: userDoc.id, ...userData };
+        this.user = userInfo;
         this.isLoggedIn = true;
         this.role = userData.role;
 
+        localStorage.setItem('user-session', JSON.stringify(userInfo));
+
         return this.role;
       } catch (error) {
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-          throw new Error('Username หรือ Password ไม่ถูกต้อง');
-        }
+        console.error("Login Error:", error.message);
         throw error;
       }
     },
 
     async logout() {
-      await signOut(auth);
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;
+      localStorage.removeItem('user-session');
     },
   },
 });

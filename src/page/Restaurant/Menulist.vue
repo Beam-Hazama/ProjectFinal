@@ -3,7 +3,7 @@ import { db } from '@/firebase';
 import Layoutrestaurant from '@/page/Restaurant/restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
 import { doc, updateDoc } from 'firebase/firestore';
-import { RouterLink, useRoute } from 'vue-router'; // เพิ่ม useRoute
+import { RouterLink, useRoute } from 'vue-router'; 
 import { onMounted, watch } from 'vue';
 import { useRestaurant } from '@/stores/Restaurant';
 
@@ -11,7 +11,7 @@ const MenuStore = useMenuStore();
 const route = useRoute();
 const restaurant = useRestaurant()
 
-// ดึงข้อมูลเมนูตามชื่อร้านที่ระบุใน URL
+
 const loadData = () => {
   const restaurantName = route.params.restaurantName;
   if (restaurantName) {
@@ -24,12 +24,12 @@ onMounted(() => {
   restaurant.loadMenusByRestaurant()
 });
 
-// ตรวจสอบหากมีการเปลี่ยนชื่อร้านใน URL ให้โหลดข้อมูลใหม่
+
 watch(() => route.params.restaurantName, () => {
   loadData();
 });
 
-// ฟังก์ชันเปิด-ปิด สถานะเมนู
+
 const switchStatus = async (product) => {
   try {
     const newStatus = product.Status === 'open' ? 'close' : 'open';
@@ -37,17 +37,17 @@ const switchStatus = async (product) => {
     await updateDoc(productRef, {
       Status: newStatus
     });
-    // หมายเหตุ: loadMenuRestaurant ใช้ onSnapshot ข้อมูลจะอัปเดตอัตโนมัติบนหน้าจอ
+    
   } catch (error) {
     console.error("Error updating status:", error);
     alert("ไม่สามารถเปลี่ยนสถานะได้");
   }
 }
 
-// ฟังก์ชันจัดรูปแบบวันที่
+
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
-  // รองรับทั้ง Firestore Timestamp และ Date object
+  
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   return date.toLocaleString('th-TH');
 }
