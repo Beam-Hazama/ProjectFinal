@@ -2,18 +2,21 @@
 import { useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/account';
 import { onMounted, ref } from 'vue';
-
 import Gmail from '@/Icon/Gmail.vue';
 
 const accountStore = useAccountStore()
 const router = useRouter()
 
-const email = ref('')
+// เปลี่ยนชื่อตัวแปรจาก email เป็น username เพื่อให้ตรงกับการใช้งานจริง
+const username = ref('') 
 const password = ref('')
+const errorMessage = ref('') // เพิ่มสำหรับแสดงข้อความผิดพลาด
 
 const login = async () => {
   try {
-    const role = await accountStore.signIn(email.value, password.value);
+    errorMessage.value = ''
+    // ส่ง username.value ไปยัง Store (ซึ่ง Store จะไปหาอีเมลให้เอง)
+    const role = await accountStore.signIn(username.value, password.value);
 
     if (role === 'admin') {
       router.push({ name: 'Admin' });
@@ -27,61 +30,62 @@ const login = async () => {
 
   } catch (error) {
     console.error(error.message);
+    errorMessage.value = error.message; // เก็บข้อความ Error ไว้แสดงบนหน้าจอ
   }
 };
 
 onMounted(async() => {
   await accountStore.checkAuthState()
 })
-  
-
 </script>
 
 <template>
-  
-
   <div class="flex items-center justify-center min-h-screen bg-cover bg-center bg-no-repeat animate-bg bg-[url('https://travel.mthai.com/app/uploads/2017/06/first-google-result-image-capital-city-141-593907b7d8916__880.jpg')] relative">
     <div class="absolute inset-0 backdrop-blur-sm bg-black/20"></div>
     <div class="relative flex flex-col m-6 bg-white shadow-2xl rounded-2xl md:flex-row transform transition duration-500 hover:scale-[1.02] hover:shadow-[0px_0px_35px_rgba(59,130,246,0.5)] overflow-hidden">
+      
       <div class="flex flex-col justify-center p-8 md:p-10 w-full md:w-[450px]">
         <h1 class="text-5xl font-bold text-blue-600 relative w-fit">
           Login
           <span class="absolute left-0 right-0 h-[4px] rounded-full -bottom-4 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500"></span>
         </h1>
-        <p class="text-gray-400 mb-8 mt-5">Please enter your Username&Password</p>
+        <p class="text-gray-400 mb-8 mt-5">Please enter your Username & Password</p>
+
+        <p v-if="errorMessage" class="text-red-500 text-sm mb-4 font-medium animate-pulse">
+          ⚠️ {{ errorMessage }}
+        </p>
 
         <div class="py-3">
-          <label class="text-blue-500 text-md block mb-1">Username</label>
+          <label class="text-blue-500 text-md block mb-1 font-semibold">Username</label>
           <div class="flex items-center gap-2 w-full p-2 border border-blue-300 rounded-md focus-within:border-blue-500 focus-within:shadow-[0_0_8px_#3b82f6] transition duration-200">
-            <span class="text-blue-500 text-lg"></span>
-            <input type="text" class="w-full outline-none placeholder:text-blue-300" v-model="email">
+            <input type="text" class="w-full outline-none placeholder:text-blue-300" v-model="username" placeholder="Enter your username">
           </div>
         </div>
 
         <div class="py-3">
-          <label class="text-blue-500 text-md block mb-1">Password</label>
+          <label class="text-blue-500 text-md block mb-1 font-semibold">Password</label>
           <div class="flex items-center gap-2 w-full p-2 border border-blue-300 rounded-md focus-within:border-blue-500 focus-within:shadow-[0_0_8px_#3b82f6] transition duration-200">
-            <span class="text-blue-500 text-lg"></span>
-            <input type="text" class="w-full outline-none placeholder:text-blue-300" v-model="password">
+            <input type="password" class="w-full outline-none placeholder:text-blue-300" v-model="password" placeholder="••••••••">
           </div>
         </div>
 
         <div class="flex items-center gap-2 my-3">
           <input type="checkbox" class="accent-blue-500" checked>
-          <span class="text-blue-500">Remember</span>
+          <span class="text-blue-500">Remember me</span>
         </div>
 
-        <button class="w-full p-2 mt-3 rounded-lg font-medium bg-gradient-to-r 
-              from-blue-300 to-blue-600 hover:from-white hover:to-white hover:text-blue-500 hover:border hover:border-blue-600 
+        <button class="w-full p-2 mt-3 rounded-lg font-medium text-white bg-gradient-to-r 
+              from-blue-400 to-blue-600 hover:from-white hover:to-white hover:text-blue-500 hover:border hover:border-blue-600 
                 transition duration-300 shadow-md hover:shadow-xl" @click="login()">
           Login
         </button>
-        <button class="w-full p-2 mt-3 rounded-lg font-medium flex  justify-center
-                 bg-gradient-to-r from-orange-300  to-orange-700   
-                 hover:from-white hover:to-white 
-                 hover:text-blue-500 hover:border hover:border-blue-600
-                 transition duration-300 shadow-md hover:shadow-xl" @click="accountStore.signInWithGoogle()">
-          <gmail class="mr-5"></gmail>Login With Email 
+
+        <button class="w-full p-2 mt-3 rounded-lg font-medium flex justify-center text-white
+                  bg-gradient-to-r from-orange-300 to-orange-700   
+                  hover:from-white hover:to-white 
+                  hover:text-orange-600 hover:border hover:border-orange-600
+                  transition duration-300 shadow-md hover:shadow-xl" @click="accountStore.signInWithGoogle()">
+          <gmail class="mr-3"></gmail> Login with Google
         </button>
       </div>
 

@@ -11,6 +11,7 @@ import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
 
 import Managemenu from "@/page/component/Managemenu.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
+import Manageuser from "@/page/component/Manageuser.vue";
 
 import Restaurants from "@/page/Restaurant/restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
@@ -94,12 +95,23 @@ const router = createRouter({
       component: Managemenu,
     },
     {
+      path: "/Admin/Restaurant/Adduser", // พาธที่เรียกใน browser
+      name: "Admin Add User",
+      component: Manageuser,
+    },
+    {
+      path: "/Admin/Restaurant/Adduser/:id", // พาธที่เรียกใน browser
+      name: "Admin Update User",
+      component: Manageuser,
+    },
+
+    {
       path: "/Admin/Restaurant/Addrestaurant",
       name: "Admin Add restaurant",
       component: Managerestaurant,
     },
     {
-      path: "/Admin/Restaurant/Edit/:id",
+      path: "/Admin/Restaurantuser/Edit/:id",
       name: "Admin update restaurant",
       component: Managerestaurant,
     },
@@ -111,22 +123,22 @@ const router = createRouter({
     },
     //Restaurant
     {
-      path: "/Restaurant",//:restaurantName
+      path: "/Restaurant", //:restaurantName
       name: "Restaurants",
       component: Restaurants,
     },
     {
-      path: "/Restaurant/Orderlist",//:restaurantName
+      path: "/Restaurant/Orderlist", //:restaurantName
       name: "Restaurants Orderlist",
       component: Restaurantorderlist,
     },
     {
-      path: "/Restaurant/Profile",//:restaurantName
+      path: "/Restaurant/Profile", //:restaurantName
       name: "Restaurants Profile",
       component: Restaurantprofile,
     },
     {
-      path: "/Restaurant/Menulist",//:restaurantName
+      path: "/Restaurant/Menulist", //:restaurantName
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },

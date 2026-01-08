@@ -1,17 +1,16 @@
 import { defineStore } from 'pinia';
-
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc , getDoc } from 'firebase/firestore';
-import { auth,db } from '@/firebase';
-
-const provider = new GoogleAuthProvider();
-//provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  signInWithEmailAndPassword 
+} from 'firebase/auth';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '@/firebase';
 
 export const useAccountStore = defineStore('user-account', {
   state: () => ({
     isLoggedIn: false,
-    isAdmin: false,
-    role:null,
+    role: null,
     user: {},
   }),
   actions: {
@@ -24,53 +23,49 @@ export const useAccountStore = defineStore('user-account', {
             this.role = null;
             return resolve(false);
           }
-
           this.user = user;
           this.isLoggedIn = true;
-
           const snap = await getDoc(doc(db, 'User', user.uid));
           this.role = snap.exists() ? snap.data().role : null;
-
           resolve(true);
         });
       });
     },
-    async signInWithGoogle() {
+
+    // ล็อกอินด้วย Username
+    async signIn(username, password) {
       try {
-        const result = await signInWithPopup(auth, provider);
+        // 1. ค้นหา Email จาก Username ใน Firestore
+        const userQuery = query(
+          collection(db, 'User'), 
+          where('username', '==', username)
+        );
+        
+        const querySnapshot = await getDocs(userQuery);
+
+        if (querySnapshot.empty) {
+          throw new Error('ไม่พบ Username นี้ในระบบ');
+        }
+
+        const userData = querySnapshot.docs[0].data();
+        const email = userData.email; // นี่คือ Email ปลอมที่เราสร้างไว้ตอน Add User
+
+        // 2. ใช้ Email ล็อกอินเบื้องหลัง
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        
         this.user = result.user;
         this.isLoggedIn = true;
+        this.role = userData.role;
+
+        return this.role;
       } catch (error) {
-        console.log('error', error.code);
-        throw new Error('Login invalid');
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+          throw new Error('Username หรือ Password ไม่ถูกต้อง');
+        }
+        throw error;
       }
     },
-    async signIn(email, password) {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      this.user = result.user;
-      this.isLoggedIn = true;
 
-      const userRef = doc(db, 'User', result.user.uid);
-      const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        this.role = null
-        throw new Error('ไม่พบข้อมูลผู้ใช้ใน Firestore');
-      }
-
-      const data = snap.data()
-
-      if (!data.role) {
-        this.role = null
-        throw new Error('ไม่พบ role ของผู้ใช้');
-      }
-      //console.log('LOGIN UID:', result.user.uid);
-      //console.log('LOGIN EMAIL:', result.user.email);
-
-
-      this.role = data.role; // admin | restaurant
-      return this.role;
-    },
     async logout() {
       await signOut(auth);
       this.user = null;
