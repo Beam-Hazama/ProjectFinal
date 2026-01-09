@@ -42,14 +42,15 @@ const menus = [
 ];
 
 const logout = () => {
-  
+
   console.log('Logout clicked');
-  
+
 }
 </script>
 
 <template>
-  <div class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+  <div
+    class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
     <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col relative">
       <div class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
@@ -60,7 +61,7 @@ const logout = () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </label>
-          
+
         </div>
         <div class="avatar w-8 h-8">
           <div class="rounded-full bg-slate-200">
@@ -73,7 +74,7 @@ const logout = () => {
         <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
           <ul>
             <li>Admin</li>
-            
+
             <li v-if="route.name === 'Admin Add menu' || route.name === 'Admin update menu'">
               <router-link :to="{ name: 'Admin Menu List' }" class="hover:text-blue-600">Menu List</router-link>
             </li>

@@ -6,6 +6,9 @@ import {
   where,
   onSnapshot,
   serverTimestamp,
+  updateDoc,
+  doc,
+  getDoc
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -22,12 +25,34 @@ export const useOderlistStore = defineStore("oderlist", {
     },
   },
   actions: {
+    async updateOrderStatus(orderId, newStatus, restaurantName) {
+      try {
+        const orderRef = doc(db, 'Order', orderId);
+        const orderSnap = await getDoc(orderRef);
+
+        if (orderSnap.exists()) {
+          const orderData = orderSnap.data();
+          const updatedMenu = orderData.Menu.map(item => {
+            if (item.Restaurant === restaurantName) {
+              return { ...item, itemStatus: newStatus };
+            }
+            return item;
+          });
+
+          await updateDoc(orderRef, {
+            Menu: updatedMenu
+          });
+        }
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        throw error;
+      }
+    },
     
     async loadOrderUser(tableId) {
       const orderQuery = query(
         collection(db, "Order"),
-        where("TableID", "==", tableId),
-        where("statusOrder", "==", "pending")
+        where("tableId", "==", tableId)
       );
 
       onSnapshot(orderQuery, (orderSnapshot) => {

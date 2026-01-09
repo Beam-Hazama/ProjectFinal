@@ -2,7 +2,7 @@
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'; 
+import { doc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';
 import { onMounted } from 'vue';
 
@@ -20,18 +20,18 @@ const formatDate = (timestamp) => {
     return timestamp.toDate().toLocaleString('th-TH');
   }
 
- 
+
   return new Date(timestamp).toLocaleString('th-TH');
 }
 const deleteMenu = async (id, name) => {
   if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
     try {
-    
+
       await deleteDoc(doc(db, 'Menu', id));
 
       await MenuStore.loadMenu();
 
-      
+
       console.log("ลบเมนูเรียบร้อย");
     } catch (error) {
       console.error("Error deleting menu:", error);
@@ -46,7 +46,7 @@ const switchStatus = async (product) => {
     const docRef = doc(db, 'Menu', product.id);
     await updateDoc(docRef, {
       Status: newStatus,
-      UpdatedAt: serverTimestamp() 
+      UpdatedAt: serverTimestamp()
     });
   } catch (error) {
     console.error("Error switching status:", error);

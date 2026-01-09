@@ -21,7 +21,11 @@ const login = async () => {
       router.push({ name: 'Admin' });
     } 
     else if (role === 'restaurant') {
-      router.push({ name: 'Restaurants' });
+      const restaurantName = accountStore.user?.restaurant || 'unknown';
+      router.push({ 
+        name: 'Restaurants', 
+        params: { restaurantName: restaurantName } 
+      });
     } 
     else {
       router.push({ name: 'Home' });

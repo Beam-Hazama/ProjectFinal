@@ -76,7 +76,7 @@ export const useCartStore = defineStore("cart", {
           building: building, 
           floor: floor,       
           room: room,         
-          item: this.item,
+          Menu: this.item.map(i => ({...i, itemStatus: 'pending'})),
           TotalPrice: this.summaryPrice,
           statusOrder: 'pending',
           CreatedAt: serverTimestamp()

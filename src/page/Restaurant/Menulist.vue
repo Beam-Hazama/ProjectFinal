@@ -2,41 +2,42 @@
 import { db } from '@/firebase';
 import Layoutrestaurant from '@/page/Restaurant/restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'; 
 import { RouterLink, useRoute } from 'vue-router'; 
 import { onMounted, watch } from 'vue';
-import { useRestaurant } from '@/stores/Restaurant';
 
 const MenuStore = useMenuStore();
 const route = useRoute();
-const restaurant = useRestaurant()
 
-
-const loadData = () => {
+// 1. ฟังก์ชันโหลดข้อมูล - ใช้ชื่อ Collection 'Menu' ตาม Store
+const loadData = async () => {
   const restaurantName = route.params.restaurantName;
   if (restaurantName) {
-    MenuStore.loadMenuRestaurant(restaurantName);
+    await MenuStore.loadMenuRestaurant(restaurantName);
   }
 };
 
 onMounted(() => {
   loadData();
-  restaurant.loadMenusByRestaurant()
 });
-
 
 watch(() => route.params.restaurantName, () => {
   loadData();
 });
 
-
+// 2. ฟังก์ชันเปลี่ยนสถานะ - แก้ไข 'menu' เป็น 'Menu' ให้ตรงกับ Store
 const switchStatus = async (product) => {
   try {
     const newStatus = product.Status === 'open' ? 'close' : 'open';
-    const productRef = doc(db, 'menu', product.id);
+    // ต้องใช้ 'Menu' (M ตัวใหญ่) ตามที่ระบุไว้ใน store
+    const productRef = doc(db, 'Menu', product.id); 
+    
     await updateDoc(productRef, {
-      Status: newStatus
+      Status: newStatus,
+      updatedAt: serverTimestamp() // ใช้ updatedAt (u ตัวเล็ก) ตามมาตรฐานใน store ของคุณ
     });
+    
+    // ไม่ต้องเรียก loadData() ซ้ำก็ได้เพราะ store ใช้ onSnapshot ซึ่งจะอัปเดตให้อัตโนมัติ
     
   } catch (error) {
     console.error("Error updating status:", error);
@@ -44,10 +45,22 @@ const switchStatus = async (product) => {
   }
 }
 
+// 3. ฟังก์ชันลบเมนู - แก้ไข 'menu' เป็น 'Menu'
+const deleteMenu = async (id, name) => {
+  if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
+    try {
+      const productRef = doc(db, 'Menu', id);
+      await deleteDoc(productRef);
+      // store จะอัปเดตเองผ่าน onSnapshot
+    } catch (error) {
+      console.error("Error deleting menu:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+    }
+  }
+}
 
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
-  
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   return date.toLocaleString('th-TH');
 }
@@ -88,7 +101,7 @@ const formatDate = (timestamp) => {
             </thead>
 
             <tbody class="text-slate-600">
-              <tr v-for="product in restaurant.menus" :key="product.id"
+              <tr v-for="product in MenuStore.list" :key="product.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                 <td class="pl-6">
                   <div class="flex items-center gap-4">
@@ -104,32 +117,32 @@ const formatDate = (timestamp) => {
                 </td>
 
                 <td>
-                  <div class="font-medium">{{ product.Restaurant }}</div>
+                  <div class="font-medium text-xs">{{ product.Restaurant }}</div>
                 </td>
-                <td class="font-medium">{{ product.Price }} ฿</td>
+                <td class="font-medium text-emerald-600">{{ product.Price }} ฿</td>
                 <td>
-                  <div class="font-medium">{{ product.Category }}</div>
+                  <div class="badge badge-ghost badge-sm font-medium">{{ product.Category }}</div>
                 </td>
 
                 <td>
                   <button @click="switchStatus(product)"
-                    class="btn btn-xs rounded-full px-3 font-normal border-none transition-all"
-                    :class="product.Status === 'open' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
+                    class="btn btn-xs rounded-full px-3 font-normal border-none transition-all shadow-sm"
+                    :class="product.Status === 'open' ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-500 hover:bg-red-200'">
                     {{ product.Status === 'open' ? '● Open' : '● Closed' }}
                   </button>
                 </td>
 
-                <td class="text-xs">
+                <td class="text-[10px] text-slate-400">
                   {{ formatDate(product.CreatedAt || product.createdAt) }}
                 </td>
 
-                <td class="text-xs">
+                <td class="text-[10px] text-slate-400">
                   {{ formatDate(product.UpdatedAt || product.updatedAt) }}
                 </td>
 
                 <td class="text-center">
-                  <div class="flex justify-center ">
-                    <RouterLink class="btn btn-sm btn-ghost text-blue-600"
+                  <div class="flex justify-center gap-1">
+                    <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50"
                       :to="{ name: 'Admin update menu', params: { id: product.id } }">
                       Edit
                     </RouterLink>
@@ -144,6 +157,9 @@ const formatDate = (timestamp) => {
                     </button>
                   </div>
                 </td>
+              </tr>
+              <tr v-if="!MenuStore.list || MenuStore.list.length === 0">
+                <td colspan="8" class="text-center py-10 text-slate-400">ไม่พบข้อมูลเมนูอาหาร</td>
               </tr>
             </tbody>
           </table>

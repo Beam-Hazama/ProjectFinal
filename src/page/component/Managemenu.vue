@@ -24,7 +24,7 @@ const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 
-const categories = ['อาหารตามสั่ง', 'เครื่องดื่ม', 'ของทานเล่น', 'ก๋วยเตี๋ยว', 'ของหวาน'];
+const categories = ['อาหารตามสั่ง', 'เครื่องดื่ม', 'ของทานเล่น', 'ก๋วยเตี๋ยว', 'ของหวาน','อาหารอิตาลี'];
 
 const MenuData = reactive({
     Name: '',

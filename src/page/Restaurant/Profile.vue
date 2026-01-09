@@ -1,22 +1,24 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  updateDoc, 
-  serverTimestamp 
-} from 'firebase/firestore'; 
+import { useAccountStore } from '@/stores/account';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  serverTimestamp
+} from 'firebase/firestore';
 import { db } from '@/firebase';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
 const route = useRoute();
 const router = useRouter();
+const accountStore = useAccountStore();
 const loading = ref(true);
-const docId = ref(null); 
+const docId = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 const selectedFile = ref(null);
@@ -31,13 +33,13 @@ const RestaurantData = reactive({
   OpenTime: '',
   CloseTime: '',
   Status: '',
-  ManualStatus: 'auto', 
+  ManualStatus: 'auto',
   CreatedAt: null,
   UpdatedAt: null
 });
 
 const calculateStatus = () => {
- 
+
   if (RestaurantData.ManualStatus === 'force_open') return 'open';
   if (RestaurantData.ManualStatus === 'force_close') return 'close';
 
@@ -52,10 +54,10 @@ const calculateStatus = () => {
   const closeMinutes = closeH * 60 + closeM;
 
   if (closeMinutes > openMinutes) {
-   
+
     return (currentTime >= openMinutes && currentTime < closeMinutes) ? 'open' : 'close';
   } else {
-   
+
     return (currentTime >= openMinutes || currentTime < closeMinutes) ? 'open' : 'close';
   }
 };
@@ -66,8 +68,23 @@ watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () =>
 });
 
 const fetchRestaurantByName = async () => {
-  const nameFromUrl = route.params.restaurantName; 
-  if (!nameFromUrl) return;
+  // Check auth state just in case authentication is pending
+  if (!accountStore.isLoggedIn) {
+    await accountStore.checkAuthState();
+  }
+
+  let nameFromUrl = route.params.restaurantName;
+
+  // If no name in URL, try to use the one from the logged-in user account
+  if (!nameFromUrl && accountStore.user && accountStore.user.restaurant) {
+    nameFromUrl = accountStore.user.restaurant;
+  }
+
+  if (!nameFromUrl) {
+    console.warn("No restaurant name found in URL or User Account");
+    loading.value = false;
+    return;
+  }
 
   loading.value = true;
   try {
@@ -76,13 +93,13 @@ const fetchRestaurantByName = async () => {
 
     if (!querySnapshot.empty) {
       const restaurantDoc = querySnapshot.docs[0];
-      docId.value = restaurantDoc.id; 
+      docId.value = restaurantDoc.id;
       const data = restaurantDoc.data();
       Object.assign(RestaurantData, data);
-      
- 
+
+
       if (!RestaurantData.ManualStatus) RestaurantData.ManualStatus = 'auto';
-      
+
       imagePreview.value = RestaurantData.ImageUrl;
       RestaurantData.Status = calculateStatus();
 
@@ -109,7 +126,7 @@ const handleFileUpload = (event) => {
 const saveProfile = async () => {
   if (!docId.value) return;
   try {
- 
+
     await updateDoc(doc(db, 'Restaurant', docId.value), {
       Name: RestaurantData.Name,
       ImageUrl: RestaurantData.ImageUrl,
@@ -136,7 +153,7 @@ onMounted(() => {
   fetchRestaurantByName();
   timer = setInterval(() => {
     now.value = new Date();
-  }, 1000); 
+  }, 1000);
 });
 
 onUnmounted(() => {
@@ -173,7 +190,8 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพหน้าร้าน</h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs">
-              <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
+              <div
+                class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
                 <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
                 <div v-else class="text-slate-400 flex flex-col items-center">
                   <span class="text-sm font-medium">ไม่มีรูปภาพร้าน</span>
@@ -181,8 +199,12 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
               </div>
 
               <div role="tablist" class="tabs tabs-boxed bg-white border border-slate-200 p-1">
-                <a role="tab" class="tab text-xs h-8" :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }" @click="imageInputMethod = 'file'">อัปโหลดไฟล์</a>
-                <a role="tab" class="tab text-xs h-8" :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'url' }" @click="imageInputMethod = 'url'">ใช้ URL</a>
+                <a role="tab" class="tab text-xs h-8"
+                  :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
+                  @click="imageInputMethod = 'file'">อัปโหลดไฟล์</a>
+                <a role="tab" class="tab text-xs h-8"
+                  :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'url' }"
+                  @click="imageInputMethod = 'url'">ใช้ URL</a>
               </div>
 
               <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
@@ -237,17 +259,20 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                 </div>
 
                 <div class="form-control">
-                  <label class="label"><span class="label-text font-medium text-slate-600">เวลาเปิดให้บริการ</span></label>
+                  <label class="label"><span
+                      class="label-text font-medium text-slate-600">เวลาเปิดให้บริการ</span></label>
                   <input type="time" v-model="RestaurantData.OpenTime" class="input input-bordered w-full" />
                 </div>
 
                 <div class="form-control">
-                  <label class="label"><span class="label-text font-medium text-slate-600">เวลาปิดให้บริการ</span></label>
+                  <label class="label"><span
+                      class="label-text font-medium text-slate-600">เวลาปิดให้บริการ</span></label>
                   <input type="time" v-model="RestaurantData.CloseTime" class="input input-bordered w-full" />
                 </div>
 
                 <div class="form-control">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
+                  <label class="label"><span
+                      class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
                   <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
                     <option value="force_open">🔓 เปิดร้านทันที</option>
@@ -266,7 +291,7 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
                   <p class="text-[10px] text-blue-500 mt-1 italic">
-                    {{ RestaurantData.ManualStatus === 'auto' ? '* สถานะเปลี่ยนตามเวลาอัตโนมัติ' : '* สถานะถูกกำหนดด้วยโหมด Manual' }}
+                    {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' : '*สถานะถูกกำหนดด้วยโหมด Manual' }}
                   </p>
                 </div>
               </div>
