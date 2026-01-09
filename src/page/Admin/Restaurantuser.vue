@@ -111,7 +111,7 @@ onMounted(() => {
 
 <template>
     <LayoutAdmin>
-        <div class="min-h-screen p-6 md:p-8 font-sans bg-slate-50/50">
+        <div class="min-h-screen p-6 md:p-8 font-sans">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                 <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Restaurant Users</h1>
                 <RouterLink to="/Admin/Restaurant/Adduser"
@@ -194,8 +194,8 @@ onMounted(() => {
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.address ||
-                                    'ไม่ระบุที่อยู่' }}</span>
+                                <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.address
+                                    ||'ไม่ระบุที่อยู่' }}</span>
                             </div>
                         </div>
 

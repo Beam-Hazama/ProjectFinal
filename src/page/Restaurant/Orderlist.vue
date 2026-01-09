@@ -166,7 +166,7 @@ const handleStatusChange = async (orderId, newStatus) => {
                                 <div class="flex justify-between items-start">
                                     <span class="font-bold text-slate-700 text-sm line-clamp-2">{{ item.Name }}</span>
                                     <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{ item.Quantity
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <p v-if="item.note"
                                     class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">

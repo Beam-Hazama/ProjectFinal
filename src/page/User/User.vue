@@ -20,26 +20,26 @@ const shopCategories = ['ร้านค้า', 'ตามสั่ง', 'ก�
 const menuCategories = ['แนะนำ', 'ข้าว', 'ก๊วยเตี๋ยว', 'น้ำ'];
 
 const popularCategories = [
-  { name: 'ส้มตำ ไก่ย่าง', image: 'https://cdn-icons-png.flaticon.com/512/3230/3230099.png' },
-  { name: 'เครป ขนมโตเกียว', image: 'https://cdn-icons-png.flaticon.com/512/3081/3081887.png' },
-  { name: 'ชานมไข่มุก ชาผลไม้', image: 'https://cdn-icons-png.flaticon.com/512/3081/3081949.png' },
-  { name: 'ผลไม้', image: 'https://cdn-icons-png.flaticon.com/512/1625/1625048.png' },
-  { name: 'ขนมจีน แกงใต้', image: 'https://cdn-icons-png.flaticon.com/512/2921/2921822.png' },
-  { name: 'ก๋วยเตี๋ยว บะหมี่', image: 'https://cdn-icons-png.flaticon.com/512/3143/3143643.png' },
-  { name: 'เค้ก ขนมหวาน', image: 'https://cdn-icons-png.flaticon.com/512/2682/2682458.png' },
-  { name: 'ลูกชิ้น หมูปิ้ง', image: 'https://cdn-icons-png.flaticon.com/512/2921/2921828.png' },
-  { name: 'ข้าวมันไก่', image: 'https://cdn-icons-png.flaticon.com/512/2921/2921824.png' },
-  { name: 'พิซซ่า', image: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png' },
-  { name: 'หมูทอด ไก่ทอด', image: 'https://cdn-icons-png.flaticon.com/512/1046/1046751.png' },
-  { name: 'อาหารตามสั่ง', image: 'https://cdn-icons-png.flaticon.com/512/2003/2003965.png' },
-  { name: 'สเต็ก', image: 'https://cdn-icons-png.flaticon.com/512/3081/3081907.png' },
-  { name: 'โรตี', image: 'https://cdn-icons-png.flaticon.com/512/869/869688.png' },
-  { name: 'ผัดไทย หอยทอด', image: 'https://cdn-icons-png.flaticon.com/512/1391/1391383.png' },
-  { name: 'กาแฟ', image: 'https://cdn-icons-png.flaticon.com/512/924/924514.png' },
-  { name: 'ซูชิ อาหารญี่ปุ่น', image: 'https://cdn-icons-png.flaticon.com/512/2234/2234604.png' },
-  { name: 'ข้าวต้ม', image: 'https://cdn-icons-png.flaticon.com/512/1531/1531388.png' },
-  { name: 'ราดหน้า ผัดซีอิ๊ว', image: 'https://cdn-icons-png.flaticon.com/512/3480/3480749.png' },
-  { name: 'ชาบู สุกี้', image: 'https://cdn-icons-png.flaticon.com/512/2276/2276931.png' }
+  { name: 'ส้มตำ ไก่ย่าง', image: 'https://img.icons8.com/color/96/mortar-and-pestle.png' },
+  { name: 'เครป ขนมโตเกียว', image: 'https://img.icons8.com/color/96/pancake.png' },
+  { name: 'ชานมไข่มุก ชาผลไม้', image: 'https://img.icons8.com/color/96/cafe.png' },
+  { name: 'ผลไม้', image: 'https://img.icons8.com/color/96/whole-watermelon.png' },
+  { name: 'ขนมจีน แกงใต้', image: 'https://img.icons8.com/color/96/curry.png' },
+  { name: 'ก๋วยเตี๋ยว บะหมี่', image: 'https://img.icons8.com/color/96/noodles.png' },
+  { name: 'เค้ก ขนมหวาน', image: 'https://img.icons8.com/color/96/cake.png' },
+  { name: 'ลูกชิ้น หมูปิ้ง', image: 'https://img.icons8.com/color/96/kebab.png' },
+  { name: 'ข้าวมันไก่', image: 'https://img.icons8.com/color/96/rice-bowl.png' },
+  { name: 'พิซซ่า', image: 'https://img.icons8.com/color/96/pizza.png' },
+  { name: 'หมูทอด ไก่ทอด', image: 'https://img.icons8.com/color/96/thanksgiving.png' },
+  { name: 'อาหารตามสั่ง', image: 'https://img.icons8.com/color/96/wok.png' },
+  { name: 'สเต็ก', image: 'https://img.icons8.com/color/96/steak-medium.png' },
+  { name: 'โรตี', image: 'https://img.icons8.com/color/96/naan.png' },
+  { name: 'ผัดไทย หอยทอด', image: 'https://img.icons8.com/color/96/noodles.png' },
+  { name: 'กาแฟ', image: 'https://img.icons8.com/color/96/coffee.png' },
+  { name: 'ซูชิ อาหารญี่ปุ่น', image: 'https://img.icons8.com/color/96/sushi.png' },
+  { name: 'ข้าวต้ม', image: 'https://img.icons8.com/color/96/porridge.png' },
+  { name: 'ราดหน้า ผัดซีอิ๊ว', image: 'https://img.icons8.com/color/96/soup-plate.png' },
+  { name: 'ชาบู สุกี้', image: 'https://img.icons8.com/color/96/cooking-pot.png' }
 ];
 
 onMounted(() => {

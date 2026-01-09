@@ -31,9 +31,9 @@ const menus = [
 ];
 
 const logout = () => {
- 
+
     console.log('Logout clicked');
-   
+
 }
 </script>
 
@@ -104,14 +104,14 @@ const logout = () => {
                 </div>
 
                 <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
-                    <router-link v-for="menu in menus" :key="menu.name" 
-                        :to="{ name: menu.routeName, params: { restaurantName: accountStore.user?.restaurant || route.params.restaurantName } }" 
+                    <router-link v-for="menu in menus" :key="menu.name"
+                        :to="{ name: menu.routeName, params: { restaurantName: accountStore.user?.restaurant || route.params.restaurantName } }"
                         :class="[
-                        'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
-                        route.name === menu.routeName
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 translate-x-1'
-                            : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-                    ]">
+                            'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
+                            route.name === menu.routeName
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 translate-x-1'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+                        ]">
                         <span v-html="menu.icon"
                             :class="route.name === menu.routeName ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'"></span>
                         {{ menu.name }}

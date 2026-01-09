@@ -40,18 +40,7 @@ const deleteMenu = async (id, name) => {
   }
 }
 
-const switchStatus = async (product) => {
-  try {
-    const newStatus = product.Status === 'open' ? 'close' : 'open';
-    const docRef = doc(db, 'Menu', product.id);
-    await updateDoc(docRef, {
-      Status: newStatus,
-      UpdatedAt: serverTimestamp()
-    });
-  } catch (error) {
-    console.error("Error switching status:", error);
-  }
-}
+
 </script>
 
 <template>
@@ -106,11 +95,15 @@ const switchStatus = async (product) => {
                 </td>
 
                 <td>
-                  <button @click="switchStatus(product)"
-                    class="btn btn-xs rounded-full px-3 font-normal border-none transition-all"
-                    :class="product.Status === 'open' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'">
-                    {{ product.Status === 'open' ? '● Open' : '● Closed' }}
-                  </button>
+                  <div v-if="product.Status === 'open'"
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    Open Now
+                  </div>
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                    Closed
+                  </div>
                 </td>
 
                 <td class="text-xs">

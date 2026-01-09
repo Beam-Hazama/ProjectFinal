@@ -46,6 +46,11 @@ export const useAccountStore = defineStore('user-account', {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
 
+        // ตรวจสอบสถานะ Blocked
+        if (userData.status === 'blocked') {
+          throw new Error('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+        }
+
         if (userData.password !== password) {
           throw new Error('Username หรือ Password ไม่ถูกต้อง');
         }

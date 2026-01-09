@@ -1,12 +1,10 @@
-{
-type: uploaded file
-fileName: beam-hazama/projectfinal/ProjectFinal-7d217d4f17f10d05ecb1377d7260512d69e76c85/src/page/Admin/Admin.vue
-fullContent:
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
+import { useAccountStore } from '@/stores/account';
 
 const route = useRoute();
 const router = useRouter();
+const accountStore = useAccountStore();
 
 const menus = [
   {
@@ -32,7 +30,9 @@ const menus = [
   {
     name: 'Restaurant User',
     routeName: 'Admin Restaurant User',
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m19.28 0H17.5m-10.5 0V9.95l-7.1 5.2a.75.75 0 01-1.1-1.02l3.2-2.35a.75.75 0 011.1 1.02l-2.4 1.75V21M3 21h18M12 2.25l-8.4 6.15a.75.75 0 00-.3 1.02l.8 1.1a.75.75 0 001.02.3l6.88-5.04a.75.75 0 01.9 0l6.88 5.04a.75.75 0 001.02-.3l.8-1.1a.75.75 0 00-.3-1.02L12 2.25z" /></svg>`
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+    </svg>`
   },
   {
     name: 'QR Code',
@@ -41,10 +41,9 @@ const menus = [
   },
 ];
 
-const logout = () => {
-
-  console.log('Logout clicked');
-
+const logout = async () => {
+  await accountStore.logout();
+  router.push({ name: 'Login' });
 }
 </script>
 
@@ -65,7 +64,8 @@ const logout = () => {
         </div>
         <div class="avatar w-8 h-8">
           <div class="rounded-full bg-slate-200">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" />
+            <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'"
+              alt="Admin" />
           </div>
         </div>
       </div>
@@ -139,12 +139,14 @@ const logout = () => {
           <div class="flex items-center gap-3 mb-4 px-2">
             <div class="avatar online">
               <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser" />
+                <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'"
+                  alt="Admin" />
               </div>
             </div>
             <div class="overflow-hidden">
-              <p class="text-sm font-bold text-slate-700 truncate">Administrator</p>
-              <p class="text-xs text-slate-400 truncate">admin@store.com</p>
+              <p class="text-sm font-bold text-slate-700 truncate">{{ accountStore.user?.username || 'Administrator' }}
+              </p>
+              <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.email || 'admin@store.com' }}</p>
             </div>
           </div>
 
@@ -162,4 +164,3 @@ const logout = () => {
     </div>
   </div>
 </template>
-}

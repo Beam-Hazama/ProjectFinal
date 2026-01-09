@@ -125,6 +125,7 @@ const formatDate = (timestamp) => {
                     Closed
                   </div>
                 </td>
+                
 
                 <td>
                   <div v-if="product.OpenTime && product.CloseTime" class="flex items-center gap-1 text-xs font-semibold text-slate-600">
