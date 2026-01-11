@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
 const route = useRoute();
@@ -23,7 +23,7 @@ const userData = ref({
     firstname: '',
     lastname: '',
     username: '',
-    password: '', 
+    password: '',
     phone: '',
     address: '',
     status: 'active', // เพิ่มสเตตัสเริ่มต้นเป็น active ใน Object ข้อมูล
@@ -104,6 +104,21 @@ const handleSave = async () => {
 
     try {
         isLoading.value = true;
+
+        // Check for duplicate username
+        const q = query(collection(db, 'User'), where('username', '==', username));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // Check if it's not the current user (for edit mode)
+            const isDuplicate = mode.value === 'add' || querySnapshot.docs.some(doc => doc.id !== userId);
+
+            if (isDuplicate) {
+                alert(`Username "${username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
+                isLoading.value = false;
+                return;
+            }
+        }
 
         // สร้าง Email ปลอมจาก Username
         const fakeEmail = `${username.toLowerCase().trim()}@system.local`;

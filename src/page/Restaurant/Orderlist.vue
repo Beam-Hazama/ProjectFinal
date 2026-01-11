@@ -133,8 +133,11 @@ const handleStatusChange = async (orderId, newStatus) => {
                                 #{{ order.OrderNumber }}
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Table</span>
-                                <span class="font-bold text-slate-700">{{ order.tableId || 'N/A' }}</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Location</span>
+                                <span v-if="order.building && order.room" class="font-bold text-slate-700">
+                                    Building {{ order.building }} Floor {{ order.floor }} Room {{ order.room }}
+                                </span>
+                                <span v-else class="font-bold text-slate-700">{{ order.tableId || 'N/A' }}</span>
                             </div>
                         </div>
                         <div class="text-right">

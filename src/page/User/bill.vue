@@ -7,12 +7,17 @@ const route = useRoute();
 const Order = useOderlistStore();
 
 
-const tableId = route.params.tableId || 'ทั่วไป';
+const building = route.params.building || '-';
+const floor = route.params.floor || '-';
+const room = route.params.room || '-';
+// Construct tableId for compatibility with existing order data structure
+const tableId = `${building}-${floor}-${room}`;
 
 const discount = ref(50.00);
 
 onMounted(async () => {
-
+  // We can pass the composite ID or individual fields if the store supports it.
+  // OrderList.loadOrderUser likely expects a string ID or we filter locally.
   await Order.loadOrderUser(tableId);
 });
 
@@ -57,12 +62,12 @@ const calculateExclVat = (grandTotal) => {
           </svg>
         </div>
         <div>
-          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Bill: {{ tableId }}</h1>
-          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1">ใบเสร็จรับเงิน</p>
+          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Bill: {{ room }}</h1>
+          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1">({{ building }} fl.{{ floor }})</p>
         </div>
       </div>
 
-      <router-link :to="`/User/${tableId}`"
+      <router-link :to="`/User/${building}/${floor}/${room}`"
         class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50">
         <span class="text-sm font-bold">ย้อนกลับ</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
@@ -87,7 +92,8 @@ const calculateExclVat = (grandTotal) => {
         <div class="flex justify-between items-center">
           <div class="flex flex-col">
             <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Table Bill</span>
-            <span class="text-3xl font-black text-blue-700">{{ tableId }}</span>
+            <span class="text-3xl font-black text-blue-700">{{ room }}</span>
+            <span class="text-xs text-gray-400">{{ building }} - Floor {{ floor }}</span>
           </div>
           <div class="text-right">
             <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-[10px] font-black uppercase shadow-sm">

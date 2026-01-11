@@ -5,7 +5,11 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const orderListStore = useOderlistStore();
-const tableId = route.params.tableId || 'ทั่วไป';
+
+const building = route.params.building || '-';
+const floor = route.params.floor || '-';
+const room = route.params.room || '-';
+const tableId = `${building}-${floor}-${room}`;
 
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => {
@@ -39,10 +43,11 @@ onMounted(() => {
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Order Status</h1>
-          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1">สถานะคำสั่งซื้อของห้อง {{ tableId }}</p>
+          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1">สถานะคำสั่งซื้อของห้อง ({{ building }} fl.{{ floor }})
+            - {{ room }}</p>
         </div>
       </div>
-      <router-link :to="`/User/${tableId}`"
+      <router-link :to="`/User/${building}/${floor}/${room}`"
         class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50">
         <span class="text-sm font-bold">ย้อนกลับ</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
@@ -61,7 +66,7 @@ onMounted(() => {
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
         <p class="font-medium">ยังไม่มีรายการสั่งซื้อ</p>
-        <router-link :to="`/User/${tableId}`"
+        <router-link :to="`/User/${building}/${floor}/${room}`"
           class="mt-4 text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm">ไปที่เมนูอาหาร</router-link>
       </div>
 
@@ -120,7 +125,7 @@ onMounted(() => {
     </div>
 
     <div class="fixed bottom-6 left-0 w-full px-6 z-40">
-      <router-link :to="`/User/${tableId}`"
+      <router-link :to="`/User/${building}/${floor}/${room}`"
         class="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-1 rounded-2xl shadow-xl shadow-blue-500/40 transform active:scale-95 transition-all duration-300 block">
         <div class="flex items-center justify-center gap-2 py-4 rounded-xl border border-white/20">
           <span class="font-black uppercase tracking-wider">สั่งอาหารเพิ่ม</span>

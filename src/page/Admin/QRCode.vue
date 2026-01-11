@@ -43,7 +43,7 @@ const formatDate = (date) => {
 }
 
 const saveRoom = async () => {
- 
+
   if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {
     alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง')
     return
@@ -132,7 +132,7 @@ const printSpecificQR = async (room) => {
         <div class="modal-box shadow-2xl">
           <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียดห้อง' : 'เพิ่มห้องใหม่' }}</h3>
           <div class="space-y-4">
-            
+
             <div class="grid grid-cols-3 gap-4">
               <div>
                 <div class="form-control">
@@ -164,7 +164,7 @@ const printSpecificQR = async (room) => {
         <div class="qr-print-card">
           <div class="qr-border">
             <qrcode-vue
-              :value="`${baseUrl}/User/${selectedRoom.building}-${selectedRoom.floor}-${selectedRoom.roomNumber}`"
+              :value="`${baseUrl}/user/${selectedRoom.building}/${selectedRoom.floor}/${selectedRoom.roomNumber}`"
               :size="420" level="H" />
           </div>
           <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>

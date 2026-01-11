@@ -33,17 +33,17 @@ const router = createRouter({
       component: User,
     },
     {
-      path: "/User/Bill/:tableId", 
+      path: "/user/bill/:building/:floor/:room", 
       name: "user-bill",
       component: Bill,
     },
     {
-      path: "/User/Status",
+      path: "/user/status/:building/:floor/:room",
       name: "Status",
       component: Status,
     },
     {
-      path: "/User/Cart",
+      path: "/user/cart/:building/:floor/:room",
       name: "Cart",
       component: Cart,
     },
@@ -52,6 +52,12 @@ const router = createRouter({
       path: "/Admin",
       name: "Admin",
       component: Admin,
+    },
+    // ...
+    {
+      path: "/user/:building/:floor/:room", 
+      name: "User",
+      component: User,
     },
     {
       path: "/Admin/Dashboard",
@@ -142,21 +148,7 @@ const router = createRouter({
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },
-    {
-      path: "/User/:tableId", 
-      name: "User",
-      component: User,
-    },
-    {
-      path: "/User/Cart/:tableId", 
-      name: "Cart",
-      component: Cart,
-    },
-    {
-      path: "/User/Status/:tableId", 
-      name: "Status",
-      component: Status,
-    },
+    // Removed old tableId routes
   ],
 });
 

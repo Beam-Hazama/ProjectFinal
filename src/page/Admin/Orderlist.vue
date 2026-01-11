@@ -31,7 +31,9 @@ const openModal = (order) => {
           <thead class="bg-slate-50 text-slate-500">
             <tr>
               <th class="py-4">Order Number</th>
-              <th>Room Number</th>
+              <th>Building</th>
+              <th>Floor</th>
+              <th>Room</th>
               <th>Status</th>
               <th>Date</th>
               <th>Total Price</th>
@@ -46,10 +48,14 @@ const openModal = (order) => {
               </td>
 
               <td class="font-medium text-slate-700">
-                <div class="flex flex-col">
-                  <span>{{ orders.tableId || '-' }}</span>
-
-                </div>
+                {{ orders.building || '-' }}
+              </td>
+              <td class="font-medium text-slate-700">
+                {{ orders.floor || '-' }}
+              </td>
+              <td class="font-medium text-slate-700">
+                <span v-if="orders.room" class="font-bold text-blue-600">{{ orders.room }}</span>
+                <span v-else>{{ orders.tableId || '-' }}</span>
               </td>
 
               <td>
@@ -86,7 +92,12 @@ const openModal = (order) => {
 
         <div v-if="selectedOrder" class="space-y-4">
           <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
-            <span>Room: {{ selectedOrder.tableId }}</span>
+            <span v-if="selectedOrder.building && selectedOrder.room">
+              Location: {{ selectedOrder.room }} ({{ selectedOrder.building }} FL.{{ selectedOrder.floor }})
+            </span>
+            <span v-else>
+              Room: {{ selectedOrder.tableId }}
+            </span>
             <span>Date: {{ selectedOrder.CreatedAt?.toDate().toLocaleString('th-TH') }}</span>
           </div>
 
