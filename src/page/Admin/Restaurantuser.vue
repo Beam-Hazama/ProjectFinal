@@ -78,15 +78,15 @@ const toggleUserStatus = async (user) => {
     }
 };
 
-// เพิ่มฟังก์ชันสำหรับหา URL รูปภาพของร้านอาหารตามชื่อร้าน
+
 const getRestaurantImage = (restaurantName) => {
-    // ค้นหาข้อมูลร้านอาหารจาก array restaurants ที่โหลดมาแล้ว
+    
     const found = restaurants.value.find(res => res.Name === restaurantName);
-    // ส่งคืน ImageUrl ถ้าพบ ถ้าไม่พบให้ส่งคืนค่าว่างหรือรูป default
+   
     return found ? found.ImageUrl : '';
 };
 
-// ลบผู้ใช้งาน
+
 const deleteUser = async (id, name) => {
     if (confirm(`คุณต้องการลบผู้ใช้งาน "${name}" ใช่หรือไม่?`)) {
         try {

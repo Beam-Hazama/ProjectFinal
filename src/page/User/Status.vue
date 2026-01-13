@@ -13,7 +13,6 @@ const tableId = `${building}-${floor}-${room}`;
 
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => {
-    // แปลงทั้ง TableID จาก Firebase และ tableId จาก URL เป็น String เพื่อความแม่นยำ
     return String(order.tableId).trim() === String(tableId).trim();
   });
 });
@@ -24,7 +23,7 @@ const formatPrice = (value) => {
 
 onMounted(() => {
   if (tableId) {
-    // เรียกใช้ฟังก์ชันที่ดึงข้อมูลเฉพาะโต๊ะจาก Store
+   
     orderListStore.loadOrderUser(tableId);
   }
 });

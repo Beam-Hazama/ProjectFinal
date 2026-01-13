@@ -81,8 +81,8 @@ const openModal = (order) => {
       </div>
     </div>
 
-    <!-- Order Details Modal -->
-    <dialog class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
+    
+    <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
       <div class="modal-box relative">
         <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
 
@@ -145,7 +145,7 @@ const openModal = (order) => {
       <form method="dialog" class="modal-backdrop">
         <button @click="showModal = false">close</button>
       </form>
-    </dialog>
+    </div>
 
   </LayoutAdmin>
 </template>

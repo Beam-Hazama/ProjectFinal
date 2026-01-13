@@ -5,16 +5,16 @@ import {
   where, 
   getDocs 
 } from 'firebase/firestore';
-import { db } from '@/firebase'; // นำเข้า db จาก firebase.js
+import { db } from '@/firebase'; 
 
 export const useAccountStore = defineStore('user-account', {
   state: () => ({
     isLoggedIn: false,
     role: null,
-    user: null, // เก็บข้อมูลผู้ใช้ที่พบจาก Firestore
+    user: null, 
   }),
   actions: {
-    // ปรับปรุงฟังก์ชันตรวจสอบสถานะให้ดึงจาก Session/LocalStorage แทน Firebase Auth
+    
     async checkAuthState() {
       const savedUser = localStorage.getItem('user-session');
       if (savedUser) {
@@ -27,10 +27,10 @@ export const useAccountStore = defineStore('user-account', {
       return false;
     },
 
-    // ล็อกอินด้วยการค้นหาใน Firestore ตรงๆ
+   
     async signIn(username, password) {
       try {
-        // 1. ค้นหาเอกสารในคอลเลกชัน 'User' ที่มีฟิลด์ username ตรงกับที่ระบุ
+        
         const userQuery = query(
           collection(db, 'User'), 
           where('username', '==', username)
@@ -42,11 +42,11 @@ export const useAccountStore = defineStore('user-account', {
           throw new Error('ไม่พบ Username นี้ในระบบ');
         }
 
-        // 2. ตรวจสอบรหัสผ่าน (เปรียบเทียบค่าตรงๆ)
+       
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
 
-        // ตรวจสอบสถานะ Blocked
+        
         if (userData.status === 'blocked') {
           throw new Error('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
         }
@@ -55,7 +55,7 @@ export const useAccountStore = defineStore('user-account', {
           throw new Error('Username หรือ Password ไม่ถูกต้อง');
         }
 
-        // 3. ตั้งค่าข้อมูลลง Store และบันทึกลง LocalStorage เพื่อจำการ Login
+        
         const userInfo = { uid: userDoc.id, ...userData };
         this.user = userInfo;
         this.isLoggedIn = true;

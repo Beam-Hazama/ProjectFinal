@@ -38,13 +38,13 @@ defineProps({
         <img :src="product.ImageUrl" class="object-cover w-full h-full"
           :class="{ 'grayscale': product.Status !== 'open' || isShopClosed(product.Restaurant) }" />
 
-        <!-- Case 1: Restaurant Closed -->
+        
         <div v-if="isShopClosed(product.Restaurant)"
           class="absolute inset-0 bg-black/40 flex items-center justify-center">
           <span class="text-white font-bold text-xs bg-gray-600/90 px-2 py-1 rounded-full shadow-sm">ร้านปิด</span>
         </div>
 
-        <!-- Case 2: Menu Out of Stock (Only show if shop is OPEN) -->
+        
         <div v-else-if="product.Status !== 'open'"
           class="absolute inset-0 bg-black/40 flex items-center justify-center">
           <span class="text-white font-bold text-xs bg-red-500/90 px-2 py-1 rounded-full shadow-sm">สินค้าหมด</span>

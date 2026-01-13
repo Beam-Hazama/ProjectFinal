@@ -9,7 +9,7 @@ import { onMounted, watch } from 'vue';
 const MenuStore = useMenuStore();
 const route = useRoute();
 
-// 1. ฟังก์ชันโหลดข้อมูล - ใช้ชื่อ Collection 'Menu' ตาม Store
+
 const loadData = async () => {
   const restaurantName = route.params.restaurantName;
   if (restaurantName) {
@@ -25,19 +25,19 @@ watch(() => route.params.restaurantName, () => {
   loadData();
 });
 
-// 2. ฟังก์ชันเปลี่ยนสถานะ - แก้ไข 'menu' เป็น 'Menu' ให้ตรงกับ Store
+
 const switchStatus = async (product) => {
   try {
     const newStatus = product.Status === 'open' ? 'close' : 'open';
-    // ต้องใช้ 'Menu' (M ตัวใหญ่) ตามที่ระบุไว้ใน store
+    
     const productRef = doc(db, 'Menu', product.id); 
     
     await updateDoc(productRef, {
       Status: newStatus,
-      updatedAt: serverTimestamp() // ใช้ updatedAt (u ตัวเล็ก) ตามมาตรฐานใน store ของคุณ
+      updatedAt: serverTimestamp() 
     });
     
-    // ไม่ต้องเรียก loadData() ซ้ำก็ได้เพราะ store ใช้ onSnapshot ซึ่งจะอัปเดตให้อัตโนมัติ
+    
     
   } catch (error) {
     console.error("Error updating status:", error);
@@ -45,13 +45,13 @@ const switchStatus = async (product) => {
   }
 }
 
-// 3. ฟังก์ชันลบเมนู - แก้ไข 'menu' เป็น 'Menu'
+
 const deleteMenu = async (id, name) => {
   if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
     try {
       const productRef = doc(db, 'Menu', id);
       await deleteDoc(productRef);
-      // store จะอัปเดตเองผ่าน onSnapshot
+     
     } catch (error) {
       console.error("Error deleting menu:", error);
       alert("เกิดข้อผิดพลาดในการลบข้อมูล");

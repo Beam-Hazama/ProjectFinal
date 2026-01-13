@@ -68,14 +68,14 @@ watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () =>
 });
 
 const fetchRestaurantByName = async () => {
-  // Check auth state just in case authentication is pending
+ 
   if (!accountStore.isLoggedIn) {
     await accountStore.checkAuthState();
   }
 
   let nameFromUrl = route.params.restaurantName;
 
-  // If no name in URL, try to use the one from the logged-in user account
+  
   if (!nameFromUrl && accountStore.user && accountStore.user.restaurant) {
     nameFromUrl = accountStore.user.restaurant;
   }

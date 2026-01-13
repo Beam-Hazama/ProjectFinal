@@ -148,7 +148,7 @@ const router = createRouter({
       name: "Restaurants Menulist",
       component: Restaurantmenulist,
     },
-    // Removed old tableId routes
+    
   ],
 });
 

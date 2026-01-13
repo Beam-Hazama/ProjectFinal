@@ -10,7 +10,7 @@ export const useCartStore = defineStore("cart", {
     room: null,
   }),
   getters: {
-    // ... existing getters
+   
     getItemById: (state) => {
       return (productId) =>
         state.item.find(i => i.id === productId) || null
@@ -71,10 +71,8 @@ export const useCartStore = defineStore("cart", {
       try {
         const orderData = {
           OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
-          tableId: `${this.building}-${this.floor}-${this.room}`, // Keeping tableId as composite string for backward compatibility or ease of display? Or removing? User said "replace tableId". 
-          // But Admin might expect tableId for display if I don't update it yet. 
-          // I will store both for safety during transition, OR just building/floor/room.
-          // Let's store individual fields AND the composite as Reference if needed.
+          tableId: `${this.building}-${this.floor}-${this.room}`, 
+          
           building: this.building, 
           floor: this.floor,       
           room: this.room,         
@@ -85,7 +83,7 @@ export const useCartStore = defineStore("cart", {
         };
 
         await addDoc(collection(db, 'Order'), orderData);
-        // localStorage.setItem("order-data", JSON.stringify(orderData)); // Is this needed?
+        
       } catch (error) {
         console.error("Error:", error);
         alert("สั่งซื้อไม่สำเร็จ");

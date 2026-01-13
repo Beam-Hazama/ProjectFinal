@@ -1,10 +1,15 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/account';
+import { onMounted } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
 const accountStore = useAccountStore();
+
+onMounted(async () => {
+  await accountStore.checkAuthState();
+});
 
 const menus = [
   {
@@ -144,9 +149,11 @@ const logout = async () => {
               </div>
             </div>
             <div class="overflow-hidden">
-              <p class="text-sm font-bold text-slate-700 truncate">{{ accountStore.user?.username || 'Administrator' }}
+              <p class="text-sm font-bold text-slate-700 truncate">
+                {{ accountStore.user?.firstname }} {{ accountStore.user?.lastname || '' }}
+                <span v-if="!accountStore.user?.firstname">Administrator</span>
               </p>
-              <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.email || 'admin@store.com' }}</p>
+              <p class="text-xs text-slate-400 truncate">@{{ accountStore.user?.username || 'admin' }}</p>
             </div>
           </div>
 

@@ -72,12 +72,10 @@ const handleStatusChange = async (orderId, newStatus) => {
             alert("Restaurant name not found!");
         }
     } else {
-        // Reset the select if cancelled (optional, but would require binding to local state which is tricky with v-for)
-        // For now, simpler to just let it be or force update. 
-        // Since we bind :value, it should revert on next tick if store didn't update.
+        
         const order = restaurantOrders.value.find(o => o.id === orderId);
         if (order) {
-            // Force UI refresh if needed, but Vue reactivity usually handles this when the prop doesn't change
+            
         }
     }
 };

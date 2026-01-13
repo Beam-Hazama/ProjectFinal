@@ -10,14 +10,13 @@ const Order = useOderlistStore();
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
-// Construct tableId for compatibility with existing order data structure
+
 const tableId = `${building}-${floor}-${room}`;
 
 const discount = ref(50.00);
 
 onMounted(async () => {
-  // We can pass the composite ID or individual fields if the store supports it.
-  // OrderList.loadOrderUser likely expects a string ID or we filter locally.
+  
   await Order.loadOrderUser(tableId);
 });
 
@@ -86,7 +85,7 @@ const calculateExclVat = (grandTotal) => {
       <span>ไม่มีข้อมูลใบเสร็จสำหรับห้องนี้</span>
     </div>
 
-    <!-- Combined Bill Card -->
+   
     <div v-else class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl overflow-hidden">
       <div class="p-4 border-b border-blue-100 bg-blue-50/50">
         <div class="flex justify-between items-center">
@@ -150,7 +149,7 @@ const calculateExclVat = (grandTotal) => {
         <div class="flex flex-col items-center py-2">
           <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Scan to Pay</p>
           <div class="p-2 bg-white rounded-xl shadow-sm border border-gray-100">
-            <!-- Use the first order number for payment ref -->
+            
             <img
               :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAYMENT-${userOrders[0]?.OrderNumber}`"
               alt="QR Code" class="w-24 h-24" />

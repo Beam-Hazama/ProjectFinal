@@ -14,14 +14,14 @@ const firebaseConfig = {
   measurementId: "G-SQNBMD58DH"
 };
 
-// Initialize Firebase
+
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 
-//connectAuthEmulator(auth,'https://127.0.0.1:9099')
+
 const db = getFirestore(app);
-//connectFirestoreEmulator(db,'127.0.0.1',8080)
+
 
 export{
     db,

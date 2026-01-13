@@ -1,10 +1,18 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/account';
+import { onMounted } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
 const accountStore = useAccountStore();
+
+onMounted(async () => {
+    await accountStore.checkAuthState();
+    if (!accountStore.isLoggedIn) {
+        router.push({ name: 'Login' });
+    }
+});
 
 const menus = [
     {
@@ -30,10 +38,9 @@ const menus = [
 
 ];
 
-const logout = () => {
-
-    console.log('Logout clicked');
-
+const logout = async () => {
+    await accountStore.logout();
+    router.push({ name: 'Login' });
 }
 </script>
 
@@ -54,7 +61,8 @@ const logout = () => {
                 </div>
                 <div class="avatar w-8 h-8">
                     <div class="rounded-full bg-slate-200">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" />
+                        <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Restaurant'"
+                            alt="Admin" />
                     </div>
                 </div>
             </div>
@@ -125,12 +133,16 @@ const logout = () => {
                     <div class="flex items-center gap-3 mb-4 px-2">
                         <div class="avatar online">
                             <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser" />
+                                <img
+                                    :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=RestaurantUser'" />
                             </div>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-sm font-bold text-slate-700 truncate">Administrator</p>
-                            <p class="text-xs text-slate-400 truncate">admin@store.com</p>
+                            <p class="text-sm font-bold text-slate-700 truncate">
+                                {{ accountStore.user?.firstname }} {{ accountStore.user?.lastname || '' }}
+                                <span v-if="!accountStore.user?.firstname">Restaurant User</span>
+                            </p>
+                            <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.username || 'user' }}</p>
                         </div>
                     </div>
 

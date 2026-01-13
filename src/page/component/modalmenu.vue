@@ -43,21 +43,21 @@
         v-if="show"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       >
-        <!-- Modal -->
+        
         <div class="bg-white rounded-xl w-80 shadow-lg overflow-hidden">
     
-          <!-- Image -->
+          
           <img
             :src="product.ImageUrl"
             class="w-full h-40 object-cover"
           />
     
-          <!-- Content -->
+        
           <div class="p-4 space-y-3">
             <h2 class="text-lg font-bold">{{ product.Name }}</h2>
             <p class="text-sm text-gray-500">ราคา {{ product.Price }} บาท</p>
     
-            <!-- Quantity -->
+            
             <div class="flex items-center justify-between">
               <span>จำนวน</span>
               <div class="flex items-center gap-3">
@@ -67,7 +67,7 @@
               </div>
             </div>
     
-            <!-- Note -->
+           
             <textarea
               v-model="note"
               class="textarea textarea-bordered w-full"
@@ -75,7 +75,7 @@
             />
           </div>
     
-          <!-- Actions -->
+         
           <div class="flex border-t">
             <button
               class="w-1/2 py-3 text-gray-500 hover:bg-gray-100"

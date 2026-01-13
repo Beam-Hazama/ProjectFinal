@@ -74,7 +74,6 @@ onMounted(() => {
     fetchUserData();
 });
 
-// Watch รูปภาพกรณีใส่เป็น URL
 watch(() => userData.value.ImageUrl, (newVal) => {
     if (imageInputMethod.value === 'url') {
         imagePreview.value = newVal;
@@ -94,23 +93,23 @@ const handleFileUpload = (event) => {
 };
 
 const handleSave = async () => {
-    // 1. Validation: เช็คค่าว่าง
+    
     const { firstname, lastname, username, restaurant, phone, address, password, ImageUrl, status } = userData.value;
 
     if (!firstname || !lastname || !username || !restaurant || !phone || !address || !password) {
-        alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (รวมถึงรหัสผ่าน)");
+        alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
         return;
     }
 
     try {
         isLoading.value = true;
 
-        // Check for duplicate username
+        
         const q = query(collection(db, 'User'), where('username', '==', username));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // Check if it's not the current user (for edit mode)
+         
             const isDuplicate = mode.value === 'add' || querySnapshot.docs.some(doc => doc.id !== userId);
 
             if (isDuplicate) {
@@ -120,11 +119,11 @@ const handleSave = async () => {
             }
         }
 
-        // สร้าง Email ปลอมจาก Username
+     
         const fakeEmail = `${username.toLowerCase().trim()}@system.local`;
 
         if (mode.value === 'add') {
-            // --- โหมดเพิ่มผู้ใช้ใหม่ (Auth + Firestore) ---
+           
             const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
             const uid = userCredential.user.uid;
 
@@ -137,7 +136,7 @@ const handleSave = async () => {
                 phone,
                 address,
                 restaurant,
-                status: status || 'active', // บันทึกสเตตัส active ลง Firestore
+                status: status || 'active', 
                 role: 'restaurant',
                 ImageUrl: ImageUrl || '',
                 createdAt: serverTimestamp(),
@@ -145,7 +144,7 @@ const handleSave = async () => {
             });
             alert("เพิ่มผู้ใช้สำเร็จ!");
         } else {
-            // --- โหมดแก้ไข (เฉพาะ Firestore) ---
+           
             const userRef = doc(db, 'User', userId);
 
             const updateData = {
@@ -157,7 +156,7 @@ const handleSave = async () => {
                 phone,
                 address,
                 restaurant,
-                status: status || 'active', // บันทึกสเตตัส active ลง Firestore
+                status: status || 'active', 
                 ImageUrl: ImageUrl || '',
                 updatedAt: serverTimestamp()
             };
