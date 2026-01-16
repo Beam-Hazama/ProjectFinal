@@ -48,10 +48,6 @@ const deleteMenu = async (id, name) => {
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">
         <div class="text-3xl font-bold text-slate-700">Menu List</div>
-        <RouterLink to="/Admin/Menulist/Addmenu"
-          class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
-          Add Menu
-        </RouterLink>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -117,18 +113,9 @@ const deleteMenu = async (id, name) => {
                 <td class="text-center">
                   <div class="flex justify-center ">
                     <RouterLink class="btn btn-sm btn-ghost text-blue-600"
-                      :to="{ name: 'Admin update menu', params: { id: product.id } }">
-                      Edit
+                      :to="{ name: 'Admin menu detail', params: { id: product.id } }">
+                      View
                     </RouterLink>
-
-                    <button @click="deleteMenu(product.id, product.Name)"
-                      class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-9.123a1.125 1.125 0 0 0-1.125-1.125h-2.25a1.125 1.125 0 0 0-1.125 1.125V5.123m9.902 0a48.674 48.674 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165" />
-                      </svg>
-                    </button>
                   </div>
                 </td>
               </tr>

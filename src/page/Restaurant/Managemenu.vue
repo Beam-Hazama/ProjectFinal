@@ -9,7 +9,7 @@ import { useRestaurant } from '@/stores/Restaurant';
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, } from '@/firebase';
 
-import LayoutAdmin from '@/page/Admin/Admin.vue';
+import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
 
 const route = useRoute();
 const router = useRouter();

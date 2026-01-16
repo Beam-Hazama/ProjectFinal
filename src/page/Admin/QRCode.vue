@@ -25,12 +25,12 @@ const openAddModal = () => {
   isModalOpen.value = true
 }
 
-const openEditModal = (room) => {
+/*const openEditModal = (room) => {
   isEditing.value = true
   currentRoomId.value = room.id
   roomForm.value = { roomNumber: room.roomNumber, floor: room.floor, building: room.building }
   isModalOpen.value = true
-}
+}*/
 
 const formatDate = (date) => {
   if (!date) return 'กำลังโหลด...'
@@ -111,8 +111,8 @@ const printSpecificQR = async (room) => {
                   <button @click="printSpecificQR(room)" class="btn btn-sm btn-info btn-outline">Print QR</button>
                 </td>
                 <td class="border-none">
-                  <button @click="openEditModal(room)"
-                    class="btn btn-sm btn-ghost text-blue-600 font-bold">Edit</button>
+                  <!--<button @click="openEditModal(room)"
+                    class="btn btn-sm btn-ghost text-blue-600 font-bold">Edit</button>-->
                   <button @click="deleteRoom" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                       stroke="currentColor" class="w-4 h-4">

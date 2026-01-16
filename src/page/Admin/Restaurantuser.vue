@@ -213,9 +213,9 @@ onMounted(() => {
                     </div>
 
                     <div class="px-6 pb-6 pt-2 flex gap-3">
-                        <RouterLink :to="`/Admin/Restaurant/edituser/${user.id}`"
+                        <RouterLink :to="`/Admin/Restaurant/Userdetail/${user.id}`"
                             class="flex-[2] btn btn-sm bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 border-none rounded-xl font-bold transition-all duration-300">
-                            Edit
+                            View
                         </RouterLink>
 
                         <button @click="toggleUserStatus(user)" :class="[

@@ -9,8 +9,9 @@ import AdminQRCode from "@/page/Admin/QRCode.vue";
 import Adminrestaurantlist from "@/page/Admin/Restaurantlist.vue";
 import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
 
-import Managemenu from "@/page/component/Managemenu.vue";
+import Menudetail from "@/page/Admin/Menudetail.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
+import Userdetail from "@/page/Admin/Userdetail.vue";
 import Manageuser from "@/page/component/Manageuser.vue";
 
 import Restaurants from "@/page/Restaurant/restaurant.vue";
@@ -26,129 +27,122 @@ import Status from "@/page/User/Status.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    
     {
-      path: "/User",
-      name: "User",
+      path: '/User',
+      name: 'User',
       component: User,
     },
     {
-      path: "/user/bill/:building/:floor/:room", 
-      name: "user-bill",
+      path: '/user/bill/:building/:floor/:room',
+      name: 'user-bill',
       component: Bill,
     },
     {
-      path: "/user/status/:building/:floor/:room",
-      name: "Status",
+      path: '/user/status/:building/:floor/:room',
+      name: 'Status',
       component: Status,
     },
     {
-      path: "/user/cart/:building/:floor/:room",
-      name: "Cart",
+      path: '/user/cart/:building/:floor/:room',
+      name: 'Cart',
       component: Cart,
     },
-   
+
     {
-      path: "/Admin",
-      name: "Admin",
+      path: '/Admin',
+      name: 'Admin',
       component: Admin,
     },
     // ...
     {
-      path: "/user/:building/:floor/:room", 
-      name: "User",
+      path: '/user/:building/:floor/:room',
+      name: 'User',
       component: User,
     },
     {
-      path: "/Admin/Dashboard",
-      name: "Admin Dashboard",
+      path: '/Admin/Dashboard',
+      name: 'Admin Dashboard',
       component: Admindashboard,
     },
     {
-      path: "/Admin/Menulist",
-      name: "Admin Menu List",
+      path: '/Admin/Menulist',
+      name: 'Admin Menu List',
       component: Adminmenulist,
     },
     {
-      path: "/Admin/Orderlist",
-      name: "Admin Order List",
+      path: '/Admin/Orderlist',
+      name: 'Admin Order List',
       component: Adminorderlist,
     },
     {
-      path: "/Admin/QRCode",
-      name: "QR Code",
+      path: '/Admin/QRCode',
+      name: 'QR Code',
       component: AdminQRCode,
     },
     {
-      path: "/Admin/Restaurantlist",
-      name: "Admin Restaurant List",
+      path: '/Admin/Restaurantlist',
+      name: 'Admin Restaurant List',
       component: Adminrestaurantlist,
     },
     {
-      path: "/Admin/Restaurantuser",
-      name: "Admin Restaurant User",
+      path: '/Admin/Restaurantuser',
+      name: 'Admin Restaurant User',
       component: Adminrestaurantuser,
     },
 
     {
-      path: "/Admin/Menulist/Addmenu",
-      name: "Admin Add menu",
-      component: Managemenu,
+      path: '/Admin/Menulist/Menudatail:id',
+      name: 'Admin menu detail',
+      component: Menudetail,
     },
     {
-      path: "/Admin/Menulist/Edit/:id",
-      name: "Admin update menu",
-      component: Managemenu,
-    },
-    {
-      path: "/Admin/Restaurant/Adduser", 
-      name: "Admin Add User",
+      path: '/Admin/Restaurant/Adduser',
+      name: 'Admin Add User',
       component: Manageuser,
     },
     {
-      path: "/Admin/Restaurant/Edituser/:id", 
-      name: "Admin Update User",
-      component: Manageuser,
+      path: '/Admin/Restaurant/Userdetail/:id',
+      name: 'Admin User Detail',
+      component: Userdetail,
     },
 
     {
-      path: "/Admin/Restaurant/Addrestaurant",
-      name: "Admin Add restaurant",
+      path: '/Admin/Restaurant/Addrestaurant',
+      name: 'Admin Add restaurant',
       component: Managerestaurant,
     },
     {
-      path: "/Admin/Restaurant/Edit/:id",
-      name: "Admin update restaurant",
+      path: '/Restaurant/Edit/:id',
+      name: 'Restaurant update ',
       component: Managerestaurant,
     },
 
     {
-      path: "/Login",
-      name: "Login",
+      path: '/Login',
+      name: 'Login',
       component: Login,
     },
-    
+
     {
-      path: "/Restaurant/:restaurantName", 
-      name: "Restaurants",
+      path: '/Restaurant/:restaurantName',
+      name: 'Restaurants',
       component: Restaurants,
     },
     {
-      path: "/Restaurant/Orderlist/:restaurantName", 
-      name: "Restaurants Orderlist",
+      path: '/Restaurant/Orderlist/:restaurantName',
+      name: 'Restaurants Orderlist',
       component: Restaurantorderlist,
     },
     {
-      path: "/Restaurant/Profile/:restaurantName", 
-      name: "Restaurants Profile",
+      path: '/Restaurant/Profile/:restaurantName',
+      name: 'Restaurants Profile',
       component: Restaurantprofile,
     },
     {
-      path: "/Restaurant/Menulist/:restaurantName", 
-      name: "Restaurants Menulist",
+      path: '/Restaurant/Menulist/:restaurantName',
+      name: 'Restaurants Menulist',
       component: Restaurantmenulist,
     },
-    
   ],
 });
 
