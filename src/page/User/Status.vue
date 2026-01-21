@@ -1,10 +1,13 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
-import { useRoute } from 'vue-router';
+import { useCartStore } from '@/stores/cartStore';
+import { useRouter, useRoute } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const orderListStore = useOderlistStore();
+const cartStore = useCartStore();
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
@@ -21,9 +24,38 @@ const formatPrice = (value) => {
   return new Intl.NumberFormat('th-TH').format(value);
 };
 
+const confirmReceived = async (orderId, itemId) => {
+  if (confirm('ยืนยันว่าได้รับรายการนี้แล้ว?')) {
+    await orderListStore.updateSingleItemStatus(orderId, itemId, 'received');
+    
+    orderListStore.loadOrderUser(tableId);
+  }
+};
+
+const reorder = (order) => {
+ 
+  const validItems = (order.Menu || []).filter(item =>
+    item.itemStatus !== 'cancelled'
+  );
+
+  if (validItems.length === 0) {
+    alert('ไม่มีรายการที่สามารถสั่งต่อได้ (รายการทั้งหมดถูกยกเลิกหรือตีกลับ)');
+    return;
+  }
+
+  
+  cartStore.loadcart(building, floor, room);
+
+  validItems.forEach(item => {
+    cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
+  });
+
+
+  router.push(`/user/cart/${building}/${floor}/${room}`);
+};
+
 onMounted(() => {
   if (tableId) {
-   
     orderListStore.loadOrderUser(tableId);
   }
 });
@@ -75,13 +107,22 @@ onMounted(() => {
           <div class="flex flex-col">
             <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Order Number</span>
             <span class="text-sm font-black text-blue-700">#{{ order.OrderNumber }}</span>
+            <span class="text-[10px] text-gray-400 font-medium mt-0.5" v-if="order.CreatedAt">
+              {{ order.CreatedAt?.toDate ? order.CreatedAt.toDate().toLocaleTimeString('th-TH', {
+                hour: '2-digit',
+                minute: '2-digit'
+              }) : '' }} น.
+            </span>
           </div>
-          <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase shadow-sm" :class="{
-            'bg-amber-100 text-amber-600': order.statusOrder === 'pending',
-            'bg-green-100 text-green-600': order.statusOrder !== 'pending'
-          }">
-            {{ order.statusOrder === 'pending' ? 'รอดำเนินการ' : 'สำเร็จแล้ว' }}
-          </span>
+          <button @click="reorder(order)"
+            class="btn btn-sm bg-indigo-100 text-indigo-700 border-none hover:bg-indigo-200 gap-1 shadow-sm font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            สั่งอีกครั้ง
+          </button>
         </div>
 
         <div class="p-4 space-y-4">
@@ -96,22 +137,38 @@ onMounted(() => {
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
+                  'bg-slate-400 ring-slate-200': !item.itemStatus || item.itemStatus === 'waiting',
                   'bg-amber-400 ring-amber-200': item.itemStatus === 'pending',
                   'bg-blue-400 ring-blue-200': item.itemStatus === 'cooking',
-                  'bg-green-500 ring-green-200': item.itemStatus === 'served'
+                  'bg-green-500 ring-green-200': item.itemStatus === 'served',
+                  'bg-teal-500 ring-teal-200': item.itemStatus === 'received',
+                  'bg-red-500 ring-red-200': item.itemStatus === 'cancelled',
+                  'bg-orange-500 ring-orange-200': item.itemStatus === 'returned'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
+                  'text-slate-500': !item.itemStatus || item.itemStatus === 'waiting',
                   'text-amber-500': item.itemStatus === 'pending',
                   'text-blue-500': item.itemStatus === 'cooking',
-                  'text-green-600': item.itemStatus === 'served'
+                  'text-green-600': item.itemStatus === 'served',
+                  'text-teal-600': item.itemStatus === 'received',
+                  'text-red-500': item.itemStatus === 'cancelled',
+                  'text-orange-500': item.itemStatus === 'returned'
                 }">
-                  {{ item.itemStatus === 'pending' ? 'รอคิว' :
-                    item.itemStatus === 'cooking' ? 'กำลังทำ' : 'เสิร์ฟแล้ว' }}
+                  {{ (!item.itemStatus || item.itemStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
+                    item.itemStatus === 'pending' ? 'รับออเดอร์แล้ว' :
+                      item.itemStatus === 'cooking' ? 'กำลังทำ' :
+                        item.itemStatus === 'cancelled' ? 'ถูกยกเลิก' :
+                          item.itemStatus === 'returned' ? 'รายการถูกตีกลับ' :
+                            item.itemStatus === 'received' ? 'ได้รับแล้ว' : 'เสิร์ฟแล้ว' }}
                 </span>
               </div>
             </div>
-            <div class="text-right">
+            <div class="text-right flex flex-col items-end gap-1">
               <span class="text-sm font-black text-gray-800">฿{{ formatPrice(item.Price * item.Quantity) }}</span>
+              <button v-if="item.itemStatus === 'served'" @click="confirmReceived(order.id, item.id)"
+                class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
+                ยืนยันได้รับ
+              </button>
             </div>
           </div>
         </div>
@@ -123,17 +180,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="fixed bottom-6 left-0 w-full px-6 z-40">
-      <router-link :to="`/User/${building}/${floor}/${room}`"
-        class="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-1 rounded-2xl shadow-xl shadow-blue-500/40 transform active:scale-95 transition-all duration-300 block">
-        <div class="flex items-center justify-center gap-2 py-4 rounded-xl border border-white/20">
-          <span class="font-black uppercase tracking-wider">สั่งอาหารเพิ่ม</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:translate-x-1 transition-transform"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
-      </router-link>
-    </div>
+
   </div>
 </template>

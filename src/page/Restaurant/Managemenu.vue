@@ -24,15 +24,12 @@ const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 
-const categories = ['อาหารตามสั่ง', 'เครื่องดื่ม', 'ของทานเล่น', 'ก๋วยเตี๋ยว', 'ของหวาน','อาหารอิตาลี'];
+const categories = ['อาหารตามสั่ง', 'เครื่องดื่ม', 'ของทานเล่น', 'ก๋วยเตี๋ยว', 'ของหวาน', 'อาหารอิตาลี'];
 
 const MenuData = reactive({
     Name: '',
     ImageUrl: '',
-    Price: 0,
-    DiscountPrice: 0,      
-    DiscountStart: '',    
-    DiscountEnd: '',      
+    Price: '',
     Restaurant: '',
     Description: '',
     Category: '',
@@ -51,14 +48,15 @@ const checkAddProduct = async (data) => {
         let MenuId
         let ImageUrl = data.ImageUrl || ''
 
-        
+
         const saveData = {
-            ...data,
+            Name: data.Name,
             ImageUrl: ImageUrl,
             Price: Number(data.Price),
-            DiscountPrice: Number(data.DiscountPrice),
-            DiscountStart: data.DiscountStart ? new Date(data.DiscountStart) : null,
-            DiscountEnd: data.DiscountEnd ? new Date(data.DiscountEnd) : null,
+            Restaurant: data.Restaurant,
+            Description: data.Description,
+            Category: data.Category,
+            Status: data.Status,
             UpdatedAt: serverTimestamp()
         }
 
@@ -73,7 +71,14 @@ const checkAddProduct = async (data) => {
             await updateDoc(doc(db, 'Menu', MenuId), saveData)
         }
 
-        router.push({ name: 'Admin Menu List' })
+        if (['Restaurant Add Menu', 'Restaurant Edit Menu'].includes(route.name)) {
+            router.push({
+                name: 'Restaurants Menulist',
+                params: { restaurantName: MenuData.Restaurant }
+            })
+        } else {
+            router.push({ name: 'Admin Menu List' })
+        }
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error)
     }
@@ -94,16 +99,21 @@ const goBack = () => {
 }
 
 
-const formatDateTimeLocal = (date) => {
-    if (!date) return '';
-    const d = date instanceof Date ? date : date.toDate();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
+
+
+const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+   
+    if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toLocaleString('th-TH');
+    }
+    
+    if (timestamp && timestamp.seconds) {
+        return new Date(timestamp.seconds * 1000).toLocaleString('th-TH');
+    }
+    
+    return new Date(timestamp).toLocaleString('th-TH');
+};
 
 onMounted(async () => {
     if (route.params.id) {
@@ -114,10 +124,6 @@ onMounted(async () => {
             const res = productSnap.data();
             Object.assign(MenuData, res);
 
-            
-            if (res.DiscountStart) MenuData.DiscountStart = formatDateTimeLocal(res.DiscountStart);
-            if (res.DiscountEnd) MenuData.DiscountEnd = formatDateTimeLocal(res.DiscountEnd);
-
             imagePreview.value = res.ImageUrl;
             if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
                 imageInputMethod.value = 'url';
@@ -125,6 +131,10 @@ onMounted(async () => {
         }
     } else {
         mode.value = 'Add Product';
+        if (route.params.restaurantName) {
+            
+            MenuData.Restaurant = route.params.restaurantName;
+        }
     }
 
     Restaurant.loadListRestaurant()
@@ -134,7 +144,7 @@ onMounted(async () => {
 <template>
     <LayoutAdmin>
         <div class="min-h-screen  p-6 md:p-8 font-sans">
-
+            
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div class="flex items-center gap-4">
                     <div>
@@ -234,6 +244,22 @@ onMounted(async () => {
                     <div class="p-8 lg:col-span-2 space-y-8">
 
                         <div>
+                            <div v-if="mode === 'Update Product'"
+                                class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
+                                    <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
+                                    }}</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
+                                    <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
+                                    }}</span>
+                                </div>
+                            </div>
+
                             <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลทั่วไป</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-control md:col-span-1">
@@ -244,6 +270,18 @@ onMounted(async () => {
                                     <input type="text" placeholder="เช่น ข้าวกะเพราไก่ไข่ดาว"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                         v-model="MenuData.Name" />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium text-slate-600">ราคา<span
+                                                class="text-red-500">*</span></span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" placeholder="0"
+                                            class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200"
+                                            v-model="MenuData.Price" />
+                                        <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
+                                    </div>
                                 </div>
 
                                 <div class="form-control md:col-span-3">
@@ -262,15 +300,16 @@ onMounted(async () => {
                                     <select
                                         class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                                         v-model="MenuData.Restaurant"
-                                        :disabled="mode === 'Update Product'">
+                                        :disabled="mode === 'Update Product' || route.params.restaurantName">
                                         <option disabled value="">เลือกร้านอาหาร</option>
                                         <option v-for="RestaurantName in Restaurant.list" :key="RestaurantName.id"
                                             :value="RestaurantName.Name">
                                             {{ RestaurantName.Name }}
                                         </option>
                                     </select>
-                                    <p v-if="mode === 'Update Product'" class="text-[10px] text-slate-400 mt-1 italic">
-                                        * ไม่สามารถเปลี่ยนร้านค้าได้ในโหมดแก้ไข
+                                    <p v-if="mode === 'Update Product' || route.params.restaurantName"
+                                        class="text-[10px] text-slate-400 mt-1 italic">
+                                        * ไม่สามารถเปลี่ยนร้านค้าได้
                                     </p>
                                 </div>
 
@@ -300,80 +339,16 @@ onMounted(async () => {
                                         <option value="close">🔴 ปิดชั่วคราว (Close)</option>
                                     </select>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
-                                ราคาและช่วงเวลาโปรโมชั่น</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text font-medium text-slate-600">ราคา<span
-                                                class="text-red-500">*</span></span>
-                                    </label>
-                                    <div class="relative">
-                                        <input type="number" placeholder="0"
-                                            class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200"
-                                            v-model="MenuData.Price" />
-                                        <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
-                                    </div>
-                                </div>
 
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
-                                    </label>
-                                    <div class="relative">
-                                        <input type="number" placeholder="0"
-                                            class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 "
-                                            v-model="MenuData.DiscountPrice" />
-                                        <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span
-                                                class="label-text font-medium text-slate-600">เวลาเริ่มโปรโมชั่น</span>
-                                        </label>
-                                        <div class="relative">
-                                            <input type="time"
-                                                class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                                                v-model="MenuData.DiscountStart" />
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5 absolute left-3 top-3 text-slate-400" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-control">
-                                        <label class="label">
-                                            <span
-                                                class="label-text font-medium text-slate-600">เวลาสิ้นสุดโปรโมชั่น</span>
-                                        </label>
-                                        <div class="relative">
-                                            <input type="time"
-                                                class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                                                v-model="MenuData.DiscountEnd" />
-                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5 absolute left-3 top-3 text-slate-400" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
                     </div>
                 </div>
             </div>
+
         </div>
+
     </LayoutAdmin>
 </template>

@@ -68,16 +68,16 @@ watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () =>
 });
 
 const fetchRestaurantByName = async () => {
- 
+
   if (!accountStore.isLoggedIn) {
     await accountStore.checkAuthState();
   }
 
   let nameFromUrl = route.params.restaurantName;
 
-  
-  if (!nameFromUrl && accountStore.user && accountStore.user.restaurant) {
-    nameFromUrl = accountStore.user.restaurant;
+
+  if (!nameFromUrl && accountStore.user && accountStore.user.Restaurant) {
+    nameFromUrl = accountStore.user.Restaurant;
   }
 
   if (!nameFromUrl) {
@@ -291,7 +291,8 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
                   <p class="text-[10px] text-blue-500 mt-1 italic">
-                    {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' : '*สถานะถูกกำหนดด้วยโหมด Manual' }}
+                    {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' :
+                    '*สถานะถูกกำหนดด้วยโหมด Manual' }}
                   </p>
                 </div>
               </div>

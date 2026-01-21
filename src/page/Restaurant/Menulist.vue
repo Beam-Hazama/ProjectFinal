@@ -2,18 +2,37 @@
 import { db } from '@/firebase';
 import Layoutrestaurant from '@/page/Restaurant/restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'; 
-import { RouterLink, useRoute } from 'vue-router'; 
+import { useAccountStore } from '@/stores/account';
+import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
+import { RouterLink, useRoute } from 'vue-router';
 import { onMounted, watch } from 'vue';
 
 const MenuStore = useMenuStore();
+const accountStore = useAccountStore();
 const route = useRoute();
 
 
 const loadData = async () => {
-  const restaurantName = route.params.restaurantName;
-  if (restaurantName) {
+  let restaurantName = route.params.restaurantName;
+
+ 
+  if (!restaurantName || restaurantName === 'undefined') {
+   
+    restaurantName = accountStore.user?.Restaurant;
+
+    
+    if (!restaurantName && !accountStore.user) {
+      await accountStore.checkAuthState();
+      restaurantName = accountStore.user?.Restaurant;
+    }
+  }
+
+  
+  if (restaurantName && restaurantName !== 'undefined') {
+    console.log("Loading menu for:", restaurantName);
     await MenuStore.loadMenuRestaurant(restaurantName);
+  } else {
+    console.warn("No restaurant name found for Menu List");
   }
 };
 
@@ -25,20 +44,28 @@ watch(() => route.params.restaurantName, () => {
   loadData();
 });
 
+watch(() => accountStore.user, (newUser) => {
+  if (newUser?.Restaurant) {
+    loadData();
+  }
+});
+
 
 const switchStatus = async (product) => {
   try {
     const newStatus = product.Status === 'open' ? 'close' : 'open';
-    
-    const productRef = doc(db, 'Menu', product.id); 
-    
+
+    const productRef = doc(db, 'Menu', product.id);
+
     await updateDoc(productRef, {
       Status: newStatus,
-      updatedAt: serverTimestamp() 
+      UpdatedAt: serverTimestamp(),
+      status: deleteField(),
+      updatedAt: deleteField()
     });
-    
-    
-    
+
+
+
   } catch (error) {
     console.error("Error updating status:", error);
     alert("ไม่สามารถเปลี่ยนสถานะได้");
@@ -51,7 +78,7 @@ const deleteMenu = async (id, name) => {
     try {
       const productRef = doc(db, 'Menu', id);
       await deleteDoc(productRef);
-     
+
     } catch (error) {
       console.error("Error deleting menu:", error);
       alert("เกิดข้อผิดพลาดในการลบข้อมูล");
@@ -61,7 +88,22 @@ const deleteMenu = async (id, name) => {
 
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  let date;
+  
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    date = timestamp.toDate();
+  }
+  else if (timestamp && typeof timestamp.seconds === 'number') {
+    date = new Date(timestamp.seconds * 1000);
+  }
+ 
+  else {
+    date = new Date(timestamp);
+  }
+
+ 
+  if (isNaN(date.getTime())) return '-';
+
   return date.toLocaleString('th-TH');
 }
 </script>
@@ -69,12 +111,14 @@ const formatDate = (timestamp) => {
 <template>
   <Layoutrestaurant>
     <div class="p-6">
+
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
-          <p class="text-slate-500 text-sm">ร้าน: {{ route.params.restaurantName }}</p>
+          <p class="text-slate-500 text-sm">ร้าน: {{ route.params.restaurantName || accountStore.user?.Restaurant }}</p>
         </div>
-        <RouterLink to="/Admin/Menulist/Addmenu"
+        <RouterLink
+          :to="{ name: 'Restaurant Add Menu', params: { restaurantName: route.params.restaurantName || accountStore.user?.Restaurant } }"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-5 h-5">
@@ -143,7 +187,7 @@ const formatDate = (timestamp) => {
                 <td class="text-center">
                   <div class="flex justify-center gap-1">
                     <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50"
-                      :to="{ name: 'Admin update menu', params: { id: product.id } }">
+                      :to="{ name: 'Restaurant Edit Menu', params: { id: product.id } }">
                       Edit
                     </RouterLink>
 

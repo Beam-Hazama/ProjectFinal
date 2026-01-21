@@ -11,28 +11,28 @@ const router = useRouter();
 const isLoading = ref(false);
 const restaurants = ref([]);
 
-// ตรวจสอบโหมด (ถ้ามี ID ใน URL คือโหมดแก้ไข)
+
 const userId = route.params.id;
 const mode = ref(userId ? 'edit' : 'add');
 
-// การจัดการรูปภาพ
+
 const imageInputMethod = ref('file');
 const imagePreview = ref(null);
 
 const userData = ref({
-    firstname: '',
-    lastname: '',
-    username: '',
-    password: '',
-    phone: '',
-    address: '',
-    status: 'active', // เพิ่มสเตตัสเริ่มต้นเป็น active ใน Object ข้อมูล
-    role: 'restaurant',
+    Firstname: '',
+    Lastname: '',
+    Username: '',
+    Password: '',
+    Phone: '',
+    Address: '',
+    Status: 'active',
+    Role: 'restaurant',
     ImageUrl: '',
-    restaurant: ''
+    Restaurant: ''
 });
 
-// ดึงรายชื่อร้านอาหารสำหรับ Dropdown
+
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -45,7 +45,7 @@ const fetchRestaurants = async () => {
     }
 };
 
-// ดึงข้อมูลผู้ใช้งานกรณีโหมดแก้ไข
+
 const fetchUserData = async () => {
     if (mode.value === 'edit') {
         try {
@@ -53,7 +53,6 @@ const fetchUserData = async () => {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                // นำข้อมูลเดิมรวมถึงรหัสผ่านมาใส่ในฟอร์ม และรักษาค่า status เดิมไว้
                 userData.value = { ...userData.value, ...data };
                 imagePreview.value = data.ImageUrl;
                 if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
@@ -93,10 +92,10 @@ const handleFileUpload = (event) => {
 };
 
 const handleSave = async () => {
-    
-    const { firstname, lastname, username, restaurant, phone, address, password, ImageUrl, status } = userData.value;
 
-    if (!firstname || !lastname || !username || !restaurant || !phone || !address || !password) {
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status } = userData.value;
+
+    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Password) {
         alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
         return;
     }
@@ -104,61 +103,60 @@ const handleSave = async () => {
     try {
         isLoading.value = true;
 
-        
-        const q = query(collection(db, 'User'), where('username', '==', username));
+
+        const q = query(collection(db, 'User'), where('Username', '==', Username));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-         
+
             const isDuplicate = mode.value === 'add' || querySnapshot.docs.some(doc => doc.id !== userId);
 
             if (isDuplicate) {
-                alert(`Username "${username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
+                alert(`Username "${Username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
                 isLoading.value = false;
                 return;
             }
         }
 
-     
-        const fakeEmail = `${username.toLowerCase().trim()}@system.local`;
+
+        const fakeEmail = `${Username.toLowerCase().trim()}@system.local`;
 
         if (mode.value === 'add') {
-           
-            const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+
+            const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, Password);
             const uid = userCredential.user.uid;
 
             await setDoc(doc(db, 'User', uid), {
-                firstname,
-                lastname,
-                username,
-                password,
-                email: fakeEmail,
-                phone,
-                address,
-                restaurant,
-                status: status || 'active', 
-                role: 'restaurant',
+                Firstname,
+                Lastname,
+                Username,
+                Password,
+                Phone,
+                Address,
+                Restaurant,
+                Status: Status || 'active',
+                Role: 'restaurant',
                 ImageUrl: ImageUrl || '',
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                CreatedAt: serverTimestamp(),
+                UpdatedAt: serverTimestamp()
             });
             alert("เพิ่มผู้ใช้สำเร็จ!");
         } else {
-           
+
             const userRef = doc(db, 'User', userId);
 
             const updateData = {
-                firstname,
-                lastname,
-                username,
-                password,
-                email: fakeEmail,
-                phone,
-                address,
-                restaurant,
-                status: status || 'active', 
+                Firstname,
+                Lastname,
+                Username,
+                Password,
+                Password,
+                Phone,
+                Address,
+                Restaurant,
+                Status: Status || 'active',
                 ImageUrl: ImageUrl || '',
-                updatedAt: serverTimestamp()
+                UpdatedAt: serverTimestamp()
             };
 
             await updateDoc(userRef, updateData);
@@ -282,14 +280,14 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.firstname"
+                                    <input type="text" v-model="userData.Firstname"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50"
                                         placeholder="กรอกชื่อจริง" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.lastname"
+                                    <input type="text" v-model="userData.Lastname"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50"
                                         placeholder="กรอกนามสกุล" />
                                 </div>
@@ -297,7 +295,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username
                                             <span class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.username"
+                                    <input type="text" v-model="userData.Username"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50"
                                         placeholder="สำหรับใช้ Login" />
                                 </div>
@@ -308,7 +306,7 @@ const goBack = () => router.go(-1);
                                             Password {{ mode === 'add' ? '*' : '(รหัสผ่านปัจจุบัน)' }}
                                         </span>
                                     </label>
-                                    <input type="password" v-model="userData.password"
+                                    <input type="password" v-model="userData.Password"
                                         class="input input-bordered w-full bg-slate-50 focus:input-primary"
                                         placeholder="กรอกรหัสผ่าน" />
                                 </div>
@@ -316,7 +314,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร
                                             <span class="text-red-500">*</span></span></label>
-                                    <select v-model="userData.restaurant" class="select select-bordered w-full">
+                                    <select v-model="userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
                                         <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name
                                             }}</option>
@@ -327,14 +325,14 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.phone" placeholder="0xx-xxx-xxxx"
+                                    <input type="text" v-model="userData.Phone" placeholder="0xx-xxx-xxxx"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                             (Address) <span class="text-red-500">*</span></span></label>
-                                    <textarea v-model="userData.address" rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
+                                    <textarea v-model="userData.Address" rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
                                         class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>
                                 </div>
                             </div>

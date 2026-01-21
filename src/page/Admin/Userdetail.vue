@@ -11,28 +11,28 @@ const router = useRouter();
 const isLoading = ref(false);
 const restaurants = ref([]);
 
-// ตรวจสอบโหมด (ถ้ามี ID ใน URL คือโหมดแก้ไข)
+
 const userId = route.params.id;
 const mode = ref(userId ? 'edit' : 'add');
 
-// การจัดการรูปภาพ
+
 const imageInputMethod = ref('file');
 const imagePreview = ref(null);
 
 const userData = ref({
-    firstname: '',
-    lastname: '',
-    username: '',
-    password: '',
-    phone: '',
-    address: '',
-    status: 'active', // เพิ่มสเตตัสเริ่มต้นเป็น active ใน Object ข้อมูล
-    role: 'restaurant',
+    Firstname: '',
+    Lastname: '',
+    Username: '',
+    Password: '',
+    Phone: '',
+    Address: '',
+    Status: 'active', 
+    Role: 'restaurant',
     ImageUrl: '',
-    restaurant: ''
+    Restaurant: ''
 });
 
-// ดึงรายชื่อร้านอาหารสำหรับ Dropdown
+
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -45,7 +45,7 @@ const fetchRestaurants = async () => {
     }
 };
 
-// ดึงข้อมูลผู้ใช้งานกรณีโหมดแก้ไข
+
 const fetchUserData = async () => {
     if (mode.value === 'edit') {
         try {
@@ -53,7 +53,7 @@ const fetchUserData = async () => {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                // นำข้อมูลเดิมรวมถึงรหัสผ่านมาใส่ในฟอร์ม และรักษาค่า status เดิมไว้
+                
                 userData.value = { ...userData.value, ...data };
                 imagePreview.value = data.ImageUrl;
                 if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
@@ -90,14 +90,14 @@ const goBack = () => router.go(-1);
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
-                         ข้อมูลรายละเอียดผู้ให้บริการร้านค้า 
+                        ข้อมูลรายละเอียดผู้ให้บริการร้านค้า
                     </h1>
                     <p class="text-slate-500 mt-1">ดูรายละเอียดบัญชี ข้อมูลติดต่อ และร้านอาหารที่สังกัด</p>
                 </div>
 
                 <div class="flex gap-3">
                     <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">กลับ</button>
-                
+
                 </div>
             </div>
 
@@ -117,7 +117,7 @@ const goBack = () => router.go(-1);
                                 <div v-else class="text-slate-400 flex flex-col items-center">
                                     <span class="text-sm font-medium">ไม่มีรูปภาพร้าน</span>
                                 </div>
-                            </div>                            
+                            </div>
                         </div>
                     </div>
 
@@ -137,22 +137,25 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label type="text" class="input input-bordered w-full focus:input-primary bg-slate-50">
-                                        {{ userData.firstname}}
+                                    <label type="text"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                        {{ userData.Firstname }}
                                     </label>
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
-                                    <label type="text" class="input input-bordered w-full focus:input-primary bg-slate-50">
-                                        {{ userData.lastname }}</label>
+                                    <label type="text"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                        {{ userData.Lastname }}</label>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username
                                             <span class="text-red-500">*</span></span></label>
-                                    <label type="text" class="input input-bordered w-full focus:input-primary bg-slate-50">
-                                        {{ userData.username }}
+                                    <label type="text"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                        {{ userData.Username }}
                                     </label>
                                 </div>
 
@@ -162,8 +165,9 @@ const goBack = () => router.go(-1);
                                             Password {{ mode === 'add' ? '*' : '(รหัสผ่านปัจจุบัน)' }}
                                         </span>
                                     </label>
-                                    <label type="password" class="input input-bordered w-full bg-slate-50 focus:input-primary">
-                                        {{ userData.password }}
+                                    <label type="password"
+                                        class="input input-bordered w-full bg-slate-50 focus:input-primary">
+                                        {{ userData.Password }}
                                     </label>
                                 </div>
 
@@ -171,7 +175,7 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร
                                             <span class="text-red-500">*</span></span></label>
                                     <label class="input input-bordered w-full">
-                                        {{ userData.restaurant }}
+                                        {{ userData.Restaurant }}
                                     </label>
                                 </div>
 
@@ -179,16 +183,18 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label type="text" class="input input-bordered w-full focus:input-primary bg-slate-50" >
-                                        {{ userData.phone }}
+                                    <label type="text"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                        {{ userData.Phone }}
                                     </label>
                                 </div>
 
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                             (Address) <span class="text-red-500">*</span></span></label>
-                                    <textarea  rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
-                                        class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50" readonly="">{{ userData.address }}</textarea>
+                                    <textarea rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
+                                        class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"
+                                        readonly="">{{ userData.Address }}</textarea>
                                 </div>
                             </div>
                         </div>

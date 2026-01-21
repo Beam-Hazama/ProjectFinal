@@ -18,6 +18,8 @@ import Restaurants from "@/page/Restaurant/restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
 import Restaurantmenulist from "@/page/Restaurant/Menulist.vue";
 import Restaurantprofile from "@/page/Restaurant/Profile.vue";
+import RestaurantManagemenu from "@/page/Restaurant/Managemenu.vue";
+
 
 import User from "@/page/User/User.vue";
 import Bill from "@/page/User/bill.vue";
@@ -142,6 +144,16 @@ const router = createRouter({
       path: '/Restaurant/Menulist/:restaurantName',
       name: 'Restaurants Menulist',
       component: Restaurantmenulist,
+    },
+    {
+      path: '/Restaurant/AddMenu/:restaurantName',
+      name: 'Restaurant Add Menu',
+      component: RestaurantManagemenu,
+    },
+    {
+      path: '/Restaurant/EditMenu/:id',
+      name: 'Restaurant Edit Menu',
+      component: RestaurantManagemenu,
     },
   ],
 });

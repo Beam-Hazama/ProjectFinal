@@ -17,12 +17,12 @@ const users = ref([]);
 const restaurants = ref([]);
 const isLoading = ref(false);
 
-// ดึงข้อมูลผู้ใช้ที่มีบทบาทเป็น restaurant
+
 const fetchUsers = async () => {
     try {
         const q = query(
             collection(db, 'User'),
-            where('role', '==', 'restaurant')
+            where('Role', '==', 'restaurant')
         );
         const querySnapshot = await getDocs(q);
         users.value = querySnapshot.docs.map(doc => ({
@@ -34,14 +34,14 @@ const fetchUsers = async () => {
     }
 };
 
-// จัดรูปแบบวันที่
+
 const formatDate = (timestamp) => {
     if (!timestamp) return '-';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleString('th-TH');
 };
 
-// ดึงข้อมูลร้านอาหารทั้งหมด
+
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -54,17 +54,17 @@ const fetchRestaurants = async () => {
     }
 };
 
-// ฟังก์ชันสลับสถานะผู้ใช้ (Active / Blocked)
+
 const toggleUserStatus = async (user) => {
-    const currentStatus = user.status || 'active';
+    const currentStatus = user.Status || 'active';
     const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
 
-    if (confirm(`คุณต้องการเปลี่ยนสถานะของ "${user.firstname}" เป็น ${newStatus.toUpperCase()} ใช่หรือไม่?`)) {
+    if (confirm(`คุณต้องการเปลี่ยนสถานะของ "${user.Firstname}" เป็น ${newStatus.toUpperCase()} ใช่หรือไม่?`)) {
         try {
             isLoading.value = true;
             const userRef = doc(db, 'User', user.id);
             await updateDoc(userRef, {
-                status: newStatus,
+                Status: newStatus,
                 updatedAt: serverTimestamp()
             });
             alert("อัปเดตสถานะสำเร็จ");
@@ -80,9 +80,9 @@ const toggleUserStatus = async (user) => {
 
 
 const getRestaurantImage = (restaurantName) => {
-    
+
     const found = restaurants.value.find(res => res.Name === restaurantName);
-   
+
     return found ? found.ImageUrl : '';
 };
 
@@ -130,7 +130,7 @@ onMounted(() => {
 
                     <div class="relative h-30 w-full overflow-visible bg-slate-200">
 
-                        <img v-if="getRestaurantImage(user.restaurant)" :src="getRestaurantImage(user.restaurant)"
+                        <img v-if="getRestaurantImage(user.Restaurant)" :src="getRestaurantImage(user.Restaurant)"
                             class="absolute inset-0 w-full h-full object-cover  transition-transform duration-700"
                             alt="restaurant-bg" />
 
@@ -141,9 +141,9 @@ onMounted(() => {
                         <div class="absolute top-4 right-4 flex flex-col gap-2 items-end z-20">
                             <span :class="[
                                 'badge badge-sm border-none font-bold px-3 py-3 shadow-sm capitalize',
-                                (user.status || 'active') === 'active' ? 'bg-emerald-400 text-white' : 'bg-red-400 text-white'
+                                (user.Status || 'active') === 'active' ? 'bg-emerald-400 text-white' : 'bg-red-400 text-white'
                             ]">
-                                {{ user.status || 'active' }}
+                                {{ user.Status || 'active' }}
                             </span>
                         </div>
 
@@ -152,7 +152,7 @@ onMounted(() => {
                                 <img v-if="user.ImageUrl" :src="user.ImageUrl" class="w-full h-full object-cover" />
                                 <div v-else
                                     class="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-500 text-2xl font-bold">
-                                    {{ user.firstname?.charAt(0) }}
+                                    {{ user.Firstname?.charAt(0) }}
                                 </div>
                             </div>
                         </div>
@@ -160,15 +160,15 @@ onMounted(() => {
 
                     <div class="pt-10 p-6 flex-grow flex flex-col">
                         <div class="mb-5">
-                            <h2 class="text-xl font-bold text-slate-800 truncate">คุณ {{ user.firstname }} {{
-                                user.lastname }}</h2>
+                            <h2 class="text-xl font-bold text-slate-800 truncate">คุณ {{ user.Firstname }} {{
+                                user.Lastname }}</h2>
                             <p class="text-sm text-indigo-600 font-bold flex items-center gap-1.5 mt-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                {{ user.restaurant || 'ยังไม่เชื่อมต่อร้าน' }}
+                                {{ user.Restaurant || 'ยังไม่เชื่อมต่อร้าน' }}
                             </p>
                         </div>
 
@@ -181,7 +181,7 @@ onMounted(() => {
                                             d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                 </div>
-                                <span class="text-slate-600 leading-tight">{{ user.phone || 'ไม่ระบุเบอร์โทร' }}</span>
+                                <span class="text-slate-600 leading-tight">{{ user.Phone || 'ไม่ระบุเบอร์โทร' }}</span>
                             </div>
 
                             <div class="flex items-start gap-3 text-sm">
@@ -194,8 +194,8 @@ onMounted(() => {
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.address
-                                    ||'ไม่ระบุที่อยู่' }}</span>
+                                <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.Address
+                                    || 'ไม่ระบุที่อยู่' }}</span>
                             </div>
                         </div>
 
@@ -203,11 +203,11 @@ onMounted(() => {
                             class="mt-auto space-y-2 border-t border-slate-100 pt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                             <div class="flex justify-between">
                                 <span>Created</span>
-                                <span class="text-slate-500">{{ formatDate(user.createdAt) }}</span>
+                                <span class="text-slate-500">{{ formatDate(user.CreatedAt) }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Modified</span>
-                                <span class="text-slate-500">{{ formatDate(user.updatedAt) }}</span>
+                                <span class="text-slate-500">{{ formatDate(user.UpdatedAt) }}</span>
                             </div>
                         </div>
                     </div>
@@ -220,9 +220,9 @@ onMounted(() => {
 
                         <button @click="toggleUserStatus(user)" :class="[
                             'flex-1 btn btn-sm border-none rounded-xl transition-all duration-300',
-                            (user.status || 'active') === 'active' ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white'
+                            (user.Status || 'active') === 'active' ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white'
                         ]">
-                            <svg v-if="(user.status || 'active') === 'active'" xmlns="http://www.w3.org/2000/svg"
+                            <svg v-if="(user.Status || 'active') === 'active'" xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -234,7 +234,7 @@ onMounted(() => {
                             </svg>
                         </button>
 
-                        <button @click="deleteUser(user.id, user.firstname)"
+                        <button @click="deleteUser(user.id, user.Firstname)"
                             class="flex-1 btn btn-sm bg-red-50 hover:bg-red-500 hover:text-white text-red-500 border-none rounded-xl transition-all duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">

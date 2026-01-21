@@ -6,6 +6,8 @@ import {
   getDocs 
 } from 'firebase/firestore';
 import { db } from '@/firebase'; 
+import { useOderlistStore } from './OrderList'; 
+import { useMenuStore } from './menu'; 
 
 export const useAccountStore = defineStore('user-account', {
   state: () => ({
@@ -16,12 +18,12 @@ export const useAccountStore = defineStore('user-account', {
   actions: {
     
     async checkAuthState() {
-      const savedUser = localStorage.getItem('user-session');
+      const savedUser = sessionStorage.getItem('user-session');
       if (savedUser) {
         const userData = JSON.parse(savedUser);
         this.user = userData;
         this.isLoggedIn = true;
-        this.role = userData.role;
+        this.role = userData.Role;
         return true;
       }
       return false;
@@ -33,7 +35,7 @@ export const useAccountStore = defineStore('user-account', {
         
         const userQuery = query(
           collection(db, 'User'), 
-          where('username', '==', username)
+          where('Username', '==', username)
         );
         
         const querySnapshot = await getDocs(userQuery);
@@ -47,11 +49,11 @@ export const useAccountStore = defineStore('user-account', {
         const userData = userDoc.data();
 
         
-        if (userData.status === 'blocked') {
+        if (userData.Status === 'blocked') {
           throw new Error('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
         }
 
-        if (userData.password !== password) {
+        if (userData.Password !== password) {
           throw new Error('Username หรือ Password ไม่ถูกต้อง');
         }
 
@@ -59,9 +61,9 @@ export const useAccountStore = defineStore('user-account', {
         const userInfo = { uid: userDoc.id, ...userData };
         this.user = userInfo;
         this.isLoggedIn = true;
-        this.role = userData.role;
+        this.role = userData.Role;
 
-        localStorage.setItem('user-session', JSON.stringify(userInfo));
+        sessionStorage.setItem('user-session', JSON.stringify(userInfo));
 
         return this.role;
       } catch (error) {
@@ -71,10 +73,17 @@ export const useAccountStore = defineStore('user-account', {
     },
 
     async logout() {
+      
+      const orderStore = useOderlistStore();
+      const menuStore = useMenuStore();
+      
+      orderStore.clearListener();
+      menuStore.clearListener();
+
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;
-      localStorage.removeItem('user-session');
+      sessionStorage.removeItem('user-session');
     },
   },
 });

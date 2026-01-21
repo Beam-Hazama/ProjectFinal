@@ -113,7 +113,7 @@ const logout = async () => {
 
                 <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
                     <router-link v-for="menu in menus" :key="menu.name"
-                        :to="{ name: menu.routeName, params: { restaurantName: accountStore.user?.restaurant || route.params.restaurantName } }"
+                        :to="{ name: menu.routeName, params: { restaurantName: accountStore.user?.Restaurant || route.params.restaurantName } }"
                         :class="[
                             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
                             route.name === menu.routeName
@@ -139,10 +139,10 @@ const logout = async () => {
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-sm font-bold text-slate-700 truncate">
-                                {{ accountStore.user?.firstname }} {{ accountStore.user?.lastname || '' }}
-                                <span v-if="!accountStore.user?.firstname">Restaurant User</span>
+                                {{ accountStore.user?.Firstname }} {{ accountStore.user?.Lastname || '' }}
+                                <span v-if="!accountStore.user?.Firstname">Restaurant User</span>
                             </p>
-                            <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.username || 'user' }}</p>
+                            <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.Username || 'user' }}</p>
                         </div>
                     </div>
 
