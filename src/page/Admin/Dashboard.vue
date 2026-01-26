@@ -25,7 +25,8 @@ const donutOption = {
 </script>
 <template>
   <layoutAdmin>
-    <h1 class="text-3xl my-4 font-bold text-center">Dashboard</h1>
+    <div class="p-6">
+    <div class="text-3xl font-bold mb-6 text-slate-700">Dashboard</div>
     <div class="flex mb-4">
       <div class="stats w-full shadow">
         <div class="stat">
@@ -77,6 +78,7 @@ const donutOption = {
           <apexchart type="donut" :options="donutOption.options" :series="donutOption.series"></apexchart>
         </div>
       </div>
+    </div>
     </div>
   </layoutAdmin>
 </template>

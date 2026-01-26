@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useCartStore } from '@/stores/cartStore';
+import { useQRCodeStore } from '@/stores/qrcode';
 import product from '@/page/component/blockmenu.vue';
 import Cart from '@/Icon/Cart.vue';
 import { useRoute } from 'vue-router';
@@ -9,6 +10,10 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const cartStore = useCartStore();
 const menu = useMenuStore();
+const qrStore = useQRCodeStore();
+
+const isValidLocation = ref(false);
+const isLoading = ref(true);
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
@@ -43,20 +48,47 @@ const popularCategories = [
   { name: 'ชาบู สุกี้', image: 'https://img.icons8.com/color/96/cooking-pot.png' }
 ];
 
-onMounted(() => {
-  menu.loadMenu();
-  cartStore.loadcart(building, floor, room);
+onMounted(async () => {
+  const isValid = await qrStore.validateRoom(building, floor, room);
+  isValidLocation.value = isValid;
+  isLoading.value = false;
+  
+  if (isValid) {
+    menu.loadMenu();
+    cartStore.loadcart(building, floor, room);
+  }
 });
 
-watch(() => [route.params.building, route.params.floor, route.params.room], ([newB, newF, newR]) => {
+watch(() => [route.params.building, route.params.floor, route.params.room], async ([newB, newF, newR]) => {
   if (newB && newF && newR) {
-    cartStore.loadcart(newB, newF, newR);
+    isLoading.value = true;
+    const isValid = await qrStore.validateRoom(newB, newF, newR);
+    isValidLocation.value = isValid;
+    isLoading.value = false;
+    
+    if (isValid) {
+      cartStore.loadcart(newB, newF, newR);
+    }
   }
 });
 </script>
 
 <template>
-  <div
+  <div v-if="isLoading" class="min-h-screen flex items-center justify-center bg-slate-50">
+    <div class="loading loading-spinner loading-lg text-primary"></div>
+  </div>
+
+  <div v-else-if="!isValidLocation" class="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+    <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-red-500">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      </svg>
+    </div>
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">ไม่พบห้องนี้ในระบบ</h2>
+    <p class="text-slate-500">กรุณาสแกน QR Code ใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ</p>
+  </div>
+
+  <div v-else
     class="min-h-screen bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
     <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md shadow-sm">
       <div class="flex items-center justify-between px-4 py-3">

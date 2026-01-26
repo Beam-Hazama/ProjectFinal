@@ -63,17 +63,17 @@ const router = createRouter({
     },
     {
       path: '/Admin/Dashboard',
-      name: 'Admin Dashboard',
+      name: 'Dashboard',
       component: Admindashboard,
     },
     {
       path: '/Admin/Menulist',
-      name: 'Admin Menu List',
+      name: 'Menu List',
       component: Adminmenulist,
     },
     {
       path: '/Admin/Orderlist',
-      name: 'Admin Order List',
+      name: 'Order List',
       component: Adminorderlist,
     },
     {
@@ -83,12 +83,12 @@ const router = createRouter({
     },
     {
       path: '/Admin/Restaurantlist',
-      name: 'Admin Restaurant List',
+      name: 'Restaurant List',
       component: Adminrestaurantlist,
     },
     {
       path: '/Admin/Restaurantuser',
-      name: 'Admin Restaurant User',
+      name: 'Restaurant User',
       component: Adminrestaurantuser,
     },
 

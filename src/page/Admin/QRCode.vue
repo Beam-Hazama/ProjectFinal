@@ -6,7 +6,7 @@ import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
 
-const baseUrl = 'http://192.168.1.40:5173'
+const baseUrl = 'http://10.5.2.156:5173'
 
 const rooms = computed(() => qrStore.rooms)
 
