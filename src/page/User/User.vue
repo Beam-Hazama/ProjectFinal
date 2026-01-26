@@ -3,8 +3,9 @@ import { onMounted, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
+
 import product from '@/page/component/blockmenu.vue';
-import Cart from '@/Icon/Cart.vue';
+import BottomNavigation from '@/page/component/BottomNavigation.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -50,9 +51,10 @@ const popularCategories = [
 
 onMounted(async () => {
   const isValid = await qrStore.validateRoom(building, floor, room);
+  // const isValid = true;
   isValidLocation.value = isValid;
   isLoading.value = false;
-  
+
   if (isValid) {
     menu.loadMenu();
     cartStore.loadcart(building, floor, room);
@@ -65,7 +67,7 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
     const isValid = await qrStore.validateRoom(newB, newF, newR);
     isValidLocation.value = isValid;
     isLoading.value = false;
-    
+
     if (isValid) {
       cartStore.loadcart(newB, newF, newR);
     }
@@ -78,10 +80,13 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
     <div class="loading loading-spinner loading-lg text-primary"></div>
   </div>
 
-  <div v-else-if="!isValidLocation" class="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+  <div v-else-if="!isValidLocation"
+    class="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-red-500">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+        class="w-12 h-12 text-red-500">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
       </svg>
     </div>
     <h2 class="text-2xl font-bold text-slate-800 mb-2">ไม่พบห้องนี้ในระบบ</h2>
@@ -90,42 +95,6 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
 
   <div v-else
     class="min-h-screen bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
-    <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md shadow-sm">
-      <div class="flex items-center justify-between px-4 py-3">
-        <div class="flex flex-col">
-          <div class="flex items-center gap-1">
-            <span class="text-xs text-gray-500 font-medium">ห้อง</span>
-            <span class="text-lg font-bold text-indigo-700 leading-none">{{ room }}</span>
-            <span class="text-xs text-gray-400 ml-1">({{ building }} fl.{{ floor }})</span>
-          </div>
-        </div>
-        <div class="flex items-center bg-slate-100/50 p-1 rounded-2xl gap-1 border border-white/50 shadow-sm">
-
-          <RouterLink :to="`/User/Status/${building}/${floor}/${room}`"
-            class="flex flex-col items-center justify-center w-14 h-12 rounded-xl hover:bg-white transition-all group">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor" class="w-5 h-5 text-slate-500 group-hover:text-indigo-600">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-            <span class="text-[9px] font-bold text-slate-400 group-hover:text-indigo-600 uppercase mt-0.5">Status</span>
-          </RouterLink>
-
-          <RouterLink :to="`/User/Bill/${building}/${floor}/${room}`"
-            class="flex flex-col items-center justify-center w-14 h-12 rounded-xl hover:bg-white transition-all group">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor" class="w-5 h-5 text-slate-500 group-hover:text-indigo-600">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-            </svg>
-            <span class="text-[9px] font-bold text-slate-400 group-hover:text-indigo-600 uppercase mt-0.5">Bill</span>
-          </RouterLink>
-
-
-        </div>
-      </div>
-    </header>
-
     <div class="px-4 mt-4">
       <div class="relative w-full h-48 rounded-2xl overflow-hidden shadow-lg group">
         <img class="object-cover w-full h-full transform transition-transform duration-500 group-hover:scale-105"
@@ -203,15 +172,6 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
       </div>
     </div>
 
-    <RouterLink :to="`/User/Cart/${building}/${floor}/${room}`" class="fixed bottom-6 right-6 z-50 group">
-      <div
-        class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg flex items-center justify-center text-white transform transition-transform duration-300 group-hover:scale-110 group-active:scale-95">
-        <Cart class="w-7 h-7" />
-        <span v-if="cartStore.summaryQuantity > 0"
-          class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
-          {{ cartStore.summaryQuantity }}
-        </span>
-      </div>
-    </RouterLink>
+    <BottomNavigation :building="building" :floor="floor" :room="room" />
   </div>
 </template>

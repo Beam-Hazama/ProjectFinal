@@ -31,7 +31,7 @@ const router = createRouter({
   routes: [
     {
       path: '/User',
-      name: 'User',
+      name: 'UserDefault',
       component: User,
     },
     {
@@ -58,7 +58,12 @@ const router = createRouter({
     // ...
     {
       path: '/user/:building/:floor/:room',
-      name: 'User',
+      name: 'UserWithParams',
+      component: User,
+    },
+    {
+      path: '/:building/:floor/:room',
+      name: 'UserShortUrl',
       component: User,
     },
     {

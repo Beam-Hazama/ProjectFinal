@@ -3,6 +3,7 @@ import { onMounted, computed } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter, useRoute } from 'vue-router';
+import BottomNavigation from '@/page/component/BottomNavigation.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -27,13 +28,13 @@ const formatPrice = (value) => {
 const confirmReceived = async (orderId, itemId) => {
   if (confirm('ยืนยันว่าได้รับรายการนี้แล้ว?')) {
     await orderListStore.updateSingleItemStatus(orderId, itemId, 'received');
-    
+
     orderListStore.loadOrderUser(tableId);
   }
 };
 
 const reorder = (order) => {
- 
+
   const validItems = (order.Menu || []).filter(item =>
     item.itemStatus !== 'cancelled'
   );
@@ -43,7 +44,7 @@ const reorder = (order) => {
     return;
   }
 
-  
+
   cartStore.loadcart(building, floor, room);
 
   validItems.forEach(item => {
@@ -180,6 +181,7 @@ onMounted(() => {
       </div>
     </div>
 
-
   </div>
+
+  <BottomNavigation :building="building" :floor="floor" :room="room" />
 </template>

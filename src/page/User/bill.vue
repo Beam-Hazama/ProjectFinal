@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useRoute } from 'vue-router';
+import BottomNavigation from '@/page/component/BottomNavigation.vue';
 
 const route = useRoute();
 const Order = useOderlistStore();
@@ -159,4 +160,5 @@ const calculateExclVat = (grandTotal) => {
       </div>
     </div>
   </div>
+  <BottomNavigation :building="building" :floor="floor" :room="room" />
 </template>

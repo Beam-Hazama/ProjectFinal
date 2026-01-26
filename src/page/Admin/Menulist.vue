@@ -46,10 +46,7 @@ const deleteMenu = async (id, name) => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      
-        <div class="text-3xl font-bold mb-6 text-slate-700">Menu List</div>
-      
-
+      <div class="text-3xl font-bold mb-6 text-slate-700">Menu List</div>
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
