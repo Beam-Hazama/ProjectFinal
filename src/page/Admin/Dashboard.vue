@@ -1,84 +1,190 @@
 <script setup>
+import { onMounted, onUnmounted } from 'vue';
+import { useDashboardStore } from '@/stores/dashboard';
 import layoutAdmin from '@/page/Admin/Admin.vue';
 
-const barOption = {
-  options: {
-    chart: {
-      id: 'vuechart-example',
-    },
-    xaxis: {
-      categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998],
-    },
-  },
-  series: [
-    {
-      name: 'series-1',
-      data: [30, 40, 45, 50, 49, 60, 70, 91],
-    },
-  ],
-};
+const dashboardStore = useDashboardStore();
 
-const donutOption = {
-  options: {},
-  series: [44, 55, 41, 17, 15],
-};
+onMounted(() => {
+  dashboardStore.loadDashboardData();
+});
+
+onUnmounted(() => {
+  dashboardStore.clearListeners();
+});
 </script>
+
 <template>
   <layoutAdmin>
-    <div class="p-6">
-    <div class="text-3xl font-bold mb-6 text-slate-700">Dashboard</div>
-    <div class="flex mb-4">
-      <div class="stats w-full shadow">
-        <div class="stat">
-          <div class="stat-figure text-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512">
-            
-              <path
-                d="M144 0c-17.7 0-32 14.3-32 32V64H37.6C16.8 64 0 80.8 0 101.6V224v41.7V288 406.3c0 23 18.7 41.7 41.7 41.7H112v32c0 17.7 14.3 32 32 32s32-14.3 32-32V448h32c61.9 0 112-50.1 112-112c0-40.1-21.1-75.3-52.7-95.1C280.3 222.6 288 200.2 288 176c0-61.9-50.1-112-112-112V32c0-17.7-14.3-32-32-32zM112 128v96H64V128h48zm64 96V128c26.5 0 48 21.5 48 48s-21.5 48-48 48zm-64 64v96H64V288h48zm64 96V288h32c26.5 0 48 21.5 48 48s-21.5 48-48 48H176z" />
-            </svg>
-          </div>
-          <div class="stat-title">Orders</div>
-          <div class="stat-value">31K</div>
+    <div class="p-6 md:p-8 min-h-screen bg-slate-50/50">
+
+      
+      <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+          
         </div>
-        <div class="stat">
-          <div class="stat-figure text-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
-              
-              <path
-                d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z" />
-            </svg>
+
+      
+        <button @click="dashboardStore.loadDashboardData()"
+          class="btn btn-sm bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-4 h-4" :class="{ 'animate-spin': dashboardStore.isLoading }">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          รีเฟรชข้อมูล
+        </button>
+      </div>
+
+    
+      <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
+        <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
+        <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
+      </div>
+
+      <div v-else class="space-y-6">
+     
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+          
+          <div
+            class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div
+              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 leading-none to-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110">
+            </div>
+            <div class="relative z-10 flex justify-between items-start">
+              <div>
+                <p class="text-sm font-bold text-slate-500 mb-1">ยอดขายรวม</p>
+                <h3 class="text-3xl font-extrabold text-slate-800">฿{{ dashboardStore.totalRevenue.toLocaleString() }}
+                </h3>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="relative z-10 mt-4 text-xs font-medium text-indigo-600 flex items-center gap-1">
+              <span class="px-2 py-0.5 bg-indigo-100 rounded-full">อัปเดตแบบเรียลไทม์</span>
+            </div>
           </div>
-          <div class="stat-title">Products</div>
-          <div class="stat-value">324</div>
+
+      
+          <div
+            class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div
+              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-sky-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110">
+            </div>
+            <div class="relative z-10 flex justify-between items-start">
+              <div>
+                <p class="text-sm font-bold text-slate-500 mb-1">ออเดอร์ทั้งหมด</p>
+                <h3 class="text-3xl font-extrabold text-slate-800">{{ dashboardStore.totalOrders.toLocaleString() }}
+                </h3>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+   
+          <div
+            class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div
+              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-amber-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110">
+            </div>
+            <div class="relative z-10 flex justify-between items-start">
+              <div>
+                <p class="text-sm font-bold text-slate-500 mb-1">เมนูอาหาร</p>
+                <h3 class="text-3xl font-extrabold text-slate-800">{{ dashboardStore.totalProducts.toLocaleString() }}
+                </h3>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+       
+          <div
+            class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div
+              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-pink-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110">
+            </div>
+            <div class="relative z-10 flex justify-between items-start">
+              <div>
+                <p class="text-sm font-bold text-slate-500 mb-1">ผู้เข้าใช้งาน (Accounts)</p>
+                <h3 class="text-3xl font-extrabold text-slate-800">{{ dashboardStore.totalUsers.toLocaleString() }}</h3>
+              </div>
+              <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 4.354a4 4 0 110 5.292M15.21 12a7.978 7.978 0 015.012 4.5H3.778a7.978 7.978 0 015.012-4.5M19 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div class="stat">
-          <div class="stat-figure text-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              class="inline-block w-8 h-8 stroke-current">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
-              </path>
-            </svg>
+
+       
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+     
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2">
+            <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+              ยอดขายย้อนหลัง 7 วัน
+            </h2>
+            <div class="h-72 w-full">
+              <apexchart type="bar" height="100%" :options="dashboardStore.salesChartOptions"
+                :series="dashboardStore.salesChartSeries"></apexchart>
+            </div>
           </div>
-          <div class="stat-title">Users</div>
-          <div class="stat-value">4,200</div>
+
+        
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-1">
+            <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              หมวดหมู่เมนู
+            </h2>
+            <div class="h-72 w-full flex items-center justify-center">
+              <apexchart v-if="dashboardStore.categoryChartSeries.length > 0" type="donut" width="100%"
+                :options="dashboardStore.categoryChartOptions" :series="dashboardStore.categoryChartSeries"></apexchart>
+              <div v-else class="text-slate-400 text-sm">ไม่มีข้อมูลหมวดหมู่</div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>
-    <div class="flex flex-col md:flex-row gap-2">
-      <div class="flex-1">
-        <div class="card w-full p-6 bg-base-100 shadow-xl">
-          <h1>ยอดขาย</h1>
-          <apexchart type="bar" :options="barOption.options" :series="barOption.series"></apexchart>
-        </div>
-      </div>
-      <div class="flex-1">
-        <div class="card w-full p-6 bg-base-100 shadow-xl">
-          <h1>ประเภทการขาย</h1>
-          <apexchart type="donut" :options="donutOption.options" :series="donutOption.series"></apexchart>
-        </div>
-      </div>
-    </div>
     </div>
   </layoutAdmin>
 </template>
+
+<style scoped>
+
+.vue-apexcharts {
+  min-height: 100%;
+}
+</style>

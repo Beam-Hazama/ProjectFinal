@@ -5,7 +5,6 @@ import { useRoute } from 'vue-router';
 import ConfirmOrder from './ConfirmOrder.vue';
 
 import Trach from '@/Icon/trach.vue';
-import BottomNavigation from '@/page/component/BottomNavigation.vue';
 
 const cartStore = useCartStore();
 const route = useRoute();
@@ -167,7 +166,6 @@ const removeItem = (index) => {
     <dialog id="my_modal_1" class="modal">
       <confirm-order :tableId="`${building}-${floor}-${room}`"></confirm-order>
     </dialog>
-    <BottomNavigation :building="building" :floor="floor" :room="room" />
   </div>
 </template>
 

@@ -46,11 +46,12 @@ const menuItems = computed(() => [
 </script>
 
 <template>
-    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-lg z-50 pb-safe">
+    <div
+        class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-[55] pb-safe">
         <div class="flex justify-around items-center h-16">
             <RouterLink v-for="item in menuItems" :key="item.name" :to="item.path"
                 class="relative flex flex-col items-center justify-center w-full h-full transition-colors duration-200 group"
-                :class="isActive(item.name) ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'">
+                :class="isActive(item.name) ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'">
                 <div class="relative">
                     <span v-html="item.icon"></span>
                     <span v-if="item.badge && item.badge.value > 0"
@@ -60,7 +61,7 @@ const menuItems = computed(() => [
                 </div>
                 <span class="text-[10px] font-medium mt-0.5">{{ item.label }}</span>
 
-                <span v-if="isActive(item.name)" class="absolute top-0 w-8 h-0.5 bg-indigo-600 rounded-b-full"></span>
+                <span v-if="isActive(item.name)" class="absolute top-0 w-8 h-0.5 bg-blue-600 rounded-b-full"></span>
             </RouterLink>
         </div>
     </div>

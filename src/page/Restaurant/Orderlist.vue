@@ -251,7 +251,7 @@ const getRowStatusColor = (status) => {
         case 'cooking': return 'badge-info text-white';
         case 'served': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
-        case 'returned': return 'badge-error text-white bg-orange-500'; // Distinct color for returned
+        case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
 }

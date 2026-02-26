@@ -3,7 +3,6 @@ import { onMounted, computed } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter, useRoute } from 'vue-router';
-import BottomNavigation from '@/page/component/BottomNavigation.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -182,6 +181,4 @@ onMounted(() => {
     </div>
 
   </div>
-
-  <BottomNavigation :building="building" :floor="floor" :room="room" />
 </template>

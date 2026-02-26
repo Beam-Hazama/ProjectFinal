@@ -5,9 +5,12 @@ import Admin from "@/page/Admin/Admin.vue";
 import Admindashboard from "@/page/Admin/Dashboard.vue";
 import Adminmenulist from "@/page/Admin/Menulist.vue";
 import Adminorderlist from "@/page/Admin/Orderlist.vue";
+import Adminorderhistory from "@/page/Admin/Orderhistory.vue";
 import AdminQRCode from "@/page/Admin/QRCode.vue";
 import Adminrestaurantlist from "@/page/Admin/Restaurantlist.vue";
 import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
+import Adminpostermanage from "@/page/Admin/Poster.vue";
+import AdminCategory from "@/page/Admin/Category.vue";
 
 import Menudetail from "@/page/Admin/Menudetail.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
@@ -19,12 +22,16 @@ import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
 import Restaurantmenulist from "@/page/Restaurant/Menulist.vue";
 import Restaurantprofile from "@/page/Restaurant/Profile.vue";
 import RestaurantManagemenu from "@/page/Restaurant/Managemenu.vue";
+import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
 
 
 import User from "@/page/User/User.vue";
 import Bill from "@/page/User/bill.vue";
 import Cart from "@/page/User/Cart.vue";
 import Status from "@/page/User/Status.vue";
+import Search from "@/page/User/Search.vue";
+import Category from "@/page/User/Category.vue";
+import UserRestaurantMenu from "@/page/User/RestaurantMenu.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +47,11 @@ const router = createRouter({
       component: Bill,
     },
     {
+      path: '/user/restaurant/:restaurantName/:building/:floor/:room',
+      name: 'UserRestaurantMenu',
+      component: UserRestaurantMenu,
+    },
+    {
       path: '/user/status/:building/:floor/:room',
       name: 'Status',
       component: Status,
@@ -48,6 +60,16 @@ const router = createRouter({
       path: '/user/cart/:building/:floor/:room',
       name: 'Cart',
       component: Cart,
+    },
+    {
+      path: '/user/search/:building/:floor/:room',
+      name: 'Search',
+      component: Search,
+    },
+    {
+      path: '/user/category/:category/:building/:floor/:room',
+      name: 'Category',
+      component: Category,
     },
 
     {
@@ -82,6 +104,11 @@ const router = createRouter({
       component: Adminorderlist,
     },
     {
+      path: '/Admin/Orderhistory',
+      name: 'Order History',
+      component: Adminorderhistory,
+    },
+    {
       path: '/Admin/QRCode',
       name: 'QR Code',
       component: AdminQRCode,
@@ -95,6 +122,16 @@ const router = createRouter({
       path: '/Admin/Restaurantuser',
       name: 'Restaurant User',
       component: Adminrestaurantuser,
+    },
+    {
+      path: '/Admin/Poster',
+      name: 'Poster Manage',
+      component: Adminpostermanage,
+    },
+    {
+      path: '/Admin/Category',
+      name: 'Category Manage',
+      component: AdminCategory,
     },
 
     {
@@ -134,6 +171,11 @@ const router = createRouter({
       path: '/Restaurant/:restaurantName',
       name: 'Restaurants',
       component: Restaurants,
+    },
+    {
+      path: '/Restaurant/Dashboard/:restaurantName',
+      name: 'Restaurant Dashboard',
+      component: RestaurantDashboard,
     },
     {
       path: '/Restaurant/Orderlist/:restaurantName',

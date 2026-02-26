@@ -4,6 +4,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 
 import { useMenuStore } from '@/stores/menu';
 import { useRestaurant } from '@/stores/Restaurant';
+import { useCategoryStore } from '@/stores/categoryStore';
 
 
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -18,13 +19,14 @@ const mode = ref('');
 
 const MenuStore = useMenuStore()
 const Restaurant = useRestaurant()
+const categoryStore = useCategoryStore()
 
 const productId = route.params.id
 const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 
-const categories = ['อาหารตามสั่ง', 'เครื่องดื่ม', 'ของทานเล่น', 'ก๋วยเตี๋ยว', 'ของหวาน', 'อาหารอิตาลี'];
+// categories have been removed, we now use categoryStore.list
 
 const MenuData = reactive({
     Name: '',
@@ -103,15 +105,15 @@ const goBack = () => {
 
 const formatDate = (timestamp) => {
     if (!timestamp) return '-';
-   
+
     if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate().toLocaleString('th-TH');
     }
-    
+
     if (timestamp && timestamp.seconds) {
         return new Date(timestamp.seconds * 1000).toLocaleString('th-TH');
     }
-    
+
     return new Date(timestamp).toLocaleString('th-TH');
 };
 
@@ -132,19 +134,20 @@ onMounted(async () => {
     } else {
         mode.value = 'Add Product';
         if (route.params.restaurantName) {
-            
+
             MenuData.Restaurant = route.params.restaurantName;
         }
     }
 
     Restaurant.loadListRestaurant()
+    categoryStore.loadCategories()
 });
 </script>
 
 <template>
     <LayoutAdmin>
         <div class="min-h-screen  p-6 md:p-8 font-sans">
-            
+
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div class="flex items-center gap-4">
                     <div>
@@ -250,13 +253,13 @@ onMounted(async () => {
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -321,8 +324,8 @@ onMounted(async () => {
                                         class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                         v-model="MenuData.Category">
                                         <option disabled value="">เลือกหมวดหมู่</option>
-                                        <option v-for="cat in categories" :key="cat" :value="cat">
-                                            {{ cat }}
+                                        <option v-for="cat in categoryStore.list" :key="cat.id" :value="cat.name">
+                                            {{ cat.name }}
                                         </option>
                                     </select>
                                 </div>
