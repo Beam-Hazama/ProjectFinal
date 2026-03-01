@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { addDoc, collection, doc, onSnapshot, serverTimestamp, setDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, serverTimestamp, setDoc, deleteDoc, query, orderBy, where, writeBatch } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 export const usePosterStore = defineStore('poster', {
@@ -49,27 +49,34 @@ export const usePosterStore = defineStore('poster', {
           ...doc.data(),
         }));
 
-        // Sort in memory instead
-        if (restaurantName) {
-          docs.sort((a, b) => {
-            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
-            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
-            return timeB - timeA;
-          });
-        }
-
-        this.list = docs;
-
         // Filter out global from restaurant-specific if no restaurantName was given
         if (!restaurantName) {
-          this.list = this.list.filter(item => !item.RestaurantName)
+          docs = docs.filter(item => !item.RestaurantName);
         }
+
+        // Sort in memory
+        docs.sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            if (a.order !== b.order) return a.order - b.order;
+          } else if (a.order !== undefined) {
+            return -1;
+          } else if (b.order !== undefined) {
+            return 1;
+          }
+
+          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+          return timeB - timeA;
+        });
+
+        this.list = docs;
         console.log('Posters LOADED:', this.list);
       });
     },
     async addPoster(posterData) {
       await addDoc(collection(db, 'posters'), {
         ...posterData,
+        order: this.list.length, // Add at the end by default
         createdAt: serverTimestamp(),
         isActive: true
       });
@@ -84,6 +91,14 @@ export const usePosterStore = defineStore('poster', {
     async toggleActive(posterId, currentStatus) {
       const posterRef = doc(db, 'posters', posterId);
       await setDoc(posterRef, { isActive: !currentStatus }, { merge: true });
+    },
+    async updatePosterOrder(orderedIds) {
+      const batch = writeBatch(db);
+      orderedIds.forEach((id, index) => {
+        const ref = doc(db, 'posters', id);
+        batch.update(ref, { order: index });
+      });
+      await batch.commit();
     }
   },
 });

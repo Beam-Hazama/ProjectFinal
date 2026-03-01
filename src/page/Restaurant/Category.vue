@@ -10,6 +10,7 @@ const categoryStore = useCategoryStore();
 // Form state
 const newCategoryName = ref('');
 const isSubmitting = ref(false);
+const showModal = ref(false);
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
 
@@ -33,11 +34,17 @@ const handleAddCategory = async () => {
             RestaurantName: restaurantName // Store the relationship to the restaurant
         });
         newCategoryName.value = ''; // Reset
+        showModal.value = false; // Close modal on success
     } catch (error) {
         alert('Error adding category: ' + error.message);
     } finally {
         isSubmitting.value = false;
     }
+};
+
+const closeModal = () => {
+    showModal.value = false;
+    newCategoryName.value = ''; // Reset on cancel
 };
 
 const deleteCategory = async (categoryId, categoryName) => {
@@ -67,28 +74,49 @@ const formatDate = (timestamp) => {
                     <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
                     <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{ restaurantName }}</p>
                 </div>
+                <!-- Add Button that opens the modal -->
+                <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Category
+                </button>
             </div>
 
-            <!-- Add New Category Block -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-8">
-                <h2 class="text-lg font-bold text-slate-800 mb-4">Add New Category</h2>
-                <div class="flex flex-col md:flex-row gap-4 items-start">
-                    <div class="flex-1 w-full flex flex-col gap-4">
-                        <div>
-                            <label class="label">
+            <!-- Add Category Modal -->
+            <div v-if="showModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h2 class="text-lg font-bold text-slate-800">Add New Category</h2>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <label class="label pt-0">
                                 <span class="label-text font-medium text-slate-600">Category Name</span>
                             </label>
                             <input type="text" placeholder="e.g. ของหวาน, เครื่องดื่ม" v-model="newCategoryName"
                                 class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                         </div>
-                    </div>
 
-                    <div class="flex flex-col justify-end h-full gap-4 mt-8 md:mt-0 w-full md:w-auto">
-                        <button @click="handleAddCategory" :disabled="isSubmitting || !newCategoryName"
-                            class="btn bg-blue-600 hover:bg-blue-700 text-white border-none w-full min-w-[120px]">
-                            <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
-                            <span v-else>Add Category</span>
-                        </button>
+                        <div class="flex justify-end gap-3 mt-8">
+                            <button @click="closeModal"
+                                class="btn btn-ghost text-slate-500 hover:bg-slate-100">Cancel</button>
+                            <button @click="handleAddCategory" :disabled="isSubmitting || !newCategoryName"
+                                class="btn bg-blue-600 hover:bg-blue-700 text-white border-none min-w-[120px]">
+                                <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+                                <span v-else>Save Category</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

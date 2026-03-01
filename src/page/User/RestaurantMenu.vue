@@ -1,6 +1,6 @@
 ```
 <script setup>
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
