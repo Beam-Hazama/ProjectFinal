@@ -258,6 +258,8 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                   <input type="text" v-model="RestaurantData.Name" class="input input-bordered w-full bg-slate-50" />
                 </div>
 
+
+
                 <div class="form-control">
                   <label class="label"><span
                       class="label-text font-medium text-slate-600">เวลาเปิดให้บริการ</span></label>
@@ -292,7 +294,7 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                   </select>
                   <p class="text-[10px] text-blue-500 mt-1 italic">
                     {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' :
-                    '*สถานะถูกกำหนดด้วยโหมด Manual' }}
+                      '*สถานะถูกกำหนดด้วยโหมด Manual' }}
                   </p>
                 </div>
               </div>

@@ -24,6 +24,7 @@ const userData = ref({
     Lastname: '',
     Username: '',
     Password: '',
+    Distance: '',
     Phone: '',
     Address: '',
     Status: 'active',
@@ -93,7 +94,7 @@ const handleFileUpload = (event) => {
 
 const handleSave = async () => {
 
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status } = userData.value;
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status, Distance } = userData.value;
 
     if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Password) {
         alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
@@ -134,6 +135,7 @@ const handleSave = async () => {
                 Phone,
                 Address,
                 Restaurant,
+                Distance: Distance || '',
                 Status: Status || 'active',
                 Role: 'restaurant',
                 ImageUrl: ImageUrl || '',
@@ -154,6 +156,7 @@ const handleSave = async () => {
                 Phone,
                 Address,
                 Restaurant,
+                Distance: Distance || '',
                 Status: Status || 'active',
                 ImageUrl: ImageUrl || '',
                 UpdatedAt: serverTimestamp()
@@ -319,6 +322,18 @@ const goBack = () => router.go(-1);
                                         <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name
                                             }}</option>
                                     </select>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label"><span class="label-text font-medium text-slate-600">ระยะทาง
+                                            <span class="text-red-500">*</span></span></label>
+                                    <div class="relative">
+                                        <input type="number" step="0.1" min="0" v-model="userData.Distance"
+                                            placeholder="เช่น 2.1"
+                                            class="input input-bordered w-full pr-12 bg-slate-50 focus:input-primary text-left" />
+                                        <span
+                                            class="absolute right-4 top-3 text-slate-400 text-sm font-medium">กม.</span>
+                                    </div>
                                 </div>
 
                                 <div class="form-control">

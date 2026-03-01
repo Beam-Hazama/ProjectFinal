@@ -14,16 +14,8 @@ const cartStore = useCartStore()
 const quantity = ref(1)
 const note = ref('')
 
-// Dummy data to closely match the UI screenshot provided by user
-const selectedOptions = ref([])
-const selectedSpice = ref('เผ็ดกลาง')
-
-const toppings = [
-  { name: 'เพิ่มปูอัด', price: 20 },
-  { name: 'เพิ่มไข่ลวก', price: 10 }
-]
-
-const spices = ['เผ็ดมาก', 'เผ็ดกลาง', 'เผ็ดน้อย']
+// State to securely map choices by group index
+const selections = ref({}) // { [gIndex]: string | string[] }
 
 watch(
   () => props.product,
@@ -31,32 +23,62 @@ watch(
     if (!product) return
 
     const cartItem = cartStore.getItemById(product.id)
+    selections.value = {}
+
+    if (cartItem && cartItem.selections) {
+      // Recover options if the cart already tracking them
+      // This is complex to recover perfectly from 'note' text, typically carts store option IDs.
+      // For simplicity based on current impl, we'll reset selections if changing product, or just use what cart has.
+    }
+
+    // Initialize selections
+    if (product.OptionGroups) {
+      product.OptionGroups.forEach((g, i) => {
+        if (g.type === 'multiple') {
+          selections.value[i] = []
+        } else {
+          // pre-select first choice for single
+          selections.value[i] = g.choices?.[0]?.name || null
+        }
+      })
+    }
 
     if (cartItem) {
       quantity.value = cartItem.Quantity
-      note.value = cartItem.note || ''
+      // Cart items would ideally store their selections structure, 
+      // but currently the Note is what is stored. Let's keep note as the base.
+      note.value = cartItem.baseNote || ''
+      // If we are strictly following previous logic, 'note' was overwritten. 
+      // For now we just reset custom notes or leave it.
     } else {
       quantity.value = 1
       note.value = ''
-      selectedOptions.value = []
-      selectedSpice.value = 'เผ็ดกลาง'
     }
   },
   { immediate: true }
 )
 
 const confirmAdd = () => {
-  let finalNote = note.value
+  let finalNote = note.value ? `หมายเหตุ: ${note.value}` : ''
+  let optionsNoteArr = []
 
-  if (selectedOptions.value.length > 0) {
-    const toppingNames = selectedOptions.value.map(t => t.name).join(', ')
-    finalNote = finalNote ? `${finalNote} (ท็อปปิ้ง: ${toppingNames})` : `ท็อปปิ้ง: ${toppingNames}`
+  if (props.product && props.product.OptionGroups) {
+    props.product.OptionGroups.forEach((g, i) => {
+      const sel = selections.value[i]
+      if (g.type === 'multiple' && Array.isArray(sel) && sel.length > 0) {
+        optionsNoteArr.push(`${g.name}: ${sel.join(', ')}`)
+      } else if (g.type === 'single' && sel) {
+        optionsNoteArr.push(`${g.name}: ${sel}`)
+      }
+    })
   }
 
-  if (selectedSpice.value) {
-    finalNote = finalNote ? `${finalNote} (${selectedSpice.value})` : selectedSpice.value
+  if (optionsNoteArr.length > 0) {
+    const combinedOptions = optionsNoteArr.join(' | ')
+    finalNote = finalNote ? `${combinedOptions} \n${finalNote}` : combinedOptions
   }
 
+  // Passing the Note which includes option selections
   cartStore.addOrUpdateItem(props.product, quantity.value, finalNote)
   emit('close')
 }
@@ -65,8 +87,24 @@ const confirmAdd = () => {
 const totalPrice = () => {
   if (!props.product) return 0
   let base = props.product.Price
-  let toppingTotal = selectedOptions.value.reduce((sum, item) => sum + item.price, 0)
-  return (base + toppingTotal) * quantity.value
+  let extra = 0
+
+  if (props.product.OptionGroups) {
+    props.product.OptionGroups.forEach((g, i) => {
+      const sel = selections.value[i]
+      if (g.type === 'multiple' && Array.isArray(sel)) {
+        sel.forEach(name => {
+          const choice = g.choices.find(c => c.name === name)
+          if (choice) extra += (Number(choice.price) || 0)
+        })
+      } else if (g.type === 'single' && sel) {
+        const choice = g.choices.find(c => c.name === sel)
+        if (choice) extra += (Number(choice.price) || 0)
+      }
+    })
+  }
+
+  return (base + extra) * quantity.value
 }
 </script>
 
@@ -122,44 +160,35 @@ const totalPrice = () => {
             </div>
           </div>
 
-          <!-- Toppings (Mock) -->
-          <div class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
-            <div class="mb-3 flex justify-between items-end">
-              <div>
-                <h3 class="font-bold text-gray-800 text-[15px]">ท็อปปิ้ง</h3>
-                <p class="text-[12px] text-gray-400">เลือกได้มากกว่า 1 ข้อ</p>
-              </div>
-            </div>
-            <div class="space-y-4">
-              <label v-for="topping in toppings" :key="topping.name"
-                class="flex items-center justify-between cursor-pointer group">
-                <div class="flex items-center gap-3">
-                  <input type="checkbox" :value="topping" v-model="selectedOptions"
-                    class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer">
-                  <span class="text-gray-700 text-[14px] font-medium">{{ topping.name }}</span>
+          <!-- Dynamic Option Groups -->
+          <div v-if="product.OptionGroups && product.OptionGroups.length > 0">
+            <div v-for="(group, gIndex) in product.OptionGroups" :key="'group-' + gIndex"
+              class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
+              <div class="mb-3 flex justify-between items-end">
+                <div>
+                  <h3 class="font-bold text-gray-800 text-[15px]">{{ group.name }}</h3>
+                  <p class="text-[12px] text-gray-400">
+                    {{ group.type === 'multiple' ? 'เลือกได้มากกว่า 1 ข้อ' : 'เลือกได้สูงสุด 1 ข้อ' }}
+                  </p>
                 </div>
-                <span class="text-[14px] text-gray-600">฿{{ topping.price }}</span>
-              </label>
-            </div>
-          </div>
+              </div>
+              <div class="space-y-4">
+                <label v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex"
+                  class="flex items-center justify-between cursor-pointer group">
+                  <div class="flex items-center gap-3">
 
-          <!-- Options (Mock) -->
-          <div class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
-            <div class="mb-3 flex justify-between items-end">
-              <div>
-                <h3 class="font-bold text-gray-800 text-[15px]">ตัวเลือก</h3>
-                <p class="text-[12px] text-gray-400">เลือกได้สูงสุด 1 ข้อ</p>
+                    <input v-if="group.type === 'multiple'" type="checkbox" :value="choice.name"
+                      v-model="selections[gIndex]"
+                      class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer">
+
+                    <input v-else type="radio" :value="choice.name" v-model="selections[gIndex]" :name="'grp-' + gIndex"
+                      class="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white transition-all cursor-pointer">
+
+                    <span class="text-gray-700 text-[14px] font-medium">{{ choice.name }}</span>
+                  </div>
+                  <span v-if="choice.price > 0" class="text-[14px] text-gray-600">+฿{{ choice.price }}</span>
+                </label>
               </div>
-            </div>
-            <div class="space-y-4">
-              <label v-for="spice in spices" :key="spice"
-                class="flex items-center justify-between cursor-pointer group">
-                <div class="flex items-center gap-3">
-                  <input type="radio" :value="spice" v-model="selectedSpice" name="spiceOption"
-                    class="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white transition-all cursor-pointer">
-                  <span class="text-gray-700 text-[14px] font-medium">{{ spice }}</span>
-                </div>
-              </label>
             </div>
           </div>
 
