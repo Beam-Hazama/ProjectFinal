@@ -1,9 +1,14 @@
+```
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
+import { usePosterStore } from '@/stores/posterStore';
+import { useCategoryStore } from '@/stores/categoryStore';
 import { useRoute, useRouter } from 'vue-router';
+import { db } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 import product from '@/page/component/blockmenu.vue';
 
@@ -12,9 +17,16 @@ const router = useRouter();
 const cartStore = useCartStore();
 const menuStore = useMenuStore();
 const qrStore = useQRCodeStore();
+const posterStore = usePosterStore();
+const categoryStore = useCategoryStore();
+
+// Carousel State
+const currentSlide = ref(0);
+let carouselInterval = null;
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
+const currentRestaurant = ref(null);
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
 const building = route.params.building || '-';
@@ -23,8 +35,50 @@ const room = route.params.room || '-';
 
 const activeMenuTab = ref('เมนูดัง คนสั่งเยอะ');
 
-// Updated to match the mockup style
-const menuCategories = ['เมนูดัง คนสั่งเยอะ', 'โปรโมชั่น', 'รีวิว', 'ข้าว', 'เส้น', 'เครื่องดื่ม', 'ของทานเล่น'];
+// Remove hardcoded category list since we'll fetch them from the store
+
+const fetchRestaurantDetails = async () => {
+    try {
+        const q = query(collection(db, "Restaurant"), where("Name", "==", restaurantName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            currentRestaurant.value = querySnapshot.docs[0].data();
+        }
+    } catch (error) {
+        console.error("Error fetching restaurant details for poster:", error);
+    }
+}
+
+const startCarousel = () => {
+    stopCarousel();
+    carouselInterval = setInterval(() => {
+        if (posterStore.activePosters?.length > 1) {
+            nextSlide();
+        }
+    }, 5000);
+};
+
+const stopCarousel = () => {
+    if (carouselInterval) {
+        clearInterval(carouselInterval);
+        carouselInterval = null;
+    }
+};
+
+const nextSlide = () => {
+    currentSlide.value = (currentSlide.value + 1) % posterStore.activePosters.length;
+};
+
+const prevSlide = () => {
+    currentSlide.value = currentSlide.value === 0
+        ? posterStore.activePosters.length - 1
+        : currentSlide.value - 1;
+};
+
+const goToSlide = (index) => {
+    currentSlide.value = index;
+    startCarousel(); // Reset timer on manual interaction
+};
 
 onMounted(async () => {
     const isValid = await qrStore.validateRoom(building, floor, room);
@@ -34,7 +88,15 @@ onMounted(async () => {
     if (isValid) {
         menuStore.loadMenu();
         cartStore.loadcart(building, floor, room);
+        posterStore.loadPosters(restaurantName);
+        categoryStore.loadCategories(restaurantName);
+        fetchRestaurantDetails();
+        startCarousel();
     }
+});
+
+onUnmounted(() => {
+    stopCarousel();
 });
 
 const goBack = () => {
@@ -81,11 +143,48 @@ const filteredMenu = computed(() => {
 
     <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans relative">
 
-        <!-- Hero Banner Area -->
-        <div class="relative w-full h-[220px] bg-red-800">
-            <!-- Mock hero image or use restaurant image if available. For now using a placeholder color/gradient -->
-            <!-- <img src="..." class="w-full h-full object-cover" /> -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        <!-- Hero Banner Area (Dynamic Poster Carousel) -->
+        <div class="relative w-full h-[220px]"
+            :class="{ 'bg-red-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
+
+            <div v-if="posterStore.activePosters.length > 0" class="w-full h-full overflow-hidden relative"
+                @mouseenter="stopCarousel" @mouseleave="startCarousel">
+
+                <!-- Slides container -->
+                <div class="flex transition-transform duration-500 ease-out h-full w-full"
+                    :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+                    <div v-for="poster in posterStore.activePosters" :key="poster.id"
+                        class="w-full flex-shrink-0 h-full relative group">
+                        <img :src="poster.ImageUrl" class="object-cover w-full h-full" alt="Poster" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                    </div>
+                </div>
+
+                <!-- Controls (only show if > 1 poster) -->
+                <div v-if="posterStore.activePosters.length > 1"
+                    class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity z-10">
+                    <button @click="prevSlide"
+                        class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❮</button>
+                    <button @click="nextSlide"
+                        class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
+                </div>
+
+                <!-- Pagination dots -->
+                <div v-if="posterStore.activePosters.length > 1"
+                    class="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-10">
+                    <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index"
+                        @click="goToSlide(index)"
+                        :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', currentSlide === index ? 'bg-white w-3' : 'bg-white/50 hover:bg-white/80']">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fallback to single poster or default red background if no active posters -->
+            <div v-else class="w-full h-full">
+                <img v-if="currentRestaurant?.PosterUrl" :src="currentRestaurant.PosterUrl"
+                    class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
 
             <!-- Top Actions Overlay -->
             <div class="absolute top-0 w-full px-4 pt-4 pb-2 flex justify-between items-center z-40">
@@ -97,22 +196,7 @@ const filteredMenu = computed(() => {
                     </svg>
                 </button>
 
-                <div class="flex gap-2">
-                    <button class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
-                    </button>
-                    <button class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                        </svg>
-                    </button>
-                </div>
+
             </div>
         </div>
 
@@ -215,12 +299,22 @@ const filteredMenu = computed(() => {
                 </div>
                 <!-- Scrollable Tabs -->
                 <div class="flex-grow overflow-x-auto no-scrollbar flex text-[14px] font-medium whitespace-nowrap">
-                    <button v-for="category in menuCategories" :key="category" @click="activeMenuTab = category"
+                    <!-- Default Top Tabs -->
+                    <button @click="activeMenuTab = 'เมนูดัง คนสั่งเยอะ'"
                         class="px-4 py-3 relative text-gray-600 transition-colors"
-                        :class="{ 'text-green-600 font-bold': activeMenuTab === category }">
-                        {{ category }}
+                        :class="{ 'text-green-600 font-bold': activeMenuTab === 'เมนูดัง คนสั่งเยอะ' }">
+                        เมนูดัง คนสั่งเยอะ
+                        <div v-if="activeMenuTab === 'เมนูดัง คนสั่งเยอะ'"
+                            class="absolute bottom-0 left-0 w-full h-[3px] bg-green-500 rounded-t-md"></div>
+                    </button>
+                    <!-- Dynamic Categories -->
+                    <button v-for="category in categoryStore.list" :key="category.id"
+                        @click="activeMenuTab = category.name"
+                        class="px-4 py-3 relative text-gray-600 transition-colors"
+                        :class="{ 'text-green-600 font-bold': activeMenuTab === category.name }">
+                        {{ category.name }}
                         <!-- Active line indicator underneath -->
-                        <div v-if="activeMenuTab === category"
+                        <div v-if="activeMenuTab === category.name"
                             class="absolute bottom-0 left-0 w-full h-[3px] bg-green-500 rounded-t-md"></div>
                     </button>
                 </div>

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { addDoc, collection, doc, onSnapshot, serverTimestamp, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, serverTimestamp, setDoc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 export const usePosterStore = defineStore('poster', {
@@ -18,19 +18,31 @@ export const usePosterStore = defineStore('poster', {
       }
       this.list = [];
     },
-    async loadPosters() {
+    async loadPosters(restaurantName = null) {
       this.clearListener();
-      console.log('Loading Posters');
-      
+      console.log('Loading Posters', restaurantName ? `for ${restaurantName}` : 'All');
+
       const posterRef = collection(db, 'posters');
-      // Ordering by timestamp ensures consistent display order
-      const q = query(posterRef, orderBy('createdAt', 'desc'));
+
+      let q;
+      if (restaurantName) {
+        // When querying by restaurant name, we need to add a where clause
+        q = query(posterRef, where('RestaurantName', '==', restaurantName), orderBy('createdAt', 'desc'));
+      } else {
+        // Ordering by timestamp ensures consistent display order for global posters (which we might still support, or maybe they don't have RestaurantName)
+        // Assuming global posters don't have RestaurantName set.
+        q = query(posterRef, orderBy('createdAt', 'desc'));
+      }
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
         this.list = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        // Filter out global from restaurant-specific if no restaurantName was given (optional based on logic, but safer to let query handle it)
+        if (!restaurantName) {
+          this.list = this.list.filter(item => !item.RestaurantName)
+        }
         console.log('Posters LOADED:', this.list);
       });
     },
@@ -46,11 +58,11 @@ export const usePosterStore = defineStore('poster', {
       await setDoc(posterRef, updateData, { merge: true });
     },
     async deletePoster(posterId) {
-       await deleteDoc(doc(db, 'posters', posterId));
+      await deleteDoc(doc(db, 'posters', posterId));
     },
     async toggleActive(posterId, currentStatus) {
-       const posterRef = doc(db, 'posters', posterId);
-       await setDoc(posterRef, { isActive: !currentStatus }, { merge: true });
+      const posterRef = doc(db, 'posters', posterId);
+      await setDoc(posterRef, { isActive: !currentStatus }, { merge: true });
     }
   },
 });

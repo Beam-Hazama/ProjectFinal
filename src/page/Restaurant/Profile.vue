@@ -188,8 +188,9 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
-            <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพหน้าร้าน</h3>
-            <div class="flex flex-col items-center gap-5 w-full max-w-xs">
+            <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพร้าน</h3>
+            <div class="flex flex-col items-center gap-5 w-full max-w-xs mb-8">
+              <span class="text-sm font-semibold text-slate-600 self-start">โลโก้ / รูปภาพหน้าร้าน</span>
               <div
                 class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
                 <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
