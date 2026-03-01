@@ -6,7 +6,7 @@ import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
 
-const baseUrl = 'http://10.5.2.156:5173'
+const baseUrl = 'http://192.168.1.185:5173'
 
 const rooms = computed(() => qrStore.rooms)
 
@@ -165,7 +165,7 @@ const printSpecificQR = async (room) => {
           <div class="qr-border">
             <qrcode-vue
               :value="`${baseUrl}/user/${selectedRoom.building}/${selectedRoom.floor}/${selectedRoom.roomNumber}`"
-              :size="420" level="H" />
+              :size="420" level="H" render-as="svg" />
           </div>
           <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
           <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
