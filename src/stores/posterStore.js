@@ -8,7 +8,18 @@ export const usePosterStore = defineStore('poster', {
     unsubscribe: null,
   }),
   getters: {
-    activePosters: (state) => state.list.filter(p => p.isActive)
+    activePosters: (state) => state.list.filter(p => {
+      if (!p.isActive) return false;
+      if (p.hasSchedule && p.startTime && p.endTime) {
+        const now = new Date();
+        const start = new Date(p.startTime);
+        const end = new Date(p.endTime);
+        if (now < start || now > end) {
+          return false;
+        }
+      }
+      return true;
+    })
   },
   actions: {
     clearListener() {
@@ -26,20 +37,30 @@ export const usePosterStore = defineStore('poster', {
 
       let q;
       if (restaurantName) {
-        // When querying by restaurant name, we need to add a where clause
-        q = query(posterRef, where('RestaurantName', '==', restaurantName), orderBy('createdAt', 'desc'));
+        // When querying by restaurant name, we remove orderBy to avoid requiring a composite index
+        q = query(posterRef, where('RestaurantName', '==', restaurantName));
       } else {
-        // Ordering by timestamp ensures consistent display order for global posters (which we might still support, or maybe they don't have RestaurantName)
-        // Assuming global posters don't have RestaurantName set.
         q = query(posterRef, orderBy('createdAt', 'desc'));
       }
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => ({
+        let docs = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        // Filter out global from restaurant-specific if no restaurantName was given (optional based on logic, but safer to let query handle it)
+
+        // Sort in memory instead
+        if (restaurantName) {
+          docs.sort((a, b) => {
+            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+            return timeB - timeA;
+          });
+        }
+
+        this.list = docs;
+
+        // Filter out global from restaurant-specific if no restaurantName was given
         if (!restaurantName) {
           this.list = this.list.filter(item => !item.RestaurantName)
         }

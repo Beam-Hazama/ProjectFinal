@@ -22,7 +22,7 @@ const categoryStore = useCategoryStore();
 
 // Carousel State
 const currentSlide = ref(0);
-let carouselInterval = null;
+let carouselTimeout = null;
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
@@ -51,34 +51,45 @@ const fetchRestaurantDetails = async () => {
 
 const startCarousel = () => {
     stopCarousel();
-    carouselInterval = setInterval(() => {
-        if (posterStore.activePosters?.length > 1) {
+    if (posterStore.activePosters?.length > 1) {
+        const currentPoster = posterStore.activePosters[currentSlide.value];
+        const durationMs = (currentPoster?.displayDuration || 5) * 1000;
+
+        carouselTimeout = setTimeout(() => {
             nextSlide();
-        }
-    }, 5000);
+        }, durationMs);
+    }
 };
 
 const stopCarousel = () => {
-    if (carouselInterval) {
-        clearInterval(carouselInterval);
-        carouselInterval = null;
+    if (carouselTimeout) {
+        clearTimeout(carouselTimeout);
+        carouselTimeout = null;
     }
 };
 
 const nextSlide = () => {
     currentSlide.value = (currentSlide.value + 1) % posterStore.activePosters.length;
+    startCarousel();
 };
 
 const prevSlide = () => {
     currentSlide.value = currentSlide.value === 0
         ? posterStore.activePosters.length - 1
         : currentSlide.value - 1;
+    startCarousel();
 };
 
 const goToSlide = (index) => {
     currentSlide.value = index;
     startCarousel(); // Reset timer on manual interaction
 };
+
+watch(() => posterStore.activePosters, (newVal) => {
+    if (newVal && newVal.length > 0 && !carouselTimeout) {
+        startCarousel();
+    }
+}, { deep: true });
 
 onMounted(async () => {
     const isValid = await qrStore.validateRoom(building, floor, room);
