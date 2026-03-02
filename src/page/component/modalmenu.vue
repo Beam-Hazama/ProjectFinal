@@ -153,7 +153,7 @@ const totalPrice = () => {
             <!-- Overlapping Mock Restaurant Details -->
           </div>
 
-          <div class="bg-white px-5 pt-12 pb-3 mt-4 border-b border-gray-100">
+          <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ product.Name }}</h2>
               <div class="text-[16px] font-black text-gray-900">฿{{ product.Price }}</div>

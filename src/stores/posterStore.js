@@ -37,8 +37,7 @@ export const usePosterStore = defineStore('poster', {
 
       let q;
       if (restaurantName) {
-        // When querying by restaurant name, we remove orderBy to avoid requiring a composite index
-        q = query(posterRef, where('RestaurantName', '==', restaurantName));
+        
       } else {
         q = query(posterRef, orderBy('createdAt', 'desc'));
       }
@@ -49,12 +48,12 @@ export const usePosterStore = defineStore('poster', {
           ...doc.data(),
         }));
 
-        // Filter out global from restaurant-specific if no restaurantName was given
+        
         if (!restaurantName) {
           docs = docs.filter(item => !item.RestaurantName);
         }
 
-        // Sort in memory
+        
         docs.sort((a, b) => {
           if (a.order !== undefined && b.order !== undefined) {
             if (a.order !== b.order) return a.order - b.order;
@@ -76,7 +75,7 @@ export const usePosterStore = defineStore('poster', {
     async addPoster(posterData) {
       await addDoc(collection(db, 'posters'), {
         ...posterData,
-        order: this.list.length, // Add at the end by default
+        order: this.list.length, 
         createdAt: serverTimestamp(),
         isActive: true
       });

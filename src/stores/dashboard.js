@@ -12,7 +12,7 @@ export const useDashboardStore = defineStore('dashboard', {
     productsLoading: true,
     usersLoading: true,
     
-    // Chart Data
+    
     revenueByDay: [],
     categoriesCount: [],
     
@@ -24,13 +24,13 @@ export const useDashboardStore = defineStore('dashboard', {
   getters: {
     isLoading: (state) => state.ordersLoading || state.productsLoading || state.usersLoading,
     
-    // Series for the Bar Chart (Revenue by Day for the last 7 days)
+    
     salesChartSeries: (state) => {
       const data = state.revenueByDay.map(day => day.revenue);
       return [{ name: 'ยอดขาย (บาท)', data }];
     },
     
-    // Options for the Bar Chart
+    
     salesChartOptions: (state) => {
       const categories = state.revenueByDay.map(day => day.date);
       return {

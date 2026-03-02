@@ -139,7 +139,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.ordersLoading = true;
       this.productsLoading = true;
 
-      // 1. Listen to Orders Collection
+      
       const ordersQuery = query(collection(db, 'Order'));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
         let revenue = 0;
@@ -150,25 +150,24 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
           const data = doc.data();
           const items = data.Menu || [];
 
-          // Only keep items that belong to this restaurant
+          
           const myItems = items.filter(item => item.Restaurant === restaurantName);
 
           if(myItems.length > 0) {
             orderCount++;
             let localTotal = 0;
-            // Calculate total for this restaurant's items in this order
+            
             myItems.forEach(item => {
-               // Consider excluding cancelled or returned items from revenue if needed
-               // For now, match the logic of general dashboard, but at item level
+               
                if (item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
                  localTotal += Number(item.Price) * Number(item.Quantity);
                }
             });
             revenue += localTotal;
             
-            // Add to validOrders to process revenue by day
+         
             validOrders.push({
-                ...data, // includes CreatedAt
+                ...data, 
                 localTotal: localTotal
             });
           }

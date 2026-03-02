@@ -158,7 +158,7 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <div class="pt-10 p-6 flex-grow flex flex-col">
+                    <div class="pt-10 px-6 py-2 flex-grow flex flex-col">
                         <div class="mb-5">
                             <h2 class="text-xl font-bold text-slate-800 truncate">คุณ {{ user.Firstname }} {{
                                 user.Lastname }}</h2>
@@ -189,6 +189,18 @@ onMounted(() => {
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                </div>
+                                <span class="text-slate-500 leading-tight">{{ user.Distance || '-' }}
+                                    กม.</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 text-sm">
+                                <div class="bg-white p-1.5 rounded-lg shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -200,14 +212,10 @@ onMounted(() => {
                         </div>
 
                         <div
-                            class="mt-auto space-y-2 border-t border-slate-100 pt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                            <div class="flex justify-between">
+                            class="mt-auto space-y-2 border-t border-slate-100 pt-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                            <div class="flex justify-between px-1">
                                 <span>Created</span>
                                 <span class="text-slate-500">{{ formatDate(user.CreatedAt) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Modified</span>
-                                <span class="text-slate-500">{{ formatDate(user.UpdatedAt) }}</span>
                             </div>
                         </div>
                     </div>

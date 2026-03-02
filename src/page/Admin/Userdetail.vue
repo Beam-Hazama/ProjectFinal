@@ -26,10 +26,11 @@ const userData = ref({
     Password: '',
     Phone: '',
     Address: '',
-    Status: 'active', 
+    Status: 'active',
     Role: 'restaurant',
     ImageUrl: '',
-    Restaurant: ''
+    Restaurant: '',
+    Distance: ''
 });
 
 
@@ -53,7 +54,7 @@ const fetchUserData = async () => {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                
+
                 userData.value = { ...userData.value, ...data };
                 imagePreview.value = data.ImageUrl;
                 if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
@@ -176,6 +177,17 @@ const goBack = () => router.go(-1);
                                             <span class="text-red-500">*</span></span></label>
                                     <label class="input input-bordered w-full">
                                         {{ userData.Restaurant }}
+                                    </label>
+                                </div>
+
+                                <div class="form-control">
+                                    <label class="label"><span class="label-text font-bold text-slate-600">ระยะทาง <span
+                                                class="text-red-500">*</span></span></label>
+                                    <label
+                                        class="input input-bordered w-full relative flex items-center pr-12 focus-within:ring-2 focus-within:ring-blue-500">
+                                        {{ userData.Distance || '-' }}
+                                        <span
+                                            class="absolute right-4 text-slate-400 pointer-events-none text-sm font-medium">กม.</span>
                                     </label>
                                 </div>
 

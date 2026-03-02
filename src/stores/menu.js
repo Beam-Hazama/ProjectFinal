@@ -19,16 +19,6 @@ export const useMenuStore = defineStore('product', {
       this.list = [];
     },
 
-    /*async getImageUrl(productId){
-      try{
-        const imgRef = ref(storage,`products/${productId}.jpeg`)
-        const url = await getDownloadURL(imgRef)
-        this.imageList[productId] = url
-      }catch(error){
-        console.error('no image')
-      }
-      
-    },*/
     async loadMenu() {
       this.clearListener();
       console.log('loadProducts RUN');

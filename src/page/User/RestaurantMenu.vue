@@ -20,7 +20,7 @@ const qrStore = useQRCodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
-// Carousel State
+
 const currentSlide = ref(0);
 let carouselTimeout = null;
 
@@ -35,7 +35,6 @@ const room = route.params.room || '-';
 
 const activeMenuTab = ref('เมนูดัง คนสั่งเยอะ');
 
-// Remove hardcoded category list since we'll fetch them from the store
 
 const fetchRestaurantDetails = async () => {
     try {
@@ -82,7 +81,7 @@ const prevSlide = () => {
 
 const goToSlide = (index) => {
     currentSlide.value = index;
-    startCarousel(); // Reset timer on manual interaction
+    startCarousel();
 };
 
 watch(() => posterStore.activePosters, (newVal) => {

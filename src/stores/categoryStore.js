@@ -34,7 +34,7 @@ export const useCategoryStore = defineStore('category', {
           ...doc.data(),
         }));
 
-        // Filter out global from restaurant-specific if no restaurantName was given
+        
         if (!restaurantName) {
           this.list = this.list.filter(item => !item.RestaurantName);
         }
