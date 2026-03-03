@@ -56,12 +56,10 @@ const goBack = () => {
                 <p class="text-[13px] font-medium">ไม่มีเมนูในหมวดหมู่ "{{ categoryId }}" ณ ตอนนี้</p>
             </div>
 
-            <!-- Results Grid -->
+
             <div v-else class="animate-fade-in">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-[14px] font-bold text-gray-800">เมนูทั้งหมดในหมวดหมู่นี้</h3>
-                    <span class="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">{{
-                        filteredMenu.length }} รายการ</span>
                 </div>
                 <!-- Reusing the product component used in User.vue -->
                 <product :selectionRole="filteredMenu"></product>

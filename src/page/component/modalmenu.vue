@@ -111,7 +111,7 @@ const totalPrice = () => {
     <transition name="slide-in">
       <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
 
-        <!-- Top nav within Modal (Sticky over Image) -->
+        
         <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
           <button @click="emit('close')"
             class="w-8 h-8 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-sm active:scale-95 transition-transform">
@@ -120,7 +120,7 @@ const totalPrice = () => {
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-          <!-- Top Right Mockup Icons (Dropdown & Target) -->
+          
           <div class="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500" viewBox="0 0 20 20"
               fill="currentColor">
@@ -139,9 +139,9 @@ const totalPrice = () => {
           </div>
         </div>
 
-        <!-- Main Scrollable Content -->
+        
         <div class="flex-1 overflow-y-auto no-scrollbar pb-36 bg-gray-50">
-          <!-- Hero Image Mockup Style -->
+        
           <div class="w-full h-[280px] bg-gray-200 relative">
             <img v-if="product.ImageUrl" :src="product.ImageUrl" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center text-gray-400">

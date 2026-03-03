@@ -40,8 +40,7 @@ const RestaurantData = reactive({
 
 const calculateStatus = () => {
 
-  if (RestaurantData.ManualStatus === 'force_open') return 'open';
-  if (RestaurantData.ManualStatus === 'force_close') return 'close';
+  if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
 
 
   if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
@@ -278,8 +277,7 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                       class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
                   <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
-                    <option value="force_open">🔓 เปิดร้านทันที</option>
-                    <option value="force_close">🔒 ปิดร้านทันที</option>
+                    <option value="manual">⚙️ กำหนดเอง</option>
                   </select>
                 </div>
 
@@ -288,8 +286,8 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
                   <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed "
-                    v-model="RestaurantData.Status" :disabled="true">
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed transition-all"
+                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto'">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>

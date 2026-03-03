@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { addDoc, collection, doc, onSnapshot, serverTimestamp, deleteDoc, query, orderBy, where } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, serverTimestamp, deleteDoc, query, orderBy, where, writeBatch } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 export const useCategoryStore = defineStore('category', {
@@ -23,33 +23,58 @@ export const useCategoryStore = defineStore('category', {
       let q;
 
       if (restaurantName) {
-        q = query(categoryRef, where('RestaurantName', '==', restaurantName), orderBy('createdAt', 'desc'));
+        q = query(categoryRef, where('RestaurantName', '==', restaurantName));
       } else {
-        q = query(categoryRef, orderBy('createdAt', 'desc'));
+        q = query(categoryRef);
       }
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => ({
+        let newList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
         
         if (!restaurantName) {
-          this.list = this.list.filter(item => !item.RestaurantName);
+          newList = newList.filter(item => !item.RestaurantName);
         }
 
-        console.log('Categories LOADED:', this.list);
+        newList.sort((a, b) => {
+          const aOrder = typeof a.order === 'number' ? a.order : Infinity;
+          const bOrder = typeof b.order === 'number' ? b.order : Infinity;
+
+          if (aOrder !== Infinity && bOrder !== Infinity) {
+            return aOrder - bOrder;
+          }
+          if (aOrder !== Infinity) return -1;
+          if (bOrder !== Infinity) return 1;
+          
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
+
+        this.list = newList;
+        console.log('Categories LOADED & SORTED:', this.list.map(c => ({n: c.name, o: c.order})));
       });
     },
     async addCategory(categoryData) {
       await addDoc(collection(db, 'categories'), {
         ...categoryData,
+        order: this.list.length,
         createdAt: serverTimestamp()
       });
     },
     async deleteCategory(categoryId) {
       await deleteDoc(doc(db, 'categories', categoryId));
+    },
+    async updateCategoryOrder(orderedIds) {
+      const batch = writeBatch(db);
+      orderedIds.forEach((id, index) => {
+        const ref = doc(db, 'categories', id);
+        batch.update(ref, { order: index });
+      });
+      await batch.commit();
     }
   },
 });

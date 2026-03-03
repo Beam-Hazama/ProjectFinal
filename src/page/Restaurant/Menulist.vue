@@ -15,19 +15,19 @@ const route = useRoute();
 const loadData = async () => {
   let restaurantName = route.params.restaurantName;
 
- 
+
   if (!restaurantName || restaurantName === 'undefined') {
-   
+
     restaurantName = accountStore.user?.Restaurant;
 
-    
+
     if (!restaurantName && !accountStore.user) {
       await accountStore.checkAuthState();
       restaurantName = accountStore.user?.Restaurant;
     }
   }
 
-  
+
   if (restaurantName && restaurantName !== 'undefined') {
     console.log("Loading menu for:", restaurantName);
     await MenuStore.loadMenuRestaurant(restaurantName);
@@ -89,19 +89,19 @@ const deleteMenu = async (id, name) => {
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
   let date;
-  
+
   if (timestamp && typeof timestamp.toDate === 'function') {
     date = timestamp.toDate();
   }
   else if (timestamp && typeof timestamp.seconds === 'number') {
     date = new Date(timestamp.seconds * 1000);
   }
- 
+
   else {
     date = new Date(timestamp);
   }
 
- 
+
   if (isNaN(date.getTime())) return '-';
 
   return date.toLocaleString('th-TH');
@@ -134,7 +134,6 @@ const formatDate = (timestamp) => {
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">Menu</th>
-                <th>Restaurant</th>
                 <th>Price</th>
                 <th>Category</th>
                 <th>Status</th>
@@ -160,9 +159,6 @@ const formatDate = (timestamp) => {
                   </div>
                 </td>
 
-                <td>
-                  <div class="font-medium text-xs">{{ product.Restaurant }}</div>
-                </td>
                 <td class="font-medium text-emerald-600">{{ product.Price }} ฿</td>
                 <td>
                   <div class="badge badge-ghost badge-sm font-medium">{{ product.Category }}</div>

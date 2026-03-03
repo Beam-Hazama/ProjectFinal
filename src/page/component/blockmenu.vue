@@ -36,13 +36,8 @@ defineProps({
       :disabled="product.Status !== 'open' || isShopClosed(product.Restaurant)" @click="openModal(product)">
 
       <!-- Top Image (Half-height) -->
-      <figure class="w-full aspect-square relative bg-gray-100 p-0.5" :class="{ 'bg-[#8B0000]': index < 2 }">
-        <!-- Best seller mock badge -->
-        <div v-if="index < 2"
-          class="absolute top-1 left-1 bg-white/90 backdrop-blur-sm rounded-br-lg rounded-tl-lg px-2 py-0.5 flex items-center gap-1 shadow-sm z-10">
-          <span class="text-red-500 text-[10px]">🔥</span>
-          <span class="text-red-600 font-bold text-[10px]">ขายดี #{{ index + 1 }}</span>
-        </div>
+      <figure class="w-full aspect-square relative bg-gray-100 p-0.5">
+
 
         <div class="w-full h-full rounded-t-lg overflow-hidden relative">
           <img v-if="product.ImageUrl" :src="product.ImageUrl" class="object-cover w-full h-full"
