@@ -56,7 +56,8 @@ const checkAddProduct = async (data) => {
         const cleanOptionGroups = (data.OptionGroups || []).map(group => {
             return {
                 name: group.name.trim(),
-                type: group.type, // 'single' or 'multiple'
+                isRequired: group.isRequired !== false, // Defaults to true
+                maxChoices: group.maxChoices ? Number(group.maxChoices) : 1, // Defaulting to 1 if not specified
                 choices: group.choices
                     .filter(c => c.name.trim() !== '')
                     .map(c => ({ name: c.name.trim(), price: Number(c.price) || 0 }))
@@ -120,7 +121,8 @@ const addOptionGroup = () => {
     if (!MenuData.OptionGroups) MenuData.OptionGroups = [];
     MenuData.OptionGroups.push({
         name: '',
-        type: 'multiple',
+        isRequired: true,
+        maxChoices: 1,
         choices: [{ name: '', price: 0 }]
     });
 };
@@ -290,13 +292,13 @@ onMounted(async () => {
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -411,7 +413,7 @@ onMounted(async () => {
                                             </button>
 
                                             <!-- Group Configuration -->
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 pr-10">
+                                            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-4 pr-10 items-end">
                                                 <div class="form-control">
                                                     <label class="label">
                                                         <span
@@ -425,15 +427,30 @@ onMounted(async () => {
                                                 <div class="form-control">
                                                     <label class="label">
                                                         <span
-                                                            class="label-text font-medium text-slate-600">รูปแบบการเลือก
+                                                            class="label-text font-medium text-slate-600">จำนวนที่เลือกได้
                                                             <span class="text-red-500">*</span></span>
                                                     </label>
-                                                    <select
-                                                        class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
-                                                        v-model="group.type">
-                                                        <option value="single">เลือกได้ 1 รายการ (บังคับเลือก)</option>
-                                                        <option value="multiple">เลือกได้หลายรายการ (เพิ่มเติม)</option>
-                                                    </select>
+                                                    <div class="relative">
+                                                        <input type="number" min="1"
+                                                            class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200"
+                                                            v-model="group.maxChoices" placeholder="1" />
+                                                        <span
+                                                            class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label">
+                                                        <span
+                                                            class="label-text font-medium text-slate-600">สถานะการเลือก</span>
+                                                    </label>
+                                                    <div class="relative">
+                                                        <select
+                                                            class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
+                                                            v-model="group.isRequired">
+                                                            <option :value="true">บังคับเลือก (Required)</option>
+                                                            <option :value="false">ไม่บังคับ (Optional)</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
 

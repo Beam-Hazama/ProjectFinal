@@ -37,7 +37,7 @@ export const usePosterStore = defineStore('poster', {
 
       let q;
       if (restaurantName) {
-        
+        q = query(posterRef, where('RestaurantName', '==', decodeURIComponent(restaurantName)));
       } else {
         q = query(posterRef, orderBy('createdAt', 'desc'));
       }

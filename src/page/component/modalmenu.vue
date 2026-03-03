@@ -31,14 +31,12 @@ watch(
       // For simplicity based on current impl, we'll reset selections if changing product, or just use what cart has.
     }
 
-    // Initialize selections
     if (product.OptionGroups) {
       product.OptionGroups.forEach((g, i) => {
-        if (g.type === 'multiple') {
+        if (g.maxChoices > 1) {
           selections.value[i] = []
         } else {
-          // pre-select first choice for single
-          selections.value[i] = g.choices?.[0]?.name || null
+          selections.value[i] = null
         }
       })
     }
@@ -65,9 +63,9 @@ const confirmAdd = () => {
   if (props.product && props.product.OptionGroups) {
     props.product.OptionGroups.forEach((g, i) => {
       const sel = selections.value[i]
-      if (g.type === 'multiple' && Array.isArray(sel) && sel.length > 0) {
+      if (g.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
         optionsNoteArr.push(`${g.name}: ${sel.join(', ')}`)
-      } else if (g.type === 'single' && sel) {
+      } else if (g.maxChoices === 1 && sel) {
         optionsNoteArr.push(`${g.name}: ${sel}`)
       }
     })
@@ -92,12 +90,12 @@ const totalPrice = () => {
   if (props.product.OptionGroups) {
     props.product.OptionGroups.forEach((g, i) => {
       const sel = selections.value[i]
-      if (g.type === 'multiple' && Array.isArray(sel)) {
+      if (g.maxChoices > 1 && Array.isArray(sel)) {
         sel.forEach(name => {
           const choice = g.choices.find(c => c.name === name)
           if (choice) extra += (Number(choice.price) || 0)
         })
-      } else if (g.type === 'single' && sel) {
+      } else if (g.maxChoices === 1 && sel) {
         const choice = g.choices.find(c => c.name === sel)
         if (choice) extra += (Number(choice.price) || 0)
       }
@@ -164,12 +162,19 @@ const totalPrice = () => {
           <div v-if="product.OptionGroups && product.OptionGroups.length > 0">
             <div v-for="(group, gIndex) in product.OptionGroups" :key="'group-' + gIndex"
               class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
-              <div class="mb-3 flex justify-between items-end">
+              <div class="mb-3 flex justify-between items-start">
                 <div>
-                  <h3 class="font-bold text-gray-800 text-[15px]">{{ group.name }}</h3>
+                  <h3 class="font-bold text-gray-800 text-[15px]">
+                    {{ group.name }}
+                    <span v-if="group.isRequired" class="text-red-500 ml-1">*</span>
+                  </h3>
                   <p class="text-[12px] text-gray-400">
-                    {{ group.type === 'multiple' ? 'เลือกได้มากกว่า 1 ข้อ' : 'เลือกได้สูงสุด 1 ข้อ' }}
+                    เลือกได้สูงสุด {{ group.maxChoices }} ข้อ
                   </p>
+                </div>
+                <div v-if="group.isRequired"
+                  class="bg-gray-100 text-gray-700 text-[12px] px-2 py-0.5 rounded-md font-medium">
+                  บังคับเลือก
                 </div>
               </div>
               <div class="space-y-4">
@@ -177,11 +182,12 @@ const totalPrice = () => {
                   class="flex items-center justify-between cursor-pointer group">
                   <div class="flex items-center gap-3">
 
-                    <input v-if="group.type === 'multiple'" type="checkbox" :value="choice.name"
-                      v-model="selections[gIndex]"
-                      class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer">
+                    <input v-if="group.maxChoices > 1" type="checkbox" :value="choice.name" v-model="selections[gIndex]"
+                      :disabled="selections[gIndex].length >= group.maxChoices && !selections[gIndex].includes(choice.name)"
+                      class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer disabled:opacity-50">
 
-                    <input v-else type="radio" :value="choice.name" v-model="selections[gIndex]" :name="'grp-' + gIndex"
+                    <input v-else type="radio" :checked="selections[gIndex] === choice.name" :name="'grp-' + gIndex"
+                      @click="toggleRadio(gIndex, choice.name)"
                       class="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white transition-all cursor-pointer">
 
                     <span class="text-gray-700 text-[14px] font-medium">{{ choice.name }}</span>
