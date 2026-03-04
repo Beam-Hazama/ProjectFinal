@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import MenuOrderModal from './modalmenu.vue'
 import { useRestaurant } from '@/stores/Restaurant'
 
@@ -23,26 +23,71 @@ const openModal = (product) => {
   }
 }
 
-defineProps({
-  selectionRole: Array
+const props = defineProps({
+  selectionRole: Array,
+  layout: {
+    type: String,
+    default: 'vertical'
+  }
+})
+
+const sortedProducts = computed(() => {
+  if (!props.selectionRole) return []
+  return [...props.selectionRole].sort((a, b) => {
+    const aAvailable = a.Status === 'open' && !isShopClosed(a.Restaurant)
+    const bAvailable = b.Status === 'open' && !isShopClosed(b.Restaurant)
+
+    if (aAvailable && !bAvailable) return -1
+    if (!aAvailable && bAvailable) return 1
+    return 0
+  })
 })
 </script>
 
 <template>
-  <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-    <button v-for="(product, index) in selectionRole" :key="product.id"
-      class="flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300"
-      :class="(product.Status !== 'open' || isShopClosed(product.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
+  <section
+    :class="layout === 'horizontal' ? 'flex flex-col gap-3 px-2 pb-4' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'">
+    <button v-for="(product, index) in sortedProducts" :key="product.id"
+      :class="[(product.Status !== 'open' || isShopClosed(product.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
       :disabled="product.Status !== 'open' || isShopClosed(product.Restaurant)" @click="openModal(product)">
 
-      <!-- Top Image (Half-height) -->
-      <figure class="w-full aspect-square relative bg-gray-100 p-0.5">
-
-
-        <div class="w-full h-full rounded-t-lg overflow-hidden relative">
+      <template v-if="layout === 'horizontal'">
+        <figure
+          class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
           <img v-if="product.ImageUrl" :src="product.ImageUrl" class="object-cover w-full h-full"
             :class="{ 'grayscale': product.Status !== 'open' || isShopClosed(product.Restaurant) }" />
           <div v-else class="w-full h-full flex items-center justify-center text-gray-300 bg-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div v-if="isShopClosed(product.Restaurant)"
+            class="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
+          </div>
+          <div v-else-if="product.Status !== 'open'"
+            class="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span class="text-white font-bold text-[10px] bg-red-500/90 px-2 py-1 rounded-md shadow-sm">หมด</span>
+          </div>
+        </figure>
+        <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
+          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ product.Name }}</h3>
+          <p class="text-[12px] text-gray-500 truncate w-full mb-1">{{ product.Restaurant }}</p>
+          <div class="flex justify-between items-end mt-auto">
+            <p class="font-bold text-[14px] text-gray-800">฿{{ product.Price }}</p>
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
+        <!-- Top Image (Half-height) -->
+        <div class="w-full aspect-square relative bg-gray-100 overflow-hidden">
+          <img v-if="product.ImageUrl" :src="product.ImageUrl"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            :class="{ 'grayscale': product.Status !== 'open' || isShopClosed(product.Restaurant) }" />
+          <div v-else class="absolute inset-0 flex items-center justify-center text-gray-300 bg-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -51,31 +96,25 @@ defineProps({
           </div>
 
           <div v-if="isShopClosed(product.Restaurant)"
-            class="absolute inset-0 bg-black/40 flex items-center justify-center">
+            class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
             <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
           </div>
 
           <div v-else-if="product.Status !== 'open'"
-            class="absolute inset-0 bg-black/40 flex items-center justify-center">
+            class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
             <span class="text-white font-bold text-[10px] bg-red-500/90 px-2 py-1 rounded-md shadow-sm">หมด</span>
           </div>
         </div>
-      </figure>
 
-      <!-- Bottom Details -->
-      <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
-        <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2 h-[2.5em] mb-1">{{ product.Name }}
-        </h3>
-        <div class="flex justify-between items-end mt-auto">
-          <p class="font-bold text-[14px] text-gray-800">฿{{ product.Price }}</p>
-          <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white shadow-sm shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
-              <path
-                d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-            </svg>
+        <!-- Bottom Details -->
+        <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
+          <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2 h-[2.5em] mb-1">{{ product.Name }}
+          </h3>
+          <div class="flex justify-between items-end mt-auto">
+            <p class="font-bold text-[14px] text-gray-800">฿{{ product.Price }}</p>
           </div>
         </div>
-      </div>
+      </template>
 
     </button>
   </section>

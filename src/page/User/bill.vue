@@ -20,36 +20,59 @@ const displayLocation = computed(() => {
 const discount = ref(50.00);
 
 onMounted(async () => {
-
   await Order.loadOrderUser(tableId);
 });
 
+const formatDate = (timestamp) => {
+  if (!timestamp) return 'No Date';
+
+  try {
+    const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
+    return date.toLocaleString('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+  } catch (e) {
+    return 'Invalid Date';
+  }
+};
+
 
 const userOrders = computed(() => {
-  return Order.list.filter(order => String(order.tableId).trim() === String(tableId).trim());
+  return Order.list
+    .filter(order => String(order.tableId).trim() === String(tableId).trim())
+    .sort((a, b) => (a.CreatedAt?.seconds || 0) - (b.CreatedAt?.seconds || 0));
 });
 
-const combinedItems = computed(() => {
-  return userOrders.value.flatMap(order => order.Menu || [])
-    .filter(item => item.itemStatus === 'received');
+const ordersWithItems = computed(() => {
+  return userOrders.value.map(order => {
+    const receivedItems = (order.Menu || []).filter(item => item.itemStatus === 'received');
+    const subtotal = receivedItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
+    const grandTotal = Math.max(0, subtotal - (order.discount || 0)); 
+
+    return {
+      ...order,
+      receivedItems,
+      subtotal,
+      grandTotal,
+      vat: grandTotal - (grandTotal / 1.07)
+    };
+  }).filter(order => order.receivedItems.length > 0);
 });
 
 const totalSubtotal = computed(() => {
-  return combinedItems.value.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
+  return ordersWithItems.value.reduce((sum, order) => sum + order.subtotal, 0);
 });
 
 const totalGrandTotal = computed(() => {
-  return Math.max(0, totalSubtotal.value - discount.value);
+  return ordersWithItems.value.reduce((sum, order) => sum + order.grandTotal, 0);
 });
 
 
-const calculateVat = (grandTotal) => {
-  return grandTotal - (grandTotal / 1.07);
-};
 
-const calculateExclVat = (grandTotal) => {
-  return grandTotal / 1.07;
-};
 </script>
 
 <template>
@@ -99,77 +122,81 @@ const calculateExclVat = (grandTotal) => {
     </div>
 
 
-    <div v-else class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl overflow-hidden">
-      <div class="p-4 border-b border-blue-100 bg-blue-50/50">
-        <div class="flex justify-between items-center">
-          <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Table Bill</span>
-            <span class="text-3xl font-black text-blue-700">{{ room }}</span>
-            <span class="text-xs text-gray-400">{{ building }} - Floor {{ floor }}</span>
+    <div v-else class="space-y-8 pb-10">
+      <div v-for="order in ordersWithItems" :key="order.id"
+        class="bg-white/90 backdrop-blur-md shadow-2xl border border-white/60 rounded-[32px] overflow-hidden transform hover:scale-[1.01] transition-transform">
+
+        <div class="p-5 border-b border-blue-100 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Order Receipt</span>
+              <span class="text-xl font-black text-blue-700 flex items-center gap-2">
+                #{{ order.id.slice(-6).toUpperCase() }}
+
+              </span>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] text-gray-400 font-black uppercase mb-1 flex items-center justify-end gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{ formatDate(order.CreatedAt) }}
+              </div>
+              <span class="text-[10px] font-bold text-gray-400">{{ displayLocation }}</span>
+            </div>
           </div>
-          <div class="text-right">
-            <span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-[10px] font-black uppercase shadow-sm">
-              รวม {{ userOrders.length }} ออเดอร์
-            </span>
-            <div class="text-[10px] text-gray-500 mt-2 font-bold">
-              {{ new Date().toLocaleString('th-TH') }}
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div v-for="(item, index) in order.receivedItems" :key="index"
+            class="flex justify-between items-center group">
+            <div class="flex items-center gap-4">
+              <div
+                class="w-9 h-9 flex items-center justify-center bg-blue-50 rounded-xl text-blue-600 font-black text-sm shadow-sm border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                x{{ item.Quantity }}
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-slate-800 text-sm tracking-tight">{{ item.Name }}</span>
+                <span class="text-[10px] text-slate-400 font-medium">฿{{ item.Price.toLocaleString() }} per unit</span>
+              </div>
+            </div>
+            <div class="text-right font-black text-slate-700">฿{{ (item.Price * item.Quantity).toLocaleString() }}</div>
+          </div>
+        </div>
+
+        <div class="p-5 bg-gradient-to-b from-slate-50/50 to-white/50 border-t border-dashed border-slate-200">
+          <div class="space-y-2 mb-4">
+            <div class="flex justify-between text-xs text-slate-500 font-bold">
+              <span>Subtotal</span>
+              <span>฿{{ order.subtotal.toLocaleString() }}</span>
+            </div>
+            <div v-if="order.discount" class="flex justify-between text-xs text-red-500 font-bold">
+              <span>Discount</span>
+              <span>-฿{{ order.discount.toLocaleString() }}</span>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 font-medium">
+              <span>VAT 7% (Inclusive)</span>
+              <span>฿{{ order.vat.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-end border-t border-slate-100 pt-4">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grand Total</span>
+            </div>
+            <div class="text-right">
+              <span
+                class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-700 to-indigo-600">
+                ฿{{ order.grandTotal.toLocaleString() }}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="p-4 space-y-3">
-        <div v-for="(item, index) in combinedItems" :key="index"
-          class="group flex justify-between items-center p-3 rounded-xl hover:bg-white/50 transition-colors border-b border-gray-50 last:border-0">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 flex items-center justify-center bg-blue-50 rounded-lg text-blue-600 font-bold text-xs">
-              x{{ item.Quantity }}</div>
-            <div class="font-bold text-gray-800 text-sm">{{ item.Name }}</div>
-          </div>
-          <div class="text-right font-black text-blue-600">฿{{ (item.Price * item.Quantity).toLocaleString() }}</div>
-        </div>
-      </div>
 
-      <div class="p-4 bg-white/60 space-y-3 border-t border-white">
-        <div class="flex justify-between text-gray-800">
-          <span class="font-bold">รวมเป็นเงิน</span>
-          <span class="font-bold">{{ totalSubtotal.toLocaleString() }} บาท</span>
-        </div>
-        <div
-          class="flex justify-between items-center bg-red-50 p-2 rounded-lg text-red-500 text-sm font-bold border border-red-100">
-          <span class="flex items-center gap-1"><span class="text-xs">🏷️</span>ส่วนลด</span>
-          <span>- ฿{{ discount }}</span>
-        </div>
-
-        <div class="pt-2 text-[10px] text-gray-400 space-y-1">
-          <div class="flex justify-between">
-            <span>VAT 7%</span>
-            <span>฿{{ calculateVat(totalGrandTotal).toFixed(2) }}</span>
-          </div>
-        </div>
-
-        <hr class="border-dashed border-gray-300 my-2" />
-
-        <div class="flex justify-between items-end">
-          <span class="text-gray-500 mb-1 font-bold">ยอดรวมสุทธิ</span>
-          <span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
-            {{ totalGrandTotal.toLocaleString() }}<span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
-          </span>
-        </div>
-
-        <div class="border-t border-gray-100 my-4"></div>
-
-        <div class="flex flex-col items-center py-2">
-          <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">Scan to Pay</p>
-          <div class="p-2 bg-white rounded-xl shadow-sm border border-gray-100">
-
-            <img
-              :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAYMENT-${userOrders[0]?.OrderNumber}`"
-              alt="QR Code" class="w-24 h-24" />
-          </div>
-          <p class="text-[10px] text-gray-400 mt-2">Ref: {{ userOrders[0]?.OrderNumber }}...</p>
-        </div>
-      </div>
     </div>
   </div>
 </template>

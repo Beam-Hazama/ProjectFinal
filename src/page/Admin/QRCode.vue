@@ -6,7 +6,7 @@ import { useQRCodeStore } from '@/stores/qrcode'
 
 const qrStore = useQRCodeStore()
 
-const baseUrl = 'http://192.168.1.185:5173'
+const baseUrl = 'http://192.168.1.40:5173'
 
 const rooms = computed(() => qrStore.rooms)
 
@@ -167,20 +167,21 @@ const printSpecificQR = async (room) => {
             </div>
           </div>
         </dialog>
+      </div>
 
-        <div v-if="selectedRoom" class="print-container">
-          <div class="qr-print-card">
-            <div class="qr-border">
-              <qrcode-vue
-                :value="`${baseUrl}/user/${selectedRoom.building}/${selectedRoom.floor}/${selectedRoom.roomNumber}`"
-                :size="420" level="H" render-as="svg" />
-            </div>
-            <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
-            <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
-            <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>
+      <div v-if="selectedRoom" class="print-container">
+        <div class="qr-print-card">
+          <div class="qr-border">
+            <qrcode-vue
+              :value="`${baseUrl}/user/${selectedRoom.building}/${selectedRoom.floor}/${selectedRoom.roomNumber}`"
+              :size="420" level="H" render-as="svg" />
           </div>
+          <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
+          <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
+          <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>
         </div>
       </div>
+
     </div>
   </AdminLayout>
 </template>

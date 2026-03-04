@@ -29,6 +29,7 @@ import RestaurantManagemenu from "@/page/Restaurant/Managemenu.vue";
 import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
 import RestaurantPoster from "@/page/Restaurant/Poster.vue";
 import RestaurantCategory from "@/page/Restaurant/Category.vue";
+import RestaurantOrderHistory from "@/page/Restaurant/Orderhistory.vue";
 
 
 import User from "@/page/User/User.vue";
@@ -179,6 +180,12 @@ const router = createRouter({
       path: '/Restaurant/Orderlist',
       name: 'Restaurants Orderlist',
       component: Restaurantorderlist,
+      meta: { requiresAuth: true, role: 'restaurant' },
+    },
+    {
+      path: '/Restaurant/Orderhistory',
+      name: 'Restaurants Orderhistory',
+      component: RestaurantOrderHistory,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
     {

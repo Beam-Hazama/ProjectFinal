@@ -7,6 +7,7 @@ import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 
 import RestaurantList from '@/page/component/RestaurantList.vue';
+import ProductList from '@/page/component/blockmenu.vue';
 import BottomNavigation from '@/page/component/BottomNavigation.vue';
 import { useRoute } from 'vue-router';
 
@@ -14,6 +15,7 @@ const route = useRoute();
 const cartStore = useCartStore();
 import { useRestaurant } from '@/stores/Restaurant';
 const restaurantStore = useRestaurant();
+const menuStore = useMenuStore();
 const qrStore = useQRCodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
@@ -48,6 +50,7 @@ onMounted(async () => {
 
   if (isValid) {
     restaurantStore.loadListRestaurant();
+    menuStore.loadMenu();
     cartStore.loadcart(building, floor, room);
     posterStore.loadPosters();
     categoryStore.loadCategories();
@@ -120,15 +123,31 @@ const filteredRestaurants = computed(() => {
   return restaurantStore.list || [];
 });
 
+const filteredProducts = computed(() => {
+  if (!menuStore.list) return [];
+  // Optionally filter by activeShopTab if 'ทั้งหมด' is not selected, or just show all popular items
+  let items = menuStore.list;
+
+  if (activeShopTab.value !== 'ทั้งหมด' && activeShopTab.value !== 'ร้านค้า') {
+    items = items.filter(item =>
+      (item.Category && item.Category === activeShopTab.value) ||
+      (item.role && (Array.isArray(item.role) ? item.role.includes(activeShopTab.value) : item.role === activeShopTab.value))
+    );
+  }
+
+  return items;
+});
+
 </script>
 
 <template>
-  <div v-if="isLoading" class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div v-if="isLoading"
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <div class="loading loading-spinner loading-lg text-blue-600"></div>
   </div>
 
   <div v-else-if="!isValidLocation"
-    class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
+    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
         class="w-12 h-12 text-red-500">
@@ -140,10 +159,10 @@ const filteredRestaurants = computed(() => {
     <p class="text-gray-500">กรุณาสแกน QR Code ใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ</p>
   </div>
 
-  <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans">
+  <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
 
 
-    <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+    <div class="px-4 py-3">
 
 
 
@@ -155,7 +174,7 @@ const filteredRestaurants = computed(() => {
             stroke-linejoin="round" />
         </svg>
         <div @click="$router.push(`/user/search/${building}/${floor}/${room}`)"
-          class="w-full bg-slate-100 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
+          class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
       </div>
@@ -195,11 +214,11 @@ const filteredRestaurants = computed(() => {
     </div>
 
 
-    <div class="mt-4 bg-white py-4 px-4 shadow-sm border-y border-gray-100">
-      <div class="flex items-center justify-between mb-3">
+    <div class="mt-4 pt-4 pb-2">
+      <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
       </div>
-      <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-1">
+      <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
         <div v-for="cat in localCategories" :key="cat.id"
           @click="$router.push(`/user/category/${cat.name}/${building}/${floor}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
@@ -217,11 +236,10 @@ const filteredRestaurants = computed(() => {
     </div>
 
 
-    <div id="restaurant-section" class="mt-4 bg-white shadow-sm border-t border-gray-100 pt-5 pb-10 min-h-[500px]">
-      <div class="px-4 mb-3">
+    <div id="restaurant-section" class="mt-4 pt-2 pb-6">
+      <div class="px-5 mb-3">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านค้า</h3>
       </div>
-
 
       <div class="px-4">
         <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
@@ -231,6 +249,24 @@ const filteredRestaurants = computed(() => {
         <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
           <span class="text-4xl opacity-50 mb-2">🏪</span>
           <p class="text-[13px] font-medium">ไม่พบร้านค้าในขณะนี้</p>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="product-section" class="mt-4 pt-2 pb-6">
+      <div class="px-5 mb-3 flex items-center justify-between">
+        <h3 class="text-[14px] font-bold text-gray-800">เมนูอาหาร</h3>
+      </div>
+
+      <div class="px-4">
+        <div v-if="filteredProducts.length > 0" class="animate-fade-in">
+          <ProductList :selectionRole="filteredProducts" layout="horizontal" />
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
+          <span class="text-4xl opacity-50 mb-2">🍽️</span>
+          <p class="text-[13px] font-medium">ไม่พบเมนูอาหาร</p>
         </div>
       </div>
     </div>

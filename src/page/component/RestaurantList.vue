@@ -98,14 +98,26 @@ const goToRestaurantMenu = (restaurantName) => {
             <!-- Right Details -->
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
                 <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ shop.Name }}</h3>
-                <p class="font-medium text-[12px] text-gray-500 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    เปิดรับออเดอร์
+                <p class="font-medium text-[12px] flex items-center gap-1"
+                    :class="isShopClosed(shop) ? 'text-red-500' : 'text-gray-500'">
+                    <template v-if="!isShopClosed(shop)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        เปิดรับออเดอร์
+                    </template>
+                    <template v-else>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        ปิดรับออเดอร์
+                    </template>
                 </p>
             </div>
 

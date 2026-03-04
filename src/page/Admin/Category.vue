@@ -114,7 +114,7 @@ const onDragEnd = async () => {
                                 <label class="label pt-0">
                                     <span class="label-text font-medium text-slate-600">Category Name</span>
                                 </label>
-                                <input type="text" placeholder="e.g. ของหวาน, เครื่องดื่ม" v-model="newCategoryName"
+                                <input type="text" placeholder="ของหวาน, เครื่องดื่ม" v-model="newCategoryName"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
                             <div>

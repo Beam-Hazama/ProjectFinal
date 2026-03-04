@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -184,8 +184,27 @@ const filterNumbers = (field) => {
 };
 
 const filterNonNumbers = (field) => {
-    userData.value[field] = userData.value[field].replace(/[^0-9]/g, '');
+    let val = userData.value[field].replace(/[^0-9]/g, '');
+    if (field === 'Phone' && val.length > 10) {
+        val = val.slice(0, 10);
+    }
+    userData.value[field] = val;
 };
+
+const isFormValid = computed(() => {
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, Distance, ImageUrl } = userData.value;
+
+  
+    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Distance || !ImageUrl) return false;
+
+ 
+    if (Phone.length !== 10) return false;
+
+    
+    if (mode.value === 'add' && !Password) return false;
+
+    return true;
+});
 
 const goBack = () => router.go(-1);
 </script>
@@ -203,8 +222,8 @@ const goBack = () => router.go(-1);
 
                 <div class="flex gap-3">
                     <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
-                    <button @click="handleSave" :disabled="isLoading"
-                        class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white px-8 rounded-xl shadow-md hover:shadow-lg transition-all">
+                    <button @click="handleSave" :disabled="!isFormValid || isLoading"
+                        class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white px-8 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg disabled:hover:shadow-none disabled:hover:-translate-y-0 text-white disabled:text-white/70">
                         <span v-if="isLoading" class="loading loading-spinner loading-xs mr-2"></span>
                         {{ mode === 'add' ? 'บันทึกข้อมูล' : 'อัปเดตข้อมูล' }}
                     </button>
@@ -216,7 +235,7 @@ const goBack = () => router.go(-1);
 
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
-                            รูปภาพหน้าร้าน
+                            รูปภาพหน้าร้าน <span class="text-red-500">*</span>
                         </h3>
 
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
@@ -328,7 +347,7 @@ const goBack = () => router.go(-1);
                                     <select v-model="userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
                                         <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name
-                                            }}</option>
+                                        }}</option>
                                     </select>
                                 </div>
 
@@ -349,7 +368,7 @@ const goBack = () => router.go(-1);
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Phone" placeholder="0xx-xxx-xxxx"
-                                        @input="filterNonNumbers('Phone')"
+                                        maxlength="10" @input="filterNonNumbers('Phone')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 

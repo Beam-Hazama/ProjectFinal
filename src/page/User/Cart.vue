@@ -68,14 +68,14 @@ const removeItem = (index) => {
           </p>
         </div>
       </div>
-      <router-link :to="`/User/${building}/${floor}/${room}`"
-        class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50">
+      <button @click="$router.back()"
+        class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50 cursor-pointer">
         <span class="text-sm font-bold">ย้อนกลับ</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
           class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
-      </router-link>
+      </button>
     </div>
 
     <div

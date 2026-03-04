@@ -278,10 +278,7 @@ onMounted(async () => {
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
-                  <p class="text-[10px] text-blue-500 mt-1 italic">
-                    <span v-if="RestaurantData.ManualStatus === 'auto'">* สถานะเปลี่ยนตามเวลาอัตโนมัติ</span>
-                    <span v-else>* สถานะถูกกำหนดด้วยโหมด Manual</span>
-                  </p>
+                  
                 </div>
               </div>
             </div>

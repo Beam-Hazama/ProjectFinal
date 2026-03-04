@@ -32,7 +32,7 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-const activeMenuTab = ref('เมนูดัง คนสั่งเยอะ');
+const activeMenuTab = ref('เมนูทั้งหมด');
 
 
 const fetchRestaurantDetails = async () => {
@@ -115,18 +115,16 @@ const goBack = () => {
 const filteredMenu = computed(() => {
     let items = menuStore.list || [];
 
-    // 1. Filter by Restaurant first!
     items = items.filter(item => item.Restaurant === restaurantName);
 
-    // 2. Filter by Category Tab
-    if (activeMenuTab.value !== 'เมนูดัง คนสั่งเยอะ' && activeMenuTab.value !== 'โปรโมชั่น' && activeMenuTab.value !== 'รีวิว') {
+    if (activeMenuTab.value !== 'เมนูทั้งหมด' && activeMenuTab.value !== 'โปรโมชั่น' && activeMenuTab.value !== 'รีวิว') {
         items = items.filter(item =>
             (item.Category && item.Category === activeMenuTab.value) ||
             (item.role && (Array.isArray(item.role) ? item.role.includes(activeMenuTab.value) : item.role === activeMenuTab.value)) ||
             (item.Name && item.Name.includes(activeMenuTab.value))
         );
     }
-    // If 'เมนูดัง คนสั่งเยอะ', just show everything for now or subset
+
     return items;
 });
 
@@ -152,14 +150,14 @@ const filteredMenu = computed(() => {
 
     <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans relative">
 
-        <!-- Hero Banner Area (Dynamic Poster Carousel) -->
+
         <div class="relative w-full h-[220px]"
             :class="{ 'bg-red-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
 
             <div v-if="posterStore.activePosters.length > 0" class="w-full h-full overflow-hidden relative"
                 @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-                <!-- Slides container -->
+
                 <div class="flex transition-transform duration-500 ease-out h-full w-full"
                     :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
                     <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -169,7 +167,7 @@ const filteredMenu = computed(() => {
                     </div>
                 </div>
 
-                <!-- Controls (only show if > 1 poster) -->
+
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity z-10">
                     <button @click="prevSlide"
@@ -178,7 +176,7 @@ const filteredMenu = computed(() => {
                         class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
                 </div>
 
-                <!-- Pagination dots -->
+
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-10">
                     <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index"
@@ -188,14 +186,14 @@ const filteredMenu = computed(() => {
                 </div>
             </div>
 
-            <!-- Fallback to single poster or default red background if no active posters -->
+
             <div v-else class="w-full h-full">
                 <img v-if="currentRestaurant?.PosterUrl" :src="currentRestaurant.PosterUrl"
                     class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
 
-            <!-- Top Actions Overlay -->
+
             <div class="absolute top-0 w-full px-4 pt-4 pb-2 flex justify-between items-center z-40">
                 <button @click="goBack"
                     class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
@@ -209,8 +207,8 @@ const filteredMenu = computed(() => {
             </div>
         </div>
 
-        <!-- Overlapping Restaurant Info Card -->
-        <div class="relative z-10 px-4 -mt-10 mb-2">
+
+        <div class="relative z-10 px-2 -mt-10 mb-2">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div class="flex justify-between items-start mb-2">
                     <h1 class="font-bold text-xl text-gray-800 truncate pr-2">{{ restaurantName }}</h1>
@@ -223,7 +221,7 @@ const filteredMenu = computed(() => {
                     </button>
                 </div>
 
-                <!-- Mock Stats Row -->
+
                 <div class="flex items-center text-[12px] text-gray-600 mb-3 gap-2 flex-wrap">
                     <div class="flex items-center text-amber-500 font-bold">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
@@ -245,52 +243,13 @@ const filteredMenu = computed(() => {
                     <span>2.1 กม. (32 นาที)</span>
                 </div>
 
-                <!-- Action Buttons Row -->
-                <div class="flex gap-2 mb-3 max-w-full overflow-x-auto no-scrollbar pb-1">
-                    <button
-                        class="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 whitespace-nowrap text-[13px] font-medium text-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                        </svg>
-                        สร้างกลุ่ม
-                    </button>
-                    <button
-                        class="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 whitespace-nowrap text-[13px] font-medium text-gray-700">
-                        <span
-                            class="text-green-600 bg-green-100 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">2</span>
-                        สั่งสองร้านได้
-                    </button>
-                    <button
-                        class="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 whitespace-nowrap text-[13px] font-medium text-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
-                        </svg>
-                        เปลี่ยนภาษาเมนู
-                    </button>
-                </div>
-
-                <!-- Promo Banner -->
-                <div
-                    class="bg-green-50/50 rounded-xl px-3 py-2 flex items-center justify-between border border-green-100/50">
-                    <p class="text-[12px] font-medium text-gray-800 leading-tight">
-                        ลดสูงสุด ฿300 เมื่อสั่งกับเพื่อน<br>
-                        <span class="text-gray-500 font-normal">เริ่มสร้างกลุ่มเลย ›</span>
-                    </p>
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-xl">
-                        🍲
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- Sticky Navigation Tabs -->
+
         <div class="sticky top-0 z-30 bg-white border-b border-gray-100 mt-2 shadow-sm">
             <div class="flex items-center">
-                <!-- Search Icon Left -->
+
                 <div class="px-3 py-3 border-r border-gray-100 text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5">
@@ -298,7 +257,7 @@ const filteredMenu = computed(() => {
                             d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
                 </div>
-                <!-- Menu Icon -->
+
                 <div class="px-3 py-3 border-r border-gray-100 text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-5 h-5">
@@ -306,36 +265,37 @@ const filteredMenu = computed(() => {
                             d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                     </svg>
                 </div>
-                <!-- Scrollable Tabs -->
+
                 <div class="flex-grow overflow-x-auto no-scrollbar flex text-[14px] font-medium whitespace-nowrap">
-                    <!-- Default Top Tabs -->
-                    <button @click="activeMenuTab = 'เมนูดัง คนสั่งเยอะ'"
+
+                    <button @click="activeMenuTab = 'เมนูทั้งหมด'"
                         class="px-4 py-3 relative text-gray-600 transition-colors"
-                        :class="{ 'text-green-600 font-bold': activeMenuTab === 'เมนูดัง คนสั่งเยอะ' }">
-                        เมนูดัง คนสั่งเยอะ
-                        <div v-if="activeMenuTab === 'เมนูดัง คนสั่งเยอะ'"
-                            class="absolute bottom-0 left-0 w-full h-[3px] bg-green-500 rounded-t-md"></div>
+                        :class="{ 'text-blue-600 font-bold': activeMenuTab === 'เมนูทั้งหมด' }">
+                        เมนูทั้งหมด
+                        <div v-if="activeMenuTab === 'เมนูทั้งหมด'"
+                            class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
                     </button>
-                    <!-- Dynamic Categories -->
+
+
                     <button v-for="category in categoryStore.list" :key="category.id"
                         @click="activeMenuTab = category.name"
                         class="px-4 py-3 relative text-gray-600 transition-colors"
-                        :class="{ 'text-green-600 font-bold': activeMenuTab === category.name }">
+                        :class="{ 'text-blue-600 font-bold': activeMenuTab === category.name }">
                         {{ category.name }}
-                        <!-- Active line indicator underneath -->
+
                         <div v-if="activeMenuTab === category.name"
-                            class="absolute bottom-0 left-0 w-full h-[3px] bg-green-500 rounded-t-md"></div>
+                            class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Main Menu List -->
+
         <div id="menu-section" class="bg-white pt-5 pb-10 min-h-[500px]">
             <div class="px-4 mb-4">
                 <h3 class="text-[18px] font-bold text-gray-800">{{ activeMenuTab }}</h3>
             </div>
-            <!-- Menu Grid -->
+
             <div class="px-4">
                 <div v-if="filteredMenu.length > 0" class="animate-fade-in">
                     <ProductList :selectionRole="filteredMenu" />
@@ -349,6 +309,21 @@ const filteredMenu = computed(() => {
         </div>
 
 
+
+        <div class="fixed bottom-6 right-6 z-50 animate-fade-in group">
+            <button @click="router.push(`/user/cart/${building}/${floor}/${room}`)"
+                class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 hover:scale-105 transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                </svg>
+                <span v-if="cartStore.summaryQuantity > 0"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                    {{ cartStore.summaryQuantity }}
+                </span>
+            </button>
+        </div>
 
     </div>
 </template>

@@ -326,15 +326,7 @@ const getRowStatusColor = (status) => {
                     
                 </div>
 
-                <div class="flex gap-2">
-                    <div class="stats shadow bg-white">
-                        <div class="stat py-2 px-4">
-                            <div class="stat-title text-xs">Waiting</div>
-                            <div class="stat-value text-slate-400 text-2xl">{{restaurantOrders.filter(o =>
-                                o.localStatus === 'pending').length}}</div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
 
             <div v-if="loading" class="flex justify-center py-20">
