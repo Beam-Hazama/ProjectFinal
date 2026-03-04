@@ -53,7 +53,7 @@ const router = createRouter({
       component: Bill,
     },
     {
-      path: '/user/restaurant/:building/:floor/:room',
+      path: '/user/restaurant/:restaurantName/:building/:floor/:room',
       name: 'UserRestaurantMenu',
       component: UserRestaurantMenu,
     },
@@ -83,17 +83,7 @@ const router = createRouter({
       name: 'Admin',
       component: Admin,
     },
-    // ...
-    {
-      path: '/user/:building/:floor/:room',
-      name: 'UserWithParams',
-      component: User,
-    },
-    {
-      path: '/:building/:floor/:room',
-      name: 'UserShortUrl',
-      component: User,
-    },
+
     {
       path: '/Admin/Dashboard',
       name: 'Dashboard',
@@ -226,6 +216,18 @@ const router = createRouter({
       name: 'Restaurant Edit Menu',
       component: RestaurantManagemenu,
       meta: { requiresAuth: true, role: 'restaurant' },
+    },
+
+    // ⚠️ Wildcard routes MUST be last — they match ANY path pattern
+    {
+      path: '/user/:building/:floor/:room',
+      name: 'UserWithParams',
+      component: User,
+    },
+    {
+      path: '/:building/:floor/:room',
+      name: 'UserShortUrl',
+      component: User,
     },
   ],
 });

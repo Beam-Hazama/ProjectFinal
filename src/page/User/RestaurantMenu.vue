@@ -1,4 +1,3 @@
-```
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
@@ -10,7 +9,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-import product from '@/page/component/blockmenu.vue';
+import ProductList from '@/page/component/blockmenu.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -339,7 +338,7 @@ const filteredMenu = computed(() => {
             <!-- Menu Grid -->
             <div class="px-4">
                 <div v-if="filteredMenu.length > 0" class="animate-fade-in">
-                    <product :selectionRole="filteredMenu"></product>
+                    <ProductList :selectionRole="filteredMenu" />
                 </div>
 
                 <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
