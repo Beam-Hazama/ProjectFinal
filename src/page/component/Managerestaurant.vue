@@ -76,11 +76,7 @@ const checkSaveRestaurant = async (data) => {
         UpdatedAt: serverTimestamp()
       });
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     router.push({ name: 'Restaurant List' });
   } catch (error) {
     console.error('Error:', error);

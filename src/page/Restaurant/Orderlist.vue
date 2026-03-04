@@ -4,7 +4,7 @@ import { onMounted, computed, ref } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/account';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc ,serverTimestamp, deleteField} from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { db } from "@/firebase";
 
 const orderStore = useOderlistStore();
@@ -13,19 +13,9 @@ const menuStore = useMenuStore();
 const loading = ref(true);
 
 onMounted(async () => {
-<<<<<<< HEAD
-        await accountStore.checkAuthState();
-        await orderStore.loadOrderinadmin();
-        loading.value = false;
-=======
-
-    if (!accountStore.isLoggedIn) {
-        await accountStore.checkAuthState();
-    }
-
+    await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
     loading.value = false;
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
 });
 
 const restaurantOrders = computed(() => {
@@ -38,26 +28,13 @@ const restaurantOrders = computed(() => {
     return orderStore.sortedOrders.map(order => {
 
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
-<<<<<<< HEAD
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-
-=======
-
-
-        const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-
-
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'served');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const allReturned = myItems.every(i => i.itemStatus === 'returned');
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
             const isFinished = myItems.every(i =>
                 i.itemStatus === 'served' ||
                 i.itemStatus === 'cancelled' ||
@@ -140,18 +117,12 @@ const hasWaitingItems = (order) => {
 };
 
 const shouldReturnOrder = (order) => {
-<<<<<<< HEAD
-    
     const myRestaurant = accountStore.user?.Restaurant;
 
     return (order.Menu || []).some(i =>
-    i.Restaurant === myRestaurant &&
-    (i.itemStatus === 'returned' || i.itemStatus === 'cancelled')
-);
-=======
-
-    return (order.Menu || []).some(i => i.itemStatus === 'returned' || i.itemStatus === 'cancelled');
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
+        i.Restaurant === myRestaurant &&
+        (i.itemStatus === 'returned' || i.itemStatus === 'cancelled')
+    );
 };
 
 const deliverOrder = async (order) => {
@@ -164,14 +135,7 @@ const deliverOrder = async (order) => {
     if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
 
     try {
-<<<<<<< HEAD
         const myRestaurant = accountStore.user?.Restaurant;
-=======
-
-        const updates = (order.Menu || [])
-            .filter(i => i.itemStatus !== 'served' && i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned')
-            .map(i => ({ itemId: i.id, newStatus: 'served' }));
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
 
         // 1️⃣ อัปเดตของร้านตัวเองเป็น served
         const updatedMenu = (order.Menu || []).map(i => {
@@ -217,119 +181,83 @@ const deliverOrder = async (order) => {
 };
 
 const saveChanges = async (order) => {
-  try {
-    const orderSelections = selections.value[order.id];
-    if (!orderSelections || Object.keys(orderSelections).length === 0) return;
+    try {
+        const orderSelections = selections.value[order.id];
+        if (!orderSelections || Object.keys(orderSelections).length === 0) return;
 
-    if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
+        if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
 
-<<<<<<< HEAD
-    const myRestaurant = accountStore.user?.Restaurant;
-    if (!myRestaurant) return;
-
-    const latestOrder = orderStore.list.find(o => o.id === order.id);
-    if (!latestOrder) return;
-=======
-
-        const isRejection = Object.values(orderSelections).includes('cancel');
-
-
-        const updates = [];
-        Object.entries(orderSelections).forEach(([itemId, action]) => {
-            const item = order.displayItems.find(i => i.id === itemId);
-            if (!item) return;
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
-
-    const updatedMenu = [];
-    const cancelledItems = [];
-
-<<<<<<< HEAD
-    for (const item of latestOrder.Menu || []) {
-=======
-            if (action === 'advance') {
-
-                if (!item.itemStatus || item.itemStatus === 'waiting') newStatus = 'pending';
-            } else if (action === 'cancel') {
-
-                newStatus = 'cancelled';
-            }
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
-
-      if (item.Restaurant !== myRestaurant) {
-        updatedMenu.push(item);
-        continue;
-      }
-
-      const action = orderSelections[item.id];
-      if (!action) {
-        updatedMenu.push(item);
-        continue;
-      }
-
-      let newStatus = item.itemStatus;
-
-      if (action === 'advance') {
-        if (!item.itemStatus || item.itemStatus === 'waiting') {
-          newStatus = 'pending';
-        }
-      }
-
-<<<<<<< HEAD
-      if (action === 'cancel') {
-        newStatus = 'cancelled';
-        cancelledItems.push(item.id);
-      }
-
-      updatedMenu.push({ ...item, itemStatus: newStatus });
-=======
+        const myRestaurant = accountStore.user?.Restaurant;
+        if (!myRestaurant) return;
 
         const latestOrder = orderStore.list.find(o => o.id === order.id);
-        if (latestOrder) {
-            const anyWaitingGlobally = (latestOrder.Menu || []).some(i => !i.itemStatus || i.itemStatus === 'waiting');
-            if (!anyWaitingGlobally && shouldReturnOrder(latestOrder)) {
-                await orderStore.rejectOrderGlobal(order.id);
+        if (!latestOrder) return;
+
+        const updatedMenu = [];
+        const cancelledItems = [];
+
+        for (const item of latestOrder.Menu || []) {
+
+            if (item.Restaurant !== myRestaurant) {
+                updatedMenu.push(item);
+                continue;
             }
+
+            const action = orderSelections[item.id];
+            if (!action) {
+                updatedMenu.push(item);
+                continue;
+            }
+
+            let newStatus = item.itemStatus;
+
+            if (action === 'advance') {
+                if (!item.itemStatus || item.itemStatus === 'waiting') {
+                    newStatus = 'pending';
+                }
+            }
+
+            if (action === 'cancel') {
+                newStatus = 'cancelled';
+                cancelledItems.push(item.id);
+            }
+
+            updatedMenu.push({ ...item, itemStatus: newStatus });
+        }
+
+        const hasCancelled = updatedMenu.some(i => i.itemStatus === 'cancelled');
+        const anyWaiting = updatedMenu.some(i => !i.itemStatus || i.itemStatus === 'waiting');
+
+        const orderRef = doc(db, 'Order', order.id);
+
+        // 🔥 อัปเดต Order
+        if (hasCancelled && !anyWaiting) {
+            await updateDoc(orderRef, {
+                Menu: updatedMenu,
+                statusOrder: 'returned'
+            });
+        } else {
+            await updateDoc(orderRef, {
+                Menu: updatedMenu
+            });
+        }
+
+        // 🔥 sync เมนูที่ถูก cancel ให้เป็นสินค้าหมด
+        for (const itemId of cancelledItems) {
+            const menuRef = doc(db, 'Menu', itemId);
+            await updateDoc(menuRef, {
+                Status: 'close',
+                UpdatedAt: serverTimestamp(),
+                status: deleteField(),
+                updatedAt: deleteField()
+            }).catch(e => console.error("Menu sync fail:", e));
         }
 
         selections.value[order.id] = {};
+
     } catch (error) {
         alert("Error updating items: " + error.message);
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     }
-
-    const hasCancelled = updatedMenu.some(i => i.itemStatus === 'cancelled');
-    const anyWaiting = updatedMenu.some(i => !i.itemStatus || i.itemStatus === 'waiting');
-
-    const orderRef = doc(db, 'Order', order.id);
-
-    // 🔥 อัปเดต Order
-    if (hasCancelled && !anyWaiting) {
-      await updateDoc(orderRef, {
-        Menu: updatedMenu,
-        statusOrder: 'returned'
-      });
-    } else {
-      await updateDoc(orderRef, {
-        Menu: updatedMenu
-      });
-    }
-
-    // 🔥 sync เมนูที่ถูก cancel ให้เป็นสินค้าหมด
-    for (const itemId of cancelledItems) {
-      const menuRef = doc(db, 'Menu', itemId);
-      await updateDoc(menuRef, { 
-        Status: 'close',
-        UpdatedAt: serverTimestamp(),
-        status: deleteField(),
-        updatedAt: deleteField()
-      }).catch(e => console.error("Menu sync fail:", e));
-    }
-
-    selections.value[order.id] = {};
-
-  } catch (error) {
-    alert("Error updating items: " + error.message);
-  }
 };
 
 const areOtherRestaurantsReady = (order) => {
@@ -394,9 +322,9 @@ const getRowStatusColor = (status) => {
         <div class="p-6 font-sans">
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-<<<<<<< HEAD
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
-                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant || 'Loading...' }}</p>
+                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant ||
+                        'Loading...' }}</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -407,9 +335,6 @@ const getRowStatusColor = (status) => {
                                 o.localStatus === 'pending').length}}</div>
                         </div>
                     </div>
-=======
-                    <h1 class="text-3xl font-bold text-slate-700">Order List</h1>
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
                 </div>
             </div>
 
@@ -504,7 +429,7 @@ const getRowStatusColor = (status) => {
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <p v-if="item.note"
                                         class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">
@@ -541,29 +466,18 @@ const getRowStatusColor = (status) => {
                             </div>
                         </div>
                     </div>
-<<<<<<< HEAD
-                    
-=======
-
-
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
                     <div class="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-xs font-bold text-slate-400 uppercase">Total (My Items)</span>
                             <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
-                            }}
+                                }}
                                 ฿</span>
                         </div>
 
                         <div class="flex gap-2 items-center justify-end">
                             <button v-if="hasWaitingItems(order)" @click="saveChanges(order)"
-<<<<<<< HEAD
                                 class="btn btn-sm w-full bg-gradient-to-r from-slate-700 to-slate-800 border-none text-white shadow-lg disabled:bg-slate-200"
                                 :disabled="!areAllItemsSelected(order)">
-=======
-                                class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300"
-                                :disabled="!areOtherRestaurantsReady(order) ? false : !areAllItemsSelected(order)">
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
                                 Save Changes
                             </button>
                             <div v-else class="w-full">

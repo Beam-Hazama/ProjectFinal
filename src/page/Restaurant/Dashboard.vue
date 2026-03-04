@@ -39,7 +39,6 @@ onUnmounted(() => {
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">Dashboard</h1>
                 </div>
-<<<<<<< HEAD
 
                 <!-- Refresh Button -->
                 <button @click="dashboardStore.loadDashboardData(accountStore.user?.Restaurant)"
@@ -51,8 +50,6 @@ onUnmounted(() => {
                     </svg>
                     รีเฟรชข้อมูล
                 </button>
-=======
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
             </div>
 
 

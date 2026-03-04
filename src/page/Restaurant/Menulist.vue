@@ -13,7 +13,6 @@ const accountStore = useAccountStore();
 const loadData = async () => {
   await accountStore.checkAuthState()
 
-<<<<<<< HEAD
   const restaurantName = accountStore.user?.Restaurant
   if (!restaurantName) {
     console.warn("No restaurant found in account")
@@ -22,28 +21,6 @@ const loadData = async () => {
 
   await MenuStore.loadMenuRestaurant(restaurantName)
 }
-=======
-
-  if (!restaurantName || restaurantName === 'undefined') {
-
-    restaurantName = accountStore.user?.Restaurant;
-
-
-    if (!restaurantName && !accountStore.user) {
-      await accountStore.checkAuthState();
-      restaurantName = accountStore.user?.Restaurant;
-    }
-  }
-
-
-  if (restaurantName && restaurantName !== 'undefined') {
-    console.log("Loading menu for:", restaurantName);
-    await MenuStore.loadMenuRestaurant(restaurantName);
-  } else {
-    console.warn("No restaurant name found for Menu List");
-  }
-};
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
 
 onMounted(() => {
   loadData();
@@ -119,15 +96,10 @@ const formatDate = (timestamp) => {
 
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
-<<<<<<< HEAD
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
           <p class="text-slate-500 text-sm">ร้าน: {{ accountStore.user?.Restaurant }}</p>
-=======
-          <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
         </div>
-        <RouterLink
-          :to="{ name: 'Restaurant Add Menu' }"
+        <RouterLink :to="{ name: 'Restaurant Add Menu' }"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-5 h-5">

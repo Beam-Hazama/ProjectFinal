@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useAccountStore } from '@/stores/account'
@@ -12,22 +13,21 @@ const newCategoryName = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
 
+const loadCategories = async () => {
+    const restaurantName = accountStore.user?.Restaurant
+    if (!restaurantName) return
+    await categoryStore.loadCategories(restaurantName)
+}
+
 onMounted(async () => {
     await accountStore.checkAuthState()
     loadCategories()
 })
 
-<<<<<<< HEAD
 watch(
     () => accountStore.user,
     () => {
         loadCategories()
-=======
-onMounted(() => {
-    if (restaurantName) {
-
-        categoryStore.loadCategories(restaurantName);
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     }
 )
 
@@ -46,16 +46,10 @@ const handleAddCategory = async () => {
         await categoryStore.addCategory({
             name: newCategoryName.value.trim(),
             RestaurantName: restaurantName
-<<<<<<< HEAD
         })
 
         newCategoryName.value = ''
         showModal.value = false
-=======
-        });
-        newCategoryName.value = '';
-        showModal.value = false;
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     } catch (error) {
         alert('Error adding category: ' + error.message)
     } finally {
@@ -92,12 +86,9 @@ const formatDate = (timestamp) => {
         <div class="p-6">
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-<<<<<<< HEAD
                     <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
-                    <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{ accountStore.user?.Restaurant }}</p>
-=======
-                    <h1 class="text-3xl font-bold text-slate-700">Category</h1>
->>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
+                    <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{
+                        accountStore.user?.Restaurant }}</p>
                 </div>
 
                 <button @click="showModal = true"
