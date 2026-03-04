@@ -5,7 +5,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
-
+import { useAccountStore } from '@/stores/account'
 
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, } from '@/firebase';
@@ -25,6 +25,8 @@ const productId = route.params.id
 const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
+
+const accountStore = useAccountStore()
 
 // categories have been removed, we now use categoryStore.list
 
@@ -87,10 +89,7 @@ const checkAddProduct = async (data) => {
         }
 
         if (['Restaurant Add Menu', 'Restaurant Edit Menu'].includes(route.name)) {
-            router.push({
-                name: 'Restaurants Menulist',
-                params: { restaurantName: MenuData.Restaurant }
-            })
+            router.push({ name: 'Restaurants Menulist', })
         } else {
             router.push({ name: 'Admin Menu List' })
         }
@@ -112,9 +111,6 @@ const handleFileUpload = (event) => {
 const goBack = () => {
     router.go(-1);
 }
-
-
-
 
 const addOptionGroup = () => {
     if (!MenuData.OptionGroups) MenuData.OptionGroups = [];
@@ -152,6 +148,7 @@ const formatDate = (timestamp) => {
 };
 
 onMounted(async () => {
+    await accountStore.checkAuthState()
     if (route.params.id) {
         mode.value = 'Update Product';
         const productSnap = await getDoc(doc(db, 'Menu', route.params.id));
@@ -170,10 +167,7 @@ onMounted(async () => {
         }
     } else {
         mode.value = 'Add Product';
-        if (route.params.restaurantName) {
-
-            MenuData.Restaurant = route.params.restaurantName;
-        }
+        MenuData.Restaurant = accountStore.user?.Restaurant
     }
 
     Restaurant.loadListRestaurant()
@@ -340,7 +334,7 @@ onMounted(async () => {
                                     <select
                                         class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                                         v-model="MenuData.Restaurant"
-                                        :disabled="mode === 'Update Product' || route.params.restaurantName">
+                                        :disabled="true">
                                         <option disabled value="">เลือกร้านอาหาร</option>
                                         <option v-for="RestaurantName in Restaurant.list" :key="RestaurantName.id"
                                             :value="RestaurantName.Name">

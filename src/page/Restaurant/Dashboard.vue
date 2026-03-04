@@ -1,23 +1,33 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { useRestaurantDashboardStore } from '@/stores/restaurantDashboard';
+import { useAccountStore } from '@/stores/account'
 import restaurantLayout from '@/page/Restaurant/restaurant.vue';
 
-const route = useRoute();
 const dashboardStore = useRestaurantDashboardStore();
 
-const restaurantName = route.params.restaurantName;
+const accountStore = useAccountStore()
 
-onMounted(() => {
-    if (restaurantName) {
-        dashboardStore.loadDashboardData(restaurantName);
+onMounted(async () => {
+    await accountStore.checkAuthState()
+
+    if (accountStore.user?.Restaurant) {
+        dashboardStore.loadDashboardData(accountStore.user.Restaurant)
     }
-});
+})
+
+watch(
+    () => accountStore.user,
+    (user) => {
+        if (user?.Restaurant) {
+            dashboardStore.loadDashboardData(user.Restaurant)
+        }
+    }
+)
 
 onUnmounted(() => {
-    dashboardStore.clearListeners();
-});
+    dashboardStore.clearListeners()
+})
 </script>
 
 <template>
@@ -32,7 +42,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Refresh Button -->
-                <button @click="dashboardStore.loadDashboardData(restaurantName)"
+                <button @click="dashboardStore.loadDashboardData(accountStore.user?.Restaurant)"
                     class="btn btn-sm bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4" :class="{ 'animate-spin': dashboardStore.isLoading }">

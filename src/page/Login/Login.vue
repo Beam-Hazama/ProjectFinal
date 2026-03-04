@@ -21,11 +21,7 @@ const login = async () => {
       router.push({ name: 'Admin' });
     }
     else if (role === 'restaurant') {
-      const restaurantName = accountStore.user?.Restaurant || 'unknown';
-      router.push({
-        name: 'Restaurants',
-        params: { restaurantName: restaurantName }
-      });
+      router.replace({name: 'Restaurants'});
     }
     else {
       router.push({ name: 'Home' });

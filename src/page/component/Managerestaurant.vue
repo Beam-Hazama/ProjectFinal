@@ -84,7 +84,7 @@ const checkSaveRestaurant = async (data) => {
       });
     }
     
-    router.push({ name: 'Admin Restaurant List' });
+    router.push({ name: 'Restaurant List' });
   } catch (error) {
     console.error('Error:', error);
   }

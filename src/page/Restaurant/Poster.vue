@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { useRoute } from 'vue-router';
 import { usePosterStore } from '@/stores/posterStore';
+import { useAccountStore } from '@/stores/account'
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
 const route = useRoute();
@@ -17,7 +18,8 @@ const startTime = ref('');
 const endTime = ref('');
 const displayDuration = ref(5);
 
-const restaurantName = decodeURIComponent(route.params.restaurantName || '');
+const accountStore = useAccountStore()
+const restaurantName = accountStore.user?.Restaurant
 
 onMounted(() => {
     if (restaurantName) {

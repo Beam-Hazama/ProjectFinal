@@ -1,22 +1,14 @@
 <script setup>
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute,} from 'vue-router';
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
 import { useAccountStore } from '@/stores/account';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  serverTimestamp
-} from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp} from 'firebase/firestore';
 import { db } from '@/firebase';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
 const route = useRoute();
-const router = useRouter();
 const accountStore = useAccountStore();
+const restaurantName = accountStore.user?.Restaurant
 const loading = ref(true);
 const docId = ref(null);
 const imagePreview = ref('');
@@ -73,40 +65,48 @@ const fetchRestaurantByName = async () => {
     await accountStore.checkAuthState();
   }
 
-  let nameFromUrl = route.params.restaurantName;
+  const nameFromUser = accountStore.user?.Restaurant;
 
-
-  if (!nameFromUrl && accountStore.user && accountStore.user.Restaurant) {
-    nameFromUrl = accountStore.user.Restaurant;
-  }
-
-  if (!nameFromUrl) {
-    console.warn("No restaurant name found in URL or User Account");
+  if (!nameFromUser) {
+    console.warn("No restaurant found in user account");
     loading.value = false;
     return;
   }
 
   loading.value = true;
+
   try {
-    const q = query(collection(db, "Restaurant"), where("Name", "==", nameFromUrl));
+    const q = query(
+      collection(db, "Restaurant"),
+      where("Name", "==", nameFromUser)
+    );
+
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
       const restaurantDoc = querySnapshot.docs[0];
       docId.value = restaurantDoc.id;
+
       const data = restaurantDoc.data();
       Object.assign(RestaurantData, data);
 
-
-      if (!RestaurantData.ManualStatus) RestaurantData.ManualStatus = 'auto';
+      if (!RestaurantData.ManualStatus) {
+        RestaurantData.ManualStatus = 'auto';
+      }
 
       imagePreview.value = RestaurantData.ImageUrl;
       RestaurantData.Status = calculateStatus();
 
-      if (RestaurantData.ImageUrl && RestaurantData.ImageUrl.startsWith('http')) {
-        imageInputMethod.value = 'url';
+      if (
+        RestaurantData.ImageUrl &&
+        RestaurantData.ImageUrl.startsWith("http")
+      ) {
+        imageInputMethod.value = "url";
       }
+    } else {
+      console.warn("Restaurant not found in database");
     }
+
   } catch (error) {
     console.error("Error fetching restaurant:", error);
   } finally {
@@ -160,7 +160,15 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
-watch(() => route.params.restaurantName, fetchRestaurantByName);
+watch(
+  () => accountStore.user,
+  (newUser) => {
+    if (newUser?.Restaurant) {
+      fetchRestaurantByName(newUser.Restaurant)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

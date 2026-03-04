@@ -1,46 +1,54 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
+import { useAccountStore } from '@/stores/account'
 
-const route = useRoute();
 const categoryStore = useCategoryStore();
+const accountStore = useAccountStore()
 
 // Form state
 const newCategoryName = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
 
-const restaurantName = decodeURIComponent(route.params.restaurantName || '');
+onMounted(async () => {
+    await accountStore.checkAuthState()
+    loadCategories()
+})
 
-onMounted(() => {
-    if (restaurantName) {
-        // Load categories scoped to this restaurant
-        categoryStore.loadCategories(restaurantName);
+watch(
+    () => accountStore.user,
+    () => {
+        loadCategories()
     }
-});
+)
 
 const handleAddCategory = async () => {
     if (!newCategoryName.value.trim()) {
-        alert('Please enter a category name');
-        return;
+        alert('Please enter a category name')
+        return
     }
 
+    const restaurantName = accountStore.user?.Restaurant
+    if (!restaurantName) return
+
     try {
-        isSubmitting.value = true;
+        isSubmitting.value = true
+
         await categoryStore.addCategory({
             name: newCategoryName.value.trim(),
-            RestaurantName: restaurantName // Store the relationship to the restaurant
-        });
-        newCategoryName.value = ''; // Reset
-        showModal.value = false; // Close modal on success
+            RestaurantName: restaurantName
+        })
+
+        newCategoryName.value = ''
+        showModal.value = false
     } catch (error) {
-        alert('Error adding category: ' + error.message);
+        alert('Error adding category: ' + error.message)
     } finally {
-        isSubmitting.value = false;
+        isSubmitting.value = false
     }
-};
+}
 
 const closeModal = () => {
     showModal.value = false;
@@ -72,7 +80,7 @@ const formatDate = (timestamp) => {
             <div class="flex justify-between items-end mb-6">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
-                    <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{ restaurantName }}</p>
+                    <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{ accountStore.user?.Restaurant }}</p>
                 </div>
                 <!-- Add Button that opens the modal -->
                 <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">

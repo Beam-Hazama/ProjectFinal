@@ -4,43 +4,25 @@ import Layoutrestaurant from '@/page/Restaurant/restaurant.vue';
 import { useMenuStore } from '@/stores/menu';
 import { useAccountStore } from '@/stores/account';
 import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import { onMounted, watch } from 'vue';
 
 const MenuStore = useMenuStore();
 const accountStore = useAccountStore();
-const route = useRoute();
-
 
 const loadData = async () => {
-  let restaurantName = route.params.restaurantName;
+  await accountStore.checkAuthState()
 
- 
-  if (!restaurantName || restaurantName === 'undefined') {
-   
-    restaurantName = accountStore.user?.Restaurant;
-
-    
-    if (!restaurantName && !accountStore.user) {
-      await accountStore.checkAuthState();
-      restaurantName = accountStore.user?.Restaurant;
-    }
+  const restaurantName = accountStore.user?.Restaurant
+  if (!restaurantName) {
+    console.warn("No restaurant found in account")
+    return
   }
 
-  
-  if (restaurantName && restaurantName !== 'undefined') {
-    console.log("Loading menu for:", restaurantName);
-    await MenuStore.loadMenuRestaurant(restaurantName);
-  } else {
-    console.warn("No restaurant name found for Menu List");
-  }
-};
+  await MenuStore.loadMenuRestaurant(restaurantName)
+}
 
 onMounted(() => {
-  loadData();
-});
-
-watch(() => route.params.restaurantName, () => {
   loadData();
 });
 
@@ -115,10 +97,10 @@ const formatDate = (timestamp) => {
       <div class="flex justify-between items-center mb-6">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
-          <p class="text-slate-500 text-sm">ร้าน: {{ route.params.restaurantName || accountStore.user?.Restaurant }}</p>
+          <p class="text-slate-500 text-sm">ร้าน: {{ accountStore.user?.Restaurant }}</p>
         </div>
         <RouterLink
-          :to="{ name: 'Restaurant Add Menu', params: { restaurantName: route.params.restaurantName || accountStore.user?.Restaurant } }"
+          :to="{ name: 'Restaurant Add Menu' }"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
             class="w-5 h-5">

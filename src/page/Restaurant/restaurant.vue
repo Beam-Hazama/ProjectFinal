@@ -6,6 +6,7 @@ import { onMounted } from 'vue';
 const route = useRoute();
 const router = useRouter();
 const accountStore = useAccountStore();
+const restaurantName = accountStore.user?.Restaurant
 
 onMounted(async () => {
     await accountStore.checkAuthState();
@@ -123,7 +124,7 @@ const logout = async () => {
 
                 <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
                     <router-link v-for="menu in menus" :key="menu.name"
-                        :to="{ name: menu.routeName, params: { restaurantName: accountStore.user?.Restaurant || route.params.restaurantName } }"
+                        :to="{ name: menu.routeName}"
                         :class="[
                             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
                             route.name === menu.routeName

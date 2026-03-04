@@ -1,4 +1,8 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory , } from "vue-router";
+import { useAccountStore } from '@/stores/account';
+
+
+
 import Login from "@/page/Login/Login.vue";
 
 import Admin from "@/page/Admin/Admin.vue";
@@ -49,7 +53,7 @@ const router = createRouter({
       component: Bill,
     },
     {
-      path: '/user/restaurant/:restaurantName/:building/:floor/:room',
+      path: '/user/restaurant/:building/:floor/:room',
       name: 'UserRestaurantMenu',
       component: UserRestaurantMenu,
     },
@@ -170,51 +174,76 @@ const router = createRouter({
     },
 
     {
-      path: '/Restaurant/:restaurantName',
+      path: '/Restaurant',
       name: 'Restaurants',
       component: Restaurants,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Dashboard/:restaurantName',
+      path: '/Restaurant/Dashboard',
       name: 'Restaurant Dashboard',
       component: RestaurantDashboard,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Orderlist/:restaurantName',
+      path: '/Restaurant/Orderlist',
       name: 'Restaurants Orderlist',
       component: Restaurantorderlist,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Profile/:restaurantName',
+      path: '/Restaurant/Profile',
       name: 'Restaurants Profile',
       component: Restaurantprofile,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Poster/:restaurantName',
+      path: '/Restaurant/Poster',
       name: 'Restaurants Poster',
       component: RestaurantPoster,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Category/:restaurantName',
+      path: '/Restaurant/Category',
       name: 'Restaurants Category',
       component: RestaurantCategory,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/Menulist/:restaurantName',
+      path: '/Restaurant/Menulist',
       name: 'Restaurants Menulist',
       component: Restaurantmenulist,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
-      path: '/Restaurant/AddMenu/:restaurantName',
+      path: '/Restaurant/AddMenu',
       name: 'Restaurant Add Menu',
       component: RestaurantManagemenu,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
       path: '/Restaurant/EditMenu/:id',
       name: 'Restaurant Edit Menu',
       component: RestaurantManagemenu,
+      meta: { requiresAuth: true, role: 'restaurant' },
     },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const accountStore = useAccountStore();
+
+  if (to.meta.requiresAuth) {
+    if (!accountStore.isLoggedIn) {
+      return next({ name: 'Login' });
+    }
+
+    if (to.meta.role && to.meta.role !== accountStore.role) {
+      return next({ name: 'Login' });
+    }
+  }
+
+  next();
 });
 
 export default router;

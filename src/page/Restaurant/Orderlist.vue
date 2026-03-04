@@ -4,6 +4,8 @@ import { onMounted, computed, ref } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/account';
 import { useMenuStore } from '@/stores/menu';
+import { doc, updateDoc ,serverTimestamp, deleteField} from "firebase/firestore";
+import { db } from "@/firebase";
 
 const orderStore = useOderlistStore();
 const accountStore = useAccountStore();
@@ -11,36 +13,29 @@ const menuStore = useMenuStore();
 const loading = ref(true);
 
 onMounted(async () => {
-    
-    if (!accountStore.isLoggedIn) {
         await accountStore.checkAuthState();
-    }
-    
-    await orderStore.loadOrderinadmin();
-    loading.value = false;
+        await orderStore.loadOrderinadmin();
+        loading.value = false;
 });
-
 
 const restaurantOrders = computed(() => {
     if (!accountStore.user || !accountStore.user.Restaurant) return [];
 
     const myRestaurant = accountStore.user.Restaurant;
 
+    if (!orderStore.sortedOrders) return [];
+
     return orderStore.sortedOrders.map(order => {
         
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
-
-       
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
 
-       
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'served');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const allReturned = myItems.every(i => i.itemStatus === 'returned');
 
-            
             const isFinished = myItems.every(i =>
                 i.itemStatus === 'served' ||
                 i.itemStatus === 'cancelled' ||
@@ -65,6 +60,8 @@ const restaurantOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
+        order.statusOrder !== 'returned' &&   // 🔥 ใช้ field ที่ถูกต้อง
+        order.statusOrder !== 'cancelled' &&
         order.localStatus !== 'served' &&
         order.localStatus !== 'cancelled' &&
         order.localStatus !== 'returned'
@@ -122,11 +119,16 @@ const hasWaitingItems = (order) => {
 
 const shouldReturnOrder = (order) => {
     
-    return (order.Menu || []).some(i => i.itemStatus === 'returned' || i.itemStatus === 'cancelled');
+    const myRestaurant = accountStore.user?.Restaurant;
+
+    return (order.Menu || []).some(i =>
+    i.Restaurant === myRestaurant &&
+    (i.itemStatus === 'returned' || i.itemStatus === 'cancelled')
+);
 };
 
 const deliverOrder = async (order) => {
-   
+
     if (!areOtherRestaurantsReady(order)) {
         alert("กรุณารอร้านอื่นดำเนินการให้เสร็จสิ้น (Please wait for other restaurants)");
         return;
@@ -135,69 +137,129 @@ const deliverOrder = async (order) => {
     if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
 
     try {
-        
-        const updates = (order.Menu || [])
-            .filter(i => i.itemStatus !== 'served' && i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned')
-            .map(i => ({ itemId: i.id, newStatus: 'served' }));
+        const myRestaurant = accountStore.user?.Restaurant;
 
-        if (updates.length > 0) {
-            await orderStore.updateMultipleItemsStatus(order.id, updates);
+        // 1️⃣ อัปเดตของร้านตัวเองเป็น served
+        const updatedMenu = (order.Menu || []).map(i => {
+            if (
+                i.Restaurant === myRestaurant &&
+                i.itemStatus !== 'served' &&
+                i.itemStatus !== 'cancelled' &&
+                i.itemStatus !== 'returned'
+            ) {
+                return { ...i, itemStatus: 'served' };
+            }
+            return i;
+        });
+
+        const orderRef = doc(db, 'Order', order.id);
+
+        // 2️⃣ เช็คว่าทุกเมนูเสร็จหมดหรือยัง
+        const allFinished = updatedMenu.every(i =>
+            i.itemStatus === 'served' ||
+            i.itemStatus === 'cancelled' ||
+            i.itemStatus === 'returned'
+        );
+
+        // 3️⃣ ถ้าครบ → เปลี่ยน statusOrder
+        if (allFinished) {
+            await updateDoc(orderRef, {
+                Menu: updatedMenu,
+                statusOrder: 'completed',
+                UpdatedAt: serverTimestamp()
+            });
+        } else {
+            await updateDoc(orderRef, {
+                Menu: updatedMenu,
+                UpdatedAt: serverTimestamp()
+            });
         }
+
         await orderStore.loadOrderinadmin();
+
     } catch (error) {
         alert("Error processing order: " + error.message);
     }
 };
 
 const saveChanges = async (order) => {
-    try {
-        const orderSelections = selections.value[order.id];
-        if (!orderSelections || Object.keys(orderSelections).length === 0) return;
+  try {
+    const orderSelections = selections.value[order.id];
+    if (!orderSelections || Object.keys(orderSelections).length === 0) return;
 
-        if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
+    if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
 
-       
-        const isRejection = Object.values(orderSelections).includes('cancel');
+    const myRestaurant = accountStore.user?.Restaurant;
+    if (!myRestaurant) return;
 
-        
-        const updates = [];
-        Object.entries(orderSelections).forEach(([itemId, action]) => {
-            const item = order.displayItems.find(i => i.id === itemId);
-            if (!item) return;
+    const latestOrder = orderStore.list.find(o => o.id === order.id);
+    if (!latestOrder) return;
 
-            let newStatus = item.itemStatus;
+    const updatedMenu = [];
+    const cancelledItems = [];
 
-            if (action === 'advance') {
-               
-                if (!item.itemStatus || item.itemStatus === 'waiting') newStatus = 'pending';
-            } else if (action === 'cancel') {
-               
-                newStatus = 'cancelled';
-            }
+    for (const item of latestOrder.Menu || []) {
 
-            if (newStatus !== item.itemStatus) {
-                updates.push({ itemId, newStatus });
-            }
-        });
+      if (item.Restaurant !== myRestaurant) {
+        updatedMenu.push(item);
+        continue;
+      }
 
-        if (updates.length > 0) {
-            await orderStore.updateMultipleItemsStatus(order.id, updates);
+      const action = orderSelections[item.id];
+      if (!action) {
+        updatedMenu.push(item);
+        continue;
+      }
+
+      let newStatus = item.itemStatus;
+
+      if (action === 'advance') {
+        if (!item.itemStatus || item.itemStatus === 'waiting') {
+          newStatus = 'pending';
         }
+      }
 
-        
-        const latestOrder = orderStore.list.find(o => o.id === order.id);
-        if (latestOrder) {
-            const anyWaitingGlobally = (latestOrder.Menu || []).some(i => !i.itemStatus || i.itemStatus === 'waiting');
-            if (!anyWaitingGlobally && shouldReturnOrder(latestOrder)) {
-                await orderStore.rejectOrderGlobal(order.id);
-            }
-        }
+      if (action === 'cancel') {
+        newStatus = 'cancelled';
+        cancelledItems.push(item.id);
+      }
 
-        selections.value[order.id] = {}; 
-    } catch (error) {
-        alert("Error updating items: " + error.message);
+      updatedMenu.push({ ...item, itemStatus: newStatus });
     }
-    await orderStore.loadOrderinadmin();
+
+    const hasCancelled = updatedMenu.some(i => i.itemStatus === 'cancelled');
+    const anyWaiting = updatedMenu.some(i => !i.itemStatus || i.itemStatus === 'waiting');
+
+    const orderRef = doc(db, 'Order', order.id);
+
+    // 🔥 อัปเดต Order
+    if (hasCancelled && !anyWaiting) {
+      await updateDoc(orderRef, {
+        Menu: updatedMenu,
+        statusOrder: 'returned'
+      });
+    } else {
+      await updateDoc(orderRef, {
+        Menu: updatedMenu
+      });
+    }
+
+    // 🔥 sync เมนูที่ถูก cancel ให้เป็นสินค้าหมด
+    for (const itemId of cancelledItems) {
+      const menuRef = doc(db, 'Menu', itemId);
+      await updateDoc(menuRef, { 
+        Status: 'close',
+        UpdatedAt: serverTimestamp(),
+        status: deleteField(),
+        updatedAt: deleteField()
+      }).catch(e => console.error("Menu sync fail:", e));
+    }
+
+    selections.value[order.id] = {};
+
+  } catch (error) {
+    alert("Error updating items: " + error.message);
+  }
 };
 
 const areOtherRestaurantsReady = (order) => {
@@ -263,9 +325,7 @@ const getRowStatusColor = (status) => {
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
-                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant
-                        ||
-                        'Loading...' }}</p>
+                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant || 'Loading...' }}</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -273,7 +333,7 @@ const getRowStatusColor = (status) => {
                         <div class="stat py-2 px-4">
                             <div class="stat-title text-xs">Waiting</div>
                             <div class="stat-value text-slate-400 text-2xl">{{restaurantOrders.filter(o =>
-                                o.localStatus === 'waiting').length}}</div>
+                                o.localStatus === 'pending').length}}</div>
                         </div>
                     </div>
                 </div>
@@ -407,7 +467,6 @@ const getRowStatusColor = (status) => {
                             </div>
                         </div>
                     </div>
-
                     
                     <div class="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                         <div class="flex justify-between items-center mb-4">
@@ -420,7 +479,7 @@ const getRowStatusColor = (status) => {
                         <div class="flex gap-2 items-center justify-end">
                             <button v-if="hasWaitingItems(order)" @click="saveChanges(order)"
                                 class="btn btn-sm w-full bg-gradient-to-r from-slate-700 to-slate-800 border-none text-white shadow-lg disabled:bg-slate-200"
-                                :disabled="!areOtherRestaurantsReady(order) ? false : !areAllItemsSelected(order)">
+                                :disabled="!areAllItemsSelected(order)">
                                 Save Changes
                             </button>
                             <div v-else class="w-full">

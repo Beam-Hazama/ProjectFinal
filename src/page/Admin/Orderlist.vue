@@ -8,7 +8,7 @@ const selectedOrder = ref(null);
 const showModal = ref(false);
 
 onMounted(() => {
-  orderStore.loadOrder();
+  orderStore.loadOrderinadmin();
 });
 
 const formatLocation = (tableId) => {
