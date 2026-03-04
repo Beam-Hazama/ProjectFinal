@@ -179,6 +179,14 @@ const handleSave = async () => {
     }
 };
 
+const filterNumbers = (field) => {
+    userData.value[field] = userData.value[field].replace(/[0-9]/g, '');
+};
+
+const filterNonNumbers = (field) => {
+    userData.value[field] = userData.value[field].replace(/[^0-9]/g, '');
+};
+
 const goBack = () => router.go(-1);
 </script>
 
@@ -283,14 +291,14 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.Firstname"
+                                    <input type="text" v-model="userData.Firstname" @input="filterNumbers('Firstname')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50"
                                         placeholder="กรอกชื่อจริง" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.Lastname"
+                                    <input type="text" v-model="userData.Lastname" @input="filterNumbers('Lastname')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50"
                                         placeholder="กรอกนามสกุล" />
                                 </div>
@@ -341,6 +349,7 @@ const goBack = () => router.go(-1);
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Phone" placeholder="0xx-xxx-xxxx"
+                                        @input="filterNonNumbers('Phone')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 

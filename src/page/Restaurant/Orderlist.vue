@@ -504,7 +504,7 @@ const getRowStatusColor = (status) => {
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <p v-if="item.note"
                                         class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">
@@ -551,7 +551,7 @@ const getRowStatusColor = (status) => {
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-xs font-bold text-slate-400 uppercase">Total (My Items)</span>
                             <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
-                                }}
+                            }}
                                 ฿</span>
                         </div>
 
