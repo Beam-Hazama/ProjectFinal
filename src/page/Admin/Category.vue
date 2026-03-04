@@ -81,10 +81,8 @@ const onDragEnd = async () => {
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
-                </div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="text-3xl font-bold text-slate-700">Category Management</div>
                 <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -94,7 +92,7 @@ const onDragEnd = async () => {
                 </button>
             </div>
 
-           
+
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
@@ -128,7 +126,7 @@ const onDragEnd = async () => {
                             </div>
                         </div>
 
-                        
+
                         <div v-if="newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
                             <img :src="newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
@@ -153,17 +151,17 @@ const onDragEnd = async () => {
                 </div>
             </div>
 
-            
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
-                                <th class="py-4 pl-2 w-24">Image</th>
-                                <th>Category Name</th>
-                                <th>Created At</th>
-                                <th class="text-center">Actions</th>
+                                <th class="w-24">IMAGE</th>
+                                <th>CATEGORY NAME</th>
+                                <th>CREATED AT</th>
+                                <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
 

@@ -62,7 +62,7 @@ onMounted(async () => {
 
 <template>
   <LayoutAdmin>
-    <div class="min-h-screen p-6 md:p-8 font-sans">
+    <div class="p-6 font-sans">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div class="flex items-center gap-4">
           <div>
@@ -76,7 +76,11 @@ onMounted(async () => {
         </div>
 
         <div class="flex gap-3">
-          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">
+          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200 gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
             กลับ
           </button>
         </div>

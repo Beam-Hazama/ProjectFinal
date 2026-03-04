@@ -291,10 +291,7 @@ watch(() => route.params.restaurantName, fetchRestaurantByName);
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
-                  <p class="text-[10px] text-blue-500 mt-1 italic">
-                    {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' :
-                      '*สถานะถูกกำหนดด้วยโหมด Manual' }}
-                  </p>
+              
                 </div>
               </div>
             </div>

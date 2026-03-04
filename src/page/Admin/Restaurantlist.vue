@@ -73,7 +73,7 @@ const formatDate = (timestamp) => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex justify-between items-start mb-6">
         <div class="text-3xl font-bold text-slate-700">Restaurant List</div>
         <RouterLink to="/Admin/Restaurant/Addrestaurant"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
@@ -90,12 +90,12 @@ const formatDate = (timestamp) => {
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
-                <th class="py-4 pl-6">Restaurant</th>
-                <th>Status</th>
-                <th>Open-Close</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th>Action</th>
+                <th class="py-4 pl-6">RESTAURANT</th>
+                <th>STATUS</th>
+                <th>OPEN-CLOSE</th>
+                <th>CREATED AT</th>
+                <th>UPDATED AT</th>
+                <th class="text-center">ACTION</th>
               </tr>
             </thead>
 
@@ -141,7 +141,7 @@ const formatDate = (timestamp) => {
                 <td class="text-xs font-medium">{{ formatDate(product.CreatedAt) }}</td>
                 <td class="text-xs font-medium">{{ formatDate(product.UpdatedAt) }}</td>
 
-                <td>
+                <td class="text-center">
                   <button @click="deleteRestaurant(product.id, product.Name)"
                     class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
