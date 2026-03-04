@@ -75,7 +75,7 @@ const handleSubmitPoster = async () => {
             posterData.startTime = startTime.value;
             posterData.endTime = endTime.value;
         } else {
-            // Clear schedule data if unchecked
+          
             posterData.startTime = null;
             posterData.endTime = null;
         }

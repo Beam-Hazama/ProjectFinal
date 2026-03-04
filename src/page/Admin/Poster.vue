@@ -6,7 +6,7 @@ import { usePosterStore } from '@/stores/posterStore';
 
 const posterStore = usePosterStore();
 
-// Form state
+
 const newPosterUrl = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);

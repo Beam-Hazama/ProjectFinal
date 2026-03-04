@@ -59,7 +59,7 @@ const sortedRestaurants = computed(() => {
 
         if (aClosed && !bClosed) return 1;
         if (!aClosed && bClosed) return -1;
-        return 0; // maintain original order for similar status
+        return 0; 
     });
 })
 
@@ -75,10 +75,10 @@ const goToRestaurantMenu = (restaurantName) => {
             :class="isShopClosed(shop) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
             :disabled="isShopClosed(shop)" @click="!isShopClosed(shop) && goToRestaurantMenu(shop.Name)">
 
-            <!-- Left Image -->
+          
             <figure
                 class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
-                <!-- We can use a default image placeholder for shops if none exists -->
+                
                 <img v-if="shop.ImageUrl" :src="shop.ImageUrl" class="object-cover w-full h-full"
                     :class="{ 'grayscale': isShopClosed(shop) }" />
                 <div v-else class="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-300">
@@ -95,7 +95,7 @@ const goToRestaurantMenu = (restaurantName) => {
                 </div>
             </figure>
 
-            <!-- Right Details -->
+          
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
                 <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ shop.Name }}</h3>
                 <p class="font-medium text-[12px] flex items-center gap-1"

@@ -183,7 +183,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         this.ordersLoading = false;
       });
 
-      // 2. Listen to Menu Collection filtered by Restaurant
+     
       const productsQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
       this.unsubscribeProducts = onSnapshot(productsQuery, (snapshot) => {
         const products = [];
@@ -200,24 +200,25 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       });
     },
 
+
     processRevenueByDay(orders) {
-      // Group revenue by the last 7 days
+      
       const days = {};
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      // Initialize with last 7 days
+      
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        // Format as DD/MM
+        
         const dateString = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
         days[dateString] = 0;
       }
 
       orders.forEach(order => {
         if (order.localTotal > 0 && order.CreatedAt) {
-          // Convert Firestore timestamp to Date
+         
           const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
           orderDate.setHours(0,0,0,0);
           
@@ -233,7 +234,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         }
       });
 
-      // Convert back to sorted array
       this.revenueByDay = Object.keys(days).map(key => ({
         date: key,
         revenue: days[key]
@@ -250,7 +250,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.categoriesCount = Object.keys(counts).map(key => ({
         name: key,
         count: counts[key]
-      })).sort((a,b) => b.count - a.count); // Sort highest first
+      })).sort((a,b) => b.count - a.count); 
     }
   }
 });

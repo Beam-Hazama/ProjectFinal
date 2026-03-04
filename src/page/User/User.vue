@@ -125,7 +125,7 @@ const filteredRestaurants = computed(() => {
 
 const filteredProducts = computed(() => {
   if (!menuStore.list) return [];
-  // Optionally filter by activeShopTab if 'ทั้งหมด' is not selected, or just show all popular items
+  
   let items = menuStore.list;
 
   if (activeShopTab.value !== 'ทั้งหมด' && activeShopTab.value !== 'ร้านค้า') {

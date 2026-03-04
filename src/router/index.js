@@ -225,7 +225,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'restaurant' },
     },
 
-    // ⚠️ Wildcard routes MUST be last — they match ANY path pattern
+    
     {
       path: '/user/:building/:floor/:room',
       name: 'UserWithParams',

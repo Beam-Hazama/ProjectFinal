@@ -20,7 +20,15 @@ const displayLocation = computed(() => {
 
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => {
-    return String(order.tableId).trim() === String(tableId).trim();
+    const isOwner = String(order.tableId).trim() === String(tableId).trim();
+    if (!isOwner) return false;
+
+   
+    const hasActiveItems = (order.Menu || []).some(item =>
+      !['received', 'cancelled', 'returned'].includes(item.itemStatus)
+    );
+
+    return hasActiveItems;
   });
 });
 
@@ -33,6 +41,33 @@ const confirmReceived = async (orderId, itemId) => {
     await orderListStore.updateSingleItemStatus(orderId, itemId, 'received');
 
     orderListStore.loadOrderUser(tableId);
+  }
+};
+
+const getOrderProgress = (order) => {
+  const items = order.Menu || [];
+  if (items.length === 0) return 0;
+
+  const allFinished = items.every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus));
+  if (allFinished) return 3;
+
+  const anyDispatched = items.some(i => i.itemStatus === 'dispatched');
+  if (anyDispatched) return 2;
+
+  const anyCooking = items.some(i => ['pending', 'cooking'].includes(i.itemStatus));
+  if (anyCooking) return 1;
+
+  return 0;
+};
+
+const getItemCountByStage = (order, stage) => {
+  const items = order.Menu || [];
+  switch (stage) {
+    case 0: return items.filter(i => !i.itemStatus || i.itemStatus === 'waiting').length;
+    case 1: return items.filter(i => ['pending', 'cooking'].includes(i.itemStatus)).length;
+    case 2: return items.filter(i => i.itemStatus === 'dispatched').length;
+    case 3: return items.filter(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus)).length;
+    default: return 0;
   }
 };
 
@@ -137,6 +172,109 @@ onMounted(() => {
           </button>
         </div>
 
+
+        <div class="px-8 py-6 bg-white border-b border-gray-50">
+          <div class="relative flex items-center justify-between">
+
+            <div class="absolute left-4 right-4 top-4 h-[2px]">
+              <div class="w-full h-full bg-gray-100"></div>
+              <div class="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-700 ease-out"
+                :style="{ width: `${(getOrderProgress(order) / 3) * 100}%` }"></div>
+            </div>
+
+            <div class="relative z-10 flex flex-col items-center">
+              <div class="relative">
+                <div :class="[
+                  'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
+                  getOrderProgress(order) >= 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M9 21V9" />
+                  </svg>
+                </div>
+                <div v-if="getItemCountByStage(order, 0) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  getOrderProgress(order) >= 0 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ getItemCountByStage(order, 0) }}
+                </div>
+              </div>
+              <span
+                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
+            </div>
+
+           
+            <div class="relative z-10 flex flex-col items-center">
+              <div class="relative">
+                <div :class="[
+                  'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
+                  getOrderProgress(order) >= 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 11c0 3.3 2.7 6 6 6h2c3.3 0 6-2.7 6-6H3Z" />
+                    <path d="M17 11h4" />
+                    <path d="M9 7v4" />
+                    <path d="M13 7v4" />
+                  </svg>
+                </div>
+                <div v-if="getItemCountByStage(order, 1) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  getOrderProgress(order) >= 1 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ getItemCountByStage(order, 1) }}
+                </div>
+              </div>
+              <span
+                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
+            </div>
+
+            
+            <div class="relative z-10 flex flex-col items-center">
+              <div class="relative">
+                <div :class="[
+                  'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
+                  getOrderProgress(order) >= 2 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 17h4V5H2v12h3m15 0h2v-3.34a2 2 0 0 0-.59-1.42L17.5 9H14" />
+                    <circle cx="7.5" cy="17.5" r="2.5" />
+                    <circle cx="17.5" cy="17.5" r="2.5" />
+                  </svg>
+                </div>
+                <div v-if="getItemCountByStage(order, 2) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  getOrderProgress(order) >= 2 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ getItemCountByStage(order, 2) }}
+                </div>
+              </div>
+              <span
+                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
+            </div>
+
+          
+            <div class="relative z-10 flex flex-col items-center">
+              <div class="relative">
+                <div :class="[
+                  'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
+                  getOrderProgress(order) >= 3 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </div>
+                <div v-if="getItemCountByStage(order, 3) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  getOrderProgress(order) >= 3 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ getItemCountByStage(order, 3) }}
+                </div>
+              </div>
+              <span
+                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 3 ? 'text-blue-600' : 'text-gray-400']">สำเร็จแล้ว</span>
+            </div>
+          </div>
+        </div>
+
         <div class="p-4 space-y-4">
           <div v-for="(item, i) in order.Menu" :key="i"
             class="group flex justify-between items-center p-2 rounded-xl hover:bg-white/50 transition-colors">
@@ -149,35 +287,30 @@ onMounted(() => {
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
-                  'bg-slate-400 ring-slate-200': !item.itemStatus || item.itemStatus === 'waiting',
-                  'bg-amber-400 ring-amber-200': item.itemStatus === 'pending',
-                  'bg-blue-400 ring-blue-200': item.itemStatus === 'cooking',
-                  'bg-green-500 ring-green-200': item.itemStatus === 'served',
+                  'bg-yellow-400 ring-yellow-200': !item.itemStatus || item.itemStatus === 'waiting',
+                  'bg-orange-500 ring-orange-200': item.itemStatus === 'pending' || item.itemStatus === 'cooking' || item.itemStatus === 'returned',
+                  'bg-green-500 ring-green-200': item.itemStatus === 'dispatched',
                   'bg-teal-500 ring-teal-200': item.itemStatus === 'received',
-                  'bg-red-500 ring-red-200': item.itemStatus === 'cancelled',
-                  'bg-orange-500 ring-orange-200': item.itemStatus === 'returned'
+                  'bg-red-500 ring-red-200': item.itemStatus === 'cancelled'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
-                  'text-slate-500': !item.itemStatus || item.itemStatus === 'waiting',
-                  'text-amber-500': item.itemStatus === 'pending',
-                  'text-blue-500': item.itemStatus === 'cooking',
-                  'text-green-600': item.itemStatus === 'served',
+                  'text-yellow-500': !item.itemStatus || item.itemStatus === 'waiting',
+                  'text-orange-500': item.itemStatus === 'pending' || item.itemStatus === 'cooking' || item.itemStatus === 'returned',
+                  'text-green-600': item.itemStatus === 'dispatched',
                   'text-teal-600': item.itemStatus === 'received',
-                  'text-red-500': item.itemStatus === 'cancelled',
-                  'text-orange-500': item.itemStatus === 'returned'
+                  'text-red-500': item.itemStatus === 'cancelled'
                 }">
                   {{ (!item.itemStatus || item.itemStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
-                    item.itemStatus === 'pending' ? 'รับออเดอร์แล้ว' :
-                      item.itemStatus === 'cooking' ? 'กำลังทำ' :
-                        item.itemStatus === 'cancelled' ? 'ถูกยกเลิก' :
-                          item.itemStatus === 'returned' ? 'รายการถูกตีกลับ' :
-                            item.itemStatus === 'received' ? 'ได้รับแล้ว' : 'เสิร์ฟแล้ว' }}
+                    (item.itemStatus === 'pending' || item.itemStatus === 'cooking') ? 'กำลังทำอาหาร' :
+                      item.itemStatus === 'cancelled' ? 'ถูกยกเลิก' :
+                        item.itemStatus === 'returned' ? 'รายการถูกตีกลับ' :
+                          item.itemStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
                 </span>
               </div>
             </div>
             <div class="text-right flex flex-col items-end gap-1">
               <span class="text-sm font-black text-gray-800">฿{{ formatPrice(item.Price * item.Quantity) }}</span>
-              <button v-if="item.itemStatus === 'served'" @click="confirmReceived(order.id, item.id)"
+              <button v-if="item.itemStatus === 'dispatched'" @click="confirmReceived(order.id, item.id)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันได้รับ
               </button>

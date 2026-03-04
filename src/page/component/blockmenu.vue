@@ -82,7 +82,7 @@ const sortedProducts = computed(() => {
       </template>
 
       <template v-else>
-        <!-- Top Image (Half-height) -->
+       
         <div class="w-full aspect-square relative bg-gray-100 overflow-hidden">
           <img v-if="product.ImageUrl" :src="product.ImageUrl"
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -106,7 +106,7 @@ const sortedProducts = computed(() => {
           </div>
         </div>
 
-        <!-- Bottom Details -->
+        
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
           <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2 h-[2.5em] mb-1">{{ product.Name }}
           </h3>

@@ -25,12 +25,7 @@ const openAddModal = () => {
   isModalOpen.value = true
 }
 
-/*const openEditModal = (room) => {
-  isEditing.value = true
-  currentRoomId.value = room.id
-  roomForm.value = { roomNumber: room.roomNumber, floor: room.floor, building: room.building }
-  isModalOpen.value = true
-}*/
+
 
 const formatDate = (date) => {
   if (!date) return 'กำลังโหลด...'

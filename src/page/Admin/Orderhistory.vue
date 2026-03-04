@@ -25,8 +25,10 @@ const openModal = (order) => {
 
 const getStatusColor = (status) => {
     switch (status) {
-        case 'cooking': return 'badge-info text-white';
-        case 'served': return 'badge-success text-white';
+        case 'pending': return 'badge-info text-white';
+        case 'cooking': return 'bg-orange-500 text-white border-none';
+        case 'dispatched':
+        case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
@@ -159,12 +161,14 @@ const formatDate = (timestamp) => {
                                         <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
                                             <span class="badge badge-xs gap-1" :class="{
-                                                'badge-info': item.itemStatus === 'cooking',
-                                                'badge-success text-white': item.itemStatus === 'served',
+                                                'badge-info': item.itemStatus === 'pending',
+                                                'bg-orange-500 text-white border-none': item.itemStatus === 'cooking',
+                                                'badge-success text-white': item.itemStatus === 'dispatched',
                                                 'badge-error text-white bg-red-500': item.itemStatus === 'cancelled',
                                                 'badge-error text-white bg-orange-500': item.itemStatus === 'returned'
                                             }">
-                                                {{ item.itemStatus || 'pending' }}
+                                                {{ item.itemStatus === 'pending' ? 'cooking' : (item.itemStatus ||
+                                                    'pending') }}
                                             </span>
                                         </td>
                                     </tr>
@@ -180,7 +184,7 @@ const formatDate = (timestamp) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.TotalPrice?.toLocaleString()
-                            }} ฿</span>
+                                }} ฿</span>
                         </div>
                     </div>
                 </div>

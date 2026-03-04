@@ -40,7 +40,7 @@ onUnmounted(() => {
                     <h1 class="text-3xl font-bold text-slate-700">Dashboard</h1>
                 </div>
 
-             
+
                 <button @click="dashboardStore.loadDashboardData(accountStore.user?.Restaurant)"
                     class="btn btn-sm bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"

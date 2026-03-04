@@ -14,8 +14,8 @@ const cartStore = useCartStore()
 const quantity = ref(1)
 const note = ref('')
 
-// State to securely map choices by group index
-const selections = ref({}) // { [gIndex]: string | string[] }
+
+const selections = ref({}) 
 
 watch(
   () => props.product,
@@ -26,9 +26,7 @@ watch(
     selections.value = {}
 
     if (cartItem && cartItem.selections) {
-      // Recover options if the cart already tracking them
-      // This is complex to recover perfectly from 'note' text, typically carts store option IDs.
-      // For simplicity based on current impl, we'll reset selections if changing product, or just use what cart has.
+
     }
 
     if (product.OptionGroups) {
@@ -43,11 +41,9 @@ watch(
 
     if (cartItem) {
       quantity.value = cartItem.Quantity
-      // Cart items would ideally store their selections structure, 
-      // but currently the Note is what is stored. Let's keep note as the base.
+     
       note.value = cartItem.baseNote || ''
-      // If we are strictly following previous logic, 'note' was overwritten. 
-      // For now we just reset custom notes or leave it.
+      
     } else {
       quantity.value = 1
       note.value = ''
@@ -76,12 +72,11 @@ const confirmAdd = () => {
     finalNote = finalNote ? `${combinedOptions} \n${finalNote}` : combinedOptions
   }
 
-  // Passing the Note which includes option selections
   cartStore.addOrUpdateItem(props.product, quantity.value, finalNote)
   emit('close')
 }
 
-// Helper to show accurate math to user on button
+
 const totalPrice = () => {
   if (!props.product) return 0
   let base = props.product.Price
@@ -148,7 +143,7 @@ const totalPrice = () => {
               <span class="text-6xl">🍲</span>
             </div>
 
-            <!-- Overlapping Mock Restaurant Details -->
+            
           </div>
 
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
@@ -158,7 +153,7 @@ const totalPrice = () => {
             </div>
           </div>
 
-          <!-- Dynamic Option Groups -->
+   
           <div v-if="product.OptionGroups && product.OptionGroups.length > 0">
             <div v-for="(group, gIndex) in product.OptionGroups" :key="'group-' + gIndex"
               class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
@@ -198,7 +193,7 @@ const totalPrice = () => {
             </div>
           </div>
 
-          <!-- Notes section -->
+       
           <div class="bg-white px-5 py-4 mt-2 mb-8 border-b border-gray-100">
             <h3 class="font-bold text-gray-800 text-[15px] mb-3">รายละเอียดเพิ่มเติม</h3>
             <textarea v-model="note"
@@ -208,10 +203,10 @@ const totalPrice = () => {
 
         </div>
 
-        <!-- Sticky Bottom Bar -->
+       
         <div
           class="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] px-4 pb-safe rounded-t-3xl z-20 flex flex-col items-center">
-          <!-- Quantity Stepper Centered above button -->
+         
           <div class="flex items-center justify-center gap-6 py-4">
             <button
               class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 font-medium active:scale-95 transition-all focus:outline-none disabled:opacity-30 disabled:active:scale-100"
@@ -234,7 +229,7 @@ const totalPrice = () => {
             </button>
           </div>
 
-          <!-- Add to cart button -->
+        
           <button
             class="w-full bg-blue-600 text-white rounded-xl py-3.5 px-4 font-bold active:scale-[0.98] transition-all flex justify-between items-center mb-4 shadow-md"
             @click="confirmAdd">
@@ -266,9 +261,9 @@ const totalPrice = () => {
 
 .no-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
+  
   scrollbar-width: none;
-  /* Firefox */
+ 
 }
 
 .pb-safe {

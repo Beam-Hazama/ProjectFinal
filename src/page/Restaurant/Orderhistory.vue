@@ -29,14 +29,15 @@ const historyOrders = computed(() => {
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const allReturned = myItems.every(i => i.itemStatus === 'returned');
             const isFinished = myItems.every(i =>
-                i.itemStatus === 'served' ||
+                i.itemStatus === 'dispatched' ||
+                i.itemStatus === 'received' ||
                 i.itemStatus === 'cancelled' ||
                 i.itemStatus === 'returned'
             );
 
             if (allCancelled) localStatus = 'cancelled';
             else if (allReturned) localStatus = 'returned';
-            else if (isFinished) localStatus = 'served';
+            else if (isFinished) localStatus = 'dispatched';
             else localStatus = 'cooking';
         }
 
@@ -50,7 +51,7 @@ const historyOrders = computed(() => {
         order.displayItems.length > 0 &&
         (order.statusOrder === 'returned' ||
             order.statusOrder === 'cancelled' ||
-            order.localStatus === 'served' ||
+            order.localStatus === 'dispatched' ||
             order.localStatus === 'cancelled' ||
             order.localStatus === 'returned')
     ).sort((a, b) => {
@@ -66,8 +67,10 @@ const openModal = (order) => {
 
 const getStatusColor = (status) => {
     switch (status) {
-        case 'cooking': return 'badge-info text-white';
-        case 'served': return 'badge-success text-white';
+        case 'pending': return 'badge-info text-white';
+        case 'cooking': return 'bg-orange-500 text-white border-none';
+        case 'dispatched':
+        case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
@@ -165,7 +168,7 @@ const formatDate = (timestamp) => {
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.building && selectedOrder.room">
                                 Location: {{ selectedOrder.room }} ({{ selectedOrder.building }} FL.{{
-                                selectedOrder.floor }})
+                                    selectedOrder.floor }})
                             </span>
                             <span v-else>
                                 Table: {{ selectedOrder.tableId }}
@@ -197,12 +200,14 @@ const formatDate = (timestamp) => {
                                         <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
                                             <span class="badge badge-xs gap-1" :class="{
-                                                'badge-info': item.itemStatus === 'cooking',
-                                                'badge-success text-white': item.itemStatus === 'served',
+                                                'badge-info': item.itemStatus === 'pending',
+                                                'bg-orange-500 text-white border-none': item.itemStatus === 'cooking',
+                                                'badge-success text-white': item.itemStatus === 'dispatched',
                                                 'badge-error text-white bg-red-500': item.itemStatus === 'cancelled',
                                                 'badge-error text-white bg-orange-500': item.itemStatus === 'returned'
                                             }">
-                                                {{ item.itemStatus || 'pending' }}
+                                                {{ (item.itemStatus === 'pending') ? 'cooking' : (item.itemStatus ||
+                                                    'pending') }}
                                             </span>
                                         </td>
                                     </tr>
@@ -218,7 +223,7 @@ const formatDate = (timestamp) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.displayTotal?.toLocaleString()
-                                }} ฿</span>
+                            }} ฿</span>
                         </div>
                     </div>
                 </div>

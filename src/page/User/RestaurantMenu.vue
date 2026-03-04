@@ -335,9 +335,9 @@ const filteredMenu = computed(() => {
 
 .no-scrollbar {
     -ms-overflow-style: none;
-    /* IE and Edge */
+   
     scrollbar-width: none;
-    /* Firefox */
+    
 }
 
 .animate-fade-in {

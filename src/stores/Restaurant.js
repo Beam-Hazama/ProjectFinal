@@ -11,16 +11,7 @@ export const useRestaurant = defineStore('Restaurant', {
     menus: [],
   }),
   actions: {
-    /*async getImageUrl(productId){
-      try{
-        const imgRef = ref(storage,`products/${productId}.jpeg`)
-        const url = await getDownloadURL(imgRef)
-        this.imageList[productId] = url
-      }catch(error){
-        console.error('no image')
-      }
-      
-    },*/
+    
     async loadRestaurant() {
       const uid = auth.currentUser.uid;
 
@@ -70,21 +61,6 @@ export const useRestaurant = defineStore('Restaurant', {
       });
     },
 
-    /*async productUpdate(productId, productData) {
-      const product = {
-        ...productData,
-        updatedAt: new Date(),
-      };
-      const thisProduct = doc(db, 'Restaurant', productId);
-      await setDoc(thisProduct, product);
-    },
-    category(selectRole) {
-      return this.list.filter((product) => product.role.includes(selectRole));
-    },
-    async addProduct(productData) {
-      await addDoc(collection(db, 'Restaurant'), {
-        ...productData,
-      });
-    },*/
+    
   },
 });

@@ -6,7 +6,7 @@ import { useCategoryStore } from '@/stores/categoryStore';
 
 const categoryStore = useCategoryStore();
 
-// Form state
+
 const newCategoryName = ref('');
 const newCategoryImageUrl = ref('');
 const isSubmitting = ref(false);
@@ -32,9 +32,9 @@ const handleAddCategory = async () => {
             name: newCategoryName.value.trim(),
             ImageUrl: newCategoryImageUrl.value.trim()
         });
-        newCategoryName.value = ''; // Reset
+        newCategoryName.value = ''; 
         newCategoryImageUrl.value = '';
-        showModal.value = false; // Close modal on success
+        showModal.value = false; 
     } catch (error) {
         alert('Error adding category: ' + error.message);
     } finally {

@@ -75,12 +75,12 @@ export const useDashboardStore = defineStore('dashboard', {
       }
     },
 
-    // Series for the Donut Chart (Categories)
+   
     categoryChartSeries: (state) => {
       return state.categoriesCount.map(cat => cat.count);
     },
 
-    // Options for the Donut Chart
+   
     categoryChartOptions: (state) => {
       const labels = state.categoriesCount.map(cat => cat.name);
       return {
@@ -140,7 +140,7 @@ export const useDashboardStore = defineStore('dashboard', {
       this.productsLoading = true;
       this.usersLoading = true;
 
-      // 1. Listen to Orders Collection
+      
       const ordersQuery = query(collection(db, 'Order'));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
         let revenue = 0;
@@ -149,11 +149,24 @@ export const useDashboardStore = defineStore('dashboard', {
         snapshot.forEach(doc => {
           const data = doc.data();
           orders.push({ id: doc.id, ...data });
-          
-          // Calculate Revenue (Only count 'success' or 'completed' if applicable, 
-          // but for now let's sum up all non-cancelled orders based on the existing logic)
-          if (data.statusOrder !== 'cancelled' && data.statusOrder !== 'returned' && data.Netprice) {
-            revenue += Number(data.Netprice);
+         
+          if (data.statusOrder !== 'cancelled' && data.statusOrder !== 'returned') {
+            let orderTotal = 0;
+            if (data.Netprice) {
+                orderTotal = Number(data.Netprice);
+            } else if (data.TotalPrice) {
+                orderTotal = Number(data.TotalPrice);
+            } else if (data.Menu && Array.isArray(data.Menu)) {
+               
+                orderTotal = data.Menu.reduce((sum, item) => {
+                    if (item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
+                         return sum + (Number(item.Price || 0) * Number(item.Quantity || 1));
+                    }
+                    return sum;
+                }, 0);
+            }
+            revenue += orderTotal;
+            data.localTotal = orderTotal;
           }
         });
 
@@ -167,7 +180,7 @@ export const useDashboardStore = defineStore('dashboard', {
         this.ordersLoading = false;
       });
 
-      // 2. Listen to Menu Collection
+      
       const productsQuery = query(collection(db, 'Menu'));
       this.unsubscribeProducts = onSnapshot(productsQuery, (snapshot) => {
         const products = [];
@@ -183,7 +196,7 @@ export const useDashboardStore = defineStore('dashboard', {
         this.productsLoading = false;
       });
 
-      // 3. Listen to User Collection
+     
       const usersQuery = query(collection(db, 'User'));
       this.unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
         this.totalUsers = Number(snapshot.size);
@@ -194,24 +207,25 @@ export const useDashboardStore = defineStore('dashboard', {
       });
     },
 
+
     processRevenueByDay(orders) {
-      // Group revenue by the last 7 days
+      
       const days = {};
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      // Initialize with last 7 days
+    
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        // Format as DD/MM
+      
         const dateString = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
         days[dateString] = 0;
       }
 
       orders.forEach(order => {
-        if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned' && order.Netprice && order.CreatedAt) {
-          // Convert Firestore timestamp to Date
+        if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned' && order.localTotal && order.CreatedAt) {
+       
           const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
           orderDate.setHours(0,0,0,0);
           
@@ -221,13 +235,13 @@ export const useDashboardStore = defineStore('dashboard', {
           if (daysDiff >= 0 && daysDiff <= 6) {
              const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
              if (days[dateString] !== undefined) {
-                 days[dateString] += Number(order.Netprice);
+                 days[dateString] += Number(order.localTotal);
              }
           }
         }
       });
 
-      // Convert back to sorted array
+   
       this.revenueByDay = Object.keys(days).map(key => ({
         date: key,
         revenue: days[key]
@@ -244,7 +258,7 @@ export const useDashboardStore = defineStore('dashboard', {
       this.categoriesCount = Object.keys(counts).map(key => ({
         name: key,
         count: counts[key]
-      })).sort((a,b) => b.count - a.count); // Sort highest first
+      })).sort((a,b) => b.count - a.count); 
     }
   }
 });

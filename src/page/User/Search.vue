@@ -36,7 +36,7 @@ const goBack = () => {
 
 <template>
     <div class="min-h-screen bg-gray-50 pb-24 font-sans flex flex-col">
-        <!-- Search Header -->
+       
         <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm flex items-center gap-3">
             <button @click="goBack" class="p-2 -ml-2 text-gray-400 hover:text-blue-600 active:scale-95 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -66,10 +66,10 @@ const goBack = () => {
             </div>
         </div>
 
-        <!-- Search Results / Empty State -->
+       
         <div class="flex-1 px-4 pt-5 pb-10">
 
-            <!-- Initial State (Before typing) -->
+            
             <div v-if="!searchQuery"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400 animate-fade-in">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-30" fill="none"
@@ -80,14 +80,14 @@ const goBack = () => {
                 <p class="text-sm font-medium">พิมพ์เพื่อค้นหาเมนู หรือ ร้านอาหาร</p>
             </div>
 
-            <!-- No Results State -->
+           
             <div v-else-if="filteredMenu.length === 0"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400 animate-fade-in">
                 <span class="text-4xl opacity-50 mb-2">🍽️</span>
                 <p class="text-[13px] font-medium">ไม่พบผลการค้นหาสำหรับ "{{ searchQuery }}"</p>
             </div>
 
-            <!-- Results Grid -->
+           
             <div v-else class="animate-fade-in">
                 <div class="mb-4">
                     <h3 class="text-[14px] font-bold text-gray-800">ผลการค้นหา ({{ filteredMenu.length }})</h3>
@@ -100,7 +100,7 @@ const goBack = () => {
 </template>
 
 <script>
-// Custom directive to auto-focus the input when mounted
+
 export default {
     directives: {
         focus: {

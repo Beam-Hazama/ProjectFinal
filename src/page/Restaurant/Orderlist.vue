@@ -31,22 +31,23 @@ const restaurantOrders = computed(() => {
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
         if (myItems.length > 0) {
-            const allServed = myItems.every(i => i.itemStatus === 'served');
+            const allServed = myItems.every(i => i.itemStatus === 'dispatched');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const allReturned = myItems.every(i => i.itemStatus === 'returned');
 
             const isFinished = myItems.every(i =>
-                i.itemStatus === 'served' ||
+                i.itemStatus === 'dispatched' ||
+                i.itemStatus === 'received' ||
                 i.itemStatus === 'cancelled' ||
                 i.itemStatus === 'returned'
             );
 
             const anyCooking = myItems.some(i => i.itemStatus === 'cooking');
-            const anyServed = myItems.some(i => i.itemStatus === 'served');
+            const anyServed = myItems.some(i => i.itemStatus === 'dispatched');
 
             if (allCancelled) localStatus = 'cancelled';
             else if (allReturned) localStatus = 'returned';
-            else if (isFinished) localStatus = 'served';
+            else if (isFinished) localStatus = 'dispatched';
             else if (anyCooking || anyServed) localStatus = 'cooking';
             else localStatus = 'pending';
         }
@@ -59,9 +60,9 @@ const restaurantOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        order.statusOrder !== 'returned' &&   
+        order.statusOrder !== 'returned' &&
         order.statusOrder !== 'cancelled' &&
-        order.localStatus !== 'served' &&
+        order.localStatus !== 'dispatched' &&
         order.localStatus !== 'cancelled' &&
         order.localStatus !== 'returned'
     );
@@ -69,9 +70,9 @@ const restaurantOrders = computed(() => {
 
 const getStatusColor = (status) => {
     switch (status) {
-        case 'pending': return 'badge-warning text-white';
-        case 'cooking': return 'badge-info text-white';
-        case 'served': return 'badge-success text-white';
+        case 'pending': return 'badge-info text-white';
+        case 'cooking': return 'bg-orange-500 text-white border-none';
+        case 'dispatched': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         default: return 'badge-ghost';
     }
@@ -103,7 +104,7 @@ const hasSelections = (orderId) => {
 
 const areAllItemsSelected = (order) => {
 
-    const activeItems = order.displayItems.filter(i => i.itemStatus !== 'served' && i.itemStatus !== 'cancelled');
+    const activeItems = order.displayItems.filter(i => i.itemStatus !== 'dispatched' && i.itemStatus !== 'cancelled');
 
     if (activeItems.length === 0) return false;
 
@@ -137,29 +138,29 @@ const deliverOrder = async (order) => {
     try {
         const myRestaurant = accountStore.user?.Restaurant;
 
-        
+
         const updatedMenu = (order.Menu || []).map(i => {
             if (
                 i.Restaurant === myRestaurant &&
-                i.itemStatus !== 'served' &&
+                i.itemStatus !== 'dispatched' &&
                 i.itemStatus !== 'cancelled' &&
                 i.itemStatus !== 'returned'
             ) {
-                return { ...i, itemStatus: 'served' };
+                return { ...i, itemStatus: 'dispatched' };
             }
             return i;
         });
 
         const orderRef = doc(db, 'Order', order.id);
 
-      
+
         const allFinished = updatedMenu.every(i =>
-            i.itemStatus === 'served' ||
+            i.itemStatus === 'dispatched' ||
             i.itemStatus === 'cancelled' ||
             i.itemStatus === 'returned'
         );
 
-        
+
         if (allFinished) {
             await updateDoc(orderRef, {
                 Menu: updatedMenu,
@@ -213,7 +214,7 @@ const saveChanges = async (order) => {
 
             if (action === 'advance') {
                 if (!item.itemStatus || item.itemStatus === 'waiting') {
-                    newStatus = 'pending';
+                    newStatus = 'cooking';
                 }
             }
 
@@ -230,7 +231,7 @@ const saveChanges = async (order) => {
 
         const orderRef = doc(db, 'Order', order.id);
 
-       
+
         if (hasCancelled && !anyWaiting) {
             await updateDoc(orderRef, {
                 Menu: updatedMenu,
@@ -242,7 +243,7 @@ const saveChanges = async (order) => {
             });
         }
 
-       
+
         for (const itemId of cancelledItems) {
             const menuRef = doc(db, 'Menu', itemId);
             await updateDoc(menuRef, {
@@ -307,9 +308,9 @@ const updateItemStatus = async (orderId, itemId, newStatus) => {
 const getRowStatusColor = (status) => {
     switch (status) {
         case 'waiting': return 'badge-ghost text-slate-400';
-        case 'pending': return 'badge-warning text-white';
-        case 'cooking': return 'badge-info text-white';
-        case 'served': return 'badge-success text-white';
+        case 'pending': return 'badge-info text-white';
+        case 'cooking': return 'bg-orange-500 text-white border-none';
+        case 'dispatched': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
@@ -323,10 +324,10 @@ const getRowStatusColor = (status) => {
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
-                    
+
                 </div>
 
-                
+
             </div>
 
             <div v-if="loading" class="flex justify-center py-20">
@@ -459,7 +460,7 @@ const getRowStatusColor = (status) => {
                     </div>
                     <div class="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                         <div class="flex justify-between items-center mb-4">
-                            <span class="text-xs font-bold text-slate-400 uppercase">Total (My Items)</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase">Total</span>
                             <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
                                 }}
                                 ฿</span>
@@ -469,7 +470,7 @@ const getRowStatusColor = (status) => {
                             <button v-if="hasWaitingItems(order)" @click="saveChanges(order)"
                                 class="btn btn-sm w-full bg-gradient-to-r from-slate-700 to-slate-800 border-none text-white shadow-lg disabled:bg-slate-200"
                                 :disabled="!areAllItemsSelected(order)">
-                                Save Changes
+                                Save
                             </button>
                             <div v-else class="w-full">
                                 <button v-if="!areOtherRestaurantsReady(order)" disabled

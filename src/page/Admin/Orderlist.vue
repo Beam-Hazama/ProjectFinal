@@ -109,7 +109,7 @@ const openModal = (order) => {
               </span>
               <span>Date: {{ formatDate(selectedOrder.CreatedAt) }}</span>
             </div>
-            <!-- </div> v-if moved down to cover table -->
+          
 
             <div class="overflow-x-auto">
               <table class="table w-full table-compact">
@@ -133,12 +133,12 @@ const openModal = (order) => {
                     <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                     <td class="text-center">
                       <span class="badge badge-xs gap-1" :class="{
-                        'badge-warning': item.itemStatus === 'pending',
-                        'badge-info': item.itemStatus === 'cooking',
-                        'badge-success text-white': item.itemStatus === 'served',
+                        'badge-info': item.itemStatus === 'pending',
+                        'bg-orange-500 text-white border-none': item.itemStatus === 'cooking',
+                        'badge-success text-white': item.itemStatus === 'dispatched',
                         'badge-error text-white': item.itemStatus === 'cancelled'
                       }">
-                        {{ item.itemStatus || 'pending' }}
+                        {{ item.itemStatus === 'pending' ? 'cooking' : (item.itemStatus || 'pending') }}
                       </span>
                     </td>
                   </tr>
@@ -150,7 +150,7 @@ const openModal = (order) => {
               <span class="text-2xl font-bold text-emerald-600">{{ selectedOrder.TotalPrice?.toLocaleString() }}
                 ฿</span>
             </div>
-          </div> <!-- End of v-if="selectedOrder" scope -->
+          </div> 
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">

@@ -40,10 +40,20 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
+          const allFinished = updatedMenu.every(item => 
+            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
+          );
 
-          await updateDoc(orderRef, {
+          const orderUpdates = {
             Menu: updatedMenu
-          });
+          };
+
+          if (allFinished) {
+            orderUpdates.statusOrder = 'completed';
+            orderUpdates.UpdatedAt = serverTimestamp();
+          }
+
+          await updateDoc(orderRef, orderUpdates);
 
           
           if (newStatus === 'cancelled') {
@@ -80,11 +90,21 @@ export const useOderlistStore = defineStore("oderlist", {
             return item;
           });
 
-          await updateDoc(orderRef, {
-            Menu: updatedMenu
-          });
+          const allFinished = updatedMenu.every(item => 
+            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
+          );
 
-          
+          const updates = {
+            Menu: updatedMenu
+          };
+
+          if (allFinished) {
+            updates.statusOrder = 'completed';
+            updates.UpdatedAt = serverTimestamp();
+          }
+
+          await updateDoc(orderRef, updates);
+
           if (newStatus === 'cancelled') {
             const menuRef = doc(db, 'Menu', itemId);
             await updateDoc(menuRef, { 
@@ -116,10 +136,20 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
-    
-          await updateDoc(orderRef, {
+          const allFinished = updatedMenu.every(item => 
+            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
+          );
+
+          const orderUpdates = {
             Menu: updatedMenu
-          });
+          };
+
+          if (allFinished) {
+            orderUpdates.statusOrder = 'completed';
+            orderUpdates.UpdatedAt = serverTimestamp();
+          }
+
+          await updateDoc(orderRef, orderUpdates);
 
          
           for (const update of updates) {

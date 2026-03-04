@@ -133,16 +133,15 @@ onMounted(async () => {
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-            {{ mode === 'Add Restaurant' ? 'เพิ่มร้านค้าใหม่' : 'แก้ไขข้อมูลร้านค้า' }}
+            {{ mode === 'Add Restaurant' ? 'Add New Restaurant' : 'Edit Restaurant' }}
           </h1>
-          <p class="text-sm text-slate-500">จัดการรายละเอียดที่ตั้ง ข้อมูลติดต่อ และสถานะร้านค้า</p>
         </div>
 
         <div class="flex gap-3">
-          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
+          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">Cancel</button>
           <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name"
             class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 px-6">
-            บันทึกข้อมูลร้านค้า
+            Save Restaurant
           </button>
         </div>
       </div>
@@ -278,7 +277,7 @@ onMounted(async () => {
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
-                  
+
                 </div>
               </div>
             </div>

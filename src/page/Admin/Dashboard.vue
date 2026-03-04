@@ -119,9 +119,7 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
-
         </div>
-
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -155,7 +153,8 @@ onUnmounted(() => {
             </h2>
             <div class="h-72 w-full flex items-center justify-center">
               <apexchart v-if="dashboardStore.categoryChartSeries.length > 0" type="donut" width="100%"
-                :options="dashboardStore.categoryChartOptions" :series="dashboardStore.categoryChartSeries"></apexchart>
+                :options="dashboardStore.categoryChartOptions" :series="dashboardStore.categoryChartSeries">
+              </apexchart>
               <div v-else class="text-slate-400 text-sm">ไม่มีข้อมูลหมวดหมู่</div>
             </div>
           </div>
