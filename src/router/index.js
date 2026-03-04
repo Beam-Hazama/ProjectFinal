@@ -235,6 +235,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const accountStore = useAccountStore();
 
+ 
+  if (!accountStore.isLoggedIn) {
+    accountStore.checkAuthState();
+  }
+
   if (to.meta.requiresAuth) {
     if (!accountStore.isLoggedIn) {
       return next({ name: 'Login' });

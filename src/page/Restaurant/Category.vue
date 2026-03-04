@@ -86,9 +86,8 @@ const formatDate = (timestamp) => {
         <div class="p-6">
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
-                    <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{
-                        accountStore.user?.Restaurant }}</p>
+                    <h1 class="text-3xl font-bold text-slate-700">Category</h1>
+                  
                 </div>
 
                 <button @click="showModal = true"

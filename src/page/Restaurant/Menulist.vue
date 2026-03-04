@@ -97,7 +97,7 @@ const formatDate = (timestamp) => {
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
-          <p class="text-slate-500 text-sm">ร้าน: {{ accountStore.user?.Restaurant }}</p>
+        
         </div>
         <RouterLink :to="{ name: 'Restaurant Add Menu' }"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">

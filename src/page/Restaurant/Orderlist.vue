@@ -59,7 +59,7 @@ const restaurantOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        order.statusOrder !== 'returned' &&   // 🔥 ใช้ field ที่ถูกต้อง
+        order.statusOrder !== 'returned' &&   
         order.statusOrder !== 'cancelled' &&
         order.localStatus !== 'served' &&
         order.localStatus !== 'cancelled' &&
@@ -137,7 +137,7 @@ const deliverOrder = async (order) => {
     try {
         const myRestaurant = accountStore.user?.Restaurant;
 
-        // 1️⃣ อัปเดตของร้านตัวเองเป็น served
+        
         const updatedMenu = (order.Menu || []).map(i => {
             if (
                 i.Restaurant === myRestaurant &&
@@ -152,14 +152,14 @@ const deliverOrder = async (order) => {
 
         const orderRef = doc(db, 'Order', order.id);
 
-        // 2️⃣ เช็คว่าทุกเมนูเสร็จหมดหรือยัง
+      
         const allFinished = updatedMenu.every(i =>
             i.itemStatus === 'served' ||
             i.itemStatus === 'cancelled' ||
             i.itemStatus === 'returned'
         );
 
-        // 3️⃣ ถ้าครบ → เปลี่ยน statusOrder
+        
         if (allFinished) {
             await updateDoc(orderRef, {
                 Menu: updatedMenu,
@@ -230,7 +230,7 @@ const saveChanges = async (order) => {
 
         const orderRef = doc(db, 'Order', order.id);
 
-        // 🔥 อัปเดต Order
+       
         if (hasCancelled && !anyWaiting) {
             await updateDoc(orderRef, {
                 Menu: updatedMenu,
@@ -242,7 +242,7 @@ const saveChanges = async (order) => {
             });
         }
 
-        // 🔥 sync เมนูที่ถูก cancel ให้เป็นสินค้าหมด
+       
         for (const itemId of cancelledItems) {
             const menuRef = doc(db, 'Menu', itemId);
             await updateDoc(menuRef, {
@@ -323,8 +323,7 @@ const getRowStatusColor = (status) => {
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
-                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant ||
-                        'Loading...' }}</p>
+                    
                 </div>
 
                 <div class="flex gap-2">
