@@ -32,6 +32,16 @@ const getStatusColor = (status) => {
         default: return 'badge-ghost text-slate-500';
     }
 }
+
+const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleString('th-TH');
+    } catch (e) {
+        return '-';
+    }
+}
 </script>
 
 <template>
@@ -170,7 +180,7 @@ const getStatusColor = (status) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.TotalPrice?.toLocaleString()
-                            }} ฿</span>
+                                }} ฿</span>
                         </div>
                     </div>
                 </div>
