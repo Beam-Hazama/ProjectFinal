@@ -11,6 +11,8 @@ const posterStore = usePosterStore();
 const newPosterUrl = ref('');
 const isSubmittingPoster = ref(false);
 const showModal = ref(false);
+const isEditing = ref(false);
+const editingPosterId = ref(null);
 
 const hasSchedule = ref(false);
 const startTime = ref('');
@@ -36,7 +38,18 @@ const onDragEnd = async () => {
     await posterStore.updatePosterOrder(orderedIds);
 };
 
-const handleAddPoster = async () => {
+const openEditModal = (poster) => {
+    isEditing.value = true;
+    editingPosterId.value = poster.id;
+    newPosterUrl.value = poster.ImageUrl;
+    displayDuration.value = poster.displayDuration || 5;
+    hasSchedule.value = !!poster.hasSchedule;
+    startTime.value = poster.startTime || '';
+    endTime.value = poster.endTime || '';
+    showModal.value = true;
+};
+
+const handleSubmitPoster = async () => {
     if (!newPosterUrl.value.trim()) {
         alert('Please enter an image URL');
         return;
@@ -59,17 +72,24 @@ const handleAddPoster = async () => {
         if (hasSchedule.value) {
             posterData.startTime = startTime.value;
             posterData.endTime = endTime.value;
+        } else {
+            // Clear schedule data if unchecked
+            posterData.startTime = null;
+            posterData.endTime = null;
         }
 
-        await posterStore.addPoster(posterData);
-        newPosterUrl.value = ''; // Reset
-        hasSchedule.value = false;
-        startTime.value = '';
-        endTime.value = '';
-        displayDuration.value = 5;
-        showModal.value = false; // Close modal on success
+        if (isEditing.value && editingPosterId.value) {
+            await posterStore.updatePoster(editingPosterId.value, {
+                ...posterData,
+                updatedAt: new Date()
+            });
+        } else {
+            await posterStore.addPoster(posterData);
+        }
+
+        closeModal();
     } catch (error) {
-        alert('Error adding poster: ' + error.message);
+        alert('Error saving poster: ' + error.message);
     } finally {
         isSubmittingPoster.value = false;
     }
@@ -77,6 +97,8 @@ const handleAddPoster = async () => {
 
 const closeModal = () => {
     showModal.value = false;
+    isEditing.value = false;
+    editingPosterId.value = null;
     newPosterUrl.value = '';
     hasSchedule.value = false;
     startTime.value = '';
@@ -147,7 +169,8 @@ const formatScheduleDate = (dateString) => {
                     @click.stop>
                     <div
                         class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                        <h2 class="text-lg font-bold text-slate-800">Add New Poster</h2>
+                        <h2 class="text-lg font-bold text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}
+                        </h2>
                         <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -218,10 +241,10 @@ const formatScheduleDate = (dateString) => {
                     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
                         <button @click="closeModal"
                             class="btn btn-ghost text-slate-500 hover:bg-slate-100">ยกเลิก</button>
-                        <button @click="handleAddPoster" :disabled="isSubmittingPoster || !newPosterUrl"
+                        <button @click="handleSubmitPoster" :disabled="isSubmittingPoster || !newPosterUrl"
                             class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none min-w-[120px] rounded-lg shadow-sm">
                             <span v-if="isSubmittingPoster" class="loading loading-spinner loading-sm"></span>
-                            <span v-else>เพิ่ม Poster</span>
+                            <span v-else>{{ isEditing ? 'บันทึกการแก้ไข' : 'เพิ่ม Poster' }}</span>
                         </button>
                     </div>
                 </div>
@@ -239,6 +262,7 @@ const formatScheduleDate = (dateString) => {
                                 <th>DURATION</th>
                                 <th>SCHEDULE</th>
                                 <th>CREATED AT</th>
+                                <th>UPDATED AT</th>
                                 <th class="text-center">ACTIONS</th>
                             </tr>
                         </thead>
@@ -324,16 +348,34 @@ const formatScheduleDate = (dateString) => {
                                         {{ formatDate(poster.createdAt) }}
                                     </td>
 
+                                    <td class="text-xs">
+                                        {{ formatDate(poster.updatedAt) }}
+                                    </td>
+
                                     <td class="text-center">
-                                        <button @click="deletePoster(poster.id)"
-                                            class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            ลบ (Delete)
-                                        </button>
+                                        <div class="flex justify-center gap-1">
+                                            <button @click="openEditModal(poster)"
+                                                class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button @click="deletePoster(poster.id)"
+                                                class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                              Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </template>
