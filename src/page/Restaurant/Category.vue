@@ -7,7 +7,7 @@ import { useAccountStore } from '@/stores/account'
 const categoryStore = useCategoryStore();
 const accountStore = useAccountStore()
 
-// Form state
+
 const newCategoryName = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
@@ -17,10 +17,17 @@ onMounted(async () => {
     loadCategories()
 })
 
+<<<<<<< HEAD
 watch(
     () => accountStore.user,
     () => {
         loadCategories()
+=======
+onMounted(() => {
+    if (restaurantName) {
+
+        categoryStore.loadCategories(restaurantName);
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     }
 )
 
@@ -39,10 +46,16 @@ const handleAddCategory = async () => {
         await categoryStore.addCategory({
             name: newCategoryName.value.trim(),
             RestaurantName: restaurantName
+<<<<<<< HEAD
         })
 
         newCategoryName.value = ''
         showModal.value = false
+=======
+        });
+        newCategoryName.value = '';
+        showModal.value = false;
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     } catch (error) {
         alert('Error adding category: ' + error.message)
     } finally {
@@ -52,7 +65,7 @@ const handleAddCategory = async () => {
 
 const closeModal = () => {
     showModal.value = false;
-    newCategoryName.value = ''; // Reset on cancel
+    newCategoryName.value = '';
 };
 
 const deleteCategory = async (categoryId, categoryName) => {
@@ -77,22 +90,27 @@ const formatDate = (timestamp) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6">
-            <div class="flex justify-between items-end mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
+<<<<<<< HEAD
                     <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
                     <p class="text-sm text-slate-500 mt-1">Manage categories for restaurant: {{ accountStore.user?.Restaurant }}</p>
+=======
+                    <h1 class="text-3xl font-bold text-slate-700">Category</h1>
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
                 </div>
-                <!-- Add Button that opens the modal -->
-                <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+
+                <button @click="showModal = true"
+                    class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Add Category
                 </button>
             </div>
 
-            <!-- Add Category Modal -->
+
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
@@ -120,7 +138,7 @@ const formatDate = (timestamp) => {
                             <button @click="closeModal"
                                 class="btn btn-ghost text-slate-500 hover:bg-slate-100">Cancel</button>
                             <button @click="handleAddCategory" :disabled="isSubmitting || !newCategoryName"
-                                class="btn bg-blue-600 hover:bg-blue-700 text-white border-none min-w-[120px]">
+                                class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none min-w-[120px] rounded-lg shadow-sm">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
                                 <span v-else>Save Category</span>
                             </button>
@@ -129,15 +147,15 @@ const formatDate = (timestamp) => {
                 </div>
             </div>
 
-            <!-- Category List Table -->
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
-                                <th>Category Name</th>
-                                <th>Created At</th>
-                                <th class="text-center">Actions</th>
+                                <th>CATEGORY NAME</th>
+                                <th>CREATED AT</th>
+                                <th class="text-center">ACTIONS</th>
                             </tr>
                         </thead>
 

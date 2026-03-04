@@ -87,7 +87,7 @@ const goBack = () => router.go(-1);
 
 <template>
     <LayoutAdmin>
-        <div class="min-h-screen p-6 md:p-8 font-sans bg-slate-50/50">
+        <div class="p-6 font-sans">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">

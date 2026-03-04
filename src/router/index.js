@@ -131,12 +131,12 @@ const router = createRouter({
     },
     {
       path: '/Admin/Poster',
-      name: 'Poster Manage',
+      name: 'Admin Poster',
       component: Adminpostermanage,
     },
     {
       path: '/Admin/Category',
-      name: 'Category Manage',
+      name: 'Admin Category',
       component: AdminCategory,
     },
 

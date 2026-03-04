@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
 
@@ -64,25 +65,35 @@ const formatDate = (timestamp) => {
     }
     return new Date(timestamp).toLocaleString('th-TH');
 };
+
+const localCategories = ref([]);
+
+watch(() => categoryStore.list, (newList) => {
+    localCategories.value = [...newList];
+}, { deep: true, immediate: true });
+
+const onDragEnd = async () => {
+    const orderedIds = localCategories.value.map(c => c.id);
+    await categoryStore.updateCategoryOrder(orderedIds);
+};
 </script>
 
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-slate-700">Category Management</h1>
-                </div>
-                <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <div class="flex justify-between items-start mb-6">
+                <div class="text-3xl font-bold text-slate-700">Category</div>
+                <button @click="showModal = true"
+                    class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Add Category
                 </button>
             </div>
 
-            <!-- Add Category Modal -->
+
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
@@ -116,7 +127,7 @@ const formatDate = (timestamp) => {
                             </div>
                         </div>
 
-                        <!-- Image Preview -->
+
                         <div v-if="newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
                             <img :src="newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
@@ -141,22 +152,23 @@ const formatDate = (timestamp) => {
                 </div>
             </div>
 
-            <!-- Category List Table -->
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
-                                <th class="py-4 pl-6 w-24">Image</th>
-                                <th>Category Name</th>
-                                <th>Created At</th>
-                                <th class="text-center">Actions</th>
+                                <th class="w-12 text-center py-4 pl-6"></th>
+                                <th class="w-24">IMAGE</th>
+                                <th>CATEGORY NAME</th>
+                                <th>CREATED AT</th>
+                                <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
 
-                        <tbody class="text-slate-600">
-                            <tr v-if="categoryStore.list.length === 0">
-                                <td colspan="4" class="text-center py-10 text-slate-400">
+                        <tbody class="text-slate-600" v-if="localCategories.length === 0">
+                            <tr>
+                                <td colspan="5" class="text-center py-10 text-slate-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-30"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -165,35 +177,51 @@ const formatDate = (timestamp) => {
                                     No categories found
                                 </td>
                             </tr>
-                            <tr v-for="category in categoryStore.list" :key="category.id"
-                                class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                <td class="pl-6">
-                                    <div
-                                        class="h-12 w-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-                                        <img :src="category.ImageUrl" class="w-full h-full object-cover" />
-                                    </div>
-                                </td>
-                                <td class="font-medium text-slate-800">
-                                    {{ category.name }}
-                                </td>
-
-                                <td class="text-xs">
-                                    {{ formatDate(category.createdAt) }}
-                                </td>
-
-                                <td class="text-center">
-                                    <button @click="deleteCategory(category.id, category.name)"
-                                        class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
                         </tbody>
+                        <draggable v-else v-model="localCategories" item-key="id" tag="tbody" class="text-slate-600"
+                            handle=".drag-handle" @end="onDragEnd">
+                            <template #item="{ element: category }">
+                                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors bg-white">
+                                    <td class="pl-6 w-12 text-center align-middle">
+                                        <div
+                                            class="drag-handle cursor-grab hover:text-blue-600 text-slate-400 p-2 opacity-50 hover:opacity-100 transition-opacity flex justify-center items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 8h16M4 16h16" />
+                                            </svg>
+                                        </div>
+                                    </td>
+                                    <td class="pl-2">
+                                        <div
+                                            class="h-12 w-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                            <img :src="category.ImageUrl"
+                                                class="w-full h-full object-cover pointer-events-none" />
+                                        </div>
+                                    </td>
+                                    <td class="font-medium text-slate-800">
+                                        {{ category.name }}
+                                    </td>
+
+                                    <td class="text-xs">
+                                        {{ formatDate(category.createdAt) }}
+                                    </td>
+
+                                    <td class="text-center">
+                                        <button @click="deleteCategory(category.id, category.name)"
+                                            class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4 mr-1 pointer-events-none" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </draggable>
                     </table>
                 </div>
             </div>

@@ -16,38 +16,24 @@ onUnmounted(() => {
 
 <template>
   <layoutAdmin>
-    <div class="p-6 md:p-8 min-h-screen bg-slate-50/50">
+    <div class="p-6">
 
-      
-      <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
-          
-        </div>
 
-      
-        <button @click="dashboardStore.loadDashboardData()"
-          class="btn btn-sm bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-            class="w-4 h-4" :class="{ 'animate-spin': dashboardStore.isLoading }">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-          รีเฟรชข้อมูล
-        </button>
+      <div class="flex justify-between items-start mb-6">
+        <div class="text-3xl font-bold text-slate-700">Dashboard</div>
       </div>
 
-    
+
       <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
       </div>
 
       <div v-else class="space-y-6">
-     
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-          
+
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -67,12 +53,10 @@ onUnmounted(() => {
                 </svg>
               </div>
             </div>
-            <div class="relative z-10 mt-4 text-xs font-medium text-indigo-600 flex items-center gap-1">
-              <span class="px-2 py-0.5 bg-indigo-100 rounded-full">อัปเดตแบบเรียลไทม์</span>
-            </div>
+
           </div>
 
-      
+
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -94,7 +78,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-   
+
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -115,7 +99,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-       
+
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -138,10 +122,10 @@ onUnmounted(() => {
 
         </div>
 
-       
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-     
+
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2">
             <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24"
@@ -157,7 +141,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-        
+
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-1">
             <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24"
@@ -183,7 +167,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 .vue-apexcharts {
   min-height: 100%;
 }

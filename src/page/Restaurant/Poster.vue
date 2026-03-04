@@ -127,29 +127,29 @@ const formatScheduleDate = (dateString) => {
 
 <template>
     <LayoutRestaurant>
-        <div class="min-h-screen p-6 md:p-8 font-sans">
-            <div class="flex justify-between items-end mb-8">
+        <div class="p-6 font-sans">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-800 tracking-tight">จัดการ Poster หรือ แบนเนอร์</h1>
-                    <p class="text-sm text-slate-500">จัดการภาพสไลด์สำหรับร้าน: {{ restaurantName }}</p>
+                    <h1 class="text-3xl font-bold text-slate-700">Poster</h1>
                 </div>
-                <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                <button @click="showModal = true"
+                    class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    เพิ่ม Poster
+                    Add Poster
                 </button>
             </div>
 
-            <!-- Add Poster Modal -->
+
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col"
                     @click.stop>
                     <div
                         class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                        <h2 class="text-lg font-bold text-slate-800">เพิ่มภาพ Poster ใหม่</h2>
+                        <h2 class="text-lg font-bold text-slate-800">Add New Poster</h2>
                         <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -221,7 +221,7 @@ const formatScheduleDate = (dateString) => {
                         <button @click="closeModal"
                             class="btn btn-ghost text-slate-500 hover:bg-slate-100">ยกเลิก</button>
                         <button @click="handleAddPoster" :disabled="isSubmittingPoster || !newPosterUrl"
-                            class="btn bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg text-white border-none min-w-[120px]">
+                            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none min-w-[120px] rounded-lg shadow-sm">
                             <span v-if="isSubmittingPoster" class="loading loading-spinner loading-sm"></span>
                             <span v-else>เพิ่ม Poster</span>
                         </button>
@@ -229,19 +229,19 @@ const formatScheduleDate = (dateString) => {
                 </div>
             </div>
 
-            <!-- Poster List Component Section -->
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
-                                <th>รูปภาพ (Preview)</th>
-                                <th>สถานะ (Status)</th>
-                                <th>เวลาแสดง (Duration)</th>
-                                <th>วันที่ตั้ง (Schedule)</th>
-                                <th>วันที่สร้าง (Created At)</th>
-                                <th class="text-center">ตรวจสอบ (Actions)</th>
+                                <th>IMAGE</th>
+                                <th>STATUS</th>
+                                <th>DURATION</th>
+                                <th>SCHEDULE</th>
+                                <th>CREATED AT</th>
+                                <th class="text-center">ACTIONS</th>
                             </tr>
                         </thead>
 

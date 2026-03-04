@@ -1,6 +1,7 @@
 <script setup>
 import { useRestaurant } from '@/stores/Restaurant'
 import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const props = defineProps({
     building: String,
@@ -15,9 +16,52 @@ const props = defineProps({
 const restaurantStore = useRestaurant()
 const router = useRouter()
 
+const now = ref(new Date())
+let timer
+
+onMounted(() => {
+    timer = setInterval(() => {
+        now.value = new Date()
+    }, 1000)
+})
+
+onUnmounted(() => {
+    if (timer) clearInterval(timer)
+})
+
 const isShopClosed = (shop) => {
-    return shop.Status === 'close'
+    if (shop.ManualStatus === 'manual') return shop.Status === 'close';
+    if (!shop.OpenTime || !shop.CloseTime) return true;
+
+    try {
+        const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
+        const [openH, openM] = shop.OpenTime.split(':').map(Number);
+        const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
+        const openMin = openH * 60 + openM;
+        const closeMin = closeH * 60 + closeM;
+
+        if (closeMin > openMin) {
+            return !(currentTime >= openMin && currentTime < closeMin);
+        } else {
+            return !(currentTime >= openMin || currentTime < closeMin);
+        }
+    } catch (e) {
+        return true;
+    }
 }
+
+const sortedRestaurants = computed(() => {
+    if (!restaurantStore.list) return [];
+
+    return [...restaurantStore.list].sort((a, b) => {
+        const aClosed = isShopClosed(a);
+        const bClosed = isShopClosed(b);
+
+        if (aClosed && !bClosed) return 1;
+        if (!aClosed && bClosed) return -1;
+        return 0; // maintain original order for similar status
+    });
+})
 
 const goToRestaurantMenu = (restaurantName) => {
     router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.building}/${props.floor}/${props.room}`)
@@ -26,7 +70,7 @@ const goToRestaurantMenu = (restaurantName) => {
 
 <template>
     <section class="flex flex-col gap-3 pb-4 px-2">
-        <button v-for="shop in restaurantStore.list" :key="shop.id"
+        <button v-for="shop in sortedRestaurants" :key="shop.id"
             class="w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]"
             :class="isShopClosed(shop) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
             :disabled="isShopClosed(shop)" @click="!isShopClosed(shop) && goToRestaurantMenu(shop.Name)">

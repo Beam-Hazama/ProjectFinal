@@ -14,6 +14,10 @@ const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 const tableId = `${building}-${floor}-${room}`;
 
+const displayLocation = computed(() => {
+  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
+});
+
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => {
     return String(order.tableId).trim() === String(tableId).trim();
@@ -62,7 +66,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans pb-28">
+  <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -74,8 +78,16 @@ onMounted(() => {
         </div>
         <div>
           <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Order Status</h1>
-          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1">สถานะคำสั่งซื้อของห้อง ({{ building }} fl.{{ floor }})
-            - {{ room }}</p>
+          <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {{ displayLocation }}
+          </p>
         </div>
       </div>
       <router-link :to="`/User/${building}/${floor}/${room}`"

@@ -20,10 +20,10 @@ const RestaurantData = reactive({
   Name: '',
   ImageUrl: '',
   Status: '',
-  OpenTime: '',  
+  OpenTime: '',
   CloseTime: '',
-  CreatedAt: null, 
-  UpdatedAt: null  
+  CreatedAt: null,
+  UpdatedAt: null
 });
 
 watch(() => RestaurantData.ImageUrl, (newVal) => {
@@ -34,41 +34,34 @@ watch(() => RestaurantData.ImageUrl, (newVal) => {
 
 const checkSaveRestaurant = async (data) => {
   try {
-    
-    const { id, CreatedAt, UpdatedAt, ...saveData } = data; 
-    const colName = 'Restaurant'; 
 
-    
+    const { id, CreatedAt, UpdatedAt, ...saveData } = data;
+    const colName = 'Restaurant';
+
+
     if (!saveData.ManualStatus) {
-        saveData.ManualStatus = 'auto';
+      saveData.ManualStatus = 'auto';
     }
 
-   
+
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
-    const [openH, openM] = saveData.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = saveData.CloseTime.split(':').map(Number);
+    const [openH, openM] = (saveData.OpenTime || '00:00').split(':').map(Number);
+    const [closeH, closeM] = (saveData.CloseTime || '00:00').split(':').map(Number);
     const openMin = openH * 60 + openM;
     const closeMin = closeH * 60 + closeM;
 
-    let autoStatus = 'close';
-    
-    
-    if (saveData.ManualStatus === 'force_open') {
-        autoStatus = 'open';
-    } else if (saveData.ManualStatus === 'force_close') {
-        autoStatus = 'close';
-    } else {
-        
-        if (closeMin > openMin) {
-            if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
-        } else {
-            if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
-        }
+    if (saveData.ManualStatus === 'auto') {
+      let autoStatus = 'close';
+
+      if (closeMin > openMin) {
+        if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
+      } else {
+        if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
+      }
+
+      saveData.Status = autoStatus;
     }
-    
-   
-    saveData.Status = autoStatus;
 
     if (mode.value === 'Add Restaurant') {
       await addDoc(collection(db, colName), {
@@ -83,10 +76,15 @@ const checkSaveRestaurant = async (data) => {
         UpdatedAt: serverTimestamp()
       });
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
     router.push({ name: 'Restaurant List' });
   } catch (error) {
     console.error('Error:', error);
+    alert('Error saving restaurant: ' + error.message);
   }
 }
 
@@ -112,12 +110,12 @@ const goBack = () => {
 onMounted(async () => {
   if (route.params.id) {
     mode.value = 'Update Restaurant';
-    
+
     const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
 
     if (resSnap.exists()) {
       const res = resSnap.data();
-     
+
       Object.assign(RestaurantData, res);
       imagePreview.value = res.ImageUrl;
       if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
@@ -146,8 +144,8 @@ onMounted(async () => {
 
         <div class="flex gap-3">
           <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
-          <button @click="checkSaveRestaurant(RestaurantData)"
-            class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 px-6">
+          <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name"
+            class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 px-6">
             บันทึกข้อมูลร้านค้า
           </button>
         </div>
@@ -266,11 +264,11 @@ onMounted(async () => {
 
 
                 <div class="form-control">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
+                  <label class="label"><span
+                      class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
                   <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
-                    <option value="force_open">🔓 เปิดร้านทันที</option>
-                    <option value="force_close">🔒 ปิดร้านทันที</option>
+                    <option value="manual">⚙️ กำหนดเอง</option>
                   </select>
                 </div>
 
@@ -279,13 +277,14 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
                   <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed "
-                    v-model="RestaurantData.Status" :disabled="true">
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed transition-all"
+                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto'">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
                   <p class="text-[10px] text-blue-500 mt-1 italic">
-                    {{ RestaurantData.ManualStatus === 'auto' ? '* สถานะเปลี่ยนตามเวลาอัตโนมัติ' : '* สถานะถูกกำหนดด้วยโหมด Manual' }}
+                    <span v-if="RestaurantData.ManualStatus === 'auto'">* สถานะเปลี่ยนตามเวลาอัตโนมัติ</span>
+                    <span v-else>* สถานะถูกกำหนดด้วยโหมด Manual</span>
                   </p>
                 </div>
               </div>

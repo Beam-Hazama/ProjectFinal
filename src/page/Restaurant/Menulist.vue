@@ -13,6 +13,7 @@ const accountStore = useAccountStore();
 const loadData = async () => {
   await accountStore.checkAuthState()
 
+<<<<<<< HEAD
   const restaurantName = accountStore.user?.Restaurant
   if (!restaurantName) {
     console.warn("No restaurant found in account")
@@ -21,6 +22,28 @@ const loadData = async () => {
 
   await MenuStore.loadMenuRestaurant(restaurantName)
 }
+=======
+
+  if (!restaurantName || restaurantName === 'undefined') {
+
+    restaurantName = accountStore.user?.Restaurant;
+
+
+    if (!restaurantName && !accountStore.user) {
+      await accountStore.checkAuthState();
+      restaurantName = accountStore.user?.Restaurant;
+    }
+  }
+
+
+  if (restaurantName && restaurantName !== 'undefined') {
+    console.log("Loading menu for:", restaurantName);
+    await MenuStore.loadMenuRestaurant(restaurantName);
+  } else {
+    console.warn("No restaurant name found for Menu List");
+  }
+};
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
 
 onMounted(() => {
   loadData();
@@ -71,19 +94,19 @@ const deleteMenu = async (id, name) => {
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
   let date;
-  
+
   if (timestamp && typeof timestamp.toDate === 'function') {
     date = timestamp.toDate();
   }
   else if (timestamp && typeof timestamp.seconds === 'number') {
     date = new Date(timestamp.seconds * 1000);
   }
- 
+
   else {
     date = new Date(timestamp);
   }
 
- 
+
   if (isNaN(date.getTime())) return '-';
 
   return date.toLocaleString('th-TH');
@@ -94,10 +117,14 @@ const formatDate = (timestamp) => {
   <Layoutrestaurant>
     <div class="p-6">
 
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
+<<<<<<< HEAD
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
           <p class="text-slate-500 text-sm">ร้าน: {{ accountStore.user?.Restaurant }}</p>
+=======
+          <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
+>>>>>>> b41e0d79b23554bc4cff6e56557eafe63ba6af40
         </div>
         <RouterLink
           :to="{ name: 'Restaurant Add Menu' }"
@@ -115,14 +142,13 @@ const formatDate = (timestamp) => {
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
-                <th class="py-4 pl-6">Menu</th>
-                <th>Restaurant</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th class="text-center">Action</th>
+                <th class="py-4 pl-6">MENU</th>
+                <th>PRICE</th>
+                <th>CATEGORY</th>
+                <th>STATUS</th>
+                <th>CREATED AT</th>
+                <th>UPDATED AT</th>
+                <th class="text-center">ACTION</th>
               </tr>
             </thead>
 
@@ -142,9 +168,6 @@ const formatDate = (timestamp) => {
                   </div>
                 </td>
 
-                <td>
-                  <div class="font-medium text-xs">{{ product.Restaurant }}</div>
-                </td>
                 <td class="font-medium text-emerald-600">{{ product.Price }} ฿</td>
                 <td>
                   <div class="badge badge-ghost badge-sm font-medium">{{ product.Category }}</div>

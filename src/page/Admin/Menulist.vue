@@ -46,20 +46,22 @@ const deleteMenu = async (id, name) => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      <div class="text-3xl font-bold mb-6 text-slate-700">Menu List</div>
+      <div class="flex justify-between items-start mb-7">
+        <div class="text-3xl font-bold text-slate-700">Menu List</div>
+      </div>
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
-                <th class="py-4 pl-6">Menu</th>
-                <th>Restaurant</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th class="text-center">Action</th>
+                <th class="py-4 pl-6">MENU</th>
+                <th>RESTAURANT</th>
+                <th>PRICE</th>
+                <th>CATEGORY</th>
+                <th>STATUS</th>
+                <th>CREATED AT</th>
+                <th>UPDATED AT</th>
+                <th class="text-center">ACTION</th>
               </tr>
             </thead>
 
@@ -109,7 +111,7 @@ const deleteMenu = async (id, name) => {
 
                 <td class="text-center">
                   <div class="flex justify-center ">
-                    <RouterLink class="btn btn-sm btn-ghost text-blue-600"
+                    <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50 font-bold transition-colors"
                       :to="{ name: 'Admin menu detail', params: { id: product.id } }">
                       View
                     </RouterLink>

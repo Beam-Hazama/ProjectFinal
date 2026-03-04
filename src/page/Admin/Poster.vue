@@ -121,14 +121,13 @@ const formatScheduleDate = (dateString) => {
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-slate-700">Poster</h1>
-                </div>
-                <button @click="showModal = true" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <div class="flex justify-between items-start mb-6">
+                <div class="text-3xl font-bold text-slate-700">Poster</div>
+                <button @click="showModal = true"
+                    class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Add Poster
                 </button>
@@ -227,12 +226,12 @@ const formatScheduleDate = (dateString) => {
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
-                                <th>Preview</th>
-                                <th>Status</th>
-                                <th>Duration</th>
-                                <th>Schedule</th>
-                                <th>Created At</th>
-                                <th class="text-center">Actions</th>
+                                <th>POSTER</th>
+                                <th>STATUS</th>
+                                <th>DURATION</th>
+                                <th>SCHEDULE</th>
+                                <th>CREATED AT</th>
+                                <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
 

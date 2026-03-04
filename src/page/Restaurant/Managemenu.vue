@@ -58,7 +58,8 @@ const checkAddProduct = async (data) => {
         const cleanOptionGroups = (data.OptionGroups || []).map(group => {
             return {
                 name: group.name.trim(),
-                type: group.type, // 'single' or 'multiple'
+                isRequired: group.isRequired !== false, // Defaults to true
+                maxChoices: group.maxChoices ? Number(group.maxChoices) : 1, // Defaulting to 1 if not specified
                 choices: group.choices
                     .filter(c => c.name.trim() !== '')
                     .map(c => ({ name: c.name.trim(), price: Number(c.price) || 0 }))
@@ -116,7 +117,8 @@ const addOptionGroup = () => {
     if (!MenuData.OptionGroups) MenuData.OptionGroups = [];
     MenuData.OptionGroups.push({
         name: '',
-        type: 'multiple',
+        isRequired: true,
+        maxChoices: 1,
         choices: [{ name: '', price: 0 }]
     });
 };
@@ -177,22 +179,19 @@ onMounted(async () => {
 
 <template>
     <LayoutAdmin>
-        <div class="min-h-screen  p-6 md:p-8 font-sans">
+        <div class="p-6 font-sans">
 
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <div class="flex items-center gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-                            {{ mode === 'Add Product' ? 'เพิ่มเมนูอาหารใหม่' : 'แก้ไขเมนูอาหาร' }}
-                        </h1>
-                        <p class="text-sm text-slate-500">จัดการรายละเอียด ข้อมูลราคา และสต็อกสินค้า</p>
-                    </div>
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-700">
+                        {{ mode === 'Add Product' ? 'Add New Menu' : 'Edit Menu' }}
+                    </h1>
                 </div>
 
                 <div class="flex gap-3">
                     <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
                     <button @click="checkAddProduct(MenuData)"
-                        class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 px-6">
+                        class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300 px-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                             stroke="currentColor" class="w-5 h-5 mr-1">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -284,13 +283,13 @@ onMounted(async () => {
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -377,13 +376,12 @@ onMounted(async () => {
 
                             </div>
 
-                            <!-- Option Groups Section -->
                             <div class="mt-12">
                                 <h3
                                     class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
                                     <span>ตัวเลือกเพิ่มเติม / คุณสมบัติพิเศษ</span>
                                     <button @click="addOptionGroup"
-                                        class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50 font-medium">
+                                        class="btn btn-sm btn-ghost text-emerald-600 hover:bg-emerald-50 font-medium">
                                         + เพิ่มหมวดหมู่
                                     </button>
                                 </h3>
@@ -393,7 +391,7 @@ onMounted(async () => {
                                         <div v-for="(group, gIndex) in MenuData.OptionGroups" :key="'group-' + gIndex"
                                             class="relative pb-6 border-b border-slate-100 last:border-0 last:pb-0 group">
 
-                                            <!-- Delete Group Button -->
+
                                             <button @click="removeOptionGroup(gIndex)"
                                                 class="absolute top-0 right-0 btn btn-square btn-sm btn-ghost text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors z-10"
                                                 title="ลบหมวดหมู่">
@@ -404,8 +402,8 @@ onMounted(async () => {
                                                 </svg>
                                             </button>
 
-                                            <!-- Group Configuration -->
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 pr-10">
+
+                                            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-4 pr-10 items-end">
                                                 <div class="form-control">
                                                     <label class="label">
                                                         <span
@@ -419,19 +417,34 @@ onMounted(async () => {
                                                 <div class="form-control">
                                                     <label class="label">
                                                         <span
-                                                            class="label-text font-medium text-slate-600">รูปแบบการเลือก
+                                                            class="label-text font-medium text-slate-600">จำนวนที่เลือกได้
                                                             <span class="text-red-500">*</span></span>
                                                     </label>
-                                                    <select
-                                                        class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
-                                                        v-model="group.type">
-                                                        <option value="single">เลือกได้ 1 รายการ (บังคับเลือก)</option>
-                                                        <option value="multiple">เลือกได้หลายรายการ (เพิ่มเติม)</option>
-                                                    </select>
+                                                    <div class="relative">
+                                                        <input type="number" min="1"
+                                                            class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200"
+                                                            v-model="group.maxChoices" placeholder="1" />
+                                                        <span
+                                                            class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label">
+                                                        <span
+                                                            class="label-text font-medium text-slate-600">สถานะการเลือก</span>
+                                                    </label>
+                                                    <div class="relative">
+                                                        <select
+                                                            class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
+                                                            v-model="group.isRequired">
+                                                            <option :value="true">บังคับเลือก (Required)</option>
+                                                            <option :value="false">ไม่บังคับ (Optional)</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Choices List -->
+
                                             <div class="pl-2 md:pl-4 border-l-2 border-slate-100">
                                                 <div class="flex items-center justify-between mb-2">
                                                     <label class="label px-0">
@@ -474,7 +487,7 @@ onMounted(async () => {
                                                 </div>
 
                                                 <button @click="addChoice(gIndex)"
-                                                    class="btn btn-sm btn-outline border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-400 w-full md:w-auto font-medium font-sans">
+                                                    class="btn btn-sm btn-outline border-dashed border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 w-full md:w-auto font-medium font-sans">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                                         class="w-4 h-4 mr-1">
@@ -503,7 +516,7 @@ onMounted(async () => {
                                             เพิ่มหมวดหมู่ให้ลูกค้าปรับแต่งเมนู เช่น ท็อปปิ้งเสริม ระดับความเผ็ด
                                         </p>
                                         <button @click="addOptionGroup"
-                                            class="btn btn-sm bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-medium">
+                                            class="btn btn-sm bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-600 font-medium">
                                             + สร้างหมวดหมู่ตัวเลือก
                                         </button>
                                     </div>

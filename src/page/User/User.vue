@@ -18,6 +18,12 @@ const qrStore = useQRCodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
+const localCategories = ref([]);
+
+watch(() => categoryStore.list, (newList) => {
+  localCategories.value = [...(newList || [])];
+}, { deep: true, immediate: true });
+
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 
@@ -27,17 +33,13 @@ const room = route.params.room || '-';
 
 const activeShopTab = ref('ร้านค้า');
 
-// Carousel State
+
 const currentSlide = ref(0);
 let carouselTimeout = null;
 
 const shopCategories = ['ร้านค้า', 'ตามสั่ง', 'ก๊วยเตี๋ยว', 'น้ำ'];
 
-// Match the reference image
-// We are now fetching categories dynamically through the categoryStore.
-// The hardcoded `popularCategories` below is being replaced by `categoryStore.list`.
 
-// We no longer need menuCategories here since it's showing restaurants
 
 onMounted(async () => {
   const isValid = await qrStore.validateRoom(building, floor, room);
@@ -49,7 +51,7 @@ onMounted(async () => {
     cartStore.loadcart(building, floor, room);
     posterStore.loadPosters();
     categoryStore.loadCategories();
-    // Use a slight delay to ensure posters are loaded before starting carousel
+
     setTimeout(startCarousel, 500);
   }
 });
@@ -91,7 +93,7 @@ const prevSlide = () => {
 
 const goToSlide = (index) => {
   currentSlide.value = index;
-  startCarousel(); // Reset timer on manual interaction
+  startCarousel();
 };
 
 watch(() => posterStore.activePosters, (newVal) => {
@@ -113,7 +115,7 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
   }
 });
 
-// Wait directly for the restaurant list from store, no need to filter menus
+
 const filteredRestaurants = computed(() => {
   return restaurantStore.list || [];
 });
@@ -140,7 +142,7 @@ const filteredRestaurants = computed(() => {
 
   <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans">
 
-    <!-- Top Bar Location & Search (Matching Image 1) -->
+
     <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
 
 
@@ -159,12 +161,12 @@ const filteredRestaurants = computed(() => {
       </div>
     </div>
 
-    <!-- Dynamic Poster Carousel -->
+
     <div class="px-4 mt-4">
       <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
         @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-        <!-- Slides container -->
+
         <div class="flex transition-transform duration-500 ease-out h-36"
           :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -173,7 +175,7 @@ const filteredRestaurants = computed(() => {
           </div>
         </div>
 
-        <!-- Controls (only show if > 1 poster) -->
+
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity">
           <button @click="prevSlide"
@@ -182,7 +184,7 @@ const filteredRestaurants = computed(() => {
             class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
         </div>
 
-        <!-- Pagination dots -->
+
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
           <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index" @click="goToSlide(index)"
@@ -190,49 +192,37 @@ const filteredRestaurants = computed(() => {
           </button>
         </div>
       </div>
-
-      <!-- Fallback Default Banner -->
-      <div v-else class="relative w-full h-36 rounded-xl overflow-hidden shadow-sm group">
-        <img class="object-cover w-full h-full transform transition-transform duration-500"
-          src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&fit=crop" alt="Banner" />
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-transparent flex items-center p-4">
-          <div class="text-left w-2/3">
-            <span
-              class="inline-block px-2 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded mb-1">รวมร้าน</span>
-            <h2 class="text-white text-2xl font-black leading-tight tracking-tight shadow-sm">ส่งฟรี!</h2>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Popular Categories -->
+
     <div class="mt-4 bg-white py-4 px-4 shadow-sm border-y border-gray-100">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-1">
-        <div v-for="cat in categoryStore.list" :key="cat.id"
+        <div v-for="cat in localCategories" :key="cat.id"
           @click="$router.push(`/user/category/${cat.name}/${building}/${floor}/${room}`)"
-          class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-20">
-          <div class="w-full aspect-[3/4] rounded-xl bg-gray-100 overflow-hidden relative shadow-sm">
+          class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
+          <div
+            class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
             <img :src="cat.ImageUrl" :alt="cat.name" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
           </div>
           <span
-            class="mt-1.5 text-[11px] font-medium text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
+            class="mt-2.5 text-[13px] font-bold text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
             {{ cat.name }}
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Main Restaurant List -->
+
     <div id="restaurant-section" class="mt-4 bg-white shadow-sm border-t border-gray-100 pt-5 pb-10 min-h-[500px]">
       <div class="px-4 mb-3">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านค้า</h3>
       </div>
 
-      <!-- Restaurant Grid -->
+
       <div class="px-4">
         <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
           <RestaurantList :building="building" :floor="floor" :room="room"></RestaurantList>
@@ -258,9 +248,9 @@ const filteredRestaurants = computed(() => {
 
 .no-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
+
   scrollbar-width: none;
-  /* Firefox */
+
 }
 
 .animate-fade-in {

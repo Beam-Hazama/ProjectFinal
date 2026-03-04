@@ -56,7 +56,8 @@ const logout = async () => {
 </script>
 
 <template>
-    <div class="drawer lg:drawer-open font-sans bg-slate-50 min-h-screen">
+    <div
+        class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
         <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
         <div class="drawer-content flex flex-col relative">
             <div class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
@@ -68,7 +69,6 @@ const logout = async () => {
                                 d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </label>
-                    <span class="font-bold text-lg text-blue-600 tracking-wide">Admin Panel</span>
                 </div>
                 <div class="avatar w-8 h-8">
                     <div class="rounded-full bg-slate-200">
@@ -81,8 +81,9 @@ const logout = async () => {
             <div class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
                 <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
                     <ul>
-                        <li>Admin</li>
-                        <li>{{ route.name || 'Dashboard' }}</li>
+                        <li>Restaurant</li>
+                        <li>{{ (route.name || 'Dashboard').replace('Restaurants ', '').replace('Restaurant ', '') }}
+                        </li>
                     </ul>
                 </div>
 

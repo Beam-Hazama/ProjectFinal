@@ -111,9 +111,9 @@ onMounted(() => {
 
 <template>
     <LayoutAdmin>
-        <div class="min-h-screen p-6 md:p-8 font-sans">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Restaurant Users</h1>
+        <div class="p-6 font-sans">
+            <div class="flex justify-between items-start mb-6">
+                <div class="text-3xl font-bold text-slate-700">Restaurant Users</div>
                 <RouterLink to="/Admin/Restaurant/Adduser"
                     class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
@@ -222,7 +222,7 @@ onMounted(() => {
 
                     <div class="px-6 pb-6 pt-2 flex gap-3">
                         <RouterLink :to="`/Admin/Restaurant/Userdetail/${user.id}`"
-                            class="flex-[2] btn btn-sm bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 border-none rounded-xl font-bold transition-all duration-300">
+                            class="flex-[2] btn btn-sm btn-ghost text-indigo-600 hover:bg-indigo-50 border-none rounded-xl font-bold transition-all duration-300">
                             View
                         </RouterLink>
 

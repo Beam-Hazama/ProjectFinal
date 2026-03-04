@@ -32,8 +32,7 @@ const RestaurantData = reactive({
 
 const calculateStatus = () => {
 
-  if (RestaurantData.ManualStatus === 'force_open') return 'open';
-  if (RestaurantData.ManualStatus === 'force_close') return 'close';
+  if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
 
 
   if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
@@ -177,16 +176,15 @@ watch(
       <span class="loading loading-spinner loading-lg text-blue-600"></span>
     </div>
 
-    <div v-else class="min-h-screen p-6 md:p-8 font-sans">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div v-else class="p-6 font-sans">
+      <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">แก้ไขข้อมูลร้านค้า</h1>
-          <p class="text-sm text-slate-500">จัดการรายละเอียด โปรไฟล์ และสถานะของร้าน: {{ RestaurantData.Name }}</p>
+          <h1 class="text-3xl font-bold text-slate-700">Profile</h1>
         </div>
 
         <div class="flex gap-3">
           <button @click="saveProfile"
-            class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg transition-all duration-300 px-6">
+            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300">
             บันทึกข้อมูลโปรไฟล์
           </button>
         </div>
@@ -198,7 +196,7 @@ watch(
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพร้าน</h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs mb-8">
-              <span class="text-sm font-semibold text-slate-600 self-start">โลโก้ / รูปภาพหน้าร้าน</span>
+
               <div
                 class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
                 <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
@@ -286,8 +284,7 @@ watch(
                       class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
                   <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
-                    <option value="force_open">🔓 เปิดร้านทันที</option>
-                    <option value="force_close">🔒 ปิดร้านทันที</option>
+                    <option value="manual">⚙️ กำหนดเอง</option>
                   </select>
                 </div>
 
@@ -296,15 +293,12 @@ watch(
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
                   <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed "
-                    v-model="RestaurantData.Status" :disabled="true">
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed transition-all"
+                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto'">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
-                  <p class="text-[10px] text-blue-500 mt-1 italic">
-                    {{ RestaurantData.ManualStatus === 'auto' ? '*สถานะเปลี่ยนตามเวลาอัตโนมัติ' :
-                      '*สถานะถูกกำหนดด้วยโหมด Manual' }}
-                  </p>
+
                 </div>
               </div>
             </div>
