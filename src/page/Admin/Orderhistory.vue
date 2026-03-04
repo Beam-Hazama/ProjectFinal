@@ -180,7 +180,7 @@ const formatDate = (timestamp) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.TotalPrice?.toLocaleString()
-                                }} ฿</span>
+                            }} ฿</span>
                         </div>
                     </div>
                 </div>

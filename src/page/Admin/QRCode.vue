@@ -86,7 +86,14 @@ const printSpecificQR = async (room) => {
       <div class="no-print">
         <div class="flex justify-between items-start mb-6">
           <div class="text-3xl font-bold text-slate-700">QR Code</div>
-          <button @click="openAddModal" class="btn btn-primary shadow-md">+ เพิ่มห้อง</button>
+          <button @click="openAddModal"
+            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+              stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add Room
+          </button>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -113,8 +120,7 @@ const printSpecificQR = async (room) => {
                       class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">Print QR</button>
                   </td>
                   <td class="text-center border-none">
-                    <!--<button @click="openEditModal(room)"
-                    class="btn btn-sm btn-ghost text-blue-600 font-bold">Edit</button>-->
+
                     <button @click="deleteRoom" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="w-4 h-4">

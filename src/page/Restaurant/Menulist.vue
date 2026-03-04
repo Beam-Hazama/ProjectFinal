@@ -112,10 +112,9 @@ const formatDate = (timestamp) => {
   <Layoutrestaurant>
     <div class="p-6">
 
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
-          <div class="text-3xl font-bold text-slate-700">Menu List</div>
-          <p class="text-slate-500 text-sm">ร้าน: {{ route.params.restaurantName || accountStore.user?.Restaurant }}</p>
+          <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
         </div>
         <RouterLink
           :to="{ name: 'Restaurant Add Menu', params: { restaurantName: route.params.restaurantName || accountStore.user?.Restaurant } }"
@@ -133,13 +132,13 @@ const formatDate = (timestamp) => {
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
-                <th class="py-4 pl-6">Menu</th>
-                <th>Price</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Created At</th>
-                <th>Updated At</th>
-                <th class="text-center">Action</th>
+                <th class="py-4 pl-6">MENU</th>
+                <th>PRICE</th>
+                <th>CATEGORY</th>
+                <th>STATUS</th>
+                <th>CREATED AT</th>
+                <th>UPDATED AT</th>
+                <th class="text-center">ACTION</th>
               </tr>
             </thead>
 

@@ -11,11 +11,11 @@ const menuStore = useMenuStore();
 const loading = ref(true);
 
 onMounted(async () => {
-    
+
     if (!accountStore.isLoggedIn) {
         await accountStore.checkAuthState();
     }
-    
+
     await orderStore.loadOrderinadmin();
     loading.value = false;
 });
@@ -27,20 +27,20 @@ const restaurantOrders = computed(() => {
     const myRestaurant = accountStore.user.Restaurant;
 
     return orderStore.sortedOrders.map(order => {
-        
+
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
 
-       
+
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
 
-       
+
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'served');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const allReturned = myItems.every(i => i.itemStatus === 'returned');
 
-            
+
             const isFinished = myItems.every(i =>
                 i.itemStatus === 'served' ||
                 i.itemStatus === 'cancelled' ||
@@ -52,7 +52,7 @@ const restaurantOrders = computed(() => {
 
             if (allCancelled) localStatus = 'cancelled';
             else if (allReturned) localStatus = 'returned';
-            else if (isFinished) localStatus = 'served'; 
+            else if (isFinished) localStatus = 'served';
             else if (anyCooking || anyServed) localStatus = 'cooking';
             else localStatus = 'pending';
         }
@@ -88,7 +88,7 @@ const toggleSelection = (orderId, itemId, type) => {
         selections.value[orderId] = {};
     }
 
-    
+
     if (selections.value[orderId][itemId] === type) {
         delete selections.value[orderId][itemId];
     } else {
@@ -106,13 +106,13 @@ const hasSelections = (orderId) => {
 };
 
 const areAllItemsSelected = (order) => {
-    
+
     const activeItems = order.displayItems.filter(i => i.itemStatus !== 'served' && i.itemStatus !== 'cancelled');
 
     if (activeItems.length === 0) return false;
 
     const orderSelections = selections.value[order.id] || {};
-    
+
     return activeItems.every(item => orderSelections[item.id]);
 };
 
@@ -121,12 +121,12 @@ const hasWaitingItems = (order) => {
 };
 
 const shouldReturnOrder = (order) => {
-    
+
     return (order.Menu || []).some(i => i.itemStatus === 'returned' || i.itemStatus === 'cancelled');
 };
 
 const deliverOrder = async (order) => {
-   
+
     if (!areOtherRestaurantsReady(order)) {
         alert("กรุณารอร้านอื่นดำเนินการให้เสร็จสิ้น (Please wait for other restaurants)");
         return;
@@ -135,7 +135,7 @@ const deliverOrder = async (order) => {
     if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
 
     try {
-        
+
         const updates = (order.Menu || [])
             .filter(i => i.itemStatus !== 'served' && i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned')
             .map(i => ({ itemId: i.id, newStatus: 'served' }));
@@ -156,10 +156,10 @@ const saveChanges = async (order) => {
 
         if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
 
-       
+
         const isRejection = Object.values(orderSelections).includes('cancel');
 
-        
+
         const updates = [];
         Object.entries(orderSelections).forEach(([itemId, action]) => {
             const item = order.displayItems.find(i => i.id === itemId);
@@ -168,10 +168,10 @@ const saveChanges = async (order) => {
             let newStatus = item.itemStatus;
 
             if (action === 'advance') {
-               
+
                 if (!item.itemStatus || item.itemStatus === 'waiting') newStatus = 'pending';
             } else if (action === 'cancel') {
-               
+
                 newStatus = 'cancelled';
             }
 
@@ -184,7 +184,7 @@ const saveChanges = async (order) => {
             await orderStore.updateMultipleItemsStatus(order.id, updates);
         }
 
-        
+
         const latestOrder = orderStore.list.find(o => o.id === order.id);
         if (latestOrder) {
             const anyWaitingGlobally = (latestOrder.Menu || []).some(i => !i.itemStatus || i.itemStatus === 'waiting');
@@ -193,7 +193,7 @@ const saveChanges = async (order) => {
             }
         }
 
-        selections.value[order.id] = {}; 
+        selections.value[order.id] = {};
     } catch (error) {
         alert("Error updating items: " + error.message);
     }
@@ -201,15 +201,15 @@ const saveChanges = async (order) => {
 };
 
 const areOtherRestaurantsReady = (order) => {
-    
+
     const myRestaurant = accountStore.user?.Restaurant;
     if (!myRestaurant) return true;
 
     const otherItems = (order.Menu || []).filter(item => item.Restaurant !== myRestaurant);
 
-    if (otherItems.length === 0) return true; 
+    if (otherItems.length === 0) return true;
 
-   
+
     const anyWaiting = otherItems.some(item => !item.itemStatus || item.itemStatus === 'waiting');
 
     return !anyWaiting;
@@ -259,23 +259,10 @@ const getRowStatusColor = (status) => {
 
 <template>
     <restaurant>
-        <div class="min-h-screen bg-slate-50/50 p-6 md:p-10 font-sans">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div class="p-6 font-sans">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
-                    <p class="text-sm text-slate-500 mt-1">จัดการออเดอร์สำหรับร้าน: {{ accountStore.user?.Restaurant
-                        ||
-                        'Loading...' }}</p>
-                </div>
-
-                <div class="flex gap-2">
-                    <div class="stats shadow bg-white">
-                        <div class="stat py-2 px-4">
-                            <div class="stat-title text-xs">Waiting</div>
-                            <div class="stat-value text-slate-400 text-2xl">{{restaurantOrders.filter(o =>
-                                o.localStatus === 'waiting').length}}</div>
-                        </div>
-                    </div>
+                    <h1 class="text-3xl font-bold text-slate-700">Order List</h1>
                 </div>
             </div>
 
@@ -300,7 +287,7 @@ const getRowStatusColor = (status) => {
                 <div v-for="order in restaurantOrders" :key="order.id"
                     class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col">
 
-                    
+
                     <div class="bg-slate-50/80 p-4 border-b border-slate-100 flex justify-between items-center">
                         <div class="flex items-center gap-3">
                             <div
@@ -326,22 +313,22 @@ const getRowStatusColor = (status) => {
                         </div>
                     </div>
 
-                   
+
                     <div class="p-4 flex-grow space-y-4">
                         <div v-for="(item, index) in order.displayItems" :key="index"
                             class="flex flex-row gap-4 items-center border-b border-slate-50 last:border-0 pb-4 last:pb-0">
 
-                          
+
                             <div class="flex flex-col gap-2 flex-shrink-0"
                                 v-if="!item.itemStatus || item.itemStatus === 'waiting'">
-                              
+
                                 <label class="cursor-pointer flex items-center gap-1">
                                     <input type="checkbox" class="checkbox checkbox-success checkbox-xs"
                                         :checked="getSelectionType(order.id, item.id) === 'advance'"
                                         @change="toggleSelection(order.id, item.id, 'advance')" />
                                 </label>
 
-                                
+
                                 <label class="cursor-pointer flex items-center gap-1">
                                     <input type="checkbox" class="checkbox checkbox-error checkbox-xs"
                                         :checked="getSelectionType(order.id, item.id) === 'cancel'"
@@ -349,7 +336,7 @@ const getRowStatusColor = (status) => {
                                 </label>
                             </div>
 
-                        
+
                             <div class="flex gap-3 flex-grow">
                                 <div
                                     class="w-12 h-12 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
@@ -370,7 +357,7 @@ const getRowStatusColor = (status) => {
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <p v-if="item.note"
                                         class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">
@@ -408,18 +395,18 @@ const getRowStatusColor = (status) => {
                         </div>
                     </div>
 
-                    
+
                     <div class="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-xs font-bold text-slate-400 uppercase">Total (My Items)</span>
                             <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
-                            }}
+                                }}
                                 ฿</span>
                         </div>
 
                         <div class="flex gap-2 items-center justify-end">
                             <button v-if="hasWaitingItems(order)" @click="saveChanges(order)"
-                                class="btn btn-sm w-full bg-gradient-to-r from-slate-700 to-slate-800 border-none text-white shadow-lg disabled:bg-slate-200"
+                                class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300"
                                 :disabled="!areOtherRestaurantsReady(order) ? false : !areAllItemsSelected(order)">
                                 Save Changes
                             </button>
@@ -434,7 +421,7 @@ const getRowStatusColor = (status) => {
                                     รออีกร้าน
                                 </button>
                                 <button v-else @click="deliverOrder(order)"
-                                    class="btn btn-sm w-full bg-gradient-to-r from-emerald-500 to-emerald-600 border-none text-white shadow-lg hover:shadow-emerald-500/30">
+                                    class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300">
                                     Deliver Order
                                 </button>
                             </div>
