@@ -283,13 +283,13 @@ onMounted(async () => {
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -332,8 +332,7 @@ onMounted(async () => {
                                     </label>
                                     <select
                                         class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                                        v-model="MenuData.Restaurant"
-                                        :disabled="true">
+                                        v-model="MenuData.Restaurant" :disabled="true">
                                         <option disabled value="">เลือกร้านอาหาร</option>
                                         <option v-for="RestaurantName in Restaurant.list" :key="RestaurantName.id"
                                             :value="RestaurantName.Name">
@@ -379,7 +378,7 @@ onMounted(async () => {
                             <div class="mt-12">
                                 <h3
                                     class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
-                                    <span>ตัวเลือกเพิ่มเติม / คุณสมบัติพิเศษ</span>
+                                    <span>ตัวเลือกเพิ่มเติม</span>
                                     <button @click="addOptionGroup"
                                         class="btn btn-sm btn-ghost text-emerald-600 hover:bg-emerald-50 font-medium">
                                         + เพิ่มหมวดหมู่
@@ -437,8 +436,8 @@ onMounted(async () => {
                                                         <select
                                                             class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                                             v-model="group.isRequired">
-                                                            <option :value="true">บังคับเลือก (Required)</option>
-                                                            <option :value="false">ไม่บังคับ (Optional)</option>
+                                                            <option :value="true">บังคับเลือก</option>
+                                                            <option :value="false">ไม่บังคับ</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -449,7 +448,7 @@ onMounted(async () => {
                                                 <div class="flex items-center justify-between mb-2">
                                                     <label class="label px-0">
                                                         <span
-                                                            class="label-text font-medium text-slate-600">รายการย่อย</span>
+                                                            class="label-text font-medium text-slate-600">ตัวเลือก</span>
                                                     </label>
                                                 </div>
 
@@ -500,7 +499,7 @@ onMounted(async () => {
                                         </div>
                                     </transition-group>
 
-                                    <!-- Empty State -->
+                                    
                                     <div v-if="!MenuData.OptionGroups || MenuData.OptionGroups.length === 0"
                                         class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
                                         <div class="text-slate-300 mb-4">

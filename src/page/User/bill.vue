@@ -17,7 +17,6 @@ const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
 
-const discount = ref(50.00);
 
 onMounted(async () => {
   await Order.loadOrderUser(tableId);
@@ -51,7 +50,7 @@ const ordersWithItems = computed(() => {
   return userOrders.value.map(order => {
     const receivedItems = (order.Menu || []).filter(item => item.itemStatus === 'received');
     const subtotal = receivedItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-    const grandTotal = Math.max(0, subtotal - (order.discount || 0)); 
+    const grandTotal = Math.max(0, subtotal - (order.discount || 0));
 
     return {
       ...order,
@@ -124,14 +123,14 @@ const totalGrandTotal = computed(() => {
 
     <div v-else class="space-y-8 pb-10">
       <div v-for="order in ordersWithItems" :key="order.id"
-        class="bg-white/90 backdrop-blur-md shadow-2xl border border-white/60 rounded-[32px] overflow-hidden transform hover:scale-[1.01] transition-transform">
+        class="bg-white/90 backdrop-blur-md shadow-2xl border border-white/60 rounded-[32px] overflow-hidden">
 
         <div class="p-5 border-b border-blue-100 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
           <div class="flex justify-between items-center">
             <div class="flex flex-col">
               <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Order Receipt</span>
               <span class="text-xl font-black text-blue-700 flex items-center gap-2">
-                #{{ order.id.slice(-6).toUpperCase() }}
+                #{{ order.OrderNumber }}
 
               </span>
             </div>

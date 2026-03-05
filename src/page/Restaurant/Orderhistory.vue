@@ -27,7 +27,7 @@ const historyOrders = computed(() => {
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
-            const allReturned = myItems.every(i => i.itemStatus === 'returned');
+            const hasReturned = myItems.some(i => i.itemStatus === 'returned');
             const isFinished = myItems.every(i =>
                 i.itemStatus === 'dispatched' ||
                 i.itemStatus === 'received' ||
@@ -36,7 +36,7 @@ const historyOrders = computed(() => {
             );
 
             if (allCancelled) localStatus = 'cancelled';
-            else if (allReturned) localStatus = 'returned';
+            else if (hasReturned) localStatus = 'returned';
             else if (isFinished) localStatus = 'dispatched';
             else localStatus = 'cooking';
         }
@@ -223,7 +223,7 @@ const formatDate = (timestamp) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.displayTotal?.toLocaleString()
-                            }} ฿</span>
+                                }} ฿</span>
                         </div>
                     </div>
                 </div>

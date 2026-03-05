@@ -31,6 +31,7 @@ const MenuData = reactive({
   Description: '',
   Category: '',
   Status: '',
+  OptionGroups: [],
 });
 
 const goBack = () => {
@@ -66,12 +67,10 @@ onMounted(async () => {
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div class="flex items-center gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
+            <h1 class="text-3xl font-bold text-slate-700">
               Menu Detail
             </h1>
-            <p class="text-sm text-slate-500">
-              ดูรายละเอียด ข้อมูลราคา และสต็อกสินค้า
-            </p>
+
           </div>
         </div>
 
@@ -86,7 +85,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100 mb-4">
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
@@ -193,6 +192,105 @@ onMounted(async () => {
                 </div>
               </div>
             </div>
+
+            <!-- Option Groups Section -->
+            <div class="mt-12">
+              <h3
+                class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
+                <span>ตัวเลือกเพิ่มเติม</span>
+              </h3>
+
+              <div class="space-y-6">
+                <div v-if="MenuData.OptionGroups && MenuData.OptionGroups.length > 0" class="space-y-6">
+                  <div v-for="(group, gIndex) in MenuData.OptionGroups" :key="'group-' + gIndex"
+                    class="relative pb-6 border-b border-slate-100 last:border-0 last:pb-0 group">
+
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-4 items-end">
+                      <div class="form-control">
+                        <label class="label">
+                          <span class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก</span>
+                        </label>
+                        <label
+                          class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                          {{ group.name.replace(' / คุณสมบัติพิเศษ', '') }}
+                        </label>
+                      </div>
+                      <div class="form-control">
+                        <label class="label">
+                          <span class="label-text font-medium text-slate-600">จำนวนที่เลือกได้</span>
+                        </label>
+                        <div class="relative">
+                          <label
+                            class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                            {{ group.maxChoices }}
+                          </label>
+                          <span class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
+                        </div>
+                      </div>
+                      <div class="form-control">
+                        <label class="label">
+                          <span class="label-text font-medium text-slate-600">สถานะการเลือก</span>
+                        </label>
+                        <div class="relative">
+                          <label
+                            class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                            {{ group.isRequired ? 'บังคับเลือก ' : 'ไม่บังคับ ' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pl-2 md:pl-4 border-l-2 border-slate-100">
+                      <div class="flex items-center justify-between mb-2">
+                        <label class="label px-0">
+                          <span class="label-text font-medium text-slate-600">รายการย่อย</span>
+                        </label>
+                      </div>
+
+                      <div class="space-y-3 mb-4">
+                        <div v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex"
+                          class="flex items-start gap-4">
+
+                          <div class="form-control flex-1">
+                            <label
+                              class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center">
+                              {{ choice.name }}
+                            </label>
+                          </div>
+
+                          <div class="form-control w-32">
+                            <div class="relative">
+                              <label
+                                class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center justify-end">
+                                {{ choice.price }}
+                              </label>
+                              <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div v-else
+                  class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
+                  <div class="text-slate-300 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" class="w-10 h-10 text-slate-300">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6 13.5V10.5m0 0V7.5m0 3h3m-3 0h-3m12 3V10.5m0 0V7.5m0 3h3m-3 0h-3M6 19.5v-3m0 3h3m-3 0h-3m12 3v-3m0 3h3m-3 0h-3M12 13.5V10.5m0 0V7.5m0 3h3m-3 0h-3m0 9v-3m0 3h3m-3 0h-3" />
+                    </svg>
+                  </div>
+                  <h4 class="text-lg font-bold text-slate-600 mb-1">ยังไม่มีตัวเลือกเพิ่มเติม</h4>
+                  <p class="text-slate-500 text-sm mb-6 text-center max-w-sm">
+                    เมนูนี้ยังไม่มีหมวดหมู่ตัวเลือก ตัวเลือกปรับแต่ง
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>

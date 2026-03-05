@@ -3,6 +3,8 @@ import { onMounted, computed } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter, useRoute } from 'vue-router';
+import { db } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const route = useRoute();
 const router = useRouter();
@@ -71,26 +73,49 @@ const getItemCountByStage = (order, stage) => {
   }
 };
 
-const reorder = (order) => {
-
+const reorder = async (order) => {
   const validItems = (order.Menu || []).filter(item =>
     item.itemStatus !== 'cancelled'
   );
 
-  if (validItems.length === 0) {
-    alert('ไม่มีรายการที่สามารถสั่งต่อได้ (รายการทั้งหมดถูกยกเลิกหรือตีกลับ)');
-    return;
-  }
-
+  
 
   cartStore.loadcart(building, floor, room);
 
-  validItems.forEach(item => {
-    cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
-  });
+  let addedCount = 0;
+  let unavailableNames = [];
 
+  for (const item of validItems) {
 
-  router.push(`/user/cart/${building}/${floor}/${room}`);
+    const productId = item.menuId || item.id;
+    try {
+      const productRef = doc(db, 'Menu', productId);
+      const productSnap = await getDoc(productRef);
+
+      if (productSnap.exists()) {
+        const productData = productSnap.data();
+        if (productData.Status === 'open') {
+          cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
+          addedCount++;
+        } else {
+          unavailableNames.push(item.Name);
+        }
+      } else {
+        unavailableNames.push(item.Name);
+      }
+    } catch (err) {
+      console.error("Error checking product availability:", err);
+      unavailableNames.push(item.Name);
+    }
+  }
+
+  if (unavailableNames.length > 0) {
+    alert(`เมนูต่อไปนี้หมดหรือถูกปิดการขายชั่วคราว ไม่สามารถสั่งได้ในขณะนี้`);
+  }
+
+  if (addedCount > 0) {
+    router.push(`/user/cart/${building}/${floor}/${room}`);
+  } 
 };
 
 onMounted(() => {
@@ -316,7 +341,7 @@ onMounted(() => {
               <span class="text-sm font-black text-gray-800">฿{{ formatPrice(item.Price * item.Quantity) }}</span>
               <button v-if="item.itemStatus === 'dispatched'" @click="confirmReceived(order.id, item.id)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
-                ยืนยันได้รับ
+                ยืนยันรับอาหาร
               </button>
             </div>
           </div>
