@@ -27,7 +27,11 @@ const restaurantOrders = computed(() => {
 
     return orderStore.sortedOrders.map(order => {
 
-        const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
+        let dIdx = 0;
+        const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant).map(item => ({
+            ...item,
+            uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
+        }));
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
         if (myItems.length > 0) {
@@ -110,7 +114,7 @@ const areAllItemsSelected = (order) => {
 
     const orderSelections = selections.value[order.id] || {};
 
-    return activeItems.every(item => orderSelections[item.id]);
+    return activeItems.every(item => orderSelections[item.uniqueKey]);
 };
 
 const hasWaitingItems = (order) => {
@@ -197,6 +201,7 @@ const saveChanges = async (order) => {
         const updatedMenu = [];
         const cancelledItems = [];
 
+        let dIdx = 0;
         for (const item of latestOrder.Menu || []) {
 
             if (item.Restaurant !== myRestaurant) {
@@ -204,7 +209,8 @@ const saveChanges = async (order) => {
                 continue;
             }
 
-            const action = orderSelections[item.id];
+            const itemKey = item.cartItemId || (item.id + '-' + dIdx++);
+            const action = orderSelections[itemKey];
             if (!action) {
                 updatedMenu.push(item);
                 continue;
@@ -214,7 +220,8 @@ const saveChanges = async (order) => {
 
             if (action === 'advance') {
                 if (!item.itemStatus || item.itemStatus === 'waiting') {
-                    newStatus = 'cooking';
+                    const hasCancelAction = Object.values(orderSelections).includes('cancel');
+                    newStatus = hasCancelAction ? 'returned' : 'cooking';
                 }
             }
 
@@ -388,15 +395,15 @@ const getRowStatusColor = (status) => {
 
                                 <label class="cursor-pointer flex items-center gap-1">
                                     <input type="checkbox" class="checkbox checkbox-success checkbox-xs"
-                                        :checked="getSelectionType(order.id, item.id) === 'advance'"
-                                        @change="toggleSelection(order.id, item.id, 'advance')" />
+                                        :checked="getSelectionType(order.id, item.uniqueKey) === 'advance'"
+                                        @change="toggleSelection(order.id, item.uniqueKey, 'advance')" />
                                 </label>
 
 
                                 <label class="cursor-pointer flex items-center gap-1">
                                     <input type="checkbox" class="checkbox checkbox-error checkbox-xs"
-                                        :checked="getSelectionType(order.id, item.id) === 'cancel'"
-                                        @change="toggleSelection(order.id, item.id, 'cancel')" />
+                                        :checked="getSelectionType(order.id, item.uniqueKey) === 'cancel'"
+                                        @change="toggleSelection(order.id, item.uniqueKey, 'cancel')" />
                                 </label>
                             </div>
 
@@ -416,8 +423,8 @@ const getRowStatusColor = (status) => {
                                 <div class="flex-grow">
                                     <div class="flex justify-between items-start">
                                         <span class="font-bold text-slate-700 text-sm line-clamp-2" :class="{
-                                            'text-emerald-600': getSelectionType(order.id, item.id) === 'advance',
-                                            'text-red-500 line-through': getSelectionType(order.id, item.id) === 'cancel',
+                                            'text-emerald-600': getSelectionType(order.id, item.uniqueKey) === 'advance',
+                                            'text-red-500 line-through': getSelectionType(order.id, item.uniqueKey) === 'cancel',
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
@@ -433,7 +440,7 @@ const getRowStatusColor = (status) => {
                                             class="badge badge-xs font-semibold px-2 py-2">
                                             {{ (item.itemStatus || 'waiting').toUpperCase() }}
                                         </div>
-                                        <span v-if="getSelectionType(order.id, item.id) === 'advance'"
+                                        <span v-if="getSelectionType(order.id, item.uniqueKey) === 'advance'"
                                             class="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
                                                 fill="currentColor">
@@ -443,7 +450,7 @@ const getRowStatusColor = (status) => {
                                             </svg>
                                             Will Update
                                         </span>
-                                        <span v-if="getSelectionType(order.id, item.id) === 'cancel'"
+                                        <span v-if="getSelectionType(order.id, item.uniqueKey) === 'cancel'"
                                             class="text-[10px] font-bold text-red-500 flex items-center gap-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
                                                 fill="currentColor">

@@ -104,7 +104,10 @@ const removeItem = (index) => {
                 x{{ cart.Quantity }} </div>
               <div class="min-w-0">
                 <div class="font-bold text-gray-800 text-lg truncate"> {{ cart.Name }} <span
-                    class="text-xs text-gray-400">(฿{{ cart.Price }})</span></div>
+                    class="text-xs text-gray-400">(฿{{ cart.basePrice || cart.Price }})</span></div>
+                <div v-if="cart.note" class="text-xs text-gray-500 mt-1 whitespace-pre-wrap leading-relaxed">
+                  {{ cart.note }}
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-4">

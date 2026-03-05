@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useCartStore } from '@/stores/cartStore'
 
 const props = defineProps({
@@ -15,7 +15,7 @@ const quantity = ref(1)
 const note = ref('')
 
 
-const selections = ref({}) 
+const selections = ref({})
 
 watch(
   () => props.product,
@@ -41,9 +41,9 @@ watch(
 
     if (cartItem) {
       quantity.value = cartItem.Quantity
-     
+
       note.value = cartItem.baseNote || ''
-      
+
     } else {
       quantity.value = 1
       note.value = ''
@@ -52,7 +52,17 @@ watch(
   { immediate: true }
 )
 
+const toggleRadio = (gIndex, choiceName) => {
+  if (selections.value[gIndex] === choiceName) {
+    selections.value[gIndex] = null
+  } else {
+    selections.value[gIndex] = choiceName
+  }
+}
+
 const confirmAdd = () => {
+  if (!isFormValid.value) return
+
   let finalNote = note.value ? `หมายเหตุ: ${note.value}` : ''
   let optionsNoteArr = []
 
@@ -60,9 +70,15 @@ const confirmAdd = () => {
     props.product.OptionGroups.forEach((g, i) => {
       const sel = selections.value[i]
       if (g.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
-        optionsNoteArr.push(`${g.name}: ${sel.join(', ')}`)
+        const choiceStrs = sel.map(name => {
+          const choice = g.choices.find(c => c.name === name)
+          return choice && Number(choice.price) > 0 ? `${name} (+฿${choice.price})` : name
+        })
+        optionsNoteArr.push(`${g.name}: ${choiceStrs.join(', ')}`)
       } else if (g.maxChoices === 1 && sel) {
-        optionsNoteArr.push(`${g.name}: ${sel}`)
+        const choice = g.choices.find(c => c.name === sel)
+        const choiceStr = choice && Number(choice.price) > 0 ? `${sel} (+฿${choice.price})` : sel
+        optionsNoteArr.push(`${g.name}: ${choiceStr}`)
       }
     })
   }
@@ -72,9 +88,45 @@ const confirmAdd = () => {
     finalNote = finalNote ? `${combinedOptions} \n${finalNote}` : combinedOptions
   }
 
-  cartStore.addOrUpdateItem(props.product, quantity.value, finalNote)
+
+  let extraPrice = 0
+  if (props.product.OptionGroups) {
+    props.product.OptionGroups.forEach((g, i) => {
+      const sel = selections.value[i]
+      if (g.maxChoices > 1 && Array.isArray(sel)) {
+        sel.forEach(name => {
+          const choice = g.choices.find(c => c.name === name)
+          if (choice) extraPrice += (Number(choice.price) || 0)
+        })
+      } else if (g.maxChoices === 1 && sel) {
+        const choice = g.choices.find(c => c.name === sel)
+        if (choice) extraPrice += (Number(choice.price) || 0)
+      }
+    })
+  }
+
+  const unitPrice = props.product.Price + extraPrice
+
+  cartStore.addOrUpdateItem(props.product, quantity.value, finalNote, unitPrice)
   emit('close')
 }
+
+const isFormValid = computed(() => {
+  if (!props.product || !props.product.OptionGroups) return true
+
+  for (let i = 0; i < props.product.OptionGroups.length; i++) {
+    const group = props.product.OptionGroups[i]
+    if (group.isRequired) {
+      const sel = selections.value[i]
+      if (group.maxChoices > 1) {
+        if (!Array.isArray(sel) || sel.length === 0) return false
+      } else {
+        if (!sel) return false
+      }
+    }
+  }
+  return true
+})
 
 
 const totalPrice = () => {
@@ -106,7 +158,7 @@ const totalPrice = () => {
     <transition name="slide-in">
       <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
 
-        
+
         <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
           <button @click="emit('close')"
             class="w-8 h-8 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-sm active:scale-95 transition-transform">
@@ -115,7 +167,7 @@ const totalPrice = () => {
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-          
+
           <div class="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500" viewBox="0 0 20 20"
               fill="currentColor">
@@ -134,16 +186,16 @@ const totalPrice = () => {
           </div>
         </div>
 
-        
+
         <div class="flex-1 overflow-y-auto no-scrollbar pb-36 bg-gray-50">
-        
+
           <div class="w-full h-[280px] bg-gray-200 relative">
             <img v-if="product.ImageUrl" :src="product.ImageUrl" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
               <span class="text-6xl">🍲</span>
             </div>
 
-            
+
           </div>
 
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
@@ -153,7 +205,7 @@ const totalPrice = () => {
             </div>
           </div>
 
-   
+
           <div v-if="product.OptionGroups && product.OptionGroups.length > 0">
             <div v-for="(group, gIndex) in product.OptionGroups" :key="'group-' + gIndex"
               class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
@@ -193,7 +245,7 @@ const totalPrice = () => {
             </div>
           </div>
 
-       
+
           <div class="bg-white px-5 py-4 mt-2 mb-8 border-b border-gray-100">
             <h3 class="font-bold text-gray-800 text-[15px] mb-3">รายละเอียดเพิ่มเติม</h3>
             <textarea v-model="note"
@@ -203,10 +255,10 @@ const totalPrice = () => {
 
         </div>
 
-       
+
         <div
           class="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] px-4 pb-safe rounded-t-3xl z-20 flex flex-col items-center">
-         
+
           <div class="flex items-center justify-center gap-6 py-4">
             <button
               class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 font-medium active:scale-95 transition-all focus:outline-none disabled:opacity-30 disabled:active:scale-100"
@@ -229,10 +281,11 @@ const totalPrice = () => {
             </button>
           </div>
 
-        
+
           <button
-            class="w-full bg-blue-600 text-white rounded-xl py-3.5 px-4 font-bold active:scale-[0.98] transition-all flex justify-between items-center mb-4 shadow-md"
-            @click="confirmAdd">
+            class="w-full rounded-xl py-3.5 px-4 font-bold transition-all flex justify-between items-center mb-4 shadow-md"
+            :class="isFormValid ? 'bg-blue-600 text-white active:scale-[0.98]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+            :disabled="!isFormValid" @click="confirmAdd">
             <span>เพิ่มไปยังตะกร้า</span>
             <span>฿{{ totalPrice() }}</span>
           </button>
@@ -261,9 +314,9 @@ const totalPrice = () => {
 
 .no-scrollbar {
   -ms-overflow-style: none;
-  
+
   scrollbar-width: none;
- 
+
 }
 
 .pb-safe {

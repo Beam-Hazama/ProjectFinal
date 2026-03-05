@@ -42,23 +42,21 @@ export const useCartStore = defineStore("cart", {
         localStorage.setItem(storageKey, JSON.stringify(this.item));
       }
     },
-    addOrUpdateItem(product, quantity, note) {
-      const index = this.item.findIndex(i => i.id === product.id)
-    
-      if (index === -1) {
-        this.item.push({
-          id: product.id,
-          Name: product.Name,
-          Price: product.Price,
-          ImageUrl: product.ImageUrl,
-          Quantity: quantity,
-          note: note,
-          Restaurant: product.Restaurant
-        })
-      } else {
-        this.item[index].Quantity = quantity
-        this.item[index].note = note
-      }
+    addOrUpdateItem(product, quantity, note, unitPrice) {
+      const priceToUse = unitPrice !== undefined ? unitPrice : product.Price;
+      
+      // Always add as a new item to separate identical orders
+      this.item.push({
+        id: product.id,
+        cartItemId: `${product.id}-${Math.random().toString(36).substr(2, 9)}`, // Unique ID for cart operations
+        Name: product.Name,
+        Price: priceToUse,
+        basePrice: product.Price,
+        ImageUrl: product.ImageUrl,
+        Quantity: quantity,
+        note: note,
+        Restaurant: product.Restaurant
+      })
     
       this.saveToStorage()
     },
@@ -76,7 +74,12 @@ export const useCartStore = defineStore("cart", {
           building: this.building, 
           floor: this.floor,       
           room: this.room,         
-          Menu: this.item.map(i => ({...i, itemStatus: 'waiting'})),
+          Menu: this.item.map(i => ({
+            ...i, 
+            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`, 
+            id: i.menuId || i.id,
+            itemStatus: 'waiting'
+          })),
           TotalPrice: this.summaryPrice,
           statusOrder: 'pending',
           CreatedAt: serverTimestamp()

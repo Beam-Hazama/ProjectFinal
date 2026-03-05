@@ -23,9 +23,9 @@ const roomOrders = computed(() => {
     const isOwner = String(order.tableId).trim() === String(tableId).trim();
     if (!isOwner) return false;
 
-   
+
     const hasActiveItems = (order.Menu || []).some(item =>
-      !['received', 'cancelled', 'returned'].includes(item.itemStatus)
+      !['received', 'cancelled'].includes(item.itemStatus)
     );
 
     return hasActiveItems;
@@ -173,7 +173,8 @@ onMounted(() => {
         </div>
 
 
-        <div class="px-8 py-6 bg-white border-b border-gray-50">
+        <div v-if="!(order.Menu || []).some(i => ['cancelled', 'returned'].includes(i.itemStatus))"
+          class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
 
             <div class="absolute left-4 right-4 top-4 h-[2px]">
@@ -204,7 +205,7 @@ onMounted(() => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
             </div>
 
-           
+
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -228,7 +229,7 @@ onMounted(() => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
             </div>
 
-            
+
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -251,7 +252,7 @@ onMounted(() => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
             </div>
 
-          
+
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -282,7 +283,10 @@ onMounted(() => {
               <div class="flex gap-3 items-center">
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
                 }}</span>
-                <span class="text-sm font-bold text-gray-700">{{ item.Name }}</span>
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-gray-700">{{ item.Name }}</span>
+                  <span v-if="item.note" class="text-xs text-gray-500 mt-0.5">{{ item.note }}</span>
+                </div>
               </div>
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
