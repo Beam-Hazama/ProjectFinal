@@ -283,13 +283,13 @@ onMounted(async () => {
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
                                     <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -499,7 +499,7 @@ onMounted(async () => {
                                         </div>
                                     </transition-group>
 
-                                    
+
                                     <div v-if="!MenuData.OptionGroups || MenuData.OptionGroups.length === 0"
                                         class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
                                         <div class="text-slate-300 mb-4">

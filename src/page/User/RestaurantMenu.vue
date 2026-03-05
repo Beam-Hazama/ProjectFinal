@@ -240,7 +240,7 @@ const filteredMenu = computed(() => {
                     <span class="text-gray-300">•</span>
                     <span>฿0 <span class="line-through text-gray-400">฿13</span></span>
                     <span class="text-gray-300">•</span>
-                    <span>2.1 กม. (32 นาที)</span>
+                    <span>2.1 กม.</span>
                 </div>
 
             </div>

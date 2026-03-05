@@ -93,7 +93,9 @@ onUnmounted(() => {
               <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10H2Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10" />
                 </svg>
               </div>
             </div>
@@ -107,14 +109,15 @@ onUnmounted(() => {
             </div>
             <div class="relative z-10 flex justify-between items-start">
               <div>
-                <p class="text-sm font-bold text-slate-500 mb-1">ผู้เข้าใช้งาน (Accounts)</p>
-                <h3 class="text-3xl font-extrabold text-slate-800">{{ dashboardStore.totalUsers.toLocaleString() }}</h3>
+                <p class="text-sm font-bold text-slate-500 mb-1">จำนวนร้านอาหาร</p>
+                <h3 class="text-3xl font-extrabold text-slate-800">{{ dashboardStore.totalRestaurants.toLocaleString()
+                }}</h3>
               </div>
               <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M12 4.354a4 4 0 110 5.292M15.21 12a7.978 7.978 0 015.012 4.5H3.778a7.978 7.978 0 015.012-4.5M19 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75z" />
                 </svg>
               </div>
             </div>

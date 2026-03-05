@@ -7,10 +7,10 @@ export const useDashboardStore = defineStore('dashboard', {
     totalOrders: 0,
     totalRevenue: 0,
     totalProducts: 0,
-    totalUsers: 0,
+    totalRestaurants: 0,
     ordersLoading: true,
     productsLoading: true,
-    usersLoading: true,
+    restaurantsLoading: true,
     
     
     revenueByDay: [],
@@ -18,11 +18,11 @@ export const useDashboardStore = defineStore('dashboard', {
     
     unsubscribeOrders: null,
     unsubscribeProducts: null,
-    unsubscribeUsers: null,
+    unsubscribeRestaurants: null,
   }),
 
   getters: {
-    isLoading: (state) => state.ordersLoading || state.productsLoading || state.usersLoading,
+    isLoading: (state) => state.ordersLoading || state.productsLoading || state.restaurantsLoading,
     
     
     salesChartSeries: (state) => {
@@ -126,11 +126,11 @@ export const useDashboardStore = defineStore('dashboard', {
     clearListeners() {
       if (this.unsubscribeOrders) this.unsubscribeOrders();
       if (this.unsubscribeProducts) this.unsubscribeProducts();
-      if (this.unsubscribeUsers) this.unsubscribeUsers();
+      if (this.unsubscribeRestaurants) this.unsubscribeRestaurants();
       
       this.unsubscribeOrders = null;
       this.unsubscribeProducts = null;
-      this.unsubscribeUsers = null;
+      this.unsubscribeRestaurants = null;
     },
 
     async loadDashboardData() {
@@ -138,7 +138,7 @@ export const useDashboardStore = defineStore('dashboard', {
       
       this.ordersLoading = true;
       this.productsLoading = true;
-      this.usersLoading = true;
+      this.restaurantsLoading = true;
 
       
       const ordersQuery = query(collection(db, 'Order'));
@@ -196,14 +196,13 @@ export const useDashboardStore = defineStore('dashboard', {
         this.productsLoading = false;
       });
 
-     
-      const usersQuery = query(collection(db, 'User'));
-      this.unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
-        this.totalUsers = Number(snapshot.size);
-        this.usersLoading = false;
+      const restaurantsQuery = query(collection(db, 'Restaurant'));
+      this.unsubscribeRestaurants = onSnapshot(restaurantsQuery, (snapshot) => {
+        this.totalRestaurants = Number(snapshot.size);
+        this.restaurantsLoading = false;
       }, (error) => {
-         console.error("Error fetching users:", error);
-         this.usersLoading = false;
+         console.error("Error fetching restaurants:", error);
+         this.restaurantsLoading = false;
       });
     },
 
