@@ -4,7 +4,7 @@ import { onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import ConfirmOrder from './ConfirmOrder.vue';
 
-import Trach from '@/Icon/trach.vue';
+
 
 const cartStore = useCartStore();
 const route = useRoute();
@@ -50,7 +50,7 @@ const removeItem = (index) => {
           </svg>
         </div>
         <div>
-          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md"> MY CART </h1>
+          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md">CART </h1>
           <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1 flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">

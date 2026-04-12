@@ -64,8 +64,7 @@ const ordersWithItems = computed(() => {
       ...order,
       receivedItems,
       subtotal,
-      grandTotal,
-      vat: grandTotal - (grandTotal / 1.07)
+      grandTotal
     };
   }).filter(order => order.receivedItems.length > 0);
 });
@@ -173,10 +172,7 @@ const ordersWithItems = computed(() => {
               <span>Discount</span>
               <span>-฿{{ order.discount.toLocaleString() }}</span>
             </div>
-            <div class="flex justify-between text-[10px] text-slate-400 font-medium">
-              <span>VAT 7% (Inclusive)</span>
-              <span>฿{{ order.vat.toFixed(2) }}</span>
-            </div>
+
           </div>
 
           <div class="flex justify-between items-end border-t border-slate-100 pt-4">
