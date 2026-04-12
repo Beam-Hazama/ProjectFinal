@@ -1,14 +1,11 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable';
-import { useRoute } from 'vue-router';
 import { usePosterStore } from '@/stores/posterStore';
 import { useAccountStore } from '@/stores/account'
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
-const route = useRoute();
 const posterStore = usePosterStore();
-
 const newPosterUrl = ref('');
 const isSubmittingPoster = ref(false);
 const showModal = ref(false);
@@ -187,7 +184,7 @@ const formatScheduleDate = (dateString) => {
                             <div class="flex flex-col gap-4">
                                 <div class="w-full">
                                     <label class="label pt-0">
-                                        <span class="label-text font-medium text-slate-600">URL ของภาพ</span>
+                                        <span class="label-text font-medium text-slate-600">Image URL</span>
                                     </label>
                                     <input type="text" placeholder="https://example.com/poster.jpg"
                                         v-model="newPosterUrl"
@@ -195,7 +192,7 @@ const formatScheduleDate = (dateString) => {
                                 </div>
                                 <div class="w-full md:w-32">
                                     <label class="label pt-0">
-                                        <span class="label-text font-medium text-slate-600">เวลา (วินาที)</span>
+                                        <span class="label-text font-medium text-slate-600">Duration (sec)</span>
                                     </label>
                                     <input type="number" min="1" v-model="displayDuration"
                                         class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
@@ -206,21 +203,20 @@ const formatScheduleDate = (dateString) => {
                                 <label class="cursor-pointer flex items-center gap-2 w-fit mb-3">
                                     <input type="checkbox" v-model="hasSchedule"
                                         class="checkbox checkbox-sm checkbox-primary" />
-                                    <span class="label-text font-bold text-slate-700">ตั้งเวลาแสดง Poster
-                                        (Schedule)</span>
+                                    <span class="label-text font-bold text-slate-700">Schedule Time</span>
                                 </label>
 
                                 <div v-if="hasSchedule" class="flex flex-col md:flex-row gap-4 animate-fade-in">
                                     <div class="flex-1">
                                         <label class="label pt-0">
-                                            <span class="label-text font-medium text-slate-600">เริ่มแสดงตั้งแต่</span>
+                                            <span class="label-text font-medium text-slate-600">Start Time</span>
                                         </label>
                                         <input type="datetime-local" v-model="startTime"
                                             class="input input-bordered w-full bg-white transition-colors" />
                                     </div>
                                     <div class="flex-1">
                                         <label class="label pt-0">
-                                            <span class="label-text font-medium text-slate-600">สิ้นสุดการแสดง</span>
+                                            <span class="label-text font-medium text-slate-600">End Time</span>
                                         </label>
                                         <input type="datetime-local" v-model="endTime"
                                             class="input input-bordered w-full bg-white transition-colors" />
@@ -234,7 +230,7 @@ const formatScheduleDate = (dateString) => {
                                     @error="() => newPosterUrl = ''" alt="Preview Error" />
                                 <div
                                     class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                                    <span class="text-white font-medium text-sm">ตัวอย่าง</span>
+                                    <span class="text-white font-medium text-sm">Preview</span>
                                 </div>
                             </div>
                         </div>
@@ -242,11 +238,11 @@ const formatScheduleDate = (dateString) => {
 
                     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
                         <button @click="closeModal"
-                            class="btn btn-ghost text-slate-500 hover:bg-slate-100">ยกเลิก</button>
+                            class="btn btn-ghost text-slate-500 hover:bg-slate-100">Cancel</button>
                         <button @click="handleSubmitPoster" :disabled="isSubmittingPoster || !newPosterUrl"
-                            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none min-w-[120px] rounded-lg shadow-sm">
+                            class="btn bg-blue-600 hover:bg-blue-700 text-white border-none min-w-[120px]">
                             <span v-if="isSubmittingPoster" class="loading loading-spinner loading-sm"></span>
-                            <span v-else>{{ isEditing ? 'บันทึกการแก้ไข' : 'เพิ่ม Poster' }}</span>
+                            <span v-else>{{ isEditing ? 'Save Changes' : 'Save Poster' }}</span>
                         </button>
                     </div>
                 </div>
@@ -259,13 +255,13 @@ const formatScheduleDate = (dateString) => {
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
-                                <th>IMAGE</th>
+                                <th>POSTER</th>
                                 <th>STATUS</th>
                                 <th>DURATION</th>
                                 <th>SCHEDULE</th>
                                 <th>CREATED AT</th>
                                 <th>UPDATED AT</th>
-                                <th class="text-center">ACTIONS</th>
+                                <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
 
@@ -278,6 +274,7 @@ const formatScheduleDate = (dateString) => {
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                     ไม่มีภาพ Poster หรือแบนเนอร์
+                                    No posters found
                                 </td>
                             </tr>
                         </tbody>
@@ -295,7 +292,7 @@ const formatScheduleDate = (dateString) => {
                                             </svg>
                                         </div>
                                     </td>
-                                    <td class="w-1/3">
+                                    <td class="w-48">
                                         <div
                                             class="h-24 w-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                                             <img :src="poster.ImageUrl" class="w-full h-full object-cover" />
@@ -312,14 +309,14 @@ const formatScheduleDate = (dateString) => {
                                                 </div>
                                                 <span class="ml-3 text-sm font-medium"
                                                     :class="poster.isActive ? 'text-blue-600' : 'text-slate-400'">
-                                                    {{ poster.isActive ? 'เปิดใช้งาน' : 'ซ่อน' }}
+                                                {{ poster.isActive ? 'Active' : 'Hidden' }}
                                                 </span>
                                             </label>
                                         </div>
                                     </td>
 
                                     <td class="text-xs font-medium text-slate-600">
-                                        {{ poster.displayDuration || 5 }} วินาที
+                                        {{ poster.displayDuration || 5 }} sec
                                     </td>
 
                                     <td>
@@ -332,25 +329,25 @@ const formatScheduleDate = (dateString) => {
                                                         stroke-width="2"
                                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
-                                                ตั้งเวลาแสดง
+                                                Scheduled
                                             </div>
                                             <div class="space-y-0.5">
-                                                <div><span class="font-medium text-slate-500">เริ่ม:</span> {{
+                                                <div><span class="font-medium text-slate-500">From:</span> {{
                                                     formatScheduleDate(poster.startTime) }}</div>
-                                                <div><span class="font-medium text-slate-500">ถึง:</span> {{
+                                                <div><span class="font-medium text-slate-500">To:</span> {{
                                                     formatScheduleDate(poster.endTime) }}</div>
                                             </div>
                                         </div>
                                         <div v-else class="text-[11px] text-slate-400 font-medium">
-                                            ไม่ได้ตั้งเวลา
+                                            Not scheduled
                                         </div>
                                     </td>
 
-                                    <td class="text-xs">
+                                    <td class="text-xs whitespace-nowrap">
                                         {{ formatDate(poster.createdAt) }}
                                     </td>
 
-                                    <td class="text-xs">
+                                    <td class="text-xs whitespace-nowrap">
                                         {{ formatDate(poster.updatedAt) }}
                                     </td>
 

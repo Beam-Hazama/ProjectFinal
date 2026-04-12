@@ -16,7 +16,7 @@ import { db } from "@/firebase";
 export const useOderlistStore = defineStore("oderlist", {
   state: () => ({
     list: [],
-    unsubscribe: null, 
+    unsubscribe: null,
   }),
   getters: {
     sortedOrders: (state) => {
@@ -40,7 +40,7 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
-          const allFinished = updatedMenu.every(item => 
+          const allFinished = updatedMenu.every(item =>
             ['received', 'cancelled', 'returned'].includes(item.itemStatus)
           );
 
@@ -55,12 +55,12 @@ export const useOderlistStore = defineStore("oderlist", {
 
           await updateDoc(orderRef, orderUpdates);
 
-          
+
           if (newStatus === 'cancelled') {
             for (const item of updatedMenu) {
               if (item.Restaurant === restaurantName) {
                 const menuRef = doc(db, 'Menu', item.id);
-                await updateDoc(menuRef, { 
+                await updateDoc(menuRef, {
                   Status: 'close',
                   UpdatedAt: serverTimestamp(),
                   status: deleteField(),
@@ -82,7 +82,7 @@ export const useOderlistStore = defineStore("oderlist", {
 
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-          
+
           const updatedMenu = orderData.Menu.map(item => {
             if (item.id === itemId) {
               return { ...item, itemStatus: newStatus };
@@ -90,7 +90,7 @@ export const useOderlistStore = defineStore("oderlist", {
             return item;
           });
 
-          const allFinished = updatedMenu.every(item => 
+          const allFinished = updatedMenu.every(item =>
             ['received', 'cancelled', 'returned'].includes(item.itemStatus)
           );
 
@@ -107,7 +107,7 @@ export const useOderlistStore = defineStore("oderlist", {
 
           if (newStatus === 'cancelled') {
             const menuRef = doc(db, 'Menu', itemId);
-            await updateDoc(menuRef, { 
+            await updateDoc(menuRef, {
               Status: 'close',
               UpdatedAt: serverTimestamp(),
               status: deleteField(),
@@ -124,11 +124,11 @@ export const useOderlistStore = defineStore("oderlist", {
       try {
         const orderRef = doc(db, 'Order', orderId);
         const orderSnap = await getDoc(orderRef);
-    
+
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-          
-          
+
+
           const updatedMenu = orderData.Menu.map(item => {
             const update = updates.find(u => u.itemId === item.id);
             if (update) {
@@ -136,7 +136,7 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
-          const allFinished = updatedMenu.every(item => 
+          const allFinished = updatedMenu.every(item =>
             ['received', 'cancelled', 'returned'].includes(item.itemStatus)
           );
 
@@ -151,11 +151,11 @@ export const useOderlistStore = defineStore("oderlist", {
 
           await updateDoc(orderRef, orderUpdates);
 
-         
+
           for (const update of updates) {
             if (update.newStatus === 'cancelled') {
               const menuRef = doc(db, 'Menu', update.itemId);
-              await updateDoc(menuRef, { 
+              await updateDoc(menuRef, {
                 Status: 'close',
                 UpdatedAt: serverTimestamp(),
                 status: deleteField(),
@@ -174,31 +174,31 @@ export const useOderlistStore = defineStore("oderlist", {
       try {
         const orderRef = doc(db, 'Order', orderId);
         const orderSnap = await getDoc(orderRef);
-    
+
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-          
-          
+
+
           const updatedMenu = orderData.Menu.map(item => ({
-             ...item, 
-             itemStatus: (item.itemStatus === 'cancelled') ? 'cancelled' : 'returned'
+            ...item,
+            itemStatus: (item.itemStatus === 'cancelled') ? 'cancelled' : 'returned'
           }));
-    
+
           await updateDoc(orderRef, {
             Menu: updatedMenu,
-            statusOrder: 'returned' 
+            statusOrder: 'returned'
           });
 
-          
+
           for (const item of updatedMenu) {
             if (item.itemStatus === 'cancelled') {
-               const menuRef = doc(db, 'Menu', item.id);
-               await updateDoc(menuRef, { 
-                 Status: 'close',
-                 UpdatedAt: serverTimestamp(),
-                 status: deleteField(),
-                 updatedAt: deleteField()
-               }).catch(e => console.error("Global return sync fail:", e));
+              const menuRef = doc(db, 'Menu', item.id);
+              await updateDoc(menuRef, {
+                Status: 'close',
+                UpdatedAt: serverTimestamp(),
+                status: deleteField(),
+                updatedAt: deleteField()
+              }).catch(e => console.error("Global return sync fail:", e));
             }
           }
         }
@@ -207,8 +207,8 @@ export const useOderlistStore = defineStore("oderlist", {
         throw error;
       }
     },
-    
-    
+
+
     clearListener() {
       if (this.unsubscribe) {
         this.unsubscribe();
@@ -217,8 +217,9 @@ export const useOderlistStore = defineStore("oderlist", {
       this.list = [];
     },
 
+
     async loadOrderUser(tableId) {
-      this.clearListener(); 
+      this.clearListener();
 
       const orderQuery = query(
         collection(db, "Order"),
@@ -226,10 +227,16 @@ export const useOderlistStore = defineStore("oderlist", {
       );
 
       this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {
-        this.list = orderSnapshot.docs.map((doc) => ({
+        const newOrders = orderSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+
+        if (this.list.length > 0) {
+          // Local notification triggers removed, Cloud Function handles it.
+        }
+
+        this.list = newOrders;
       });
     },
     async addToOrderList(orderData) {
@@ -261,7 +268,7 @@ export const useOderlistStore = defineStore("oderlist", {
     },
     async loadOrderinadmin() {
       this.clearListener();
-      
+
       this.unsubscribe = onSnapshot(collection(db, "Order"), (orderSnapshot) => {
         this.list = orderSnapshot.docs.map((doc) => ({
           ...doc.data(),

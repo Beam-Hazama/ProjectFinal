@@ -33,13 +33,8 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-const activeShopTab = ref('ร้านค้า');
-
-
 const currentSlide = ref(0);
 let carouselTimeout = null;
-
-const shopCategories = ['ร้านค้า', 'ตามสั่ง', 'ก๊วยเตี๋ยว', 'น้ำ'];
 
 
 
@@ -124,18 +119,7 @@ const filteredRestaurants = computed(() => {
 });
 
 const filteredProducts = computed(() => {
-  if (!menuStore.list) return [];
-  
-  let items = menuStore.list;
-
-  if (activeShopTab.value !== 'ทั้งหมด' && activeShopTab.value !== 'ร้านค้า') {
-    items = items.filter(item =>
-      (item.Category && item.Category === activeShopTab.value) ||
-      (item.role && (Array.isArray(item.role) ? item.role.includes(activeShopTab.value) : item.role === activeShopTab.value))
-    );
-  }
-
-  return items;
+  return menuStore.list || [];
 });
 
 </script>
@@ -238,7 +222,7 @@ const filteredProducts = computed(() => {
 
     <div id="restaurant-section" class="mt-4 pt-2 pb-6">
       <div class="px-5 mb-3">
-        <h3 class="text-[14px] font-bold text-gray-800">ร้านค้า</h3>
+        <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
       </div>
 
       <div class="px-4">

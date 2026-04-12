@@ -1,6 +1,9 @@
 <script setup>
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter } from 'vue-router';
+import { useMenuStore } from '@/stores/menu';
+
+const menuStore = useMenuStore();
 
 const cartStore = useCartStore();
 const router = useRouter();
@@ -27,6 +30,11 @@ const editOrder = () => {
   const dlg = document.getElementById('my_modal_1')
   if (dlg?.close) dlg.close()
 }
+
+const getMenuName = (id) => {
+  const menu = menuStore.list.find(m => m.id === id);
+  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+};
 </script>
 
 <template>
@@ -42,7 +50,7 @@ const editOrder = () => {
         <div v-for="(cart, index) in cartStore.item" :key="index" class="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all">
           <div class="flex items-center gap-4">
             <div>
-              <div class="font-bold text-slate-700 text-base leading-tight">{{ cart.Name }}</div>
+              <div class="font-bold text-slate-700 text-base leading-tight">{{ cart.Name || getMenuName(cart.id || cart.menuId) }}</div>
               <p class="text-xs text-slate-400 font-medium mt-1">จำนวน: x{{ cart.Quantity }} (฿{{ cart.Price }})</p>
             </div>
           </div>

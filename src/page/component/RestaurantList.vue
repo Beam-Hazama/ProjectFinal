@@ -97,7 +97,17 @@ const goToRestaurantMenu = (restaurantName) => {
 
           
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
-                <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ shop.Name }}</h3>
+                <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ shop.Name }}</h3>
+                
+                <!-- ระยะทางใต้ชื่อร้าน -->
+                <div v-if="shop.Distance" class="flex items-center gap-1 text-[11px] text-gray-500 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{{ shop.Distance }} กม.</span>
+                </div>
+
                 <p class="font-medium text-[12px] flex items-center gap-1"
                     :class="isShopClosed(shop) ? 'text-red-500' : 'text-gray-500'">
                     <template v-if="!isShopClosed(shop)">

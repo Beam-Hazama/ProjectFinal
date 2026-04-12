@@ -1,7 +1,8 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore,connectFirestoreEmulator } from 'firebase/firestore'
-import { getAuth,connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDmlvELaeBCn1m4AuZh-L7vO33B_xvtpTU",
@@ -22,8 +23,22 @@ const auth = getAuth(app);
 
 const db = getFirestore(app);
 
+let messaging = null;
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      try {
+        messaging = getMessaging(app);
+      } catch (err) {
+        console.error("Messaging initialization failed:", err);
+      }
+    }
+  });
+}
 
-export{
-    db,
-    auth
+export {
+  app,
+  db,
+  auth,
+  messaging
 }

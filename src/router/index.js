@@ -157,6 +157,11 @@ const router = createRouter({
       name: 'Restaurant update ',
       component: Managerestaurant,
     },
+    {
+      path: '/admin/restaurentdetail/:id',
+      name: 'Admin Restaurant Detail',
+      component: Managerestaurant,
+    },
 
     {
       path: '/Login',

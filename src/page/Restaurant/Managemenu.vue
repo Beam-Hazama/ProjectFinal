@@ -34,10 +34,11 @@ const MenuData = reactive({
     Name: '',
     ImageUrl: '',
     Price: '',
+    PromoPrice: null,
     Restaurant: '',
     Description: '',
-    category: '',
-    status: '',
+    Category: '',
+    Status: '',
     OptionGroups: [],
 });
 
@@ -74,6 +75,7 @@ const checkAddProduct = async (data) => {
             Description: data.Description,
             Category: data.Category,
             Status: data.Status,
+            PromoPrice: data.PromoPrice ? Number(data.PromoPrice) : null,
             OptionGroups: cleanOptionGroups,
             UpdatedAt: serverTimestamp()
         }
@@ -294,8 +296,8 @@ onMounted(async () => {
                             </div>
 
                             <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลทั่วไป</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="form-control md:col-span-1">
+                            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                <div class="form-control md:col-span-2">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                                                 class="text-red-500">*</span></span>
@@ -304,9 +306,9 @@ onMounted(async () => {
                                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                         v-model="MenuData.Name" />
                                 </div>
-                                <div class="form-control">
+                                <div class="form-control md:col-span-2">
                                     <label class="label">
-                                        <span class="label-text font-medium text-slate-600">ราคา<span
+                                        <span class="label-text font-medium text-slate-600">ราคาปกติ<span
                                                 class="text-red-500">*</span></span>
                                     </label>
                                     <div class="relative">
@@ -316,8 +318,19 @@ onMounted(async () => {
                                         <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                     </div>
                                 </div>
+                                <div class="form-control md:col-span-2">
+                                    <label class="label">
+                                        <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" placeholder="ไม่มี"
+                                            class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700"
+                                            v-model="MenuData.PromoPrice" />
+                                        <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
+                                    </div>
+                                </div>
 
-                                <div class="form-control md:col-span-3">
+                                <div class="form-control md:col-span-6">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">รายละเอียด</span>
                                     </label>
@@ -326,7 +339,7 @@ onMounted(async () => {
                                         v-model="MenuData.Description" />
                                 </div>
 
-                                <div class="form-control">
+                                <div class="form-control md:col-span-2">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">ร้านอาหาร</span>
                                     </label>
@@ -345,7 +358,7 @@ onMounted(async () => {
                                     </p>
                                 </div>
 
-                                <div class="form-control">
+                                <div class="form-control md:col-span-2">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร</span>
                                     </label>
@@ -359,7 +372,7 @@ onMounted(async () => {
                                     </select>
                                 </div>
 
-                                <div class="form-control">
+                                <div class="form-control md:col-span-2">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">สถานะการขาย</span>
                                     </label>

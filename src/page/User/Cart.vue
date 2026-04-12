@@ -17,11 +17,6 @@ const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
 
-const formatPrice = (value) => {
-  return new Intl.NumberFormat('th-TH').format(value);
-};
-
-
 const showConfirmModal = () => {
   if (cartStore.item.length > 0) {
     const modal = document.getElementById('my_modal_1');
@@ -44,7 +39,7 @@ const removeItem = (index) => {
 
 <template>
   <div
-    class="w-full min-h-screen p-4 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
+    class="w-full min-h-screen p-4 pb-32 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -79,9 +74,13 @@ const removeItem = (index) => {
     </div>
 
     <div
-      class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center mb-4 border-b border-blue-100 pb-4">
-        <span class="text-lg font-bold text-gray-700 mx-3">รายการอาหารที่สั่ง</span>
+      class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5">
+      <div class="flex justify-between items-center mb-6">
+        <span class="text-xl font-bold text-slate-800">รายการสั่งซื้อ</span>
+        <button @click="$router.push({ name: 'UserWithParams', params: { building, floor, room } })"
+          class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
+          + เพิ่มรายการ
+        </button>
       </div>
 
       <div v-if="!cartStore.item || cartStore.item.length === 0"
@@ -94,31 +93,65 @@ const removeItem = (index) => {
         <span>ยังไม่มีสินค้าในตะกร้า</span>
       </div>
 
-      <TransitionGroup name="list" tag="div" class="space-y-3">
+      <TransitionGroup name="list" tag="div" class="divide-y divide-slate-100">
         <div v-for="(cart, index) in cartStore.item" :key="index"
-          class="group relative bg-white/60 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-100">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3 overflow-hidden">
-              <div
-                class="flex-shrink-0 w-10 h-8 flex items-center justify-center bg-blue-50 rounded-lg text-blue-600 font-bold text-xs">
-                x{{ cart.Quantity }} </div>
-              <div class="min-w-0">
-                <div class="font-bold text-gray-800 text-lg truncate"> {{ cart.Name }} <span
-                    class="text-xs text-gray-400">(฿{{ cart.basePrice || cart.Price }})</span></div>
-                <div v-if="cart.note" class="text-xs text-gray-500 mt-1 whitespace-pre-wrap leading-relaxed">
-                  {{ cart.note }}
-                </div>
-              </div>
+          class="group relative py-6 first:pt-0 last:pb-0 transition-all duration-300">
+          <div class="flex gap-4">
+            <!-- Product Image -->
+            <div class="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
+              <img :src="cart.ImageUrl || 'https://via.placeholder.com/150'" class="w-full h-full object-cover" />
             </div>
-            <div class="flex items-center gap-4">
-              <div class="text-blue-600 text-right">
-                <div class="text-lg font-bold">{{ (cart.Price * cart.Quantity).toLocaleString() }}</div>
-                <div class="text-[10px] text-slate-400 uppercase font-bold">Baht</div>
+
+            <!-- Product Info -->
+            <div class="flex-grow min-w-0 flex flex-col justify-between py-0.5">
+              <div>
+                <div class="flex justify-between items-start">
+                  <div class="flex-grow min-w-0">
+                    <h3 class="font-bold text-slate-800 text-base leading-tight pr-2">
+                      {{ cart.Name }}
+                    </h3>
+                    <div v-if="cart.note" class="text-[11px] text-slate-400 font-normal mt-0.5 italic whitespace-pre-wrap break-words">
+                      {{ cart.note }}
+                    </div>
+                  </div>
+                  <div class="flex flex-col items-end flex-shrink-0">
+                    <div class="text-slate-900 font-bold whitespace-nowrap">
+                      ฿{{ (cart.Price * cart.Quantity).toLocaleString() }}
+                    </div>
+                    <div v-if="cart.basePrice && cart.basePrice > cart.Price"
+                      class="text-xs text-slate-400 line-through mt-0.5">
+                      ฿{{ (cart.basePrice * cart.Quantity).toLocaleString() }}
+                    </div>
+                  </div>
+                </div>
+
+
               </div>
-              <button @click="removeItem(index)"
-                class="p-2 rounded-full text-slate-300 hover:bg-red-50 hover:text-red-500 transition">
-                <Trach />
-              </button>
+
+              <!-- Quantity Controls -->
+              <div class="flex items-center gap-3 mt-3">
+                <div class="flex items-center bg-slate-50 rounded-xl p-1 shadow-inner border border-slate-100">
+                  <button @click="cartStore.updateQuantity(index, -1)"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-slate-400 hover:text-blue-600 transition-all active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <div class="w-10 text-center font-bold text-slate-700 text-sm">
+                    {{ cart.Quantity }}
+                  </div>
+                  <button @click="cartStore.updateQuantity(index, 1)"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-slate-400 hover:text-blue-600 transition-all active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+
+                
+              </div>
             </div>
           </div>
         </div>
@@ -129,10 +162,6 @@ const removeItem = (index) => {
       <div class="flex justify-between text-gray-600">
         <span>ค่าอาหาร</span>
         <span>{{ cartStore.summaryPrice.toLocaleString() }} บาท</span>
-      </div>
-      <div class="flex justify-between text-red-500 bg-red-50 p-2 rounded-lg border border-red-100">
-        <span class="flex items-center gap-1 font-bold"><span class="text-xs">🏷️</span>ส่วนลดพิเศษ</span>
-        <span>- ฿0 บาท</span>
       </div>
       <hr class="border-dashed border-gray-300 my-2" />
       <div class="flex justify-between items-end">
@@ -172,17 +201,13 @@ const removeItem = (index) => {
 </template>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .list-enter-active,

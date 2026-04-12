@@ -5,7 +5,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useRestaurant } from '@/stores/Restaurant';
 
-import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp, } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -13,13 +13,13 @@ import LayoutAdmin from '@/page/Admin/Admin.vue';
 const route = useRoute();
 const router = useRouter();
 
-const mode = ref('');
+
 
 const MenuStore = useMenuStore();
 const Restaurant = useRestaurant();
 
 const productId = route.params.id;
-const selectedFile = ref(null);
+
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 
@@ -27,6 +27,7 @@ const MenuData = reactive({
   Name: '',
   ImageUrl: '',
   Price: 0,
+  PromoPrice: null,
   Restaurant: '',
   Description: '',
   Category: '',
@@ -119,30 +120,41 @@ onMounted(async () => {
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
                 ข้อมูลทั่วไป
               </h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="form-control md:col-span-1">
+              <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                         class="text-red-500">*</span></span>
                   </label>
                   <label type="text"
-                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200">{{
+                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">{{
                       MenuData.Name }}</label>
                 </div>
-                <div class="form-control">
+                <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ราคา<span class="text-red-500">*</span></span>
+                    <span class="label-text font-medium text-slate-600">ราคาปกติ<span class="text-red-500">*</span></span>
                   </label>
                   <div class="relative">
-                    <label type="number"
-                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200">{{
+                    <label type="text"
+                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 flex items-center justify-end">{{
                         MenuData.Price }}</label>
+                    <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
+                  </div>
+                </div>
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
+                  </label>
+                  <div class="relative">
+                    <label type="text"
+                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700 flex items-center justify-end">{{
+                        MenuData.PromoPrice || 'ไม่มี' }}</label>
                     <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                   </div>
                 </div>
 
 
-                <div class="form-control md:col-span-3">
+                <div class="form-control md:col-span-6">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">รายละเอียด</span>
                   </label>
@@ -151,7 +163,7 @@ onMounted(async () => {
                       MenuData.Description }}</label>
                 </div>
 
-                <div class="form-control">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ร้านอาหาร</span>
                   </label>
@@ -161,7 +173,7 @@ onMounted(async () => {
                   </label>
                 </div>
 
-                <div class="form-control">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร</span>
                   </label>
@@ -170,7 +182,7 @@ onMounted(async () => {
                   </label>
                 </div>
 
-                <div class="form-control">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">สถานะการขาย</span>
                   </label>

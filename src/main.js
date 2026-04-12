@@ -15,3 +15,4 @@ app.use(router)
 app.component('apexchart', ApexChart)
 
 app.mount('#app')
+

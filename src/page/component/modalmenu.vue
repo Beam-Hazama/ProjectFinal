@@ -84,8 +84,8 @@ const confirmAdd = () => {
   }
 
   if (optionsNoteArr.length > 0) {
-    const combinedOptions = optionsNoteArr.join(' | ')
-    finalNote = finalNote ? `${combinedOptions} \n${finalNote}` : combinedOptions
+    const combinedOptions = optionsNoteArr.join('\n')
+    finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions
   }
 
 
@@ -105,7 +105,8 @@ const confirmAdd = () => {
     })
   }
 
-  const unitPrice = props.product.Price + extraPrice
+  const basePrice = props.product.PromoPrice && Number(props.product.PromoPrice) > 0 ? Number(props.product.PromoPrice) : Number(props.product.Price)
+  const unitPrice = basePrice + extraPrice
 
   cartStore.addOrUpdateItem(props.product, quantity.value, finalNote, unitPrice)
   emit('close')
@@ -131,7 +132,7 @@ const isFormValid = computed(() => {
 
 const totalPrice = () => {
   if (!props.product) return 0
-  let base = props.product.Price
+  let base = props.product.PromoPrice && Number(props.product.PromoPrice) > 0 ? Number(props.product.PromoPrice) : Number(props.product.Price)
   let extra = 0
 
   if (props.product.OptionGroups) {
@@ -201,7 +202,10 @@ const totalPrice = () => {
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ product.Name }}</h2>
-              <div class="text-[16px] font-black text-gray-900">฿{{ product.Price }}</div>
+              <div class="flex flex-col items-end">
+                <div v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="text-[18px] font-black text-red-500">฿{{ product.PromoPrice }}</div>
+                <div class="text-gray-900" :class="product.PromoPrice && Number(product.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">฿{{ product.Price }}</div>
+              </div>
             </div>
           </div>
 

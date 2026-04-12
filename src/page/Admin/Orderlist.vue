@@ -11,10 +11,7 @@ onMounted(() => {
   orderStore.loadOrder();
 });
 
-const formatLocation = (tableId) => {
-  if (!tableId) return '-';
-  return tableId;
-};
+
 
 const formatDate = (timestamp) => {
   if (!timestamp) return '-';
@@ -26,6 +23,18 @@ const openModal = (order) => {
   selectedOrder.value = order;
   showModal.value = true;
 };
+ 
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'pending': return 'badge-info text-white';
+    case 'cooking': return 'bg-orange-500 text-white border-none';
+    case 'dispatched':
+    case 'completed': return 'badge-success text-white';
+    case 'cancelled': return 'badge-error text-white';
+    case 'returned': return 'badge-error text-white bg-orange-500';
+    default: return 'badge-ghost text-slate-500';
+  }
+}
 </script>
 
 <template>
@@ -52,7 +61,7 @@ const openModal = (order) => {
             <tbody class="text-slate-600">
               <tr v-for="orders in orderStore.sortedOrders" :key="orders.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td class="pl-6 font-bold text-blue-600">
+                <td class="pl-6 font-bold text-indigo-600">
                   #{{ orders.OrderNumber }}
                 </td>
 
@@ -63,15 +72,12 @@ const openModal = (order) => {
                   {{ orders.floor || '-' }}
                 </td>
                 <td class="font-medium text-slate-700">
-                  <span v-if="orders.room" class="font-bold text-blue-600">{{ orders.room }}</span>
+                  <span v-if="orders.room" class="font-bold text-indigo-600">{{ orders.room }}</span>
                   <span v-else>{{ orders.tableId || '-' }}</span>
                 </td>
 
                 <td>
-                  <span class="badge badge-warning gap-2" v-if="orders.statusOrder === 'pending'">
-                    {{ orders.statusOrder }}
-                  </span>
-                  <span class="badge badge-success gap-2 text-white" v-else>
+                  <span class="badge gap-2 font-semibold" :class="getStatusColor(orders.statusOrder)">
                     {{ orders.statusOrder?.toUpperCase() || '-' }}
                   </span>
                 </td>
@@ -79,7 +85,15 @@ const openModal = (order) => {
                 <td class="font-bold text-emerald-600">{{ orders.TotalPrice?.toLocaleString() }} ฿</td>
                 <td class="text-center">
                   <button @click="openModal(orders)"
-                    class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50 font-bold transition-colors">Details</button>
+                    class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                      stroke="currentColor" class="w-4 h-4">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    Details
+                  </button>
                 </td>
               </tr>
               <tr v-if="orderStore.sortedOrders.length === 0">
@@ -95,7 +109,7 @@ const openModal = (order) => {
         <div class="modal-box relative">
           <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
 
-          <h3 class="font-bold text-lg mb-4 text-blue-600">
+          <h3 class="font-bold text-lg mb-4 text-indigo-600">
             Order Details #{{ selectedOrder?.OrderNumber }}
           </h3>
 

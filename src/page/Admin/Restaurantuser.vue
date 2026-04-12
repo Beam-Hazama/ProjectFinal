@@ -120,7 +120,7 @@ onMounted(() => {
                         stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
-                    Add New User
+                    Add User
                 </RouterLink>
             </div>
 
@@ -195,7 +195,6 @@ onMounted(() => {
                                 <span class="text-slate-500 leading-tight">{{ user.Distance || '-' }}
                                     กม.</span>
                             </div>
-
                             <div class="flex items-start gap-3 text-sm">
                                 <div class="bg-white p-1.5 rounded-lg shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none"
@@ -208,6 +207,17 @@ onMounted(() => {
                                 </div>
                                 <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.Address
                                     || 'ไม่ระบุที่อยู่' }}</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 text-sm">
+                                <div class="bg-white p-1.5 rounded-lg shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <span class="text-slate-500 leading-tight">อายุ: {{ user.Age || '-' }} ปี</span>
                             </div>
                         </div>
 

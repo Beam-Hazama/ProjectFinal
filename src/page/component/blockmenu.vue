@@ -76,7 +76,14 @@ const sortedProducts = computed(() => {
           <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ product.Name }}</h3>
           <p class="text-[12px] text-gray-500 truncate w-full mb-1">{{ product.Restaurant }}</p>
           <div class="flex justify-between items-end mt-auto">
-            <p class="font-bold text-[14px] text-gray-800">฿{{ product.Price }}</p>
+            <div class="flex items-center gap-2">
+              <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
+                ฿{{ product.PromoPrice }}
+              </p>
+              <p class="font-bold text-[14px] text-gray-800" :class="{ 'line-through text-gray-400 text-[12px] font-normal': product.PromoPrice && Number(product.PromoPrice) > 0 }">
+                ฿{{ product.Price }}
+              </p>
+            </div>
           </div>
         </div>
       </template>
@@ -111,7 +118,14 @@ const sortedProducts = computed(() => {
           <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2 h-[2.5em] mb-1">{{ product.Name }}
           </h3>
           <div class="flex justify-between items-end mt-auto">
-            <p class="font-bold text-[14px] text-gray-800">฿{{ product.Price }}</p>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[14px] text-red-500">
+                ฿{{ product.PromoPrice }}
+              </p>
+              <p class="font-bold text-[13px] text-gray-800" :class="{ 'line-through text-gray-400 text-[11px] font-normal': product.PromoPrice && Number(product.PromoPrice) > 0 }">
+                ฿{{ product.Price }}
+              </p>
+            </div>
           </div>
         </div>
       </template>

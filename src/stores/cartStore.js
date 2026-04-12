@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { db } from "@/firebase"; 
+import { db } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export const useCartStore = defineStore("cart", {
@@ -10,7 +10,7 @@ export const useCartStore = defineStore("cart", {
     room: null,
   }),
   getters: {
-   
+
     getItemById: (state) => {
       return (productId) =>
         state.item.find(i => i.id === productId) || null
@@ -23,7 +23,7 @@ export const useCartStore = defineStore("cart", {
     },
   },
   actions: {
-    
+
     loadcart(building, floor, room) {
       this.building = building;
       this.floor = floor;
@@ -44,12 +44,12 @@ export const useCartStore = defineStore("cart", {
     },
     addOrUpdateItem(product, quantity, note, unitPrice) {
       const priceToUse = unitPrice !== undefined ? unitPrice : product.Price;
-      
-      // Always add as a new item to separate identical orders
+
+
       this.item.push({
         id: product.id,
-        cartItemId: `${product.id}-${Math.random().toString(36).substr(2, 9)}`, // Unique ID for cart operations
         Name: product.Name,
+        cartItemId: `${product.id}-${Math.random().toString(36).substr(2, 9)}`,
         Price: priceToUse,
         basePrice: product.Price,
         ImageUrl: product.ImageUrl,
@@ -57,26 +57,37 @@ export const useCartStore = defineStore("cart", {
         note: note,
         Restaurant: product.Restaurant
       })
-    
+
       this.saveToStorage()
     },
-    
+
     removeItemInCart(index) {
       this.item.splice(index, 1);
       this.saveToStorage();
+    },
+    updateQuantity(index, increment) {
+      if (this.item[index]) {
+        const newQuantity = this.item[index].Quantity + increment;
+        if (newQuantity >= 1) {
+          this.item[index].Quantity = newQuantity;
+          this.saveToStorage();
+        } else if (newQuantity === 0) {
+          this.removeItemInCart(index);
+        }
+      }
     },
     async placeorder() {
       try {
         const orderData = {
           OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
-          tableId: `${this.building}-${this.floor}-${this.room}`, 
-          
-          building: this.building, 
-          floor: this.floor,       
-          room: this.room,         
+          tableId: `${this.building}-${this.floor}-${this.room}`,
+
+          building: this.building,
+          floor: this.floor,
+          room: this.room,
           Menu: this.item.map(i => ({
-            ...i, 
-            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`, 
+            ...i,
+            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
             id: i.menuId || i.id,
             itemStatus: 'waiting'
           })),
@@ -86,7 +97,7 @@ export const useCartStore = defineStore("cart", {
         };
 
         await addDoc(collection(db, 'Order'), orderData);
-        
+
       } catch (error) {
         console.error("Error:", error);
         alert("สั่งซื้อไม่สำเร็จ");

@@ -154,7 +154,7 @@ const formatScheduleDate = (dateString) => {
                 </button>
             </div>
 
-            <!-- Add Poster Modal -->
+            
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col"
@@ -284,7 +284,7 @@ const formatScheduleDate = (dateString) => {
                                             </svg>
                                         </div>
                                     </td>
-                                    <td class="w-1/3">
+                                    <td class="w-48">
                                         <div
                                             class="h-24 w-48 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                                             <img :src="poster.ImageUrl" class="w-full h-full object-cover" />
@@ -335,11 +335,11 @@ const formatScheduleDate = (dateString) => {
                                         </div>
                                     </td>
 
-                                    <td class="text-xs">
+                                    <td class="text-xs whitespace-nowrap">
                                         {{ formatDate(poster.createdAt) }}
                                     </td>
 
-                                    <td class="text-xs">
+                                    <td class="text-xs whitespace-nowrap">
                                         {{ formatDate(poster.updatedAt) }}
                                     </td>
 

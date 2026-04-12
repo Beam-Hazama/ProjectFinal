@@ -2,7 +2,7 @@
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useMenuStore } from '@/stores/menu';
-import { doc, updateDoc, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { RouterLink } from 'vue-router';
 import { onMounted } from 'vue';
 
@@ -110,11 +110,18 @@ const deleteMenu = async (id, name) => {
                 </td>
 
                 <td class="text-center">
-                  <div class="flex justify-center ">
-                    <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50 font-bold transition-colors"
-                      :to="{ name: 'Admin menu detail', params: { id: product.id } }">
-                      View
+                  <div class="flex justify-center items-center gap-2">
+                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: product.id } }"
+                      class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                      Details
                     </RouterLink>
+                    
                   </div>
                 </td>
               </tr>

@@ -1,14 +1,13 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { auth, db } from '@/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
 const route = useRoute();
 const router = useRouter();
-const isLoading = ref(false);
+
 const restaurants = ref([]);
 
 
@@ -30,7 +29,8 @@ const userData = ref({
     Role: 'restaurant',
     ImageUrl: '',
     Restaurant: '',
-    Distance: ''
+    Distance: '',
+    Age: ''
 });
 
 
@@ -198,6 +198,16 @@ const goBack = () => router.go(-1);
                                     <label type="text"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50">
                                         {{ userData.Phone }}
+                                    </label>
+                                </div>
+ 
+                                <div class="form-control">
+                                    <label class="label"><span
+                                            class="label-text font-medium text-slate-600">อายุ <span
+                                                class="text-red-500">*</span></span></label>
+                                    <label type="text"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                        {{ userData.Age || '-' }}
                                     </label>
                                 </div>
 

@@ -1,12 +1,9 @@
 <script setup>
-import { useRoute,} from 'vue-router';
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
 import { useAccountStore } from '@/stores/account';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp} from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
-
-const route = useRoute();
 const accountStore = useAccountStore();
 const restaurantName = accountStore.user?.Restaurant
 const loading = ref(true);
@@ -21,6 +18,10 @@ let timer;
 
 const RestaurantData = reactive({
   Name: '',
+  Category: '',
+  Phone: '',
+  Distance: '',
+  Address: '',
   ImageUrl: '',
   OpenTime: '',
   CloseTime: '',
@@ -128,6 +129,10 @@ const saveProfile = async () => {
 
     await updateDoc(doc(db, 'Restaurant', docId.value), {
       Name: RestaurantData.Name,
+      Category: RestaurantData.Category || '',
+      Phone: RestaurantData.Phone,
+      Distance: RestaurantData.Distance,
+      Address: RestaurantData.Address,
       ImageUrl: RestaurantData.ImageUrl,
       OpenTime: RestaurantData.OpenTime,
       CloseTime: RestaurantData.CloseTime,
@@ -246,16 +251,7 @@ watch(
           </div>
 
           <div class="p-8 lg:col-span-2 space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
-                <span class="text-sm font-semibold text-slate-700">{{ formatDate(RestaurantData.CreatedAt) }}</span>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
-                <span class="text-sm font-semibold text-slate-700">{{ formatDate(RestaurantData.UpdatedAt) }}</span>
-              </div>
-            </div>
+
 
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
@@ -264,20 +260,33 @@ watch(
                   <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านค้า *</span></label>
                   <input type="text" v-model="RestaurantData.Name" class="input input-bordered w-full bg-slate-50" />
                 </div>
-
-
-
-                <div class="form-control">
-                  <label class="label"><span
-                      class="label-text font-medium text-slate-600">เวลาเปิดให้บริการ</span></label>
-                  <input type="time" v-model="RestaurantData.OpenTime" class="input input-bordered w-full" />
+                <div class="form-control md:col-span-2">
+                  <label class="label"><span class="label-text font-medium text-slate-600">ประเภทอาหาร</span></label>
+                  <input type="text" placeholder="เช่น อาหารจานเดียว, เครื่องดื่ม, ของหวาน"
+                    v-model="RestaurantData.Category" class="input input-bordered w-full bg-slate-50" />
                 </div>
 
-                <div class="form-control">
-                  <label class="label"><span
-                      class="label-text font-medium text-slate-600">เวลาปิดให้บริการ</span></label>
-                  <input type="time" v-model="RestaurantData.CloseTime" class="input input-bordered w-full" />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                  <div class="form-control">
+                    <label class="label"><span
+                        class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span></label>
+                    <input type="text" v-model="RestaurantData.Phone" class="input input-bordered w-full bg-slate-50" />
+                  </div>
+                  <div class="form-control">
+                    <label class="label"><span class="label-text font-medium text-slate-600">ระยะทาง
+                        (กิโลเมตร)</span></label>
+                    <input type="text" placeholder="เช่น 1.5, 2" v-model="RestaurantData.Distance"
+                      class="input input-bordered w-full bg-slate-50" />
+                  </div>
                 </div>
+
+                <div class="form-control md:col-span-2">
+                  <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ร้านค้า</span></label>
+                  <textarea v-model="RestaurantData.Address" placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
+                    class="textarea textarea-bordered w-full bg-slate-50 h-24"></textarea>
+                </div>
+
+
 
                 <div class="form-control">
                   <label class="label"><span
@@ -299,6 +308,15 @@ watch(
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
 
+                </div>
+                <div class="form-control">
+                  <label class="label"><span class="label-text font-medium text-slate-600">เวลาเปิด</span></label>
+                  <input type="time" v-model="RestaurantData.OpenTime" class="input input-bordered w-full" />
+                </div>
+
+                <div class="form-control">
+                  <label class="label"><span class="label-text font-medium text-slate-600">เวลาปิด</span></label>
+                  <input type="time" v-model="RestaurantData.CloseTime" class="input input-bordered w-full" />
                 </div>
               </div>
             </div>

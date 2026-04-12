@@ -3,13 +3,12 @@ import restaurant from './restaurant.vue';
 import { onMounted, computed, ref } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/account';
-import { useMenuStore } from '@/stores/menu';
+
 import { doc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
 import { db } from "@/firebase";
 
 const orderStore = useOderlistStore();
 const accountStore = useAccountStore();
-const menuStore = useMenuStore();
 const loading = ref(true);
 
 onMounted(async () => {
@@ -283,34 +282,7 @@ const areOtherRestaurantsReady = (order) => {
     return !anyWaiting;
 };
 
-const isMyRestaurantReady = (order) => {
-    return !hasWaitingItems(order);
-};
 
-const handleStatusChange = async (orderId, newStatus) => {
-    if (confirm(`Are you sure you want to change status to ${newStatus.toUpperCase()}?`)) {
-        const restaurantName = accountStore.user?.Restaurant;
-        if (restaurantName) {
-            await orderStore.updateOrderStatus(orderId, newStatus, restaurantName);
-        } else {
-            alert("Restaurant name not found!");
-        }
-    } else {
-
-        const order = restaurantOrders.value.find(o => o.id === orderId);
-        if (order) {
-
-        }
-    }
-};
-
-const updateItemStatus = async (orderId, itemId, newStatus) => {
-    try {
-        await orderStore.updateSingleItemStatus(orderId, itemId, newStatus);
-    } catch (error) {
-        alert("Cannot update item status");
-    }
-};
 
 const getRowStatusColor = (status) => {
     switch (status) {
@@ -428,7 +400,7 @@ const getRowStatusColor = (status) => {
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                     <p v-if="item.note"
                                         class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">
@@ -469,7 +441,7 @@ const getRowStatusColor = (status) => {
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-xs font-bold text-slate-400 uppercase">Total</span>
                             <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
-                                }}
+                            }}
                                 ฿</span>
                         </div>
 

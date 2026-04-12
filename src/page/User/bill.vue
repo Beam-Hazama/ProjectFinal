@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useRoute } from 'vue-router';
+import { useMenuStore } from '@/stores/menu';
 
 const route = useRoute();
 const Order = useOderlistStore();
+const menuStore = useMenuStore();
 
 
 const building = route.params.building || '-';
@@ -20,7 +22,13 @@ const displayLocation = computed(() => {
 
 onMounted(async () => {
   await Order.loadOrderUser(tableId);
+  menuStore.loadMenu();
 });
+
+const getMenuName = (id) => {
+  const menu = menuStore.list.find(m => m.id === id);
+  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+};
 
 const formatDate = (timestamp) => {
   if (!timestamp) return 'No Date';
@@ -61,16 +69,6 @@ const ordersWithItems = computed(() => {
     };
   }).filter(order => order.receivedItems.length > 0);
 });
-
-const totalSubtotal = computed(() => {
-  return ordersWithItems.value.reduce((sum, order) => sum + order.subtotal, 0);
-});
-
-const totalGrandTotal = computed(() => {
-  return ordersWithItems.value.reduce((sum, order) => sum + order.grandTotal, 0);
-});
-
-
 
 </script>
 
@@ -157,7 +155,7 @@ const totalGrandTotal = computed(() => {
                 x{{ item.Quantity }}
               </div>
               <div class="flex flex-col">
-                <span class="font-bold text-slate-800 text-sm tracking-tight">{{ item.Name }}</span>
+                <span class="font-bold text-slate-800 text-sm tracking-tight">{{ item.Name || getMenuName(item.id || item.menuId) }}</span>
                 <span class="text-[10px] text-slate-400 font-medium">฿{{ item.Price.toLocaleString() }} per unit</span>
               </div>
             </div>

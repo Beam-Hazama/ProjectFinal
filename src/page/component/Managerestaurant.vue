@@ -18,6 +18,10 @@ const imageInputMethod = ref('file');
 
 const RestaurantData = reactive({
   Name: '',
+  Category: '',
+  Phone: '',
+  Distance: '',
+  Address: '',
   ImageUrl: '',
   Status: '',
   OpenTime: '',
@@ -105,7 +109,11 @@ const goBack = () => {
 
 onMounted(async () => {
   if (route.params.id) {
-    mode.value = 'Update Restaurant';
+    if (route.path.toLowerCase().includes('/admin/restaurentdetail')) {
+      mode.value = 'View Restaurant';
+    } else {
+      mode.value = 'Update Restaurant';
+    }
 
     const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
 
@@ -133,13 +141,13 @@ onMounted(async () => {
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-            {{ mode === 'Add Restaurant' ? 'Add New Restaurant' : 'Edit Restaurant' }}
+            {{ mode === 'Add Restaurant' ? 'Add New Restaurant' : mode === 'View Restaurant' ? 'Restaurant Details' : 'Edit Restaurant' }}
           </h1>
         </div>
 
         <div class="flex gap-3">
           <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">Cancel</button>
-          <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name"
+          <button v-if="mode !== 'View Restaurant'" @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name"
             class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 px-6">
             Save Restaurant
           </button>
@@ -164,7 +172,7 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <div role="tablist" class="tabs tabs-boxed  bg-white border border-slate-200 p-1 ">
+              <div v-if="mode !== 'View Restaurant'" role="tablist" class="tabs tabs-boxed  bg-white border border-slate-200 p-1 ">
                 <a role="tab" class="tab text-xs h-8 transition-all"
                   :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
                   @click="imageInputMethod = 'file'">
@@ -177,7 +185,7 @@ onMounted(async () => {
                 </a>
               </div>
 
-              <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
+              <div v-if="imageInputMethod === 'file' && mode !== 'View Restaurant'" class="w-full text-center animate-fade-in">
                 <label
                   class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-10">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -192,7 +200,7 @@ onMounted(async () => {
               </div>
 
 
-              <div v-else class="w-full animate-fade-in">
+              <div v-else-if="imageInputMethod === 'url' && mode !== 'View Restaurant'" class="w-full animate-fade-in">
                 <div class="relative">
                   <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
                     class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
@@ -219,49 +227,50 @@ onMounted(async () => {
                   </label>
                   <input type="text" placeholder="ระบุชื่อร้านอาหารของคุณ"
                     class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                    v-model="RestaurantData.Name" />
+                    v-model="RestaurantData.Name" :readonly="mode === 'View Restaurant'" />
+                </div>
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">ประเภทอาหาร</span>
+                  </label>
+                  <input type="text" placeholder="เช่น อาหารจานเดียว, เครื่องดื่ม, ของหวาน"
+                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
+                    v-model="RestaurantData.Category" :readonly="mode === 'View Restaurant'" />
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">เวลาเปิดให้บริการ</span>
+                      <span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span>
                     </label>
-                    <div class="relative">
-                      <input type="time"
-                        class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                        v-model="RestaurantData.OpenTime" />
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                    <input type="text" placeholder="ระบุเบอร์โทรศัพท์ร้านอาหาร"
+                      class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
+                      v-model="RestaurantData.Phone" :readonly="mode === 'View Restaurant'" />
                   </div>
-
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">เวลาปิดให้บริการ</span>
+                      <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
                     </label>
-                    <div class="relative">
-                      <input type="time"
-                        class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                        v-model="RestaurantData.CloseTime" />
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                    <input type="text" placeholder="เช่น 1.5, 2"
+                      class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
+                      v-model="RestaurantData.Distance" :readonly="mode === 'View Restaurant'" />
                   </div>
                 </div>
-
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">ที่อยู่ร้านค้า</span>
+                  </label>
+                  <textarea placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
+                    class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
+                    v-model="RestaurantData.Address" :readonly="mode === 'View Restaurant'"></textarea>
+                </div>
+                
 
 
 
                 <div class="form-control">
                   <label class="label"><span
                       class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
-                  <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
+                  <select class="select select-bordered w-full disabled:opacity-100 disabled:text-slate-800 disabled:bg-slate-50" v-model="RestaurantData.ManualStatus" :disabled="mode === 'View Restaurant'">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
                     <option value="manual">⚙️ กำหนดเอง</option>
                   </select>
@@ -272,13 +281,47 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
                   <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed transition-all"
-                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto'">
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100 transition-all"
+                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto' || mode === 'View Restaurant'">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
 
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text font-medium text-slate-600">เวลาเปิด</span>
+                    </label>
+                    <div class="relative">
+                      <input type="time"
+                        class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
+                        v-model="RestaurantData.OpenTime" :readonly="mode === 'View Restaurant'" />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text font-medium text-slate-600">เวลาปิด</span>
+                    </label>
+                    <div class="relative">
+                      <input type="time"
+                        class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
+                        v-model="RestaurantData.CloseTime" :readonly="mode === 'View Restaurant'" />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 

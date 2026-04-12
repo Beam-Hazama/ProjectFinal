@@ -1,15 +1,21 @@
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
 import { useRouter, useRoute } from 'vue-router';
-import { db } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useMenuStore } from '@/stores/menu';
+import { app, db, messaging as defaultMessaging } from '@/firebase';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { getMessaging, getToken } from 'firebase/messaging';
+
+// FEATURE FLAG: เปลี่ยนเป็น true หากต้องการเปิดระบบแจ้งเตือนอีกครั้ง
+const IS_NOTIFICATION_ENABLED = false;
 
 const route = useRoute();
 const router = useRouter();
 const orderListStore = useOderlistStore();
 const cartStore = useCartStore();
+const menuStore = useMenuStore();
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
@@ -78,7 +84,7 @@ const reorder = async (order) => {
     item.itemStatus !== 'cancelled'
   );
 
-  
+
 
   cartStore.loadcart(building, floor, room);
 
@@ -115,14 +121,96 @@ const reorder = async (order) => {
 
   if (addedCount > 0) {
     router.push(`/user/cart/${building}/${floor}/${room}`);
-  } 
+  }
+};
+
+const notificationPermission = ref(
+  ('Notification' in window) ? Notification.permission : 'unsupported'
+);
+
+const fetchFCMTokenAndSave = async () => {
+  if (!IS_NOTIFICATION_ENABLED) return;
+  let activeMessaging = defaultMessaging;
+  if (!activeMessaging) {
+    try {
+      activeMessaging = getMessaging(app);
+    } catch (e) {
+      console.log('FCM not supported');
+      return;
+    }
+  }
+
+  try {
+    const currentToken = await getToken(activeMessaging, { 
+      vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU' 
+    });
+
+    
+    if (currentToken && roomOrders.value.length > 0) {
+       for (const order of roomOrders.value) {
+         const orderRef = doc(db, 'Order', order.id);
+         await updateDoc(orderRef, {
+           deviceTokens: arrayUnion(currentToken)
+         });
+       }
+    }
+  } catch (err) {
+    console.error('Auto fetch token error:', err);
+  }
+};
+
+const requestNotificationPermission = async () => {
+  if (!IS_NOTIFICATION_ENABLED) {
+    alert('ระบบแจ้งเตือนถูกปิดการใช้งานชั่วคราวครับ');
+    return;
+  }
+  if (!('Notification' in window)) {
+    alert('ระบบแจ้งเตือนไม่ทำงาน: เบราว์เซอร์ไม่มีฟังก์ชัน Notification (อาจจะไม่ได้เป็น https)');
+    return;
+  }
+  
+  let activeMessaging = defaultMessaging;
+  if (!activeMessaging) {
+    try {
+      activeMessaging = getMessaging(app);
+    } catch (e) {
+      alert('ระบบ Web Push ไม่ทำงาน: ' + e.message);
+      return;
+    }
+  }
+  
+  try {
+    const permission = await Notification.requestPermission();
+    notificationPermission.value = permission;
+    if (permission === 'granted') {
+      await fetchFCMTokenAndSave();
+      alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะเตือนเมื่อร้านอัปเดตออเดอร์');
+    } else {
+      alert('การแจ้งเตือนถูกปฏิเสธ หากต้องการเปิดให้ไปตั้งค่าในเบราว์เซอร์');
+    }
+  } catch (err) {
+    alert('เกิดข้อผิดพลาดในการขอสิทธิ์: ' + err.message);
+    console.error('Permission request error:', err);
+  }
 };
 
 onMounted(() => {
   if (tableId) {
     orderListStore.loadOrderUser(tableId);
   }
+  menuStore.loadMenu();
+
+  setTimeout(() => {
+    if (IS_NOTIFICATION_ENABLED && 'Notification' in window && Notification.permission === 'granted') {
+      fetchFCMTokenAndSave();
+    }
+  }, 3000);
 });
+
+const getMenuName = (id) => {
+  const menu = menuStore.list.find(m => m.id === id);
+  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+};
 </script>
 
 <template>
@@ -158,6 +246,20 @@ onMounted(() => {
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </router-link>
+    </div>
+
+    <!-- Notification Button -->
+    <div v-if="IS_NOTIFICATION_ENABLED && notificationPermission !== 'granted'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🔔</span>
+        <div class="flex flex-col">
+          <span class="text-sm font-bold text-yellow-800">เปิดรับการแจ้งเตือน</span>
+          <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
+        </div>
+      </div>
+      <button @click="requestNotificationPermission" class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
+        เปิดเลย
+      </button>
     </div>
 
     <div class="space-y-6">
@@ -307,9 +409,10 @@ onMounted(() => {
             <div class="flex flex-col">
               <div class="flex gap-3 items-center">
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
-                }}</span>
+                  }}</span>
                 <div class="flex flex-col">
-                  <span class="text-sm font-bold text-gray-700">{{ item.Name }}</span>
+                  <span class="text-sm font-bold text-gray-700">{{ item.Name || getMenuName(item.id || item.menuId)
+                    }}</span>
                   <span v-if="item.note" class="text-xs text-gray-500 mt-0.5">{{ item.note }}</span>
                 </div>
               </div>

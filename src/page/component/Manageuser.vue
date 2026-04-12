@@ -30,7 +30,8 @@ const userData = ref({
     Status: 'active',
     Role: 'restaurant',
     ImageUrl: '',
-    Restaurant: ''
+    Restaurant: '',
+    Age: ''
 });
 
 
@@ -94,9 +95,9 @@ const handleFileUpload = (event) => {
 
 const handleSave = async () => {
 
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status, Distance } = userData.value;
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status, Distance, Age } = userData.value;
 
-    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Password) {
+    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Password || !Age) {
         alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
         return;
     }
@@ -136,6 +137,7 @@ const handleSave = async () => {
                 Address,
                 Restaurant,
                 Distance: Distance || '',
+                Age: Age || '',
                 Status: Status || 'active',
                 Role: 'restaurant',
                 ImageUrl: ImageUrl || '',
@@ -152,11 +154,11 @@ const handleSave = async () => {
                 Lastname,
                 Username,
                 Password,
-                Password,
                 Phone,
                 Address,
                 Restaurant,
                 Distance: Distance || '',
+                Age: Age || '',
                 Status: Status || 'active',
                 ImageUrl: ImageUrl || '',
                 UpdatedAt: serverTimestamp()
@@ -192,10 +194,10 @@ const filterNonNumbers = (field) => {
 };
 
 const isFormValid = computed(() => {
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, Distance, ImageUrl } = userData.value;
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Distance, ImageUrl, Age } = userData.value;
 
   
-    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Distance || !ImageUrl) return false;
+    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Distance || !ImageUrl || !Age) return false;
 
  
     if (Phone.length !== 10) return false;
@@ -369,6 +371,14 @@ const goBack = () => router.go(-1);
                                                 class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Phone" placeholder="0xx-xxx-xxxx"
                                         maxlength="10" @input="filterNonNumbers('Phone')"
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50" />
+                                </div>
+ 
+                                <div class="form-control">
+                                    <label class="label"><span
+                                            class="label-text font-medium text-slate-600">อายุ <span
+                                                class="text-red-500">*</span></span></label>
+                                    <input type="number" v-model="userData.Age" placeholder="กรอกอายุ"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 

@@ -32,9 +32,9 @@ const handleAddCategory = async () => {
             name: newCategoryName.value.trim(),
             ImageUrl: newCategoryImageUrl.value.trim()
         });
-        newCategoryName.value = ''; 
+        newCategoryName.value = '';
         newCategoryImageUrl.value = '';
-        showModal.value = false; 
+        showModal.value = false;
     } catch (error) {
         alert('Error adding category: ' + error.message);
     } finally {
@@ -159,7 +159,7 @@ const onDragEnd = async () => {
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
-                                <th class="w-24">IMAGE</th>
+                                <th class="w-50">IMAGE</th>
                                 <th>CATEGORY NAME</th>
                                 <th>CREATED AT</th>
                                 <th class="text-center">ACTION</th>
@@ -194,7 +194,7 @@ const onDragEnd = async () => {
                                     </td>
                                     <td class="pl-2">
                                         <div
-                                            class="h-12 w-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                            class="h-20 w-20 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                                             <img :src="category.ImageUrl"
                                                 class="w-full h-full object-cover pointer-events-none" />
                                         </div>
