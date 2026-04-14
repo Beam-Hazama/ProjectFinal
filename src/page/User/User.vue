@@ -245,6 +245,8 @@ const displayLocation = computed(() => {
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
+        <button @click="$router.push(`/user/all-categories/${building}/${floor}/${room}`)" 
+          class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
         <div v-for="cat in localCategories" :key="cat.id"
@@ -267,6 +269,8 @@ const displayLocation = computed(() => {
     <div v-if="promotionProducts.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
+        <button @click="$router.push(`/user/all-promotions/${building}/${floor}/${room}`)" 
+          class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
         <div v-for="product in promotionProducts" :key="product.id"

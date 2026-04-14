@@ -73,8 +73,8 @@ const sortedProducts = computed(() => {
           </div>
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
-          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-1">{{ product.Name }}</h3>
-          <p class="text-[12px] text-gray-500 truncate w-full mb-1">{{ product.Restaurant }}</p>
+          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ product.Name }}</h3>
+          <p class="text-[10px] text-gray-500 truncate w-full">{{ product.Restaurant }}</p>
           <div class="flex justify-between items-end mt-auto">
             <div class="flex items-center gap-2">
               <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
@@ -115,8 +115,10 @@ const sortedProducts = computed(() => {
 
         
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
-          <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2 h-[2.5em] mb-1">{{ product.Name }}
-          </h3>
+          <div class="space-y-0.5">
+            <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ product.Name }}</h3>
+            <p class="text-[10px] text-gray-500 truncate w-full">{{ product.Restaurant }}</p>
+          </div>
           <div class="flex justify-between items-end mt-auto">
             <div class="flex flex-wrap items-center gap-1.5">
               <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[14px] text-red-500">

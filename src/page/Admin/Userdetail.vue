@@ -90,7 +90,7 @@ const goBack = () => router.go(-1);
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
-                        ข้อมูลรายละเอียดผู้ให้บริการร้านค้า
+                        Restaurant User Detail
                     </h1>
 
                 </div>

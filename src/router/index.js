@@ -38,6 +38,8 @@ import Cart from "@/page/User/Cart.vue";
 import Status from "@/page/User/Status.vue";
 import Search from "@/page/User/Search.vue";
 import Category from "@/page/User/Category.vue";
+import AllCategories from "@/page/User/AllCategories.vue";
+import AllPromotions from "@/page/User/AllPromotions.vue";
 import UserRestaurantMenu from "@/page/User/RestaurantMenu.vue";
 
 const router = createRouter({
@@ -77,6 +79,16 @@ const router = createRouter({
       path: '/user/category/:category/:building/:floor/:room',
       name: 'Category',
       component: Category,
+    },
+    {
+      path: '/user/all-categories/:building/:floor/:room',
+      name: 'AllCategories',
+      component: AllCategories,
+    },
+    {
+      path: '/user/all-promotions/:building/:floor/:room',
+      name: 'AllPromotions',
+      component: AllPromotions,
     },
 
     {

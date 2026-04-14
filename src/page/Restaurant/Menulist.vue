@@ -97,7 +97,6 @@ const formatDate = (timestamp) => {
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
-        
         </div>
         <RouterLink :to="{ name: 'Restaurant Add Menu' }"
           class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
@@ -115,11 +114,11 @@ const formatDate = (timestamp) => {
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">MENU</th>
-                <th>PRICE</th>
-                <th>CATEGORY</th>
-                <th>STATUS</th>
-                <th>CREATED AT</th>
-                <th>UPDATED AT</th>
+                <th class="text-center">PRICE</th>
+                <th class="text-center">CATEGORY</th>
+                <th class="text-center">STATUS</th>
+                <th class="text-center">CREATED AT</th>
+                <th class="text-center">UPDATED AT</th>
                 <th class="text-center">ACTION</th>
               </tr>
             </thead>
@@ -140,30 +139,31 @@ const formatDate = (timestamp) => {
                   </div>
                 </td>
 
-                <td class="font-medium text-emerald-600">{{ product.Price }} ฿</td>
-                <td>
-                  <div class="badge badge-ghost badge-sm font-medium">{{ product.Category }}</div>
+                <td class="text-center font-medium">{{ product.Price }} ฿</td>
+                <td class="text-center">
+                  <div class="font-medium">{{ product.Category }}</div>
                 </td>
 
-                <td>
+                <td class="text-center">
                   <button @click="switchStatus(product)"
-                    class="btn btn-xs rounded-full px-3 font-normal border-none transition-all shadow-sm"
-                    :class="product.Status === 'open' ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-500 hover:bg-red-200'">
-                    {{ product.Status === 'open' ? '● Open' : '● Closed' }}
+                    class="badge gap-1 text-[10px] text-white font-bold border-none mx-auto cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-sm"
+                    :class="product.Status === 'open' ? 'badge-success' : 'badge-error'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white" :class="{ 'animate-pulse': product.Status === 'open' }"></span>
+                    {{ product.Status === 'open' ? 'Open Now' : 'Closed' }}
                   </button>
                 </td>
 
-                <td class="text-[10px] text-slate-400">
+                <td class="text-center text-xs">
                   {{ formatDate(product.CreatedAt || product.createdAt) }}
                 </td>
 
-                <td class="text-[10px] text-slate-400">
+                <td class="text-center text-xs">
                   {{ formatDate(product.UpdatedAt || product.updatedAt) }}
                 </td>
 
                 <td class="text-center">
-                  <div class="flex justify-center gap-1">
-                    <RouterLink class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50"
+                  <div class="flex justify-center items-center gap-1">
+                    <RouterLink class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50"
                       :to="{ name: 'Restaurant Edit Menu', params: { id: product.id } }">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -186,7 +186,7 @@ const formatDate = (timestamp) => {
                 </td>
               </tr>
               <tr v-if="!MenuStore.list || MenuStore.list.length === 0">
-                <td colspan="8" class="text-center py-10 text-slate-400">ไม่พบข้อมูลเมนูอาหาร</td>
+                <td colspan="8" class="text-center py-10 text-slate-400 font-medium italic">ไม่พบข้อมูลเมนูอาหาร</td>
               </tr>
             </tbody>
           </table>
