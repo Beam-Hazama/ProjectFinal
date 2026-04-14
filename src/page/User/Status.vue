@@ -300,7 +300,7 @@ const getMenuName = (id) => {
         </div>
 
 
-        <div v-if="!(order.Menu || []).some(i => ['cancelled', 'returned'].includes(i.itemStatus))"
+        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
 

@@ -62,7 +62,7 @@ onUnmounted(() => {
                         class="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
                         <span class="text-amber-500 text-xs font-bold mb-1 uppercase tracking-wider">รอดำเนินการ</span>
                         <span class="text-2xl font-black text-amber-600">{{ dashboardStore.orderStatuses.pending
-                            }}</span>
+                        }}</span>
                     </div>
                     <div
                         class="bg-blue-50 rounded-xl p-4 border border-blue-100 flex flex-col items-center justify-center text-center">
@@ -74,7 +74,7 @@ onUnmounted(() => {
                         class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 flex flex-col items-center justify-center text-center">
                         <span class="text-emerald-500 text-xs font-bold mb-1 uppercase tracking-wider">เสร็จสิ้น</span>
                         <span class="text-2xl font-black text-emerald-600">{{ dashboardStore.orderStatuses.completed
-                            }}</span>
+                        }}</span>
                     </div>
                     <div
                         class="bg-rose-50 rounded-xl p-4 border border-rose-100 flex flex-col items-center justify-center text-center">
@@ -276,11 +276,11 @@ onUnmounted(() => {
                                     <tr v-for="order in dashboardStore.recentOrders" :key="order.id"
                                         class="hover:bg-slate-50 transition-colors border-b border-slate-50">
                                         <td class="font-bold text-slate-700">#{{ order.OrderNumber ||
-                                            order.id.substring(0,6).toUpperCase() }}</td>
+                                            order.id.substring(0, 6).toUpperCase() }}</td>
                                         <td class="text-sm text-slate-500">
                                             {{ order.CreatedAt?.toDate ?
                                                 order.CreatedAt.toDate().toLocaleString('th-TH') : new
-                                            Date(order.CreatedAt).toLocaleString('th-TH') }}
+                                                    Date(order.CreatedAt).toLocaleString('th-TH') }}
                                         </td>
                                         <td class="font-bold text-emerald-600">฿{{ Number(order.localTotal ||
                                             0).toLocaleString() }}</td>
@@ -297,7 +297,7 @@ onUnmounted(() => {
                                                         'กำลังเตรียม' :
                                                         order.statusOrder === 'completed' ? 'เสร็จสิ้น' :
                                                             order.statusOrder === 'cancelled' || order.statusOrder === 'returned' ?
-                                                'ยกเลิก' : order.statusOrder }}
+                                                                'ยกเลิก' : order.statusOrder }}
                                             </div>
                                         </td>
                                     </tr>

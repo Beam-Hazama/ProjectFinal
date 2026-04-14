@@ -140,43 +140,9 @@ const deliverOrder = async (order) => {
 
     try {
         const myRestaurant = accountStore.user?.Restaurant;
+        if (!myRestaurant) return;
 
-
-        const updatedMenu = (order.Menu || []).map(i => {
-            if (
-                i.Restaurant === myRestaurant &&
-                i.itemStatus !== 'dispatched' &&
-                i.itemStatus !== 'cancelled' &&
-                i.itemStatus !== 'returned'
-            ) {
-                return { ...i, itemStatus: 'dispatched' };
-            }
-            return i;
-        });
-
-        const orderRef = doc(db, 'Order', order.id);
-
-
-        const allFinished = updatedMenu.every(i =>
-            i.itemStatus === 'dispatched' ||
-            i.itemStatus === 'cancelled' ||
-            i.itemStatus === 'returned'
-        );
-
-
-        if (allFinished) {
-            await updateDoc(orderRef, {
-                Menu: updatedMenu,
-                statusOrder: 'completed',
-                UpdatedAt: serverTimestamp()
-            });
-        } else {
-            await updateDoc(orderRef, {
-                Menu: updatedMenu,
-                UpdatedAt: serverTimestamp()
-            });
-        }
-
+        await orderStore.updateOrderStatus(order.id, 'dispatched', myRestaurant);
         await orderStore.loadOrderinadmin();
 
     } catch (error) {
@@ -197,67 +163,34 @@ const saveChanges = async (order) => {
         const latestOrder = orderStore.list.find(o => o.id === order.id);
         if (!latestOrder) return;
 
-        const updatedMenu = [];
-        const cancelledItems = [];
-
+        const itemUpdates = [];
         let dIdx = 0;
-        for (const item of latestOrder.Menu || []) {
 
-            if (item.Restaurant !== myRestaurant) {
-                updatedMenu.push(item);
-                continue;
-            }
+        for (const item of latestOrder.Menu || []) {
+            if (item.Restaurant !== myRestaurant) continue;
 
             const itemKey = item.cartItemId || (item.id + '-' + dIdx++);
             const action = orderSelections[itemKey];
-            if (!action) {
-                updatedMenu.push(item);
-                continue;
-            }
+            if (!action) continue;
 
             let newStatus = item.itemStatus;
-
             if (action === 'advance') {
                 if (!item.itemStatus || item.itemStatus === 'waiting') {
                     const hasCancelAction = Object.values(orderSelections).includes('cancel');
                     newStatus = hasCancelAction ? 'returned' : 'cooking';
                 }
-            }
-
-            if (action === 'cancel') {
+            } else if (action === 'cancel') {
                 newStatus = 'cancelled';
-                cancelledItems.push(item.id);
             }
 
-            updatedMenu.push({ ...item, itemStatus: newStatus });
+            if (newStatus !== item.itemStatus) {
+                itemUpdates.push({ itemId: item.id, newStatus });
+            }
         }
 
-        const hasCancelled = updatedMenu.some(i => i.itemStatus === 'cancelled');
-        const anyWaiting = updatedMenu.some(i => !i.itemStatus || i.itemStatus === 'waiting');
-
-        const orderRef = doc(db, 'Order', order.id);
-
-
-        if (hasCancelled && !anyWaiting) {
-            await updateDoc(orderRef, {
-                Menu: updatedMenu,
-                statusOrder: 'returned'
-            });
-        } else {
-            await updateDoc(orderRef, {
-                Menu: updatedMenu
-            });
-        }
-
-
-        for (const itemId of cancelledItems) {
-            const menuRef = doc(db, 'Menu', itemId);
-            await updateDoc(menuRef, {
-                Status: 'close',
-                UpdatedAt: serverTimestamp(),
-                status: deleteField(),
-                updatedAt: deleteField()
-            }).catch(e => console.error("Menu sync fail:", e));
+        if (itemUpdates.length > 0) {
+            await orderStore.updateMultipleItemsStatus(order.id, itemUpdates);
+            await orderStore.loadOrderinadmin();
         }
 
         selections.value[order.id] = {};

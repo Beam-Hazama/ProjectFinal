@@ -7,22 +7,22 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     allOrders: [],
     allProducts: [],
     timeFilter: '7days',
-    
+
     totalOrders: 0,
     totalRevenue: 0,
     totalProducts: 0,
-    
+
     orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
     topMenuItems: [],
     recentOrders: [],
-    
+
     ordersLoading: true,
     productsLoading: true,
-    
+
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
-    
+
     unsubscribeOrders: null,
     unsubscribeProducts: null,
     currentRestaurant: null,
@@ -30,12 +30,12 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
   getters: {
     isLoading: (state) => state.ordersLoading || state.productsLoading,
-    
+
     salesChartSeries: (state) => {
       const data = state.revenueByDay.map(day => day.revenue);
       return [{ name: 'ยอดขาย (บาท)', data }];
     },
-    
+
     salesChartOptions: (state) => {
       const categories = state.revenueByDay.map(day => day.date);
       return {
@@ -174,7 +174,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       const now = new Date();
       now.setHours(23, 59, 59, 999);
-      
+
       let startTime = new Date(0);
       if (this.timeFilter === 'today') {
         startTime = new Date();
@@ -192,12 +192,12 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.allOrders.forEach(order => {
         const createdAt = order.CreatedAt;
         if (!createdAt) return;
-        
+
         const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
         if (orderDate < startTime || orderDate > now) return;
 
         const myItems = (order.Menu || []).filter(item => item.Restaurant === this.currentRestaurant);
-        
+
         if (myItems.length > 0) {
           const cStatus = order.statusOrder || 'pending';
           statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
@@ -205,7 +205,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
           if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
             const validRevenueItems = myItems.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
-            
+
             if (validRevenueItems.length > 0) {
               filteredOrdersCount++;
               let orderLocalTotal = 0;
@@ -217,9 +217,9 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
                 const menuId = item.id || item.menuId;
                 if (!menuMetricsMap[menuId]) {
-                  menuMetricsMap[menuId] = { 
-                    name: item.Name || 'ไม่ระบุชื่อเมนู', 
-                    qty: 0, 
+                  menuMetricsMap[menuId] = {
+                    name: item.Name || 'ไม่ระบุชื่อเมนู',
+                    qty: 0,
                     revenue: 0,
                     image: item.ImageUrl
                   };
@@ -243,14 +243,14 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
           return tB - tA;
         })
         .slice(0, 10);
-      
+
       this.topMenuItems = Object.values(menuMetricsMap)
         .sort((a, b) => b.qty - a.qty)
         .slice(0, 5);
 
       this.totalOrders = filteredOrdersCount;
       this.totalRevenue = filteredRevenue;
-      
+
       this.processRevenueByDay(validOrdersForChart);
       this.processPeakHours(validOrdersForChart);
       this.processCategoriesCount(this.allProducts);
@@ -267,7 +267,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       if (!restaurantName) return;
       this.currentRestaurant = restaurantName;
       this.clearListeners();
-      
+
       this.ordersLoading = true;
       this.productsLoading = true;
 
@@ -324,7 +324,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
           orderDate.setHours(0, 0, 0, 0);
           const timeDiff = today.getTime() - orderDate.getTime();
           const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-          
+
           if (daysDiff >= 0 && daysDiff <= Math.max(daysCount, 6)) {
             const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
             if (days[dateString] !== undefined) {

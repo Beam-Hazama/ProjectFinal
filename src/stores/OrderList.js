@@ -27,6 +27,25 @@ export const useOderlistStore = defineStore("oderlist", {
     },
   },
   actions: {
+    async _recalculateGlobalStatus(updatedMenu) {
+      const allItemsFinished = updatedMenu.every(item =>
+        ['received', 'dispatched', 'cancelled', 'returned'].includes(item.itemStatus)
+      );
+
+      if (allItemsFinished) {
+        const anySuccessful = updatedMenu.some(item => ['received', 'dispatched'].includes(item.itemStatus));
+        if (anySuccessful) return 'completed';
+        
+        const allCancelled = updatedMenu.every(item => item.itemStatus === 'cancelled');
+        if (allCancelled) return 'cancelled';
+        
+        return 'returned';
+      } else {
+        const anyCooking = updatedMenu.some(item => item.itemStatus === 'cooking' || item.itemStatus === 'dispatched');
+        return anyCooking ? 'cooking' : 'pending';
+      }
+    },
+
     async updateOrderStatus(orderId, newStatus, restaurantName) {
       try {
         const orderRef = doc(db, 'Order', orderId);
@@ -40,21 +59,14 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
-          const allFinished = updatedMenu.every(item =>
-            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
-          );
 
-          const orderUpdates = {
-            Menu: updatedMenu
-          };
+          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          if (allFinished) {
-            orderUpdates.statusOrder = 'completed';
-            orderUpdates.UpdatedAt = serverTimestamp();
-          }
-
-          await updateDoc(orderRef, orderUpdates);
-
+          await updateDoc(orderRef, {
+            Menu: updatedMenu,
+            statusOrder: globalStatus,
+            UpdatedAt: serverTimestamp()
+          });
 
           if (newStatus === 'cancelled') {
             for (const item of updatedMenu) {
@@ -82,7 +94,6 @@ export const useOderlistStore = defineStore("oderlist", {
 
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-
           const updatedMenu = orderData.Menu.map(item => {
             if (item.id === itemId) {
               return { ...item, itemStatus: newStatus };
@@ -90,20 +101,13 @@ export const useOderlistStore = defineStore("oderlist", {
             return item;
           });
 
-          const allFinished = updatedMenu.every(item =>
-            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
-          );
+          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          const updates = {
-            Menu: updatedMenu
-          };
-
-          if (allFinished) {
-            updates.statusOrder = 'completed';
-            updates.UpdatedAt = serverTimestamp();
-          }
-
-          await updateDoc(orderRef, updates);
+          await updateDoc(orderRef, {
+            Menu: updatedMenu,
+            statusOrder: globalStatus,
+            UpdatedAt: serverTimestamp()
+          });
 
           if (newStatus === 'cancelled') {
             const menuRef = doc(db, 'Menu', itemId);
@@ -127,8 +131,6 @@ export const useOderlistStore = defineStore("oderlist", {
 
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-
-
           const updatedMenu = orderData.Menu.map(item => {
             const update = updates.find(u => u.itemId === item.id);
             if (update) {
@@ -136,21 +138,14 @@ export const useOderlistStore = defineStore("oderlist", {
             }
             return item;
           });
-          const allFinished = updatedMenu.every(item =>
-            ['received', 'cancelled', 'returned'].includes(item.itemStatus)
-          );
 
-          const orderUpdates = {
-            Menu: updatedMenu
-          };
+          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          if (allFinished) {
-            orderUpdates.statusOrder = 'completed';
-            orderUpdates.UpdatedAt = serverTimestamp();
-          }
-
-          await updateDoc(orderRef, orderUpdates);
-
+          await updateDoc(orderRef, {
+            Menu: updatedMenu,
+            statusOrder: globalStatus,
+            UpdatedAt: serverTimestamp()
+          });
 
           for (const update of updates) {
             if (update.newStatus === 'cancelled') {
