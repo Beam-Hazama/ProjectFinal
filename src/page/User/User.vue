@@ -9,6 +9,7 @@ import { useCategoryStore } from '@/stores/categoryStore';
 import RestaurantList from '@/page/component/RestaurantList.vue';
 import ProductList from '@/page/component/blockmenu.vue';
 import BottomNavigation from '@/page/component/BottomNavigation.vue';
+import MenuOrderModal from '@/page/component/modalmenu.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
@@ -35,6 +36,21 @@ const room = route.params.room || '-';
 
 const currentSlide = ref(0);
 let carouselTimeout = null;
+
+const selectedProduct = ref(null);
+const showModal = ref(false);
+
+const isShopClosed = (restaurantName) => {
+  const shop = restaurantStore.list.find(r => r.Name === restaurantName);
+  return shop?.Status === 'close';
+};
+
+const openProductModal = (product) => {
+  // Always set the product and show the modal to ensure it opens
+  // Availability checks can be handled inside the modal if needed
+  selectedProduct.value = product;
+  showModal.value = true;
+};
 
 
 
@@ -125,6 +141,9 @@ const filteredProducts = computed(() => {
 const promotionProducts = computed(() => {
   return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
 });
+const displayLocation = computed(() => {
+  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
+});
 
 </script>
 
@@ -148,6 +167,26 @@ const promotionProducts = computed(() => {
   </div>
 
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
+
+    <!-- Location Header -->
+    <div class="px-5 pt-6 pb-2">
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[9px] uppercase font-black tracking-widest text-blue-500/60 leading-none mb-0.5">Your
+            Location</span>
+          <span class="text-[15px] font-black text-slate-800 leading-tight">{{ displayLocation }}</span>
+        </div>
+      </div>
+    </div>
 
 
     <div class="px-4 py-3">
@@ -231,8 +270,8 @@ const promotionProducts = computed(() => {
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
         <div v-for="product in promotionProducts" :key="product.id"
-          @click="$router.push(`/user/search/${building}/${floor}/${room}/?q=${product.Name}`)"
-          class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95">
+          @click="openProductModal(product)"
+          class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
             <img :src="product.ImageUrl || 'https://via.placeholder.com/150'" class="w-full h-full object-cover" />
 
@@ -245,9 +284,9 @@ const promotionProducts = computed(() => {
               </div>
               <div class="flex flex-col items-end shrink-0">
                 <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ product.PromoPrice.toLocaleString()
-                  }}</span>
+                }}</span>
                 <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ product.Price.toLocaleString()
-                  }}</span>
+                }}</span>
               </div>
             </div>
           </div>
@@ -293,7 +332,10 @@ const promotionProducts = computed(() => {
 
 
 
+
     <BottomNavigation :building="building" :floor="floor" :room="room" />
+
+    <MenuOrderModal v-if="selectedProduct" :show="showModal" :product="selectedProduct" @close="showModal = false" />
   </div>
 </template>
 

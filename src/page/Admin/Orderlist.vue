@@ -49,12 +49,12 @@ const getStatusColor = (status) => {
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">ORDER NUMBER</th>
-                <th>BUILDING</th>
-                <th>FLOOR</th>
-                <th>ROOM</th>
-                <th>STATUS</th>
-                <th>DATE</th>
-                <th>TOTAL PRICE</th>
+                <th class="text-center">BUILDING</th>
+                <th class="text-center">FLOOR</th>
+                <th class="text-center">ROOM</th>
+                <th class="text-center">STATUS</th>
+                <th class="text-center">DATE</th>
+                <th class="text-center">TOTAL PRICE</th>
                 <th class="text-center">ACTION</th>
               </tr>
             </thead>
@@ -65,24 +65,24 @@ const getStatusColor = (status) => {
                   #{{ orders.OrderNumber }}
                 </td>
 
-                <td class="font-medium text-slate-700">
+                <td class="text-center font-medium text-slate-700">
                   {{ orders.building || '-' }}
                 </td>
-                <td class="font-medium text-slate-700">
+                <td class="text-center font-medium text-slate-700">
                   {{ orders.floor || '-' }}
                 </td>
-                <td class="font-medium text-slate-700">
+                <td class="text-center font-medium text-slate-700">
                   <span v-if="orders.room" class="font-bold text-indigo-600">{{ orders.room }}</span>
                   <span v-else>{{ orders.tableId || '-' }}</span>
                 </td>
 
-                <td>
+                <td class="text-center">
                   <span class="badge gap-2 font-semibold" :class="getStatusColor(orders.statusOrder)">
                     {{ orders.statusOrder?.toUpperCase() || '-' }}
                   </span>
                 </td>
-                <td class="text-sm">{{ formatDate(orders.CreatedAt) }}</td>
-                <td class="font-bold text-emerald-600">{{ orders.TotalPrice?.toLocaleString() }} ฿</td>
+                <td class="text-center text-sm">{{ formatDate(orders.CreatedAt) }}</td>
+                <td class="text-center font-bold text-emerald-600">{{ orders.TotalPrice?.toLocaleString() }} ฿</td>
                 <td class="text-center">
                   <button @click="openModal(orders)"
                     class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
@@ -115,8 +115,10 @@ const getStatusColor = (status) => {
 
           <div v-if="selectedOrder" class="space-y-4">
             <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
-              <span v-if="selectedOrder.building && selectedOrder.room">
-                Location: {{ selectedOrder.room }} ({{ selectedOrder.building }} FL.{{ selectedOrder.floor }})
+              <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
+                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building }}</span></span>
+                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor }}</span></span>
+                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
               </span>
               <span v-else>
                 Room: {{ selectedOrder.tableId }}

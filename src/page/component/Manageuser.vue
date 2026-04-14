@@ -12,10 +12,6 @@ const isLoading = ref(false);
 const restaurants = ref([]);
 
 
-const userId = route.params.id;
-const mode = ref(userId ? 'edit' : 'add');
-
-
 const imageInputMethod = ref('file');
 const imagePreview = ref(null);
 
@@ -47,32 +43,8 @@ const fetchRestaurants = async () => {
     }
 };
 
-
-const fetchUserData = async () => {
-    if (mode.value === 'edit') {
-        try {
-            const docRef = doc(db, 'User', userId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                userData.value = { ...userData.value, ...data };
-                imagePreview.value = data.ImageUrl;
-                if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
-                    imageInputMethod.value = 'url';
-                }
-            } else {
-                alert("ไม่พบข้อมูลผู้ใช้งาน");
-                router.push('/Admin/Restaurantuser');
-            }
-        } catch (error) {
-            console.error("Error fetching user:", error);
-        }
-    }
-};
-
 onMounted(() => {
     fetchRestaurants();
-    fetchUserData();
 });
 
 watch(() => userData.value.ImageUrl, (newVal) => {
@@ -105,68 +77,37 @@ const handleSave = async () => {
     try {
         isLoading.value = true;
 
-
         const q = query(collection(db, 'User'), where('Username', '==', Username));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-
-            const isDuplicate = mode.value === 'add' || querySnapshot.docs.some(doc => doc.id !== userId);
-
-            if (isDuplicate) {
-                alert(`Username "${Username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
-                isLoading.value = false;
-                return;
-            }
+            alert(`Username "${Username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
+            isLoading.value = false;
+            return;
         }
-
 
         const fakeEmail = `${Username.toLowerCase().trim()}@system.local`;
 
-        if (mode.value === 'add') {
+        const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, Password);
+        const uid = userCredential.user.uid;
 
-            const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, Password);
-            const uid = userCredential.user.uid;
-
-            await setDoc(doc(db, 'User', uid), {
-                Firstname,
-                Lastname,
-                Username,
-                Password,
-                Phone,
-                Address,
-                Restaurant,
-                Distance: Distance || '',
-                Age: Age || '',
-                Status: Status || 'active',
-                Role: 'restaurant',
-                ImageUrl: ImageUrl || '',
-                CreatedAt: serverTimestamp(),
-                UpdatedAt: serverTimestamp()
-            });
-            alert("เพิ่มผู้ใช้สำเร็จ!");
-        } else {
-
-            const userRef = doc(db, 'User', userId);
-
-            const updateData = {
-                Firstname,
-                Lastname,
-                Username,
-                Password,
-                Phone,
-                Address,
-                Restaurant,
-                Distance: Distance || '',
-                Age: Age || '',
-                Status: Status || 'active',
-                ImageUrl: ImageUrl || '',
-                UpdatedAt: serverTimestamp()
-            };
-
-            await updateDoc(userRef, updateData);
-            alert("อัปเดตข้อมูลสำเร็จ!");
-        }
+        await setDoc(doc(db, 'User', uid), {
+            Firstname,
+            Lastname,
+            Username,
+            Password,
+            Phone,
+            Address,
+            Restaurant,
+            Distance: Distance || '',
+            Age: Age || '',
+            Status: Status || 'active',
+            Role: 'restaurant',
+            ImageUrl: ImageUrl || '',
+            CreatedAt: serverTimestamp(),
+            UpdatedAt: serverTimestamp()
+        });
+        alert("เพิ่มผู้ใช้สำเร็จ!");
 
         router.push('/Admin/Restaurantuser');
     } catch (error) {
@@ -194,16 +135,11 @@ const filterNonNumbers = (field) => {
 };
 
 const isFormValid = computed(() => {
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Distance, ImageUrl, Age } = userData.value;
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Distance, ImageUrl, Age, Password } = userData.value;
 
-  
-    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Distance || !ImageUrl || !Age) return false;
+    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Distance || !ImageUrl || !Age || !Password) return false;
 
- 
     if (Phone.length !== 10) return false;
-
-    
-    if (mode.value === 'add' && !Password) return false;
 
     return true;
 });
@@ -217,17 +153,18 @@ const goBack = () => router.go(-1);
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
-                        {{ mode === 'add' ? 'เพิ่มผู้ใช้งานร้านค้า' : 'แก้ไขข้อมูลผู้ใช้งาน' }}
+                        Add New User
                     </h1>
-                    <p class="text-slate-500 mt-1">จัดการรายละเอียดบัญชี ข้อมูลติดต่อ และร้านอาหารที่สังกัด</p>
+                 
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
+                    <button @click="goBack"
+                        class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28">Cancel</button>
                     <button @click="handleSave" :disabled="!isFormValid || isLoading"
-                        class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white px-8 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg disabled:hover:shadow-none disabled:hover:-translate-y-0 text-white disabled:text-white/70">
+                        class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white w-28 rounded-xl shadow-md transition-all disabled:bg-slate-200 disabled:text-slate-400 hover:shadow-lg disabled:hover:shadow-none font-bold">
                         <span v-if="isLoading" class="loading loading-spinner loading-xs mr-2"></span>
-                        {{ mode === 'add' ? 'บันทึกข้อมูล' : 'อัปเดตข้อมูล' }}
+                        Save
                     </button>
                 </div>
             </div>
@@ -335,7 +272,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
-                                            Password {{ mode === 'add' ? '*' : '(รหัสผ่านปัจจุบัน)' }}
+                                            Password *
                                         </span>
                                     </label>
                                     <input type="password" v-model="userData.Password"

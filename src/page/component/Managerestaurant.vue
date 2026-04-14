@@ -146,10 +146,12 @@ onMounted(async () => {
         </div>
 
         <div class="flex gap-3">
-          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">Cancel</button>
-          <button v-if="mode !== 'View Restaurant'" @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name"
-            class="btn bg-gradient-to-r from-blue-600 to-indigo-600 border-none text-white hover:shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 px-6">
-            Save Restaurant
+          <button @click="goBack"
+            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28">Cancel</button>
+          <button v-if="mode !== 'View Restaurant'" @click="checkSaveRestaurant(RestaurantData)"
+            :disabled="!RestaurantData.Name"
+            class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-100 hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300 w-28 rounded-xl font-bold">
+            Save
           </button>
         </div>
       </div>

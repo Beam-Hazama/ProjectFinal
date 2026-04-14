@@ -91,10 +91,10 @@ const formatDate = (timestamp) => {
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">RESTAURANT</th>
-                <th>STATUS</th>
-                <th>OPEN-CLOSE</th>
-                <th>CREATED AT</th>
-                <th>UPDATED AT</th>
+                <th class="text-center">STATUS</th>
+                <th class="text-center">OPEN-CLOSE</th>
+                <th class="text-center">CREATED AT</th>
+                <th class="text-center">UPDATED AT</th>
                 <th class="text-center">ACTION</th>
               </tr>
             </thead>
@@ -117,29 +117,29 @@ const formatDate = (timestamp) => {
                   </div>
                 </td>
 
-                <td>
+                <td class="text-center">
                   <div v-if="getAutoStatus(product) === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none">
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none">
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                     Closed
                   </div>
                 </td>
 
 
-                <td>
+                <td class="text-center">
                   <div v-if="product.OpenTime && product.CloseTime"
-                    class="flex items-center gap-1 text-xs font-semibold text-slate-600">
+                    class="flex items-center justify-center gap-1 text-xs font-semibold text-slate-600">
                     {{ product.OpenTime }} - {{ product.CloseTime }}
                   </div>
                   <div v-else class="text-xs text-slate-400 italic">ไม่ได้ระบุเวลา</div>
                 </td>
 
-                <td class="text-xs font-medium">{{ formatDate(product.CreatedAt) }}</td>
-                <td class="text-xs font-medium">{{ formatDate(product.UpdatedAt) }}</td>
+                <td class="text-center text-xs font-medium">{{ formatDate(product.CreatedAt) }}</td>
+                <td class="text-center text-xs font-medium">{{ formatDate(product.UpdatedAt) }}</td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">

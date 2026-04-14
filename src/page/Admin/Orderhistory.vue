@@ -60,12 +60,12 @@ const formatDate = (timestamp) => {
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="py-4 pl-6">ORDER NUMBER</th>
-                                <th>BUILDING</th>
-                                <th>FLOOR</th>
-                                <th>ROOM</th>
-                                <th>STATUS</th>
-                                <th>DATE</th>
-                                <th>TOTAL PRICE</th>
+                                <th class="text-center">BUILDING</th>
+                                <th class="text-center">FLOOR</th>
+                                <th class="text-center">ROOM</th>
+                                <th class="text-center">STATUS</th>
+                                <th class="text-center">DATE</th>
+                                <th class="text-center">TOTAL PRICE</th>
                                 <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
@@ -76,22 +76,22 @@ const formatDate = (timestamp) => {
                                     #{{ order.OrderNumber }}
                                 </td>
 
-                                <td class="font-medium text-slate-700">
+                                <td class="text-center font-medium text-slate-700">
                                     {{ order.building || '-' }}
                                 </td>
-                                <td class="font-medium text-slate-700">
+                                <td class="text-center font-medium text-slate-700">
                                     {{ order.floor || '-' }}
                                 </td>
-                                <td class="font-medium text-slate-700">
-                                    <span class="font-bold text-indigo-600">{{ order.room }}</span>
+                                <td class="text-center font-medium text-slate-700">
+                                    <span class="font-bold ">{{ order.room }}</span>
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.statusOrder)">
                                         {{ order.statusOrder?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
-                                <td class="text-sm">{{ formatDate(order.CreatedAt) }}</td>
-                                <td class="font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>
+                                <td class="text-center text-sm">{{ formatDate(order.CreatedAt) }}</td>
+                                <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>
                                 <td class="text-center">
                                     <button @click="openModal(order)"
                                         class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
@@ -129,16 +129,18 @@ const formatDate = (timestamp) => {
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
 
                     <h3 class="font-bold text-lg mb-4 text-indigo-600">
-                        History Details #{{ selectedOrder?.OrderNumber }}
+                        Order Details #{{ selectedOrder?.OrderNumber }}
                     </h3>
 
                     <div v-if="selectedOrder" class="space-y-4">
                         <div
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span v-if="selectedOrder.building && selectedOrder.room">
-                                Location: {{ selectedOrder.room }} ({{ selectedOrder.building }} FL.{{
-                                    selectedOrder.floor
-                                }})
+                            <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
+                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
+                                        }}</span></span>
+                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
+                                        }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
                             </span>
                             <span v-else>
                                 Table: {{ selectedOrder.tableId }}
@@ -193,7 +195,7 @@ const formatDate = (timestamp) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.TotalPrice?.toLocaleString()
-                                }} ฿</span>
+                            }} ฿</span>
                         </div>
                     </div>
                 </div>

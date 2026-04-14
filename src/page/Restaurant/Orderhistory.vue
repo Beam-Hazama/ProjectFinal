@@ -169,15 +169,16 @@ const formatDate = (timestamp) => {
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
 
                     <h3 class="font-bold text-lg mb-4 text-indigo-600">
-                        History Details #{{ selectedOrder?.OrderNumber }}
+                        Order Details #{{ selectedOrder?.OrderNumber }}
                     </h3>
 
                     <div v-if="selectedOrder" class="space-y-4">
                         <div
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span v-if="selectedOrder.building && selectedOrder.room">
-                                Location: {{ selectedOrder.room }} ({{ selectedOrder.building }} FL.{{
-                                    selectedOrder.floor }})
+                            <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2 text-xs">
+                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building }}</span></span>
+                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
                             </span>
                             <span v-else>
                                 Table: {{ selectedOrder.tableId }}

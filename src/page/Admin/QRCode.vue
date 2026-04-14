@@ -86,7 +86,7 @@ const printSpecificQR = async (room) => {
               stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Add Room
+            Add QR Code
           </button>
         </div>
 
@@ -95,29 +95,29 @@ const printSpecificQR = async (room) => {
             <table class="table w-full">
               <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                 <tr>
-                  <th class="py-4 pl-6">ROOM NUMBER</th>
-                  <th>FLOOR</th>
-                  <th>BUILDING</th>
-                  <th>CREATED AT</th>
-                  <th>QR CODE</th>
+                  <th class="py-4 text-center">BUILDING</th>
+                  <th class="text-center">FLOOR</th>
+                  <th class="text-center">ROOM NUMBER</th>
+                  <th class="text-center">CREATED AT</th>
+                  <th class="text-center">QR CODE</th>
                   <th class="text-center">ACTION</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="room in rooms" :key="room.id" class="hover:bg-slate-50 border-none">
-                  <td class="pl-6">{{ room.roomNumber }}</td>
-                  <td>{{ room.floor }}</td>
-                  <td>{{ room.building }}</td>
-                  <td>{{ formatDate(room.createdAt) }}</td>
-                  <td class="border-none">
+                  <td class="text-center">{{ room.building }}</td>
+                  <td class="text-center">{{ room.floor }}</td>
+                  <td class="text-center">{{ room.roomNumber }}</td>
+                  <td class="text-center">{{ formatDate(room.createdAt) }}</td>
+                  <td class="text-center border-none">
                     <button @click="printSpecificQR(room)"
                       class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">Print QR</button>
                   </td>
                   <td class="text-center border-none">
 
                     <button @click="deleteRoom(room.id)" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -132,32 +132,34 @@ const printSpecificQR = async (room) => {
 
         <dialog :open="isModalOpen" class="modal bg-black/50">
           <div class="modal-box shadow-2xl">
-            <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'แก้ไขรายละเอียดห้อง' : 'เพิ่มห้องใหม่' }}</h3>
+            <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'Edit Room' : 'Add New Room' }}</h3>
             <div class="space-y-4">
 
               <div class="grid grid-cols-3 gap-4">
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Building</span></label>
+                  <input v-model="roomForm.building" type="text"
+                    class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
+                </div>
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Floor</span></label>
+                  <input v-model="roomForm.floor" type="text"
+                    class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
+                </div>
                 <div>
                   <div class="form-control">
-                    <label class="label"><span class="label-text">เลขห้อง</span></label>
-                    <input v-model="roomForm.roomNumber" type="text" class="input input-bordered w-full"
-                      placeholder="ตัวอย่าง: 301" />
+                    <label class="label"><span class="label-text">Room Number</span></label>
+                    <input v-model="roomForm.roomNumber" type="text"
+                      class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                   </div>
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text">ชั้น</span></label>
-                  <input v-model="roomForm.floor" type="text" class="input input-bordered w-full"
-                    placeholder="ตัวอย่าง: 3" />
-                </div>
-                <div class="form-control">
-                  <label class="label"><span class="label-text">ตึก</span></label>
-                  <input v-model="roomForm.building" type="text" class="input input-bordered w-full"
-                    placeholder="ตัวอย่าง: A" />
                 </div>
               </div>
             </div>
-            <div class="modal-action flex mt-8">
-              <button @click="isModalOpen = false" class="btn btn-ghost btn-sm">ยกเลิก</button>
-              <button @click="saveRoom" class="btn btn-primary btn-sm px-6">บันทึกข้อมูล</button>
+            <div class="modal-action flex mt-8 justify-end gap-3">
+              <button @click="isModalOpen = false"
+                class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
+              <button @click="saveRoom" :disabled="!roomForm.roomNumber || !roomForm.floor || !roomForm.building"
+                class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">Save</button>
             </div>
           </div>
         </dialog>

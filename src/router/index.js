@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory , } from "vue-router";
+import { createRouter, createWebHistory, } from "vue-router";
 import { useAccountStore } from '@/stores/account';
 
 
@@ -28,7 +28,7 @@ import Restaurantprofile from "@/page/Restaurant/Profile.vue";
 import RestaurantManagemenu from "@/page/Restaurant/Managemenu.vue";
 import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
 import RestaurantPoster from "@/page/Restaurant/Poster.vue";
-import RestaurantCategory from "@/page/Restaurant/Category.vue";
+
 import RestaurantOrderHistory from "@/page/Restaurant/Orderhistory.vue";
 
 
@@ -205,12 +205,7 @@ const router = createRouter({
       component: RestaurantPoster,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
-    {
-      path: '/Restaurant/Category',
-      name: 'Restaurants Category',
-      component: RestaurantCategory,
-      meta: { requiresAuth: true, role: 'restaurant' },
-    },
+
     {
       path: '/Restaurant/Menulist',
       name: 'Restaurants Menulist',
@@ -230,7 +225,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'restaurant' },
     },
 
-    
+
     {
       path: '/user/:building/:floor/:room',
       name: 'UserWithParams',
@@ -247,7 +242,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const accountStore = useAccountStore();
 
- 
+
   if (!accountStore.isLoggedIn) {
     accountStore.checkAuthState();
   }

@@ -72,7 +72,7 @@ const handleSubmitPoster = async () => {
             posterData.startTime = startTime.value;
             posterData.endTime = endTime.value;
         } else {
-          
+
             posterData.startTime = null;
             posterData.endTime = null;
         }
@@ -162,14 +162,12 @@ const formatScheduleDate = (dateString) => {
             </div>
 
 
-            <div v-if="showModal"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-                <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden max-h-[90vh] flex flex-col"
-                    @click.stop>
+            <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
+                <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
                     <div
                         class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                        <h2 class="text-lg font-bold text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}
-                        </h2>
+                        <h3 class="font-bold text-lg text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}
+                        </h3>
                         <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -186,16 +184,16 @@ const formatScheduleDate = (dateString) => {
                                     <label class="label pt-0">
                                         <span class="label-text font-medium text-slate-600">Image URL</span>
                                     </label>
-                                    <input type="text" placeholder="https://example.com/poster.jpg"
+                                    <input type="text"
                                         v-model="newPosterUrl"
-                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
+                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                                 </div>
                                 <div class="w-full md:w-32">
                                     <label class="label pt-0">
                                         <span class="label-text font-medium text-slate-600">Duration (sec)</span>
                                     </label>
                                     <input type="number" min="1" v-model="displayDuration"
-                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
+                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                                 </div>
                             </div>
 
@@ -212,14 +210,14 @@ const formatScheduleDate = (dateString) => {
                                             <span class="label-text font-medium text-slate-600">Start Time</span>
                                         </label>
                                         <input type="datetime-local" v-model="startTime"
-                                            class="input input-bordered w-full bg-white transition-colors" />
+                                            class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                     <div class="flex-1">
                                         <label class="label pt-0">
                                             <span class="label-text font-medium text-slate-600">End Time</span>
                                         </label>
                                         <input type="datetime-local" v-model="endTime"
-                                            class="input input-bordered w-full bg-white transition-colors" />
+                                            class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                 </div>
                             </div>
@@ -238,15 +236,15 @@ const formatScheduleDate = (dateString) => {
 
                     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
                         <button @click="closeModal"
-                            class="btn btn-ghost text-slate-500 hover:bg-slate-100">Cancel</button>
+                            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
                         <button @click="handleSubmitPoster" :disabled="isSubmittingPoster || !newPosterUrl"
-                            class="btn bg-blue-600 hover:bg-blue-700 text-white border-none min-w-[120px]">
+                            class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                             <span v-if="isSubmittingPoster" class="loading loading-spinner loading-sm"></span>
-                            <span v-else>{{ isEditing ? 'Save Changes' : 'Save Poster' }}</span>
+                            <span v-else>Save</span>
                         </button>
                     </div>
                 </div>
-            </div>
+            </dialog>
 
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -256,11 +254,11 @@ const formatScheduleDate = (dateString) => {
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
                                 <th>POSTER</th>
-                                <th>STATUS</th>
-                                <th>DURATION</th>
-                                <th>SCHEDULE</th>
-                                <th>CREATED AT</th>
-                                <th>UPDATED AT</th>
+                                <th class="text-center">STATUS</th>
+                                <th class="text-center">DURATION</th>
+                                <th class="text-center">SCHEDULE</th>
+                                <th class="text-center">CREATED AT</th>
+                                <th class="text-center">UPDATED AT</th>
                                 <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
@@ -273,7 +271,6 @@ const formatScheduleDate = (dateString) => {
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    ไม่มีภาพ Poster หรือแบนเนอร์
                                     No posters found
                                 </td>
                             </tr>
@@ -299,9 +296,9 @@ const formatScheduleDate = (dateString) => {
                                         </div>
                                     </td>
 
-                                    <td>
-                                        <div class="flex flex-col">
-                                            <label class="cursor-pointer relative inline-flex items-center group w-max">
+                                    <td class="text-center">
+                                        <div class="flex justify-center flex-col">
+                                            <label class="cursor-pointer relative inline-flex items-center group w-max mx-auto">
                                                 <input type="checkbox" :checked="poster.isActive"
                                                     @change="togglePosterStatus(poster)" class="sr-only peer">
                                                 <div
@@ -309,20 +306,20 @@ const formatScheduleDate = (dateString) => {
                                                 </div>
                                                 <span class="ml-3 text-sm font-medium"
                                                     :class="poster.isActive ? 'text-blue-600' : 'text-slate-400'">
-                                                {{ poster.isActive ? 'Active' : 'Hidden' }}
+                                                    {{ poster.isActive ? 'Active' : 'Hidden' }}
                                                 </span>
                                             </label>
                                         </div>
                                     </td>
 
-                                    <td class="text-xs font-medium text-slate-600">
+                                    <td class="text-center text-xs font-medium text-slate-600">
                                         {{ poster.displayDuration || 5 }} sec
                                     </td>
 
-                                    <td>
+                                    <td class="text-center">
                                         <div v-if="poster.hasSchedule"
-                                            class="p-2 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-slate-600 w-max">
-                                            <div class="font-bold text-blue-600 mb-1 flex items-center gap-1">
+                                            class="p-2 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-slate-600 w-max mx-auto">
+                                            <div class="font-bold text-blue-600 mb-1 flex items-center justify-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -343,11 +340,11 @@ const formatScheduleDate = (dateString) => {
                                         </div>
                                     </td>
 
-                                    <td class="text-xs whitespace-nowrap">
+                                    <td class="text-center text-xs whitespace-nowrap">
                                         {{ formatDate(poster.createdAt) }}
                                     </td>
 
-                                    <td class="text-xs whitespace-nowrap">
+                                    <td class="text-center text-xs whitespace-nowrap">
                                         {{ formatDate(poster.updatedAt) }}
                                     </td>
 
@@ -372,7 +369,7 @@ const formatScheduleDate = (dateString) => {
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
-                                              Delete
+                                                Delete
                                             </button>
                                         </div>
                                     </td>

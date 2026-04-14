@@ -321,57 +321,7 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-            </svg>
-            10 ออเดอร์ล่าสุด
-          </h2>
-          <div class="overflow-x-auto">
-            <table class="table w-full">
-              <thead>
-                <tr class="text-slate-500 bg-slate-50">
-                  <th class="rounded-l-lg">ออเดอร์ #</th>
-                  <th>เวลา</th>
-                  <th>สถานที่ / จัดส่ง</th>
-                  <th>ยอดรวม</th>
-                  <th class="rounded-r-lg">สถานะ</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="order in dashboardStore.recentOrders" :key="order.id" class="hover:bg-slate-50 transition-colors border-b border-slate-50">
-                  <td class="font-bold text-slate-700">#{{ order.OrderNumber || order.id.substring(0,6).toUpperCase() }}</td>
-                  <td class="text-sm text-slate-500">
-                    {{ order.CreatedAt?.toDate ? order.CreatedAt.toDate().toLocaleString('th-TH') : new Date(order.CreatedAt).toLocaleString('th-TH') }}
-                  </td>
-                  <td class="text-sm">
-                    <span v-if="order.building" class="font-medium text-slate-700">{{ order.building }} - ดาดฟ้า {{ order.floor }} ห้อง {{ order.room }}</span>
-                    <span v-else-if="order.tableId" class="font-medium text-slate-700">{{ order.tableId }}</span>
-                    <span v-else class="text-slate-400">-</span>
-                  </td>
-                  <td class="font-bold text-emerald-600">฿{{ Number(order.TotalPrice || order.localTotal || 0).toLocaleString() }}</td>
-                  <td>
-                    <div class="badge badge-sm font-medium border-0" :class="{
-                      'bg-amber-100 text-amber-700': order.statusOrder === 'pending' || !order.statusOrder,
-                      'bg-blue-100 text-blue-700': order.statusOrder === 'preparing' || order.statusOrder === 'cooking',
-                      'bg-emerald-100 text-emerald-700': order.statusOrder === 'completed',
-                      'bg-rose-100 text-rose-700': order.statusOrder === 'cancelled' || order.statusOrder === 'returned'
-                    }">
-                      {{ order.statusOrder === 'pending' || !order.statusOrder ? 'รอดำเนินการ' : 
-                         order.statusOrder === 'preparing' || order.statusOrder === 'cooking' ? 'กำลังเตรียม' : 
-                         order.statusOrder === 'completed' ? 'เสร็จสิ้น' : 
-                         order.statusOrder === 'cancelled' || order.statusOrder === 'returned' ? 'ยกเลิก' : order.statusOrder }}
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="dashboardStore.recentOrders.length === 0">
-                  <td colspan="5" class="text-center py-8 text-slate-400">ยังไม่มีประวัติออเดอร์ในช่วงเวลานี้</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        
 
       </div>
     </div>

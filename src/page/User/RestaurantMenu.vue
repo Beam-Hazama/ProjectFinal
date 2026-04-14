@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
+import { onMounted, onUnmounted, ref, computed, watch, nextTick } from 'vue';
 import { useMenuStore } from '@/stores/menu';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
@@ -32,7 +32,26 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-const activeMenuTab = ref('เมนูทั้งหมด');
+const activeMenuTab = ref('');
+const searchQuery = ref('');
+const isSearchActive = ref(false);
+const searchInput = ref(null);
+const isCategoryModalOpen = ref(false);
+
+const toggleSearch = () => {
+    isSearchActive.value = !isSearchActive.value;
+    if (!isSearchActive.value) {
+        searchQuery.value = '';
+    } else {
+        nextTick(() => {
+            searchInput.value?.focus();
+        });
+    }
+};
+
+const toggleCategoryModal = () => {
+    isCategoryModalOpen.value = !isCategoryModalOpen.value;
+};
 
 
 const fetchRestaurantDetails = async () => {
@@ -126,6 +145,131 @@ const filteredMenu = computed(() => {
     }
 
     return items;
+});
+
+const displayCategories = computed(() => {
+    const categories = new Set();
+
+    // 1. Add official categories first (to maintain store order if any)
+    categoryStore.list.forEach(c => {
+        if (c.name) categories.add(c.name);
+    });
+
+    // 2. Add categories found in menu items of this restaurant
+    const restaurantMenus = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    restaurantMenus.forEach(item => {
+        if (item.Category) categories.add(item.Category);
+    });
+
+    return Array.from(categories);
+});
+
+const groupedMenu = computed(() => {
+    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    const groups = {};
+
+    displayCategories.value.forEach(cat => {
+        const catItems = allItems.filter(item => item.Category === cat);
+
+        // Apply search filter if active
+        if (searchQuery.value) {
+            const query = searchQuery.value.toLowerCase();
+            groups[cat] = catItems.filter(item =>
+                (item.Name && item.Name.toLowerCase().includes(query)) ||
+                (item.Description && item.Description.toLowerCase().includes(query))
+            );
+        } else {
+            groups[cat] = catItems;
+        }
+    });
+
+    return groups;
+});
+
+const totalVisibleItems = computed(() => {
+    return Object.values(groupedMenu.value).reduce((total, items) => total + items.length, 0);
+});
+
+const isManualScrolling = ref(false);
+let observer = null;
+
+const scrollToCategory = (categoryName) => {
+    isManualScrolling.value = true;
+    activeMenuTab.value = categoryName;
+    isCategoryModalOpen.value = false;
+
+    const element = document.getElementById(`category-${categoryName}`);
+    if (element) {
+        const headerOffset = 60; // Offset for sticky tab bar
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+        });
+    } else if (categoryName === 'เมนูทั้งหมด') {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+    // Allow observer to take back control after animation
+    setTimeout(() => {
+        isManualScrolling.value = false;
+    }, 1000);
+};
+
+onMounted(async () => {
+    const isValid = await qrStore.validateRoom(building, floor, room);
+    isValidLocation.value = isValid;
+    isLoading.value = false;
+
+    if (isValid) {
+        await menuStore.loadMenu();
+        cartStore.loadcart(building, floor, room);
+        posterStore.loadPosters(restaurantName);
+        categoryStore.loadCategories(restaurantName);
+        fetchRestaurantDetails();
+        startCarousel();
+
+        // Initialize Observer after DOM updates
+        nextTick(() => {
+            const options = {
+                root: null,
+                rootMargin: '-65px 0px -70% 0px', // Trigger near the sticky header
+                threshold: 0
+            };
+
+            observer = new IntersectionObserver((entries) => {
+                if (isManualScrolling.value) return;
+
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const catName = entry.target.id.replace('category-', '');
+                        activeMenuTab.value = catName;
+
+                        // Scroll the tab bar active category into view
+                        const tabElement = document.getElementById(`tab-${catName}`);
+                        if (tabElement) {
+                            tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        }
+                    }
+                });
+            }, options);
+
+            // Observe all category sections
+            document.querySelectorAll('[id^="category-"]').forEach((section) => {
+                observer.observe(section);
+            });
+        });
+    }
+});
+
+onUnmounted(() => {
+    stopCarousel();
+    if (observer) observer.disconnect();
 });
 
 </script>
@@ -248,63 +392,102 @@ const filteredMenu = computed(() => {
 
 
         <div class="sticky top-0 z-30 bg-white border-b border-gray-100 mt-2 shadow-sm">
-            <div class="flex items-center">
+            <div class="flex items-center min-h-[50px]">
 
-                <div class="px-3 py-3 border-r border-gray-100 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                        stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                    </svg>
-                </div>
-
-                <div class="px-3 py-3 border-r border-gray-100 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                        stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                    </svg>
-                </div>
-
-                <div class="flex-grow overflow-x-auto no-scrollbar flex text-[14px] font-medium whitespace-nowrap">
-
-                    <button @click="activeMenuTab = 'เมนูทั้งหมด'"
-                        class="px-4 py-3 relative text-gray-600 transition-colors"
-                        :class="{ 'text-blue-600 font-bold': activeMenuTab === 'เมนูทั้งหมด' }">
-                        เมนูทั้งหมด
-                        <div v-if="activeMenuTab === 'เมนูทั้งหมด'"
-                            class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
-                    </button>
-
-
-                    <button v-for="category in categoryStore.list" :key="category.id"
-                        @click="activeMenuTab = category.name"
-                        class="px-4 py-3 relative text-gray-600 transition-colors"
-                        :class="{ 'text-blue-600 font-bold': activeMenuTab === category.name }">
-                        {{ category.name }}
-
-                        <div v-if="activeMenuTab === category.name"
-                            class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
+                <!-- Search Mode Header -->
+                <div v-if="isSearchActive" class="flex-1 flex items-center px-3 gap-2 animate-fade-in">
+                    <div class="relative flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <input type="text" placeholder="ค้นหาเมนูในร้านนี้..." ref="searchInput"
+                            class="w-full bg-gray-100 rounded-xl py-2 pl-9 pr-9 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-gray-400"
+                            v-model="searchQuery" />
+                        <button v-if="searchQuery" @click="searchQuery = ''"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button @click="toggleSearch" class="text-xs font-bold text-gray-400 px-2 hover:text-red-500">
+                        ยกเลิก
                     </button>
                 </div>
+
+                <!-- Normal Mode Header -->
+                <template v-else>
+                    <button @click="toggleSearch" class="px-3 py-3 border-r border-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                    </button>
+
+                    <button @click="toggleCategoryModal" class="px-3 py-3 border-r border-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                    </button>
+
+                    <div class="flex-grow overflow-x-auto no-scrollbar flex text-[14px] font-medium whitespace-nowrap">
+                        <button v-for="categoryName in displayCategories" :key="categoryName"
+                            @click="scrollToCategory(categoryName)" class="px-4 py-3 relative text-gray-600 transition-colors"
+                            :id="`tab-${categoryName}`"
+                            :class="{ 'text-blue-600 font-bold': activeMenuTab === categoryName }">
+                            {{ categoryName }}
+
+                            <div v-if="activeMenuTab === categoryName"
+                                class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
+                        </button>
+                    </div>
+                </template>
             </div>
         </div>
 
 
-        <div id="menu-section" class="bg-white pt-5 pb-10 min-h-[500px]">
-            <div class="px-4 mb-4">
-                <h3 class="text-[18px] font-bold text-gray-800">{{ activeMenuTab }}</h3>
-            </div>
+        <div id="menu-section" class="bg-white pt-2 pb-10 min-h-screen">
+            <!-- Normal Grouped Menu (Hidden if no search results) -->
+            <template v-if="totalVisibleItems > 0">
+                <div v-for="categoryName in displayCategories" :key="categoryName" :id="`category-${categoryName}`"
+                    v-show="groupedMenu[categoryName]?.length > 0" class="scroll-mt-16">
+                    <!-- Category Heading -->
+                    <div
+                        class="px-4 py-4 bg-gray-50/50 flex items-center justify-between border-y border-gray-100/50 mb-4">
+                        <h3 class="text-[17px] font-black text-gray-800 tracking-tight">{{ categoryName }}</h3>
+                        
+                    </div>
 
-            <div class="px-4">
-                <div v-if="filteredMenu.length > 0" class="animate-fade-in">
-                    <ProductList :selectionRole="filteredMenu" />
+                    <div class="px-4">
+                        <div class="animate-fade-in mb-8">
+                            <ProductList :selectionRole="groupedMenu[categoryName]" />
+                        </div>
+                    </div>
                 </div>
+            </template>
 
-                <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
-                    <span class="text-4xl opacity-50 mb-2">🍽️</span>
-                    <p class="text-[13px] font-medium">ไม่พบเมนูอาหารในหมวดหมู่ {{ activeMenuTab }}</p>
+            <!-- No Results Found -->
+            <div v-else class="flex flex-col items-center justify-center pt-20 text-gray-400">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
                 </div>
+                <p class="text-[15px] font-bold text-gray-500">ไม่พบเมนูที่ตรงกับการค้นหา</p>
+                <p class="text-[13px]">ลองใช้คำค้นหาอื่น หรือตรวจดูตัวสะกดให้ถูกต้อง</p>
+                <button v-if="searchQuery" @click="searchQuery = ''" class="mt-4 text-blue-600 font-bold text-sm">
+                    แสดงเมนูทั้งหมด
+                </button>
             </div>
         </div>
 
@@ -325,6 +508,44 @@ const filteredMenu = computed(() => {
             </button>
         </div>
 
+
+        <!-- Category Selection Modal (Bottom Sheet) -->
+        <div v-if="isCategoryModalOpen" class="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:p-4">
+            <!-- Backdrop -->
+            <div @click="toggleCategoryModal" class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"></div>
+
+            <!-- Content Container -->
+            <div class="relative bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]">
+                <!-- Drag Handle -->
+                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-1"></div>
+
+                
+
+                <div class="overflow-y-auto custom-scrollbar">
+                    <div class="flex flex-col">
+                        <button v-for="(categoryName, index) in displayCategories" :key="'modal-' + categoryName"
+                            @click="scrollToCategory(categoryName)"
+                            class="flex items-center justify-between px-6 py-4 transition-all duration-200"
+                            :class="[
+                                index < displayCategories.length - 1 ? 'border-b border-gray-100' : '',
+                                activeMenuTab === categoryName ? 'bg-gray-50/50' : ''
+                            ]">
+                            <span class="text-[16px] font-medium transition-colors"
+                                :class="activeMenuTab === categoryName ? 'text-emerald-500 font-bold' : 'text-gray-600'">
+                                {{ categoryName }}
+                            </span>
+                            
+                            <svg v-if="activeMenuTab === categoryName" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5 text-emerald-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -335,9 +556,9 @@ const filteredMenu = computed(() => {
 
 .no-scrollbar {
     -ms-overflow-style: none;
-   
+
     scrollbar-width: none;
-    
+
 }
 
 .animate-fade-in {
@@ -352,5 +573,34 @@ const filteredMenu = computed(() => {
     100% {
         opacity: 1;
     }
+}
+
+@keyframes slideUp {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
 }
 </style>

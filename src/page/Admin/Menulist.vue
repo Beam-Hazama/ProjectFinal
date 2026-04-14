@@ -55,12 +55,12 @@ const deleteMenu = async (id, name) => {
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">MENU</th>
-                <th>RESTAURANT</th>
-                <th>PRICE</th>
-                <th>CATEGORY</th>
-                <th>STATUS</th>
-                <th>CREATED AT</th>
-                <th>UPDATED AT</th>
+                <th class="text-center">RESTAURANT</th>
+                <th class="text-center">PRICE</th>
+                <th class="text-center">CATEGORY</th>
+                <th class="text-center">STATUS</th>
+                <th class="text-center">CREATED AT</th>
+                <th class="text-center">UPDATED AT</th>
                 <th class="text-center">ACTION</th>
               </tr>
             </thead>
@@ -81,31 +81,31 @@ const deleteMenu = async (id, name) => {
                   </div>
                 </td>
 
-                <td>
+                <td class="text-center">
                   <div class="font-medium">{{ product.Restaurant }}</div>
                 </td>
-                <td class="font-medium">{{ product.Price }} ฿</td>
-                <td>
+                <td class="text-center font-medium">{{ product.Price }} ฿</td>
+                <td class="text-center">
                   <div class="font-medium">{{ product.Category }}</div>
                 </td>
 
-                <td>
+                <td class="text-center">
                   <div v-if="product.Status === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none">
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none">
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                     Closed
                   </div>
                 </td>
 
-                <td class="text-xs">
+                <td class="text-center text-xs">
                   {{ formatDate(product.CreatedAt || product.createdAt) }}
                 </td>
 
-                <td class="text-xs">
+                <td class="text-center text-xs">
                   {{ formatDate(product.UpdatedAt || product.updatedAt) }}
                 </td>
 

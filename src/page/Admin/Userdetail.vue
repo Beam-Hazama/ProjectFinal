@@ -12,7 +12,6 @@ const restaurants = ref([]);
 
 
 const userId = route.params.id;
-const mode = ref(userId ? 'edit' : 'add');
 
 
 const imageInputMethod = ref('file');
@@ -48,7 +47,7 @@ const fetchRestaurants = async () => {
 
 
 const fetchUserData = async () => {
-    if (mode.value === 'edit') {
+    if (userId) {
         try {
             const docRef = doc(db, 'User', userId);
             const docSnap = await getDoc(docRef);
@@ -93,11 +92,17 @@ const goBack = () => router.go(-1);
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
                         ข้อมูลรายละเอียดผู้ให้บริการร้านค้า
                     </h1>
-                    <p class="text-slate-500 mt-1">ดูรายละเอียดบัญชี ข้อมูลติดต่อ และร้านอาหารที่สังกัด</p>
+
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">กลับ</button>
+                    <button @click="goBack"
+                        class="btn btn-ghost text-slate-500 hover:bg-slate-200 w-28 rounded-xl font-bold">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        Back</button>
 
                 </div>
             </div>
@@ -163,7 +168,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
-                                            Password {{ mode === 'add' ? '*' : '(รหัสผ่านปัจจุบัน)' }}
+                                            Password
                                         </span>
                                     </label>
                                     <label type="password"
@@ -200,10 +205,9 @@ const goBack = () => router.go(-1);
                                         {{ userData.Phone }}
                                     </label>
                                 </div>
- 
+
                                 <div class="form-control">
-                                    <label class="label"><span
-                                            class="label-text font-medium text-slate-600">อายุ <span
+                                    <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
                                     <label type="text"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50">

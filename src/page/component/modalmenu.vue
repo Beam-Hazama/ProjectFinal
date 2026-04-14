@@ -203,8 +203,11 @@ const totalPrice = () => {
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ product.Name }}</h2>
               <div class="flex flex-col items-end">
-                <div v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="text-[18px] font-black text-red-500">฿{{ product.PromoPrice }}</div>
-                <div class="text-gray-900" :class="product.PromoPrice && Number(product.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">฿{{ product.Price }}</div>
+                <div v-if="product.PromoPrice && Number(product.PromoPrice) > 0"
+                  class="text-[18px] font-black text-red-500">฿{{ product.PromoPrice }}</div>
+                <div class="text-gray-900"
+                  :class="product.PromoPrice && Number(product.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">
+                  ฿{{ product.Price }}</div>
               </div>
             </div>
           </div>
@@ -253,8 +256,7 @@ const totalPrice = () => {
           <div class="bg-white px-5 py-4 mt-2 mb-8 border-b border-gray-100">
             <h3 class="font-bold text-gray-800 text-[15px] mb-3">รายละเอียดเพิ่มเติม</h3>
             <textarea v-model="note"
-              class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-gray-400 resize-none h-20 shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
-              placeholder="เช่น ไม่ใส่ผัก" />
+              class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-gray-400 resize-none h-20 shadow-[0_2px_10px_rgba(0,0,0,0.02)]" />
           </div>
 
         </div>

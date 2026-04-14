@@ -99,13 +99,7 @@ const onDragEnd = async () => {
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
                     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <h2 class="text-lg font-bold text-slate-800">Add New Category</h2>
-                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+
                     </div>
 
                     <div class="p-6">
@@ -114,15 +108,14 @@ const onDragEnd = async () => {
                                 <label class="label pt-0">
                                     <span class="label-text font-medium text-slate-600">Category Name</span>
                                 </label>
-                                <input type="text" placeholder="ของหวาน, เครื่องดื่ม" v-model="newCategoryName"
+                                <input type="text" v-model="newCategoryName"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
                             <div>
                                 <label class="label pt-0">
                                     <span class="label-text font-medium text-slate-600">Image URL</span>
                                 </label>
-                                <input type="text" placeholder="https://example.com/image.jpg"
-                                    v-model="newCategoryImageUrl"
+                                <input type="text" v-model="newCategoryImageUrl"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
                         </div>
@@ -131,7 +124,7 @@ const onDragEnd = async () => {
                         <div v-if="newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
                             <img :src="newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
-                                @error="() => newCategoryImageUrl = ''" alt="Preview Error" />
+                                alt="Preview" />
                             <div
                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                 <span class="text-white font-medium text-sm">Preview</span>
@@ -140,12 +133,12 @@ const onDragEnd = async () => {
 
                         <div class="flex justify-end gap-3 mt-4">
                             <button @click="closeModal"
-                                class="btn btn-ghost text-slate-500 hover:bg-slate-100">Cancel</button>
+                                class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
                             <button @click="handleAddCategory"
                                 :disabled="isSubmitting || !newCategoryName || !newCategoryImageUrl"
-                                class="btn bg-blue-600 hover:bg-blue-700 text-white border-none min-w-[120px]">
+                                class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
-                                <span v-else>Save Category</span>
+                                <span v-else>Save</span>
                             </button>
                         </div>
                     </div>
@@ -160,8 +153,8 @@ const onDragEnd = async () => {
                             <tr>
                                 <th class="w-12 text-center py-4 pl-6"></th>
                                 <th class="w-50">IMAGE</th>
-                                <th>CATEGORY NAME</th>
-                                <th>CREATED AT</th>
+                                <th class="text-center">CATEGORY NAME</th>
+                                <th class="text-center">CREATED AT</th>
                                 <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
@@ -199,11 +192,11 @@ const onDragEnd = async () => {
                                                 class="w-full h-full object-cover pointer-events-none" />
                                         </div>
                                     </td>
-                                    <td class="font-medium text-slate-800">
+                                    <td class="text-center font-medium text-slate-800">
                                         {{ category.name }}
                                     </td>
 
-                                    <td class="text-xs">
+                                    <td class="text-center text-xs">
                                         {{ formatDate(category.createdAt) }}
                                     </td>
 
