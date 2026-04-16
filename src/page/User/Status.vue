@@ -6,10 +6,11 @@ import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
 import { app, db, messaging as defaultMessaging } from '@/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { getMessaging, getToken } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { showBrowserNotification } from '@/utils/notification';
 
 // FEATURE FLAG: เปลี่ยนเป็น true หากต้องการเปิดระบบแจ้งเตือนอีกครั้ง
-const IS_NOTIFICATION_ENABLED = false;
+const IS_NOTIFICATION_ENABLED = true;
 
 // --- Initialization ---
 const route = useRoute();
@@ -56,6 +57,15 @@ onMounted(() => {
   setTimeout(() => {
     if (IS_NOTIFICATION_ENABLED && 'Notification' in window && Notification.permission === 'granted') {
       fetchFCMTokenAndSave();
+      
+      // Foreground Message Listener
+      const activeMessaging = defaultMessaging || getMessaging(app);
+      onMessage(activeMessaging, (payload) => {
+        console.log('Message received. ', payload);
+        if (payload.notification) {
+          showBrowserNotification(payload.notification.title, payload.notification.body);
+        }
+      });
     }
   }, 3000);
 });
@@ -164,17 +174,17 @@ const fetchFCMTokenAndSave = async () => {
   }
 
   try {
-    const currentToken = await getToken(activeMessaging, { 
-      vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU' 
+    const currentToken = await getToken(activeMessaging, {
+      vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU'
     });
 
     if (currentToken && roomOrders.value.length > 0) {
-       for (const order of roomOrders.value) {
-         const orderRef = doc(db, 'Order', order.id);
-         await updateDoc(orderRef, {
-           deviceTokens: arrayUnion(currentToken)
-         });
-       }
+      for (const order of roomOrders.value) {
+        const orderRef = doc(db, 'Order', order.id);
+        await updateDoc(orderRef, {
+          deviceTokens: arrayUnion(currentToken)
+        });
+      }
     }
   } catch (err) {
     console.error('Auto fetch token error:', err);
@@ -190,7 +200,7 @@ const requestNotificationPermission = async () => {
     alert('ระบบแจ้งเตือนไม่ทำงาน: เบราว์เซอร์ไม่มีฟังก์ชัน Notification (อาจจะไม่ได้เป็น https)');
     return;
   }
-  
+
   let activeMessaging = defaultMessaging;
   if (!activeMessaging) {
     try {
@@ -200,7 +210,7 @@ const requestNotificationPermission = async () => {
       return;
     }
   }
-  
+
   try {
     const permission = await Notification.requestPermission();
     notificationPermission.value = permission;
@@ -219,7 +229,7 @@ const requestNotificationPermission = async () => {
 
 <template>
   <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
-    
+
     <!-- Area 1: Order Status Header Section -->
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
@@ -255,7 +265,8 @@ const requestNotificationPermission = async () => {
     </div>
 
     <!-- Area 2: Notification Opt-in Alert Section -->
-    <div v-if="IS_NOTIFICATION_ENABLED && notificationPermission !== 'granted'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
+    <div v-if="IS_NOTIFICATION_ENABLED && notificationPermission !== 'granted'"
+      class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
       <div class="flex items-center gap-2">
         <span class="text-xl">🔔</span>
         <div class="flex flex-col">
@@ -263,7 +274,8 @@ const requestNotificationPermission = async () => {
           <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
         </div>
       </div>
-      <button @click="requestNotificationPermission" class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
+      <button @click="requestNotificationPermission"
+        class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
         เปิดเลย
       </button>
     </div>
@@ -478,14 +490,32 @@ const requestNotificationPermission = async () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-pulse {
