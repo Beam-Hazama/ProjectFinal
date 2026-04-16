@@ -1,59 +1,60 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
-import { useMenuStore } from '@/stores/menu';
+import { useRoute } from 'vue-router';
+import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
+import { useRestaurant } from '@/stores/Restaurant';
 
 import RestaurantList from '@/page/component/RestaurantList.vue';
-import ProductList from '@/page/component/blockmenu.vue';
-import BottomNavigation from '@/page/component/BottomNavigation.vue';
+import MenuList from '@/page/component/blockmenu.vue';
+import BottomNavigation from '@/page/User/BottomNavigation.vue';
 import MenuOrderModal from '@/page/component/modalmenu.vue';
-import { useRoute } from 'vue-router';
 
+// --- Initialization ---
 const route = useRoute();
-const cartStore = useCartStore();
-import { useRestaurant } from '@/stores/Restaurant';
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
+const cartStore = useCartStore();
 const qrStore = useQRCodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
-
-const localCategories = ref([]);
-
-watch(() => categoryStore.list, (newList) => {
-  localCategories.value = [...(newList || [])];
-}, { deep: true, immediate: true });
-
-const isValidLocation = ref(false);
-const isLoading = ref(true);
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+// --- State ---
+const isValidLocation = ref(false);
+const isLoading = ref(true);
+const localCategories = ref([]);
+const selectedMenu = ref(null);
+const showModal = ref(false);
+
+// Carousel State
 const currentSlide = ref(0);
 let carouselTimeout = null;
 
-const selectedProduct = ref(null);
-const showModal = ref(false);
+// --- Computed ---
+const displayLocation = computed(() => {
+  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
+});
 
-const isShopClosed = (restaurantName) => {
-  const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-  return shop?.Status === 'close';
-};
+const filteredRestaurants = computed(() => {
+  return restaurantStore.list || [];
+});
 
-const openProductModal = (product) => {
-  // Always set the product and show the modal to ensure it opens
-  // Availability checks can be handled inside the modal if needed
-  selectedProduct.value = product;
-  showModal.value = true;
-};
+const filteredMenus = computed(() => {
+  return menuStore.list || [];
+});
 
+const promotionMenus = computed(() => {
+  return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+});
 
-
+// --- Lifecycle ---
 onMounted(async () => {
   const isValid = await qrStore.validateRoom(building, floor, room);
   isValidLocation.value = isValid;
@@ -74,6 +75,33 @@ onUnmounted(() => {
   stopCarousel();
 });
 
+// --- Watchers ---
+watch(() => categoryStore.list, (newList) => {
+  localCategories.value = [...(newList || [])];
+}, { deep: true, immediate: true });
+
+watch(() => posterStore.activePosters, (newVal) => {
+  if (newVal && newVal.length > 0 && !carouselTimeout) {
+    startCarousel();
+  }
+}, { deep: true });
+
+watch(() => [route.params.building, route.params.floor, route.params.room], async ([newB, newF, newR]) => {
+  if (newB && newF && newR) {
+    isLoading.value = true;
+    const isValid = await qrStore.validateRoom(newB, newF, newR);
+    isValidLocation.value = isValid;
+    isLoading.value = false;
+
+    if (isValid) {
+      cartStore.loadcart(newB, newF, newR);
+    }
+  }
+});
+
+// --- Methods ---
+
+// Carousel Management
 const startCarousel = () => {
   stopCarousel();
   if (posterStore.activePosters?.length > 1) {
@@ -110,49 +138,27 @@ const goToSlide = (index) => {
   startCarousel();
 };
 
-watch(() => posterStore.activePosters, (newVal) => {
-  if (newVal && newVal.length > 0 && !carouselTimeout) {
-    startCarousel();
-  }
-}, { deep: true });
+// Modal Logic
+const openMenuModal = (menu) => {
+  selectedMenu.value = menu;
+  showModal.value = true;
+};
 
-watch(() => [route.params.building, route.params.floor, route.params.room], async ([newB, newF, newR]) => {
-  if (newB && newF && newR) {
-    isLoading.value = true;
-    const isValid = await qrStore.validateRoom(newB, newF, newR);
-    isValidLocation.value = isValid;
-    isLoading.value = false;
-
-    if (isValid) {
-      cartStore.loadcart(newB, newF, newR);
-    }
-  }
-});
-
-
-const filteredRestaurants = computed(() => {
-  return restaurantStore.list || [];
-});
-
-const filteredProducts = computed(() => {
-  return menuStore.list || [];
-});
-
-const promotionProducts = computed(() => {
-  return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
-});
-const displayLocation = computed(() => {
-  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
-});
-
+// Shop Logic
+const isShopClosed = (restaurantName) => {
+  const shop = restaurantStore.list.find(r => r.Name === restaurantName);
+  return shop?.Status === 'close';
+};
 </script>
 
 <template>
+  <!-- Global Loading State -->
   <div v-if="isLoading"
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <div class="loading loading-spinner loading-lg text-blue-600"></div>
   </div>
 
+  <!-- Invalid Location Error State -->
   <div v-else-if="!isValidLocation"
     class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
@@ -168,7 +174,7 @@ const displayLocation = computed(() => {
 
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
 
-    <!-- Location Header -->
+    <!-- Area 1: Location Header Section -->
     <div class="px-5 pt-6 pb-2">
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
@@ -188,11 +194,8 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-
+    <!-- Area 2: Search Input Trigger Section -->
     <div class="px-4 py-3">
-
-
-
       <div class="relative">
         <svg xmlns="http://www.w3.org/2000/svg"
           class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-600" fill="none"
@@ -207,12 +210,12 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-
+    <!-- Area 3: Marketing Poster Carousel Section -->
     <div class="px-4 mt-4">
       <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
         @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-
+        <!-- Slides Wrapper -->
         <div class="flex transition-transform duration-500 ease-out h-36"
           :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -221,7 +224,7 @@ const displayLocation = computed(() => {
           </div>
         </div>
 
-
+        <!-- Navigation Arrows -->
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity">
           <button @click="prevSlide"
@@ -230,7 +233,7 @@ const displayLocation = computed(() => {
             class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
         </div>
 
-
+        <!-- Dot Indicators -->
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
           <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index" @click="goToSlide(index)"
@@ -240,8 +243,7 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-
-    <!-- Popular Categories Section -->
+    <!-- Area 4: Popular Categories Slider Section -->
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
@@ -265,31 +267,30 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-    <!-- Promotion Section -->
-    <div v-if="promotionProducts.length > 0">
+    <!-- Area 5: Promotion Scroll View Section -->
+    <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
         <button @click="$router.push(`/user/all-promotions/${building}/${floor}/${room}`)" 
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
-        <div v-for="product in promotionProducts" :key="product.id"
-          @click="openProductModal(product)"
+        <div v-for="menu in promotionMenus" :key="menu.id"
+          @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
-            <img :src="product.ImageUrl || 'https://via.placeholder.com/150'" class="w-full h-full object-cover" />
-
+            <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover w-full h-full" alt="Menu Image" />
           </div>
           <div class="p-2.5">
             <div class="flex justify-between items-start">
               <div class="flex flex-col min-w-0 pr-2">
-                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ product.Name }}</h4>
-                <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ product.Restaurant }}</p>
+                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.Name }}</h4>
+                <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">
-                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ product.PromoPrice.toLocaleString()
+                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ menu.PromoPrice.toLocaleString()
                 }}</span>
-                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ product.Price.toLocaleString()
+                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ menu.Price.toLocaleString()
                 }}</span>
               </div>
             </div>
@@ -298,7 +299,7 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-
+    <!-- Area 6: Restaurant Discovery Section -->
     <div id="restaurant-section">
       <div class="px-5 mb-3">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
@@ -316,30 +317,9 @@ const displayLocation = computed(() => {
       </div>
     </div>
 
-
-    <div id="product-section">
-      <div class="px-5 mb-3 flex items-center justify-between">
-        <h3 class="text-[14px] font-bold text-gray-800">เมนูอาหาร</h3>
-      </div>
-
-      <div class="px-4">
-        <div v-if="filteredProducts.length > 0" class="animate-fade-in">
-          <ProductList :selectionRole="filteredProducts" layout="horizontal" />
-        </div>
-
-        <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
-          <span class="text-4xl opacity-50 mb-2">🍽️</span>
-          <p class="text-[13px] font-medium">ไม่พบเมนูอาหาร</p>
-        </div>
-      </div>
-    </div>
-
-
-
-
+    <!-- Background & Utility Layers -->
     <BottomNavigation :building="building" :floor="floor" :room="room" />
-
-    <MenuOrderModal v-if="selectedProduct" :show="showModal" :product="selectedProduct" @close="showModal = false" />
+    <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>
 </template>
 

@@ -1,8 +1,9 @@
 <script setup>
-import { useRestaurant } from '@/stores/Restaurant'
-import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useRestaurant } from '@/stores/Restaurant';
 
+// --- Initialization ---
 const props = defineProps({
     building: String,
     floor: String,
@@ -11,26 +12,51 @@ const props = defineProps({
         type: String,
         default: ''
     }
-})
+});
 
-const restaurantStore = useRestaurant()
-const router = useRouter()
+const restaurantStore = useRestaurant();
+const router = useRouter();
 
-const now = ref(new Date())
-let timer
+// --- State ---
+const now = ref(new Date());
+let timer = null;
 
+// --- Lifecycle ---
 onMounted(() => {
+    // Update current time every second for shop status calculation
     timer = setInterval(() => {
-        now.value = new Date()
-    }, 1000)
-})
+        now.value = new Date();
+    }, 1000);
+});
 
 onUnmounted(() => {
-    if (timer) clearInterval(timer)
-})
+    if (timer) clearInterval(timer);
+});
 
+// --- Computed ---
+const sortedRestaurants = computed(() => {
+    if (!restaurantStore.list) return [];
+
+    // Sort restaurants: open ones first, closed ones last
+    return [...restaurantStore.list].sort((a, b) => {
+        const aClosed = isShopClosed(a);
+        const bClosed = isShopClosed(b);
+
+        if (aClosed && !bClosed) return 1;
+        if (!aClosed && bClosed) return -1;
+        return 0; 
+    });
+});
+
+// --- Methods ---
+/**
+ * Checks if a shop is currently closed based on its status or opening hours.
+ */
 const isShopClosed = (shop) => {
+    // If status is set manually to close
     if (shop.ManualStatus === 'manual') return shop.Status === 'close';
+    
+    // Check if time information is missing
     if (!shop.OpenTime || !shop.CloseTime) return true;
 
     try {
@@ -40,6 +66,7 @@ const isShopClosed = (shop) => {
         const openMin = openH * 60 + openM;
         const closeMin = closeH * 60 + closeM;
 
+        // Handle case where closing time is on the next day (e.g., 10:00 - 02:00)
         if (closeMin > openMin) {
             return !(currentTime >= openMin && currentTime < closeMin);
         } else {
@@ -48,24 +75,11 @@ const isShopClosed = (shop) => {
     } catch (e) {
         return true;
     }
-}
-
-const sortedRestaurants = computed(() => {
-    if (!restaurantStore.list) return [];
-
-    return [...restaurantStore.list].sort((a, b) => {
-        const aClosed = isShopClosed(a);
-        const bClosed = isShopClosed(b);
-
-        if (aClosed && !bClosed) return 1;
-        if (!aClosed && bClosed) return -1;
-        return 0; 
-    });
-})
+};
 
 const goToRestaurantMenu = (restaurantName) => {
-    router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.building}/${props.floor}/${props.room}`)
-}
+    router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.building}/${props.floor}/${props.room}`);
+};
 </script>
 
 <template>
@@ -76,6 +90,7 @@ const goToRestaurantMenu = (restaurantName) => {
             :disabled="isShopClosed(shop)" @click="!isShopClosed(shop) && goToRestaurantMenu(shop.Name)">
 
           
+            <!-- Shop Image and Status Overlay -->
             <figure
                 class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
                 
@@ -96,6 +111,7 @@ const goToRestaurantMenu = (restaurantName) => {
             </figure>
 
           
+            <!-- Restaurant Information Section -->
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
                 <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ shop.Name }}</h3>
                 

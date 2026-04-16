@@ -1,9 +1,9 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
-import { useRouter, useRoute } from 'vue-router';
-import { useMenuStore } from '@/stores/menu';
+import { useMenuStore } from '@/stores/menuStore';
 import { app, db, messaging as defaultMessaging } from '@/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { getMessaging, getToken } from 'firebase/messaging';
@@ -11,6 +11,7 @@ import { getMessaging, getToken } from 'firebase/messaging';
 // FEATURE FLAG: เปลี่ยนเป็น true หากต้องการเปิดระบบแจ้งเตือนอีกครั้ง
 const IS_NOTIFICATION_ENABLED = false;
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const orderListStore = useOderlistStore();
@@ -22,6 +23,12 @@ const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 const tableId = `${building}-${floor}-${room}`;
 
+// --- State ---
+const notificationPermission = ref(
+  ('Notification' in window) ? Notification.permission : 'unsupported'
+);
+
+// --- Computed ---
 const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
@@ -31,7 +38,6 @@ const roomOrders = computed(() => {
     const isOwner = String(order.tableId).trim() === String(tableId).trim();
     if (!isOwner) return false;
 
-
     const hasActiveItems = (order.Menu || []).some(item =>
       !['received', 'cancelled'].includes(item.itemStatus)
     );
@@ -40,18 +46,83 @@ const roomOrders = computed(() => {
   });
 });
 
+// --- Lifecycle ---
+onMounted(() => {
+  if (tableId) {
+    orderListStore.loadOrderUser(tableId);
+  }
+  menuStore.loadMenu();
+
+  setTimeout(() => {
+    if (IS_NOTIFICATION_ENABLED && 'Notification' in window && Notification.permission === 'granted') {
+      fetchFCMTokenAndSave();
+    }
+  }, 3000);
+});
+
+// --- Methods ---
+
+// Formatting
 const formatPrice = (value) => {
   return new Intl.NumberFormat('th-TH').format(value);
 };
 
+const getMenuName = (id) => {
+  const menu = menuStore.list.find(m => m.id === id);
+  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+};
+
+// Order Actions
 const confirmReceived = async (orderId, itemId) => {
   if (confirm('ยืนยันว่าได้รับรายการนี้แล้ว?')) {
     await orderListStore.updateSingleItemStatus(orderId, itemId, 'received');
-
     orderListStore.loadOrderUser(tableId);
   }
 };
 
+const reorder = async (order) => {
+  const validItems = (order.Menu || []).filter(item =>
+    item.itemStatus !== 'cancelled'
+  );
+
+  cartStore.loadcart(building, floor, room);
+
+  let addedCount = 0;
+  let unavailableNames = [];
+
+  for (const item of validItems) {
+    const menuId = item.menuId || item.id;
+    try {
+      const menuRef = doc(db, 'Menu', menuId);
+      const menuSnap = await getDoc(menuRef);
+
+      if (menuSnap.exists()) {
+        const menuData = menuSnap.data();
+        if (menuData.Status === 'open') {
+          cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
+          addedCount++;
+        } else {
+          unavailableNames.push(item.Name);
+        }
+      } else {
+        unavailableNames.push(item.Name);
+      }
+    } catch (err) {
+      console.error("Error checking menu availability:", err);
+      unavailableNames.push(item.Name);
+    }
+  }
+
+  if (unavailableNames.length > 0) {
+    alert(`เมนูต่อไปนี้หมดหรือถูกปิดการขายชั่วคราว ไม่สามารถสั่งได้ในขณะนี้`);
+  }
+
+  if (addedCount > 0) {
+    router.push(`/user/cart/${building}/${floor}/${room}`);
+  }
+};
+
+// Order Progress Calculations
 const getOrderProgress = (order) => {
   const items = order.Menu || [];
   if (items.length === 0) return 0;
@@ -79,55 +150,7 @@ const getItemCountByStage = (order, stage) => {
   }
 };
 
-const reorder = async (order) => {
-  const validItems = (order.Menu || []).filter(item =>
-    item.itemStatus !== 'cancelled'
-  );
-
-
-
-  cartStore.loadcart(building, floor, room);
-
-  let addedCount = 0;
-  let unavailableNames = [];
-
-  for (const item of validItems) {
-
-    const productId = item.menuId || item.id;
-    try {
-      const productRef = doc(db, 'Menu', productId);
-      const productSnap = await getDoc(productRef);
-
-      if (productSnap.exists()) {
-        const productData = productSnap.data();
-        if (productData.Status === 'open') {
-          cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
-          addedCount++;
-        } else {
-          unavailableNames.push(item.Name);
-        }
-      } else {
-        unavailableNames.push(item.Name);
-      }
-    } catch (err) {
-      console.error("Error checking product availability:", err);
-      unavailableNames.push(item.Name);
-    }
-  }
-
-  if (unavailableNames.length > 0) {
-    alert(`เมนูต่อไปนี้หมดหรือถูกปิดการขายชั่วคราว ไม่สามารถสั่งได้ในขณะนี้`);
-  }
-
-  if (addedCount > 0) {
-    router.push(`/user/cart/${building}/${floor}/${room}`);
-  }
-};
-
-const notificationPermission = ref(
-  ('Notification' in window) ? Notification.permission : 'unsupported'
-);
-
+// Notification Logic
 const fetchFCMTokenAndSave = async () => {
   if (!IS_NOTIFICATION_ENABLED) return;
   let activeMessaging = defaultMessaging;
@@ -145,7 +168,6 @@ const fetchFCMTokenAndSave = async () => {
       vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU' 
     });
 
-    
     if (currentToken && roomOrders.value.length > 0) {
        for (const order of roomOrders.value) {
          const orderRef = doc(db, 'Order', order.id);
@@ -193,28 +215,12 @@ const requestNotificationPermission = async () => {
     console.error('Permission request error:', err);
   }
 };
-
-onMounted(() => {
-  if (tableId) {
-    orderListStore.loadOrderUser(tableId);
-  }
-  menuStore.loadMenu();
-
-  setTimeout(() => {
-    if (IS_NOTIFICATION_ENABLED && 'Notification' in window && Notification.permission === 'granted') {
-      fetchFCMTokenAndSave();
-    }
-  }, 3000);
-});
-
-const getMenuName = (id) => {
-  const menu = menuStore.list.find(m => m.id === id);
-  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
-};
 </script>
 
 <template>
   <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
+    
+    <!-- Area 1: Order Status Header Section -->
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -248,7 +254,7 @@ const getMenuName = (id) => {
       </router-link>
     </div>
 
-    <!-- Notification Button -->
+    <!-- Area 2: Notification Opt-in Alert Section -->
     <div v-if="IS_NOTIFICATION_ENABLED && notificationPermission !== 'granted'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
       <div class="flex items-center gap-2">
         <span class="text-xl">🔔</span>
@@ -262,6 +268,7 @@ const getMenuName = (id) => {
       </button>
     </div>
 
+    <!-- Area 3: Active Orders List Section -->
     <div class="space-y-6">
       <div v-if="roomOrders.length === 0"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-10 flex flex-col items-center justify-center text-gray-400">
@@ -277,6 +284,7 @@ const getMenuName = (id) => {
 
       <div v-for="(order, index) in roomOrders" :key="index"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl overflow-hidden">
+        <!-- Order Header & Reorder Button -->
         <div class="p-4 border-b border-blue-100 flex justify-between items-center bg-blue-50/50">
           <div class="flex flex-col">
             <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Order Number</span>
@@ -299,17 +307,18 @@ const getMenuName = (id) => {
           </button>
         </div>
 
-
+        <!-- Area 4: Order Progress Stepper Section -->
         <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
-
+            <!-- Progress Bar Background -->
             <div class="absolute left-4 right-4 top-4 h-[2px]">
               <div class="w-full h-full bg-gray-100"></div>
               <div class="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-700 ease-out"
                 :style="{ width: `${(getOrderProgress(order) / 3) * 100}%` }"></div>
             </div>
 
+            <!-- Step 1: Waiting -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -332,7 +341,7 @@ const getMenuName = (id) => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
             </div>
 
-
+            <!-- Step 2: Cooking -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -356,7 +365,7 @@ const getMenuName = (id) => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
             </div>
 
-
+            <!-- Step 3: Dispatched -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -379,7 +388,7 @@ const getMenuName = (id) => {
                 :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
             </div>
 
-
+            <!-- Step 4: Finished -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -403,6 +412,7 @@ const getMenuName = (id) => {
           </div>
         </div>
 
+        <!-- Area 5: Order Items Detail List Section -->
         <div class="p-4 space-y-4">
           <div v-for="(item, i) in order.Menu" :key="i"
             class="group flex justify-between items-center p-2 rounded-xl hover:bg-white/50 transition-colors">
@@ -416,6 +426,7 @@ const getMenuName = (id) => {
                   <span v-if="item.note" class="text-xs text-gray-500 mt-0.5">{{ item.note }}</span>
                 </div>
               </div>
+              <!-- Item Status Badge -->
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
@@ -450,6 +461,7 @@ const getMenuName = (id) => {
           </div>
         </div>
 
+        <!-- Order Total Section -->
         <div class="p-4 bg-white/60 border-t border-white flex justify-between items-center">
           <span class="text-xs font-bold text-gray-400 uppercase">ยอดรวมรายการนี้</span>
           <span class="text-lg font-black text-blue-600">฿{{ formatPrice(order.TotalPrice) }}</span>
@@ -459,3 +471,24 @@ const getMenuName = (id) => {
 
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+</style>

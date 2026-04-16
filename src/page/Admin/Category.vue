@@ -4,17 +4,34 @@ import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
 
+// --- Initialization ---
 const categoryStore = useCategoryStore();
 
-
+// --- State ---
+const localCategories = ref([]);
 const newCategoryName = ref('');
 const newCategoryImageUrl = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
 
+// --- Lifecycle ---
 onMounted(() => {
     categoryStore.loadCategories();
 });
+
+// --- Watchers ---
+watch(() => categoryStore.list, (newList) => {
+    localCategories.value = [...newList];
+}, { deep: true, immediate: true });
+
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    if (typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toLocaleString('th-TH');
+    }
+    return new Date(timestamp).toLocaleString('th-TH');
+};
 
 const handleAddCategory = async () => {
     if (!newCategoryName.value.trim()) {
@@ -32,9 +49,7 @@ const handleAddCategory = async () => {
             name: newCategoryName.value.trim(),
             ImageUrl: newCategoryImageUrl.value.trim()
         });
-        newCategoryName.value = '';
-        newCategoryImageUrl.value = '';
-        showModal.value = false;
+        closeModal();
     } catch (error) {
         alert('Error adding category: ' + error.message);
     } finally {
@@ -57,20 +72,6 @@ const deleteCategory = async (categoryId, categoryName) => {
         }
     }
 };
-
-const formatDate = (timestamp) => {
-    if (!timestamp) return '-';
-    if (typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toLocaleString('th-TH');
-    }
-    return new Date(timestamp).toLocaleString('th-TH');
-};
-
-const localCategories = ref([]);
-
-watch(() => categoryStore.list, (newList) => {
-    localCategories.value = [...newList];
-}, { deep: true, immediate: true });
 
 const onDragEnd = async () => {
     const orderedIds = localCategories.value.map(c => c.id);
@@ -197,7 +198,7 @@ const onDragEnd = async () => {
                                     </td>
 
                                     <td class="text-center text-xs">
-                                        {{ formatDate(category.createdAt) }}
+                                        {{ formatTimestamp(category.createdAt) }}
                                     </td>
 
                                     <td class="text-center">

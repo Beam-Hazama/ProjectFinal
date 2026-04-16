@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, } from "vue-router";
-import { useAccountStore } from '@/stores/account';
+import { useAccountStore } from '@/stores/accountStore';
 
 
 
@@ -95,84 +95,100 @@ const router = createRouter({
       path: '/Admin',
       name: 'Admin',
       component: Admin,
+      meta: { requiresAuth: true, role: 'admin' },
     },
 
     {
       path: '/Admin/Dashboard',
       name: 'Dashboard',
       component: Admindashboard,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Menulist',
       name: 'Menu List',
       component: Adminmenulist,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Orderlist',
       name: 'Order List',
       component: Adminorderlist,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Orderhistory',
       name: 'Order History',
       component: Adminorderhistory,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/QRCode',
       name: 'QR Code',
       component: AdminQRCode,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Restaurantlist',
       name: 'Restaurant List',
       component: Adminrestaurantlist,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Restaurantuser',
       name: 'Restaurant User',
       component: Adminrestaurantuser,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Poster',
       name: 'Admin Poster',
       component: Adminpostermanage,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Category',
       name: 'Admin Category',
       component: AdminCategory,
+      meta: { requiresAuth: true, role: 'admin' },
     },
 
     {
       path: '/Admin/Menulist/Menudatail:id',
       name: 'Admin menu detail',
       component: Menudetail,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Restaurant/Adduser',
       name: 'Admin Add User',
       component: Manageuser,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Admin/Restaurant/Userdetail/:id',
       name: 'Admin User Detail',
       component: Userdetail,
+      meta: { requiresAuth: true, role: 'admin' },
     },
 
     {
       path: '/Admin/Restaurant/Addrestaurant',
       name: 'Admin Add restaurant',
       component: Managerestaurant,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/Restaurant/Edit/:id',
       name: 'Restaurant update ',
       component: Managerestaurant,
+      meta: { requiresAuth: true, role: 'admin' },
     },
     {
       path: '/admin/restaurentdetail/:id',
       name: 'Admin Restaurant Detail',
       component: Managerestaurant,
+      meta: { requiresAuth: true, role: 'admin' },
     },
 
     {
@@ -251,12 +267,12 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
 
 
   if (!accountStore.isLoggedIn) {
-    accountStore.checkAuthState();
+    await accountStore.checkAuthState();
   }
 
   if (to.meta.requiresAuth) {

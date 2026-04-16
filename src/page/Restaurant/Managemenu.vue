@@ -1,34 +1,28 @@
 <script setup>
-import { useRoute, useRouter } from 'vue-router';
 import { onMounted, reactive, ref, watch } from 'vue';
-
-import { useMenuStore } from '@/stores/menu';
+import { useRoute, useRouter } from 'vue-router';
+import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { useMenuStore } from '@/stores/menuStore';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { useAccountStore } from '@/stores/account'
-
-import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, } from '@/firebase';
-
+import { useAccountStore } from '@/stores/accountStore';
 import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
+const MenuStore = useMenuStore();
+const Restaurant = useRestaurant();
+const categoryStore = useCategoryStore();
+const accountStore = useAccountStore();
+const menuId = route.params.id;
 
+// --- State ---
 const mode = ref('');
-
-const MenuStore = useMenuStore()
-const Restaurant = useRestaurant()
-const categoryStore = useCategoryStore()
-
-const productId = route.params.id
 const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
-
-const accountStore = useAccountStore()
-
-// categories have been removed, we now use categoryStore.list
 
 const MenuData = reactive({
     Name: '',
@@ -42,18 +36,46 @@ const MenuData = reactive({
     OptionGroups: [],
 });
 
+// --- Lifecycle ---
+onMounted(async () => {
+    await accountStore.checkAuthState();
+    if (route.params.id) {
+        mode.value = 'Update Menu';
+        const menuSnap = await getDoc(doc(db, 'Menu', route.params.id));
 
+        if (menuSnap.exists()) {
+            const res = menuSnap.data();
+            Object.assign(MenuData, {
+                ...res,
+                OptionGroups: res.OptionGroups || []
+            });
+
+            imagePreview.value = res.ImageUrl || '';
+            if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
+                imageInputMethod.value = 'url';
+            }
+        }
+    } else {
+        mode.value = 'Add Menu';
+        MenuData.Restaurant = accountStore.user?.Restaurant;
+    }
+
+    Restaurant.loadListRestaurant();
+    categoryStore.loadCategories();
+});
+
+// --- Watchers ---
 watch(() => MenuData.ImageUrl, (newVal) => {
     if (imageInputMethod.value === 'url') {
         imagePreview.value = newVal;
     }
 });
 
-const checkAddProduct = async (data) => {
+// --- Methods ---
+const checkAddMenu = async (data) => {
     try {
-        let MenuId
-        let ImageUrl = data.ImageUrl || ''
-
+        let MenuId;
+        const ImageUrl = data.ImageUrl || '';
 
         // Clean up empty option groups and choices
         const cleanOptionGroups = (data.OptionGroups || []).map(group => {
@@ -78,42 +100,38 @@ const checkAddProduct = async (data) => {
             PromoPrice: data.PromoPrice ? Number(data.PromoPrice) : null,
             OptionGroups: cleanOptionGroups,
             UpdatedAt: serverTimestamp()
-        }
+        };
 
-        if (mode.value === 'Add Product') {
+        if (mode.value === 'Add Menu') {
             const docRef = await addDoc(collection(db, 'Menu'), {
                 ...saveData,
                 CreatedAt: serverTimestamp()
-            })
-            MenuId = docRef.id
-        } else if (mode.value === 'Update Product') {
-            MenuId = route.params.id
-            await updateDoc(doc(db, 'Menu', MenuId), saveData)
+            });
+            MenuId = docRef.id;
+        } else if (mode.value === 'Update Menu') {
+            MenuId = route.params.id;
+            await updateDoc(doc(db, 'Menu', MenuId), saveData);
         }
 
         if (['Restaurant Add Menu', 'Restaurant Edit Menu'].includes(route.name)) {
-            router.push({ name: 'Restaurants Menulist', })
+            router.push({ name: 'Restaurants Menulist' });
         } else {
-            router.push({ name: 'Admin Menu List' })
+            router.push({ name: 'Admin Menu List' });
         }
     } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error)
+        console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
     }
-}
+};
 
 const handleFileUpload = (event) => {
     selectedFile.value = event.target.files[0];
     if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value)
-        imagePreview.value = previewUrl
-        MenuData.ImageUrl = previewUrl
-        MenuStore.imageList[productId] = previewUrl
+        const previewUrl = URL.createObjectURL(selectedFile.value);
+        imagePreview.value = previewUrl;
+        MenuData.ImageUrl = previewUrl;
+        MenuStore.imageList[menuId] = previewUrl;
     }
 };
-
-const goBack = () => {
-    router.go(-1);
-}
 
 const addOptionGroup = () => {
     if (!MenuData.OptionGroups) MenuData.OptionGroups = [];
@@ -137,62 +155,36 @@ const removeChoice = (groupIndex, choiceIndex) => {
     MenuData.OptionGroups[groupIndex].choices.splice(choiceIndex, 1);
 };
 
-const formatDate = (timestamp) => {
+const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
-
     if (timestamp && typeof timestamp.toDate === 'function') {
         return timestamp.toDate().toLocaleString('th-TH');
     }
-
     if (timestamp && timestamp.seconds) {
         return new Date(timestamp.seconds * 1000).toLocaleString('th-TH');
     }
-
     return new Date(timestamp).toLocaleString('th-TH');
 };
 
-onMounted(async () => {
-    await accountStore.checkAuthState()
-    if (route.params.id) {
-        mode.value = 'Update Product';
-        const productSnap = await getDoc(doc(db, 'Menu', route.params.id));
-
-        if (productSnap.exists()) {
-            const res = productSnap.data();
-            Object.assign(MenuData, {
-                ...res,
-                OptionGroups: res.OptionGroups || []
-            });
-
-            imagePreview.value = res.ImageUrl || '';
-            if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
-                imageInputMethod.value = 'url';
-            }
-        }
-    } else {
-        mode.value = 'Add Product';
-        MenuData.Restaurant = accountStore.user?.Restaurant
-    }
-
-    Restaurant.loadListRestaurant()
-    categoryStore.loadCategories()
-});
+const goBack = () => {
+    router.go(-1);
+};
 </script>
 
 <template>
     <LayoutAdmin>
         <div class="p-6 font-sans">
-
+            <!-- Header Section -->
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">
-                        {{ mode === 'Add Product' ? 'Add New Menu' : 'Edit Menu' }}
+                        {{ mode === 'Add Menu' ? 'Add New Menu' : 'Edit Menu' }}
                     </h1>
                 </div>
 
                 <div class="flex gap-3">
                     <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
-                    <button @click="checkAddProduct(MenuData)"
+                    <button @click="checkAddMenu(MenuData)"
                         class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300 px-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                             stroke="currentColor" class="w-5 h-5 mr-1">
@@ -206,6 +198,7 @@ onMounted(async () => {
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
+                    <!-- Image Preview & Management -->
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none"
@@ -276,21 +269,22 @@ onMounted(async () => {
                         </div>
                     </div>
 
+                    <!-- Core Menu Details Form -->
                     <div class="p-8 lg:col-span-2 space-y-8">
 
                         <div>
-                            <div v-if="mode === 'Update Product'"
+                            <div v-if="mode === 'Update Menu'"
                                 class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
-                                    <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.CreatedAt)
+                                    <span class="text-sm font-semibold text-slate-700">{{ formatTimestamp(MenuData.CreatedAt)
                                     }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span
                                         class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">แก้ไขล่าสุด</span>
-                                    <span class="text-sm font-semibold text-slate-700">{{ formatDate(MenuData.UpdatedAt)
+                                    <span class="text-sm font-semibold text-slate-700">{{ formatTimestamp(MenuData.UpdatedAt)
                                     }}</span>
                                 </div>
                             </div>
@@ -352,7 +346,7 @@ onMounted(async () => {
                                             {{ RestaurantName.Name }}
                                         </option>
                                     </select>
-                                    <p v-if="mode === 'Update Product' || route.params.restaurantName"
+                                    <p v-if="mode === 'Update Menu' || route.params.restaurantName"
                                         class="text-[10px] text-slate-400 mt-1 italic">
                                         * ไม่สามารถเปลี่ยนร้านค้าได้
                                     </p>
@@ -388,6 +382,7 @@ onMounted(async () => {
 
                             </div>
 
+                            <!-- Advanced Options: Sub-menus & Choices -->
                             <div class="mt-12">
                                 <h3
                                     class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">

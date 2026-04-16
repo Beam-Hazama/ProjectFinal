@@ -1,20 +1,19 @@
 <script setup>
-import { useRoute, useRouter } from 'vue-router';
 import { onMounted, reactive, ref, watch } from 'vue';
-
+import { useRoute, useRouter } from 'vue-router';
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
-
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 
+// --- State ---
 const mode = ref('');
 const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
-
 
 const RestaurantData = reactive({
   Name: '',
@@ -30,23 +29,48 @@ const RestaurantData = reactive({
   UpdatedAt: null
 });
 
+// --- Lifecycle ---
+onMounted(async () => {
+  if (route.params.id) {
+    if (route.path.toLowerCase().includes('/admin/restaurentdetail')) {
+      mode.value = 'View Restaurant';
+    } else {
+      mode.value = 'Update Restaurant';
+    }
+
+    const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
+
+    if (resSnap.exists()) {
+      const res = resSnap.data();
+      Object.assign(RestaurantData, res);
+      imagePreview.value = res.ImageUrl;
+      if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
+        imageInputMethod.value = 'url';
+      }
+    } else {
+      console.log("ไม่พบข้อมูลร้านค้าชิ้นนี้ในระบบ");
+    }
+  } else {
+    mode.value = 'Add Restaurant';
+  }
+});
+
+// --- Watchers ---
 watch(() => RestaurantData.ImageUrl, (newVal) => {
   if (imageInputMethod.value === 'url') {
     imagePreview.value = newVal;
   }
 });
 
+// --- Methods ---
 const checkSaveRestaurant = async (data) => {
   try {
-
     const { id, CreatedAt, UpdatedAt, ...saveData } = data;
     const colName = 'Restaurant';
-
 
     if (!saveData.ManualStatus) {
       saveData.ManualStatus = 'auto';
     }
-
 
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -57,13 +81,11 @@ const checkSaveRestaurant = async (data) => {
 
     if (saveData.ManualStatus === 'auto') {
       let autoStatus = 'close';
-
       if (closeMin > openMin) {
         if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
       } else {
         if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
       }
-
       saveData.Status = autoStatus;
     }
 
@@ -86,18 +108,18 @@ const checkSaveRestaurant = async (data) => {
     console.error('Error:', error);
     alert('Error saving restaurant: ' + error.message);
   }
-}
+};
 
 const handleFileUpload = (event) => {
   selectedFile.value = event.target.files[0];
   if (selectedFile.value) {
-    const previewUrl = URL.createObjectURL(selectedFile.value)
-    imagePreview.value = previewUrl
-    RestaurantData.ImageUrl = previewUrl
+    const previewUrl = URL.createObjectURL(selectedFile.value);
+    imagePreview.value = previewUrl;
+    RestaurantData.ImageUrl = previewUrl;
   }
 };
 
-const formatDate = (timestamp) => {
+const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   return date.toLocaleString('th-TH');
@@ -105,39 +127,14 @@ const formatDate = (timestamp) => {
 
 const goBack = () => {
   router.go(-1);
-}
-
-onMounted(async () => {
-  if (route.params.id) {
-    if (route.path.toLowerCase().includes('/admin/restaurentdetail')) {
-      mode.value = 'View Restaurant';
-    } else {
-      mode.value = 'Update Restaurant';
-    }
-
-    const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
-
-    if (resSnap.exists()) {
-      const res = resSnap.data();
-
-      Object.assign(RestaurantData, res);
-      imagePreview.value = res.ImageUrl;
-      if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
-        imageInputMethod.value = 'url';
-      }
-    } else {
-      console.log("ไม่พบข้อมูลร้านค้าชิ้นนี้ในระบบ");
-    }
-  } else {
-    mode.value = 'Add Restaurant';
-  }
-});
+};
 </script>
 
 <template>
   <LayoutAdmin>
     <div class="min-h-screen p-6 md:p-8 font-sans">
 
+      <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
@@ -159,6 +156,7 @@ onMounted(async () => {
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
+          <!-- Image Profile / Preview Section -->
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
               รูปภาพหน้าร้าน
@@ -218,6 +216,7 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- Form Details Section -->
           <div class="p-8 lg:col-span-2 space-y-8">
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>

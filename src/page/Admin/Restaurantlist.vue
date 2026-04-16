@@ -1,19 +1,22 @@
 <script setup>
+import { onMounted, onUnmounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
+
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useRestaurant } from '@/stores/Restaurant';
-import { RouterLink } from 'vue-router';
-import { onMounted, onUnmounted, ref } from 'vue';
 
-import { doc, deleteDoc } from 'firebase/firestore';
+// --- Initialization ---
+const restaurantStore = useRestaurant();
 
-const Restaurant = useRestaurant();
+// --- State ---
 const now = ref(new Date());
 let timer;
 
+// --- Lifecycle ---
 onMounted(async () => {
-
-  await Restaurant.loadListRestaurant();
+  await restaurantStore.loadListRestaurant();
 
   timer = setInterval(() => {
     now.value = new Date();
@@ -24,30 +27,21 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '-';
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  return date.toLocaleString('th-TH');
+};
 
-const deleteRestaurant = async (id, name) => {
-  if (confirm(`คุณต้องการลบร้านค้า "${name}" ใช่หรือไม่?`)) {
-    try {
-
-      await deleteDoc(doc(db, 'Restaurant', id));
-
-      await Restaurant.loadRestaurant();
-    } catch (error) {
-      console.error("Error deleting restaurant:", error);
-      alert("ลบไม่สำเร็จ: " + error.message);
-    }
-  }
-}
-
-
-const getAutoStatus = (product) => {
-  if (product.ManualStatus === 'manual') return product.Status;
-  if (!product.OpenTime || !product.CloseTime) return 'close';
+const getAutoStatus = (restaurant) => {
+  if (restaurant.ManualStatus === 'manual') return restaurant.Status;
+  if (!restaurant.OpenTime || !restaurant.CloseTime) return 'close';
 
   try {
     const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-    const [openH, openM] = product.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = product.CloseTime.split(':').map(Number);
+    const [openH, openM] = restaurant.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = restaurant.CloseTime.split(':').map(Number);
     const openMin = openH * 60 + openM;
     const closeMin = closeH * 60 + closeM;
 
@@ -59,15 +53,19 @@ const getAutoStatus = (product) => {
   } catch (e) {
     return 'close';
   }
-}
+};
 
-
-const formatDate = (timestamp) => {
-  if (!timestamp) return '-';
-
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleString('th-TH');
-}
+const deleteRestaurant = async (id, name) => {
+  if (confirm(`คุณต้องการลบร้านค้า "${name}" ใช่หรือไม่?`)) {
+    try {
+      await deleteDoc(doc(db, 'Restaurant', id));
+      await restaurantStore.loadListRestaurant();
+    } catch (error) {
+      console.error("Error deleting restaurant:", error);
+      alert("ลบไม่สำเร็จ: " + error.message);
+    }
+  }
+};
 </script>
 
 <template>
@@ -100,25 +98,24 @@ const formatDate = (timestamp) => {
             </thead>
 
             <tbody class="text-slate-600">
-              <tr v-for="product in Restaurant.list" :key="product.id"
+              <tr v-for="restaurant in restaurantStore.list" :key="restaurant.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                 <td class="pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img v-if="product.ImageUrl" :src="product.ImageUrl" :alt="product.Name" class="object-cover" />
-                        <div v-else class="flex items-center justify-center h-full text-[10px] text-slate-400">No Image
-                        </div>
+                        <img v-if="restaurant.ImageUrl" :src="restaurant.ImageUrl" :alt="restaurant.Name" class="object-cover" />
+                        <div v-else class="flex items-center justify-center h-full text-[10px] text-slate-400">No Image</div>
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ product.Name }}</div>
+                      <div class="font-bold text-slate-800">{{ restaurant.Name }}</div>
                     </div>
                   </div>
                 </td>
 
                 <td class="text-center">
-                  <div v-if="getAutoStatus(product) === 'open'"
+                  <div v-if="getAutoStatus(restaurant) === 'open'"
                     class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
@@ -129,21 +126,20 @@ const formatDate = (timestamp) => {
                   </div>
                 </td>
 
-
                 <td class="text-center">
-                  <div v-if="product.OpenTime && product.CloseTime"
+                  <div v-if="restaurant.OpenTime && restaurant.CloseTime"
                     class="flex items-center justify-center gap-1 text-xs font-semibold text-slate-600">
-                    {{ product.OpenTime }} - {{ product.CloseTime }}
+                    {{ restaurant.OpenTime }} - {{ restaurant.CloseTime }}
                   </div>
                   <div v-else class="text-xs text-slate-400 italic">ไม่ได้ระบุเวลา</div>
                 </td>
 
-                <td class="text-center text-xs font-medium">{{ formatDate(product.CreatedAt) }}</td>
-                <td class="text-center text-xs font-medium">{{ formatDate(product.UpdatedAt) }}</td>
+                <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.CreatedAt) }}</td>
+                <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.UpdatedAt) }}</td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
-                    <RouterLink :to="`/admin/restaurentdetail/${product.id}`"
+                    <RouterLink :to="`/admin/restaurentdetail/${restaurant.id}`"
                       class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">
@@ -153,7 +149,7 @@ const formatDate = (timestamp) => {
                       </svg>
                       Details
                     </RouterLink>
-                    <button @click="deleteRestaurant(product.id, product.Name)"
+                    <button @click="deleteRestaurant(restaurant.id, restaurant.Name)"
                       class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">

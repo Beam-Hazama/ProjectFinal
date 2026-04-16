@@ -1,38 +1,41 @@
 <script setup>
-import restaurant from './restaurant.vue';
 import { onMounted, computed, ref } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
-import { useAccountStore } from '@/stores/account';
+import { useAccountStore } from '@/stores/accountStore';
+import LayoutRestaurant from './restaurant.vue';
 
-import { doc, updateDoc, serverTimestamp, deleteField } from "firebase/firestore";
-import { db } from "@/firebase";
-
+// --- Initialization ---
 const orderStore = useOderlistStore();
 const accountStore = useAccountStore();
-const loading = ref(true);
 
+// --- State ---
+const loading = ref(true);
+const selections = ref({});
+
+// --- Lifecycle ---
 onMounted(async () => {
     await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
     loading.value = false;
 });
 
+// --- Computed ---
 const restaurantOrders = computed(() => {
     if (!accountStore.user || !accountStore.user.Restaurant) return [];
 
     const myRestaurant = accountStore.user.Restaurant;
-
     if (!orderStore.sortedOrders) return [];
 
     return orderStore.sortedOrders.map(order => {
-
         let dIdx = 0;
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant).map(item => ({
             ...item,
             uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
         }));
+        
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
+        
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'dispatched');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
@@ -71,23 +74,13 @@ const restaurantOrders = computed(() => {
     );
 });
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'pending': return 'badge-info text-white';
-        case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'badge-success text-white';
-        case 'cancelled': return 'badge-error text-white';
-        default: return 'badge-ghost';
-    }
-};
+// --- Methods ---
 
-const selections = ref({});
-
+// Selection Management
 const toggleSelection = (orderId, itemId, type) => {
     if (!selections.value[orderId]) {
         selections.value[orderId] = {};
     }
-
 
     if (selections.value[orderId][itemId] === type) {
         delete selections.value[orderId][itemId];
@@ -106,13 +99,10 @@ const hasSelections = (orderId) => {
 };
 
 const areAllItemsSelected = (order) => {
-
     const activeItems = order.displayItems.filter(i => i.itemStatus !== 'dispatched' && i.itemStatus !== 'cancelled');
-
     if (activeItems.length === 0) return false;
 
     const orderSelections = selections.value[order.id] || {};
-
     return activeItems.every(item => orderSelections[item.uniqueKey]);
 };
 
@@ -120,36 +110,7 @@ const hasWaitingItems = (order) => {
     return order.displayItems.some(i => !i.itemStatus || i.itemStatus === 'waiting');
 };
 
-const shouldReturnOrder = (order) => {
-    const myRestaurant = accountStore.user?.Restaurant;
-
-    return (order.Menu || []).some(i =>
-        i.Restaurant === myRestaurant &&
-        (i.itemStatus === 'returned' || i.itemStatus === 'cancelled')
-    );
-};
-
-const deliverOrder = async (order) => {
-
-    if (!areOtherRestaurantsReady(order)) {
-        alert("กรุณารอร้านอื่นดำเนินการให้เสร็จสิ้น (Please wait for other restaurants)");
-        return;
-    }
-
-    if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
-
-    try {
-        const myRestaurant = accountStore.user?.Restaurant;
-        if (!myRestaurant) return;
-
-        await orderStore.updateOrderStatus(order.id, 'dispatched', myRestaurant);
-        await orderStore.loadOrderinadmin();
-
-    } catch (error) {
-        alert("Error processing order: " + error.message);
-    }
-};
-
+// Order Actions
 const saveChanges = async (order) => {
     try {
         const orderSelections = selections.value[order.id];
@@ -194,28 +155,51 @@ const saveChanges = async (order) => {
         }
 
         selections.value[order.id] = {};
-
     } catch (error) {
         alert("Error updating items: " + error.message);
     }
 };
 
-const areOtherRestaurantsReady = (order) => {
+const deliverOrder = async (order) => {
+    if (!areOtherRestaurantsReady(order)) {
+        alert("กรุณารอร้านอื่นดำเนินการให้เสร็จสิ้น (Please wait for other restaurants)");
+        return;
+    }
 
+    if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
+
+    try {
+        const myRestaurant = accountStore.user?.Restaurant;
+        if (!myRestaurant) return;
+
+        await orderStore.updateOrderStatus(order.id, 'dispatched', myRestaurant);
+        await orderStore.loadOrderinadmin();
+    } catch (error) {
+        alert("Error processing order: " + error.message);
+    }
+};
+
+const areOtherRestaurantsReady = (order) => {
     const myRestaurant = accountStore.user?.Restaurant;
     if (!myRestaurant) return true;
 
     const otherItems = (order.Menu || []).filter(item => item.Restaurant !== myRestaurant);
-
     if (otherItems.length === 0) return true;
 
-
     const anyWaiting = otherItems.some(item => !item.itemStatus || item.itemStatus === 'waiting');
-
     return !anyWaiting;
 };
 
-
+// UI Helpers
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'pending': return 'badge-info text-white';
+        case 'cooking': return 'bg-orange-500 text-white border-none';
+        case 'dispatched': return 'badge-success text-white';
+        case 'cancelled': return 'badge-error text-white';
+        default: return 'badge-ghost';
+    }
+};
 
 const getRowStatusColor = (status) => {
     switch (status) {
@@ -227,12 +211,13 @@ const getRowStatusColor = (status) => {
         case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
-}
+};
 </script>
 
 <template>
-    <restaurant>
+    <LayoutRestaurant>
         <div class="p-6 font-sans">
+            <!-- Header Section -->
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
@@ -246,6 +231,7 @@ const getRowStatusColor = (status) => {
                 <span class="loading loading-spinner loading-lg text-indigo-600"></span>
             </div>
 
+            <!-- Empty State Section -->
             <div v-else-if="restaurantOrders.length === 0"
                 class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-slate-300">
                 <div class="bg-indigo-50 p-6 rounded-full mb-4">
@@ -259,6 +245,7 @@ const getRowStatusColor = (status) => {
                 <p class="text-slate-400 mt-1">ยังไม่มีรายการสั่งซื้อสำหรับร้านของคุณในขณะนี้</p>
             </div>
 
+            <!-- Active Orders Grid Section -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div v-for="order in restaurantOrders" :key="order.id"
                     class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col">
@@ -404,5 +391,5 @@ const getRowStatusColor = (status) => {
                 </div>
             </div>
         </div>
-    </restaurant>
+    </LayoutRestaurant>
 </template>

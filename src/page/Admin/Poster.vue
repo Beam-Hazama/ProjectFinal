@@ -4,34 +4,50 @@ import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { usePosterStore } from '@/stores/posterStore';
 
+// --- Initialization ---
 const posterStore = usePosterStore();
 
-
+// --- State ---
+const localPosters = ref([]);
 const newPosterUrl = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
 const editingPosterId = ref(null);
-
 const hasSchedule = ref(false);
 const startTime = ref('');
 const endTime = ref('');
 const displayDuration = ref();
 
-
+// --- Lifecycle ---
 onMounted(() => {
     posterStore.loadPosters();
 });
 
-const localPosters = ref([]);
-
+// --- Watchers ---
 watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-const onDragEnd = async () => {
-    const orderedIds = localPosters.value.map(p => p.id);
-    await posterStore.updatePosterOrder(orderedIds);
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    if (typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toLocaleString('th-TH');
+    }
+    return new Date(timestamp).toLocaleString('th-TH');
+};
+
+const formatScheduleDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('th-TH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 };
 
 const openEditModal = (poster) => {
@@ -43,6 +59,17 @@ const openEditModal = (poster) => {
     startTime.value = poster.startTime || '';
     endTime.value = poster.endTime || '';
     showModal.value = true;
+};
+
+const closeModal = () => {
+    showModal.value = false;
+    isEditing.value = false;
+    editingPosterId.value = null;
+    newPosterUrl.value = '';
+    hasSchedule.value = false;
+    startTime.value = '';
+    endTime.value = '';
+    displayDuration.value = null;
 };
 
 const handleAddPoster = async () => {
@@ -61,7 +88,7 @@ const handleAddPoster = async () => {
         const posterData = {
             ImageUrl: newPosterUrl.value.trim(),
             hasSchedule: hasSchedule.value,
-            displayDuration: displayDuration.value 
+            displayDuration: displayDuration.value
         };
 
         if (hasSchedule.value) {
@@ -89,17 +116,6 @@ const handleAddPoster = async () => {
     }
 };
 
-const closeModal = () => {
-    showModal.value = false;
-    isEditing.value = false;
-    editingPosterId.value = null;
-    newPosterUrl.value = '';
-    hasSchedule.value = false;
-    startTime.value = '';
-    endTime.value = '';
-    displayDuration.value = null;
-};
-
 const toggleStatus = async (poster) => {
     try {
         await posterStore.toggleActive(poster.id, poster.isActive);
@@ -118,24 +134,9 @@ const deletePoster = async (posterId) => {
     }
 };
 
-const formatDate = (timestamp) => {
-    if (!timestamp) return '-';
-    if (typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toLocaleString('th-TH');
-    }
-    return new Date(timestamp).toLocaleString('th-TH');
-};
-
-const formatScheduleDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('th-TH', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+const onDragEnd = async () => {
+    const orderedIds = localPosters.value.map(p => p.id);
+    await posterStore.updatePosterOrder(orderedIds);
 };
 </script>
 
@@ -329,11 +330,11 @@ const formatScheduleDate = (dateString) => {
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatDate(poster.createdAt) }}
+                                        {{ formatTimestamp(poster.createdAt) }}
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatDate(poster.updatedAt) }}
+                                        {{ formatTimestamp(poster.updatedAt) }}
                                     </td>
 
                                     <td class="text-center">

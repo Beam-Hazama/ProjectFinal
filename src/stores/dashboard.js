@@ -1,54 +1,79 @@
 import { defineStore } from 'pinia';
-import { collection, onSnapshot, query, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, getDocs, where } from 'firebase/firestore';
 import { db } from '@/firebase';
 
+/**
+ * Global Admin Dashboard Store
+ * Handles system-wide analytics, revenue tracking, and order distribution for Admins.
+ * Integrates with ApexCharts for data visualization.
+ */
 export const useDashboardStore = defineStore('dashboard', {
+  // --- State ---
   state: () => ({
+    // Raw Data
     allOrders: [],
-    allProducts: [],
+    allMenus: [],
     allRestaurants: [],
-    availableRestaurants: [],
-    availableCategories: [],
-    availableMenus: [],
+    
+    // Filter Selections
     timeFilter: '7days',
     restaurantFilter: 'all',
     menuCategoryFilter: 'all',
     menuFilter: 'all',
 
-    totalProducts: 0,
-    filteredTotalProducts: 0,
+    // Calculated Metrics
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalMenus: 0,
+    filteredTotalMenus: 0,
     totalRestaurants: 0,
 
+    // Analytics Sets
     topRestaurants: [],
     topMenuItems: [],
     recentOrders: [],
     orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
-
-    ordersLoading: true,
-    productsLoading: true,
-    restaurantsLoading: true,
-
-
+    
+    // Chart Processing Arrays
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
 
+    // Dropdown Source Data
+    availableRestaurants: [],
+    availableCategories: [],
+    availableMenus: [],
+
+    // Status Tracking
+    ordersLoading: true,
+    menusLoading: true,
+    restaurantsLoading: true,
+
+    // Firestore Unsubscribe Cleanup
     unsubscribeOrders: null,
-    unsubscribeProducts: null,
+    unsubscribeMenus: null,
     unsubscribeRestaurants: null,
     unsubscribeCategories: null,
   }),
 
+  // --- Getters ---
   getters: {
-    isLoading: (state) => state.ordersLoading || state.productsLoading || state.restaurantsLoading,
+    /**
+     * Global loading state summary.
+     */
+    isLoading: (state) => state.ordersLoading || state.menusLoading || state.restaurantsLoading,
 
-
+    /**
+     * ApexCharts: Series data for Revenue Bar Chart.
+     */
     salesChartSeries: (state) => {
       const data = state.revenueByDay.map(day => day.revenue);
       return [{ name: 'ยอดขาย (บาท)', data }];
     },
 
-
+    /**
+     * ApexCharts: Configuration options for Revenue Bar Chart.
+     */
     salesChartOptions: (state) => {
       const categories = state.revenueByDay.map(day => day.date);
       return {
@@ -59,61 +84,43 @@ export const useDashboardStore = defineStore('dashboard', {
         },
         xaxis: {
           categories: categories,
-          labels: {
-            style: {
-              colors: '#64748b',
-              fontSize: '12px'
-            }
-          }
+          labels: { style: { colors: '#64748b', fontSize: '12px' } }
         },
         yaxis: {
           labels: {
             formatter: (value) => `฿${value.toLocaleString()}`,
-            style: {
-              colors: '#64748b',
-              fontSize: '12px'
-            }
+            style: { colors: '#64748b', fontSize: '12px' }
           }
         },
         dataLabels: { enabled: false },
         plotOptions: {
-          bar: {
-            borderRadius: 6,
-            columnWidth: '45%',
-          }
+          bar: { borderRadius: 6, columnWidth: '45%' }
         },
         colors: ['#4f46e5'],
         tooltip: {
-          y: {
-            formatter: function (val) {
-              return "฿" + val.toLocaleString()
-            }
-          }
+          y: { formatter: (val) => "฿" + val.toLocaleString() }
         }
-      }
+      };
     },
 
-
+    /**
+     * ApexCharts: Series data for Category Donut Chart.
+     */
     categoryChartSeries: (state) => {
       return state.categoriesCount.map(cat => cat.count);
     },
 
-
+    /**
+     * ApexCharts: Configuration options for Category Donut Chart.
+     */
     categoryChartOptions: (state) => {
       const labels = state.categoriesCount.map(cat => cat.name);
       return {
-        chart: {
-          id: 'category-donut-chart',
-          fontFamily: 'inherit',
-        },
+        chart: { id: 'category-donut-chart', fontFamily: 'inherit' },
         labels: labels,
         colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
-        legend: {
-          position: 'bottom'
-        },
-        dataLabels: {
-          enabled: false
-        },
+        legend: { position: 'bottom' },
+        dataLabels: { enabled: false },
         plotOptions: {
           pie: {
             donut: {
@@ -126,24 +133,26 @@ export const useDashboardStore = defineStore('dashboard', {
                   show: true,
                   showAlways: true,
                   label: 'รวม',
-                  formatter: function (w) {
-                    return w.globals.seriesTotals.reduce((a, b) => {
-                      return a + b
-                    }, 0)
-                  }
+                  formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
                 }
               }
             }
           }
         }
-      }
+      };
     },
 
+    /**
+     * ApexCharts: Series data for Peak Hours Area Chart.
+     */
     peakHoursChartSeries: (state) => {
       const data = state.ordersByHour.map(h => h.count);
       return [{ name: 'จำนวนออเดอร์', data }];
     },
 
+    /**
+     * ApexCharts: Configuration options for Peak Hours Area Chart.
+     */
     peakHoursChartOptions: (state) => {
       const categories = state.ordersByHour.map(h => h.hour);
       return {
@@ -173,14 +182,14 @@ export const useDashboardStore = defineStore('dashboard', {
           labels: { style: { colors: '#64748b', fontSize: '12px' }, formatter: (val) => Math.floor(val) }
         },
         colors: ['#f59e0b'],
-        tooltip: {
-          y: { formatter: (val) => val + " ออเดอร์" }
-        }
-      }
+        tooltip: { y: { formatter: (val) => val + " ออเดอร์" } }
+      };
     }
   },
 
+  // --- Actions ---
   actions: {
+    // --- Filter Setters ---
     setTimeFilter(filter) {
       this.timeFilter = filter;
       this.applyFilters();
@@ -197,6 +206,11 @@ export const useDashboardStore = defineStore('dashboard', {
       this.menuFilter = filter;
       this.applyFilters();
     },
+
+    /**
+     * Centralized logic to filter allOrders based on current UI selections.
+     * Re-calculates all metrics and chart data.
+     */
     applyFilters() {
       let filteredRevenue = 0;
       let filteredOrdersCount = 0;
@@ -207,11 +221,11 @@ export const useDashboardStore = defineStore('dashboard', {
       const restRevenueMap = {};
       const menuMetricsMap = {};
 
-      // Filter by Time boundary
+      // 1. Time Boundary Configuration
       const now = new Date();
       now.setHours(23, 59, 59, 999);
 
-      let startTime = new Date(0); // All time
+      let startTime = new Date(0); // Default: All time
       if (this.timeFilter === 'today') {
         startTime = new Date();
         startTime.setHours(0, 0, 0, 0);
@@ -225,16 +239,17 @@ export const useDashboardStore = defineStore('dashboard', {
         startTime.setHours(0, 0, 0, 0);
       }
 
-      // Create maps to quickly look up product properties
+      // 2. Data Lookup Preparation
       const categoryMap = {};
-      const productsDict = {};
-      this.allProducts.forEach(p => {
-        if (p.id) {
-          categoryMap[p.id] = p.Category;
-          productsDict[p.id] = p;
+      const menusDict = {};
+      this.allMenus.forEach(m => {
+        if (m.id) {
+          categoryMap[m.id] = m.Category;
+          menusDict[m.id] = m;
         }
       });
 
+      // 3. Main Filtering Loop
       this.allOrders.forEach(order => {
         const createdAt = order.CreatedAt;
         if (!createdAt) return;
@@ -242,7 +257,7 @@ export const useDashboardStore = defineStore('dashboard', {
         const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
         if (orderDate < startTime || orderDate > now) return;
 
-        // For legacy orders without Menu
+        // Legacy Order Handling (No Menu array)
         if (!order.Menu || order.Menu.length === 0) {
           if (this.restaurantFilter !== 'all' || this.menuCategoryFilter !== 'all' || this.menuFilter !== 'all') {
             return;
@@ -259,13 +274,18 @@ export const useDashboardStore = defineStore('dashboard', {
           return;
         }
 
-        // Find valid matching items regardless of their specific itemStatus for general match checks
-        const matchingItemsForFilterChecks = order.Menu.filter(item => {
+        // Active Order Selection based on Multi-level Filters
+        const matchingItems = order.Menu.filter(item => {
+          // Restaurant Check
           if (this.restaurantFilter !== 'all' && item.Restaurant !== this.restaurantFilter) return false;
+          
+          // Category Check
           if (this.menuCategoryFilter !== 'all') {
             const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
             if (itemCategory !== this.menuCategoryFilter) return false;
           }
+          
+          // Specific Menu Check
           if (this.menuFilter !== 'all') {
             const itemId = item.menuId || item.id;
             if (itemId !== this.menuFilter) return false;
@@ -273,13 +293,15 @@ export const useDashboardStore = defineStore('dashboard', {
           return true;
         });
 
-        if (matchingItemsForFilterChecks.length > 0) {
+        // 4. Metric Aggregation for Matched Orders
+        if (matchingItems.length > 0) {
           const cStatus = order.statusOrder || 'pending';
           statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
           recentOrdersArray.push(order);
 
           if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
-            const validRevenueItems = matchingItemsForFilterChecks.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
+            const validRevenueItems = matchingItems.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
+            
             if (validRevenueItems.length > 0) {
               filteredOrdersCount++;
               let orderLocalTotal = 0;
@@ -289,18 +311,20 @@ export const useDashboardStore = defineStore('dashboard', {
                 const itemRevenue = Number(item.Price || 0) * itemQty;
                 orderLocalTotal += itemRevenue;
 
+                // Restaurant Ranking Data
                 const restName = item.Restaurant || 'ไม่ระบุร้าน';
                 restRevenueMap[restName] = (restRevenueMap[restName] || 0) + itemRevenue;
 
+                // Menu Item Ranking Data
                 const menuId = item.id || item.menuId;
                 if (!menuMetricsMap[menuId]) {
-                  const refProd = productsDict[menuId];
+                  const refMenu = menusDict[menuId];
                   menuMetricsMap[menuId] = {
-                    name: item.Name || (refProd?.Name) || 'ไม่ระบุชื่อเมนู',
+                    name: item.Name || (refMenu?.Name) || 'ไม่ระบุชื่อเมนู',
                     restaurant: restName,
                     qty: 0,
                     revenue: 0,
-                    image: item.ImageUrl || (refProd?.ImageUrl)
+                    image: item.ImageUrl || (refMenu?.ImageUrl)
                   };
                 }
                 menuMetricsMap[menuId].qty += itemQty;
@@ -314,8 +338,8 @@ export const useDashboardStore = defineStore('dashboard', {
         }
       });
 
+      // 5. State Synchronization
       this.orderStatuses = statusCounts;
-
       this.recentOrders = recentOrdersArray
         .sort((a, b) => {
           const tA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
@@ -336,50 +360,57 @@ export const useDashboardStore = defineStore('dashboard', {
       this.totalOrders = filteredOrdersCount;
       this.totalRevenue = filteredRevenue;
 
+      // 6. Child Processor Calls
       this.processRevenueByDay(validOrdersForChart);
       this.processPeakHours(validOrdersForChart);
 
-      let filteredProducts = this.allProducts;
+      // Menu filtering for the dashboard view
+      let filteredMenus = this.allMenus;
       if (this.restaurantFilter !== 'all') {
-        filteredProducts = this.allProducts.filter(p => p.Restaurant === this.restaurantFilter);
+        filteredMenus = this.allMenus.filter(m => m.Restaurant === this.restaurantFilter);
       }
-
-      this.filteredTotalProducts = filteredProducts.length;
-      this.processCategoriesCount(filteredProducts);
+      this.filteredTotalMenus = filteredMenus.length;
+      this.processCategoriesCount(filteredMenus);
     },
+
+    /**
+     * Clear all active Firestore listeners.
+     */
     clearListeners() {
       if (this.unsubscribeOrders) this.unsubscribeOrders();
-      if (this.unsubscribeProducts) this.unsubscribeProducts();
+      if (this.unsubscribeMenus) this.unsubscribeMenus();
       if (this.unsubscribeRestaurants) this.unsubscribeRestaurants();
       if (this.unsubscribeCategories) this.unsubscribeCategories();
 
       this.unsubscribeOrders = null;
-      this.unsubscribeProducts = null;
+      this.unsubscribeMenus = null;
       this.unsubscribeRestaurants = null;
       this.unsubscribeCategories = null;
     },
 
+    /**
+     * Primary data loader for the dashboard. 
+     * Sets up real-time sync for Orders, Menus, Restaurants, and Categories.
+     */
     async loadDashboardData() {
       this.clearListeners();
 
       this.ordersLoading = true;
-      this.productsLoading = true;
+      this.menusLoading = true;
       this.restaurantsLoading = true;
 
-
+      // 1. Load Orders
       const ordersQuery = query(collection(db, 'Order'));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-        const orders = [];
-
-        snapshot.forEach(doc => {
+        const orders = snapshot.docs.map(doc => {
           const data = doc.data();
           let orderTotal = 0;
+          
+          // Calculate individual order revenue if possible
           if (data.statusOrder !== 'cancelled' && data.statusOrder !== 'returned') {
-            if (data.Netprice) {
-              orderTotal = Number(data.Netprice);
-            } else if (data.TotalPrice) {
-              orderTotal = Number(data.TotalPrice);
-            } else if (data.Menu && Array.isArray(data.Menu)) {
+            if (data.Netprice) orderTotal = Number(data.Netprice);
+            else if (data.TotalPrice) orderTotal = Number(data.TotalPrice);
+            else if (data.Menu && Array.isArray(data.Menu)) {
               orderTotal = data.Menu.reduce((sum, item) => {
                 if (item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
                   return sum + (Number(item.Price || 0) * Number(item.Quantity || 1));
@@ -388,70 +419,49 @@ export const useDashboardStore = defineStore('dashboard', {
               }, 0);
             }
           }
-          data.localTotal = orderTotal;
-          orders.push({ id: doc.id, ...data });
+          return { id: doc.id, ...data, localTotal: orderTotal };
         });
 
         this.allOrders = orders;
         this.ordersLoading = false;
         this.applyFilters();
-      }, (error) => {
-        console.error("Error fetching orders:", error);
-        this.ordersLoading = false;
       });
 
-
-      const productsQuery = query(collection(db, 'Menu'));
-      this.unsubscribeProducts = onSnapshot(productsQuery, (snapshot) => {
-        const products = [];
-        snapshot.forEach(doc => {
-          products.push({ id: doc.id, ...doc.data() });
-        });
-
-        this.allProducts = products;
-        this.availableMenus = products.filter(p => p.Name).map(p => ({ id: p.id, Name: p.Name, Restaurant: p.Restaurant }));
-        this.totalProducts = Number(products.length);
-        this.productsLoading = false;
+      // 2. Load Menus
+      const menusQuery = query(collection(db, 'Menu'));
+      this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
+        const menus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.allMenus = menus;
+        this.availableMenus = menus.filter(m => m.Name).map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
+        this.totalMenus = menus.length;
+        this.menusLoading = false;
         this.applyFilters();
-      }, (error) => {
-        console.error("Error fetching products:", error);
-        this.productsLoading = false;
       });
 
+      // 3. Load Restaurants
       const restaurantsQuery = query(collection(db, 'Restaurant'));
       this.unsubscribeRestaurants = onSnapshot(restaurantsQuery, (snapshot) => {
-        const restaurants = [];
-        snapshot.forEach(doc => {
-          restaurants.push(doc.data().Name || doc.id);
-        });
-
+        const restaurants = snapshot.docs.map(doc => doc.data().Name || doc.id);
         this.allRestaurants = restaurants;
         this.availableRestaurants = [...new Set(restaurants)];
-        this.totalRestaurants = Number(snapshot.size);
+        this.totalRestaurants = snapshot.size;
         this.restaurantsLoading = false;
         this.applyFilters();
-      }, (error) => {
-        console.error("Error fetching restaurants:", error);
-        this.restaurantsLoading = false;
       });
 
+      // 4. Load Category Metadata
       const categoriesQuery = query(collection(db, 'categories'));
       this.unsubscribeCategories = onSnapshot(categoriesQuery, (snapshot) => {
-        const categories = [];
-        snapshot.forEach(doc => {
-          const name = doc.data().name;
-          if (name && name.trim() !== '') {
-            categories.push(name);
-          }
-        });
-
+        const categories = snapshot.docs
+          .map(doc => doc.data().name)
+          .filter(name => name && name.trim() !== '');
         this.availableCategories = [...new Set(categories)];
-      }, (error) => {
-        console.error("Error fetching categories:", error);
       });
     },
 
-
+    /**
+     * Process filtered orders into a day-by-day revenue distribution.
+     */
     processRevenueByDay(orders) {
       const days = {};
       const today = new Date();
@@ -462,6 +472,7 @@ export const useDashboardStore = defineStore('dashboard', {
       else if (this.timeFilter === 'thisMonth') daysCount = today.getDate() - 1;
       else if (this.timeFilter === 'all') daysCount = 29;
 
+      // Fill empty days for chart consistency
       for (let i = daysCount; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
@@ -474,18 +485,12 @@ export const useDashboardStore = defineStore('dashboard', {
           const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
           orderDate.setHours(0, 0, 0, 0);
 
-          const timeDiff = today.getTime() - orderDate.getTime();
-          const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-
-          if (daysDiff >= 0 && daysDiff <= Math.max(daysCount, 6)) {
-            const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
-            if (days[dateString] !== undefined) {
-              days[dateString] += Number(order.filteredLocalTotal);
-            }
+          const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
+          if (days[dateString] !== undefined) {
+            days[dateString] += Number(order.filteredLocalTotal);
           }
         }
       });
-
 
       this.revenueByDay = Object.keys(days).map(key => ({
         date: key,
@@ -493,10 +498,13 @@ export const useDashboardStore = defineStore('dashboard', {
       }));
     },
 
-    processCategoriesCount(products) {
+    /**
+     * Count items per category for the donut chart.
+     */
+    processCategoriesCount(menus) {
       const counts = {};
-      products.forEach(p => {
-        const cat = p.Category || 'ไม่ระบุหมวดหมู่';
+      menus.forEach(m => {
+        const cat = m.Category || 'อื่นๆ';
         counts[cat] = (counts[cat] || 0) + 1;
       });
 
@@ -506,9 +514,11 @@ export const useDashboardStore = defineStore('dashboard', {
       })).sort((a, b) => b.count - a.count);
     },
 
+    /**
+     * Distribute order volume by hour for traffic visualization.
+     */
     processPeakHours(orders) {
       const hourlyDistribution = Array(24).fill(0);
-
       orders.forEach(order => {
         if (order.CreatedAt) {
           const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);

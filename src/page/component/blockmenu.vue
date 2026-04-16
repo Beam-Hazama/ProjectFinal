@@ -1,61 +1,70 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import MenuOrderModal from './modalmenu.vue'
-import { useRestaurant } from '@/stores/Restaurant'
+import { ref, onMounted, computed } from 'vue';
+import MenuOrderModal from './modalmenu.vue';
+import { useRestaurant } from '@/stores/Restaurant';
 
-const RestaurantStore = useRestaurant()
-const selectedProduct = ref(null)
-const showModal = ref(false)
-
-onMounted(() => {
-  RestaurantStore.loadListRestaurant()
-})
-
-const isShopClosed = (restaurantName) => {
-  const shop = RestaurantStore.list.find(r => r.Name === restaurantName)
-  return shop?.Status === 'close'
-}
-
-const openModal = (product) => {
-  if (product.Status === 'open' && !isShopClosed(product.Restaurant)) {
-    selectedProduct.value = product
-    showModal.value = true
-  }
-}
-
+// --- Initialization ---
 const props = defineProps({
   selectionRole: Array,
   layout: {
     type: String,
     default: 'vertical'
   }
-})
+});
 
-const sortedProducts = computed(() => {
-  if (!props.selectionRole) return []
+const RestaurantStore = useRestaurant();
+
+// --- State ---
+const selectedMenu = ref(null);
+const showModal = ref(false);
+
+// --- Lifecycle ---
+onMounted(() => {
+  RestaurantStore.loadListRestaurant();
+});
+
+// --- Computed ---
+const sortedMenus = computed(() => {
+  if (!props.selectionRole) return [];
+  
+  // Sort: Available items first
   return [...props.selectionRole].sort((a, b) => {
-    const aAvailable = a.Status === 'open' && !isShopClosed(a.Restaurant)
-    const bAvailable = b.Status === 'open' && !isShopClosed(b.Restaurant)
+    const aAvailable = a.Status === 'open' && !isShopClosed(a.Restaurant);
+    const bAvailable = b.Status === 'open' && !isShopClosed(b.Restaurant);
 
-    if (aAvailable && !bAvailable) return -1
-    if (!aAvailable && bAvailable) return 1
-    return 0
-  })
-})
+    if (aAvailable && !bAvailable) return -1;
+    if (!aAvailable && bAvailable) return 1;
+    return 0;
+  });
+});
+
+// --- Methods ---
+const isShopClosed = (restaurantName) => {
+  const shop = RestaurantStore.list.find(r => r.Name === restaurantName);
+  return shop?.Status === 'close';
+};
+
+const openModal = (menu) => {
+  if (menu.Status === 'open' && !isShopClosed(menu.Restaurant)) {
+    selectedMenu.value = menu;
+    showModal.value = true;
+  }
+};
 </script>
 
 <template>
   <section
     :class="layout === 'horizontal' ? 'flex flex-col gap-3 px-2 pb-4' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'">
-    <button v-for="(product, index) in sortedProducts" :key="product.id"
-      :class="[(product.Status !== 'open' || isShopClosed(product.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
-      :disabled="product.Status !== 'open' || isShopClosed(product.Restaurant)" @click="openModal(product)">
+    <button v-for="(menu, index) in sortedMenus" :key="menu.id"
+      :class="[(menu.Status !== 'open' || isShopClosed(menu.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
+      :disabled="menu.Status !== 'open' || isShopClosed(menu.Restaurant)" @click="openModal(menu)">
 
+      <!-- Horizontal Layout Content -->
       <template v-if="layout === 'horizontal'">
         <figure
           class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
-          <img v-if="product.ImageUrl" :src="product.ImageUrl" class="object-cover w-full h-full"
-            :class="{ 'grayscale': product.Status !== 'open' || isShopClosed(product.Restaurant) }" />
+          <img v-if="menu.ImageUrl" :src="menu.ImageUrl" class="object-cover w-full h-full"
+            :class="{ 'grayscale': menu.Status !== 'open' || isShopClosed(menu.Restaurant) }" />
           <div v-else class="w-full h-full flex items-center justify-center text-gray-300 bg-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
@@ -63,37 +72,38 @@ const sortedProducts = computed(() => {
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <div v-if="isShopClosed(product.Restaurant)"
+          <div v-if="isShopClosed(menu.Restaurant)"
             class="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
           </div>
-          <div v-else-if="product.Status !== 'open'"
+          <div v-else-if="menu.Status !== 'open'"
             class="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span class="text-white font-bold text-[10px] bg-red-500/90 px-2 py-1 rounded-md shadow-sm">หมด</span>
           </div>
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
-          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ product.Name }}</h3>
-          <p class="text-[10px] text-gray-500 truncate w-full">{{ product.Restaurant }}</p>
+          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.Name }}</h3>
+          <p class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           <div class="flex justify-between items-end mt-auto">
             <div class="flex items-center gap-2">
-              <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
-                ฿{{ product.PromoPrice }}
+              <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
+                ฿{{ menu.PromoPrice }}
               </p>
-              <p class="font-bold text-[14px] text-gray-800" :class="{ 'line-through text-gray-400 text-[12px] font-normal': product.PromoPrice && Number(product.PromoPrice) > 0 }">
-                ฿{{ product.Price }}
+              <p class="font-bold text-[14px] text-gray-800" :class="{ 'line-through text-gray-400 text-[12px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
+                ฿{{ menu.Price }}
               </p>
             </div>
           </div>
         </div>
       </template>
 
+      <!-- Vertical Layout Content (Default) -->
       <template v-else>
        
         <div class="w-full aspect-square relative bg-gray-100 overflow-hidden">
-          <img v-if="product.ImageUrl" :src="product.ImageUrl"
+          <img v-if="menu.ImageUrl" :src="menu.ImageUrl"
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            :class="{ 'grayscale': product.Status !== 'open' || isShopClosed(product.Restaurant) }" />
+            :class="{ 'grayscale': menu.Status !== 'open' || isShopClosed(menu.Restaurant) }" />
           <div v-else class="absolute inset-0 flex items-center justify-center text-gray-300 bg-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
@@ -102,12 +112,12 @@ const sortedProducts = computed(() => {
             </svg>
           </div>
 
-          <div v-if="isShopClosed(product.Restaurant)"
+          <div v-if="isShopClosed(menu.Restaurant)"
             class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
             <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
           </div>
 
-          <div v-else-if="product.Status !== 'open'"
+          <div v-else-if="menu.Status !== 'open'"
             class="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
             <span class="text-white font-bold text-[10px] bg-red-500/90 px-2 py-1 rounded-md shadow-sm">หมด</span>
           </div>
@@ -116,16 +126,16 @@ const sortedProducts = computed(() => {
         
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
           <div class="space-y-0.5">
-            <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ product.Name }}</h3>
-            <p class="text-[10px] text-gray-500 truncate w-full">{{ product.Restaurant }}</p>
+            <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ menu.Name }}</h3>
+            <p class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           </div>
           <div class="flex justify-between items-end mt-auto">
             <div class="flex flex-wrap items-center gap-1.5">
-              <p v-if="product.PromoPrice && Number(product.PromoPrice) > 0" class="font-black text-[14px] text-red-500">
-                ฿{{ product.PromoPrice }}
+              <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[14px] text-red-500">
+                ฿{{ menu.PromoPrice }}
               </p>
-              <p class="font-bold text-[13px] text-gray-800" :class="{ 'line-through text-gray-400 text-[11px] font-normal': product.PromoPrice && Number(product.PromoPrice) > 0 }">
-                ฿{{ product.Price }}
+              <p class="font-bold text-[13px] text-gray-800" :class="{ 'line-through text-gray-400 text-[11px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
+                ฿{{ menu.Price }}
               </p>
             </div>
           </div>
@@ -135,5 +145,5 @@ const sortedProducts = computed(() => {
     </button>
   </section>
 
-  <MenuOrderModal v-if="selectedProduct" :show="showModal" :product="selectedProduct" @close="showModal = false" />
+  <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
 </template>

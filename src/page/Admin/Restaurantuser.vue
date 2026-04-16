@@ -13,11 +13,21 @@ import {
 } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
+// --- Initialization ---
+// No separate initialization needed for DB as it's directly imported
+
+// --- State ---
 const users = ref([]);
 const restaurants = ref([]);
 const isLoading = ref(false);
 
+// --- Lifecycle ---
+onMounted(() => {
+    fetchUsers();
+    fetchRestaurants();
+});
 
+// --- Methods ---
 const fetchUsers = async () => {
     try {
         const q = query(
@@ -34,14 +44,6 @@ const fetchUsers = async () => {
     }
 };
 
-
-const formatDate = (timestamp) => {
-    if (!timestamp) return '-';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('th-TH');
-};
-
-
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -54,6 +56,11 @@ const fetchRestaurants = async () => {
     }
 };
 
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('th-TH');
+};
 
 const toggleUserStatus = async (user) => {
     const currentStatus = user.Status || 'active';
@@ -78,14 +85,10 @@ const toggleUserStatus = async (user) => {
     }
 };
 
-
 const getRestaurantImage = (restaurantName) => {
-
     const found = restaurants.value.find(res => res.Name === restaurantName);
-
     return found ? found.ImageUrl : '';
 };
-
 
 const deleteUser = async (id, name) => {
     if (confirm(`คุณต้องการลบผู้ใช้งาน "${name}" ใช่หรือไม่?`)) {
@@ -102,11 +105,6 @@ const deleteUser = async (id, name) => {
         }
     }
 };
-
-onMounted(() => {
-    fetchUsers();
-    fetchRestaurants();
-});
 </script>
 
 <template>
@@ -214,7 +212,7 @@ onMounted(() => {
                             class="mt-auto space-y-2 border-t border-slate-100 pt-3 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                             <div class="flex justify-between px-1">
                                 <span>Created</span>
-                                <span class="text-slate-500">{{ formatDate(user.CreatedAt) }}</span>
+                                <span class="text-slate-500">{{ formatTimestamp(user.CreatedAt) }}</span>
                             </div>
                         </div>
                     </div>

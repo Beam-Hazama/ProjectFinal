@@ -1,19 +1,15 @@
 <script setup>
-import { useRoute, useRouter } from 'vue-router';
-import { useAccountStore } from '@/stores/account';
 import { onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useAccountStore } from '@/stores/accountStore';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const accountStore = useAccountStore();
-const restaurantName = accountStore.user?.Restaurant
 
-onMounted(async () => {
-    await accountStore.checkAuthState();
-    if (!accountStore.isLoggedIn) {
-        router.push({ name: 'Login' });
-    }
-});
+// --- State ---
+const restaurantName = accountStore.user?.Restaurant;
 
 const menus = [
     {
@@ -46,13 +42,21 @@ const menus = [
         routeName: 'Restaurants Poster',
         icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>`
     },
-    
 ];
 
+// --- Lifecycle ---
+onMounted(async () => {
+    await accountStore.checkAuthState();
+    if (!accountStore.isLoggedIn) {
+        router.push({ name: 'Login' });
+    }
+});
+
+// --- Methods ---
 const logout = async () => {
     await accountStore.logout();
     router.push({ name: 'Login' });
-}
+};
 </script>
 
 <template>
@@ -60,6 +64,7 @@ const logout = async () => {
         class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
         <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
         <div class="drawer-content flex flex-col relative">
+            <!-- Mobile Navbar (Sticky) -->
             <div class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
                 <div class="flex items-center gap-3">
                     <label for="my-drawer-2" class="btn btn-square btn-ghost btn-sm text-slate-500">
@@ -78,6 +83,7 @@ const logout = async () => {
                 </div>
             </div>
 
+            <!-- Main Content Area -->
             <div class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
                 <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
                     <ul>
@@ -90,6 +96,7 @@ const logout = async () => {
                 <slot></slot>
             </div>
 
+            <!-- Background Aesthetic Decorations -->
             <div
                 class="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none translate-x-1/3 -translate-y-1/3 z-0">
             </div>
@@ -101,6 +108,7 @@ const logout = async () => {
         <div class="drawer-side z-40">
             <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
 
+            <!-- Sidebar Sidebar Menu -->
             <aside class="w-72 min-h-full bg-white shadow-xl flex flex-col border-r border-slate-100">
 
                 <div class="h-20 flex items-center px-6 border-b border-slate-100 shrink-0">

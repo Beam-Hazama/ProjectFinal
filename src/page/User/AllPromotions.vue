@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useMenuStore } from '@/stores/menu';
+import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import productList from '@/page/component/blockmenu.vue';
+import { useMenuStore } from '@/stores/menuStore';
+import MenuList from '@/page/component/blockmenu.vue';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
@@ -12,16 +13,19 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+// --- Computed ---
+const promotionMenus = computed(() => {
+    return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+});
+
+// --- Lifecycle ---
 onMounted(() => {
     if (menuStore.list.length === 0) {
         menuStore.loadMenu();
     }
 });
 
-const promotionProducts = computed(() => {
-    return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
-});
-
+// --- Methods ---
 const goBack = () => {
     router.push(`/User/${building}/${floor}/${room}`);
 };
@@ -29,7 +33,7 @@ const goBack = () => {
 
 <template>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans flex flex-col">
-        <!-- Header -->
+        <!-- Header Section -->
         <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm flex items-center gap-3">
             <button @click="goBack" class="p-2 -ml-2 text-gray-400 hover:text-blue-600 active:scale-95 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -40,20 +44,20 @@ const goBack = () => {
             <h1 class="font-bold text-gray-800 text-lg flex-1 text-center pr-8">โปรโมชั่นทั้งหมด</h1>
         </div>
 
-        <!-- content -->
+        <!-- Promotions Content Section -->
         <div class="flex-1 px-4 pt-6">
             <div v-if="menuStore.list.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <div class="loading loading-spinner loading-md mb-2"></div>
                 <p class="text-xs">กำลังโหลดเมนู...</p>
             </div>
 
-            <div v-else-if="promotionProducts.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
+            <div v-else-if="promotionMenus.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <span class="text-4xl opacity-50 mb-2">🏷️</span>
                 <p class="text-[13px] font-medium">ยังไม่มีรายการโปรโมชั่นในขณะนี้</p>
             </div>
 
             <div v-else class="animate-fade-in">
-                <productList :selectionRole="promotionProducts" />
+                <MenuList :selectionRole="promotionMenus" />
             </div>
         </div>
     </div>

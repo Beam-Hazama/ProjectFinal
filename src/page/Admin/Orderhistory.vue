@@ -1,23 +1,28 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
-import { onMounted, ref, computed } from 'vue';
 import { useOderlistStore } from '@/stores/OrderList';
 
+// --- Initialization ---
 const orderStore = useOderlistStore();
+
+// --- State ---
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
-onMounted(() => {
-
-    orderStore.loadOrderinadmin();
-});
-
-
+// --- Computed ---
 const historyOrders = computed(() => {
     if (!orderStore.sortedOrders) return [];
+    // Only show orders that have a status and are not 'pending'
     return orderStore.sortedOrders.filter(order => order.statusOrder && order.statusOrder !== 'pending');
 });
 
+// --- Lifecycle ---
+onMounted(() => {
+    orderStore.loadOrderinadmin();
+});
+
+// --- Methods ---
 const openModal = (order) => {
     selectedOrder.value = order;
     showModal.value = true;
@@ -33,9 +38,9 @@ const getStatusColor = (status) => {
         case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
-}
+};
 
-const formatDate = (timestamp) => {
+const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     try {
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -43,7 +48,7 @@ const formatDate = (timestamp) => {
     } catch (e) {
         return '-';
     }
-}
+};
 </script>
 
 <template>
@@ -77,10 +82,10 @@ const formatDate = (timestamp) => {
                                 </td>
 
                                 <td class="text-center font-medium text-slate-700">
-                                    {{ order.building || '-' }}
+                                    {{ order.building }}
                                 </td>
                                 <td class="text-center font-medium text-slate-700">
-                                    {{ order.floor || '-' }}
+                                    {{ order.floor }}
                                 </td>
                                 <td class="text-center font-medium text-slate-700">
                                     <span class="font-bold ">{{ order.room }}</span>
@@ -90,7 +95,7 @@ const formatDate = (timestamp) => {
                                         {{ order.statusOrder?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
-                                <td class="text-center text-sm">{{ formatDate(order.CreatedAt) }}</td>
+                                <td class="text-center text-sm">{{ formatTimestamp(order.CreatedAt) }}</td>
                                 <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>
                                 <td class="text-center">
                                     <button @click="openModal(order)"
@@ -145,7 +150,7 @@ const formatDate = (timestamp) => {
                             <span v-else>
                                 Table: {{ selectedOrder.tableId }}
                             </span>
-                            <span>Date: {{ formatDate(selectedOrder.CreatedAt) }}</span>
+                            <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>
 
                         <div class="overflow-x-auto">

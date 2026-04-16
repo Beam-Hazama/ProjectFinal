@@ -13,12 +13,22 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
+/**
+ * Order List Store
+ * Manages the global order tracking for both users (customers) and staff (restaurant/admin).
+ */
 export const useOderlistStore = defineStore("oderlist", {
+  // --- State ---
   state: () => ({
     list: [],
     unsubscribe: null,
   }),
+
+  // --- Getters ---
   getters: {
+    /**
+     * Sort orders by creation timestamp (oldest first).
+     */
     sortedOrders: (state) => {
       return [...state.list].sort((a, b) => {
         if (!a.CreatedAt || !b.CreatedAt) return 0;
@@ -26,7 +36,12 @@ export const useOderlistStore = defineStore("oderlist", {
       });
     },
   },
+
+  // --- Actions ---
   actions: {
+    /**
+     * Internal: Calculate the overall order status based on individual item statuses.
+     */
     async _recalculateGlobalStatus(updatedMenu) {
       const allItemsFinished = updatedMenu.every(item =>
         ['received', 'dispatched', 'cancelled', 'returned'].includes(item.itemStatus)
@@ -46,6 +61,9 @@ export const useOderlistStore = defineStore("oderlist", {
       }
     },
 
+    /**
+     * Update all items belonging to a specific restaurant in an order.
+     */
     async updateOrderStatus(orderId, newStatus, restaurantName) {
       try {
         const orderRef = doc(db, 'Order', orderId);
@@ -68,6 +86,7 @@ export const useOderlistStore = defineStore("oderlist", {
             UpdatedAt: serverTimestamp()
           });
 
+          // Sync with Menu availability if cancelled
           if (newStatus === 'cancelled') {
             for (const item of updatedMenu) {
               if (item.Restaurant === restaurantName) {
@@ -87,6 +106,10 @@ export const useOderlistStore = defineStore("oderlist", {
         throw error;
       }
     },
+
+    /**
+     * Update status for a specific single menu item.
+     */
     async updateSingleItemStatus(orderId, itemId, newStatus) {
       try {
         const orderRef = doc(db, 'Order', orderId);
@@ -124,6 +147,10 @@ export const useOderlistStore = defineStore("oderlist", {
         throw error;
       }
     },
+
+    /**
+     * Update statuses for multiple specific items at once.
+     */
     async updateMultipleItemsStatus(orderId, updates) {
       try {
         const orderRef = doc(db, 'Order', orderId);
@@ -165,6 +192,9 @@ export const useOderlistStore = defineStore("oderlist", {
       }
     },
 
+    /**
+     * Reject an entire order globally.
+     */
     async rejectOrderGlobal(orderId) {
       try {
         const orderRef = doc(db, 'Order', orderId);
@@ -172,7 +202,6 @@ export const useOderlistStore = defineStore("oderlist", {
 
         if (orderSnap.exists()) {
           const orderData = orderSnap.data();
-
 
           const updatedMenu = orderData.Menu.map(item => ({
             ...item,
@@ -183,7 +212,6 @@ export const useOderlistStore = defineStore("oderlist", {
             Menu: updatedMenu,
             statusOrder: 'returned'
           });
-
 
           for (const item of updatedMenu) {
             if (item.itemStatus === 'cancelled') {
@@ -203,7 +231,9 @@ export const useOderlistStore = defineStore("oderlist", {
       }
     },
 
-
+    /**
+     * Clear active listeners and reset order list.
+     */
     clearListener() {
       if (this.unsubscribe) {
         this.unsubscribe();
@@ -212,7 +242,9 @@ export const useOderlistStore = defineStore("oderlist", {
       this.list = [];
     },
 
-
+    /**
+     * Load orders for a specific table/room (Customer View).
+     */
     async loadOrderUser(tableId) {
       this.clearListener();
 
@@ -226,41 +258,52 @@ export const useOderlistStore = defineStore("oderlist", {
           id: doc.id,
           ...doc.data(),
         }));
-
-        if (this.list.length > 0) {
-          // Local notification triggers removed, Cloud Function handles it.
-        }
-
         this.list = newOrders;
       });
     },
+
+    /**
+     * Place a new order to the system.
+     */
     async addToOrderList(orderData) {
       const { Menu, ...orderref } = orderData;
+      
+      // Clean up menu items for storage
       const cleanedMenu = Menu.map((item) => {
         const { Status, Remainquantity, ImageUrl, ...filtered } = item;
         return { ...filtered, itemStatus: "waiting" };
       });
+
       const finalOrder = { ...orderref, Menu: cleanedMenu };
+      
       await addDoc(collection(db, "Order"), {
         ...finalOrder,
         statusOrder: "pending",
         CreatedAt: serverTimestamp(),
       });
     },
+
+    /**
+     * Load all pending orders (Restaurant View).
+     */
     async loadOrder() {
       this.clearListener();
 
-      const orderList = query(
+      const orderListVisible = query(
         collection(db, "Order"),
         where("statusOrder", "==", "pending")
       );
-      this.unsubscribe = onSnapshot(orderList, (orderSnapshot) => {
+      this.unsubscribe = onSnapshot(orderListVisible, (orderSnapshot) => {
         this.list = orderSnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
         }));
       });
     },
+
+    /**
+     * Load all orders across the system (Admin View).
+     */
     async loadOrderinadmin() {
       this.clearListener();
 

@@ -1,35 +1,31 @@
 <script setup>
-import { useCartStore } from '@/stores/cartStore';
 import { useRouter } from 'vue-router';
-import { useMenuStore } from '@/stores/menu';
+import { useCartStore } from '@/stores/cartStore';
+import { useMenuStore } from '@/stores/menuStore';
 
-const menuStore = useMenuStore();
-
-const cartStore = useCartStore();
-const router = useRouter();
-
-
+// --- Initialization ---
 const props = defineProps({
   tableId: String
-})
+});
+const router = useRouter();
+const cartStore = useCartStore();
+const menuStore = useMenuStore();
 
+// --- Methods ---
 const payment = () => {
-  
   cartStore.placeorder(props.tableId);
-  
 
-  const dlg = document.getElementById('my_modal_1')
-  if (dlg?.close) dlg.close()
+  const dlg = document.getElementById('my_modal_1');
+  if (dlg?.close) dlg.close();
   
-  cartStore.clearcart()
-  
+  cartStore.clearcart();
   router.push({ name: 'Status', params: { tableId: props.tableId } });
 };
 
 const editOrder = () => {
-  const dlg = document.getElementById('my_modal_1')
-  if (dlg?.close) dlg.close()
-}
+  const dlg = document.getElementById('my_modal_1');
+  if (dlg?.close) dlg.close();
+};
 
 const getMenuName = (id) => {
   const menu = menuStore.list.find(m => m.id === id);
@@ -39,12 +35,14 @@ const getMenuName = (id) => {
 
 <template>
   <div class="modal-box p-0 w-11/12 max-w-md bg-white rounded-[2rem] shadow-xl overflow-hidden font-sans border border-slate-100 relative">
+    <!-- Order Confirmation Header Section -->
     <div class="px-8 pt-7 pb-4 bg-white/80 backdrop-blur-sm z-10 relative">
       <h2 class="text-xs font-bold text-blue-400 tracking-widest uppercase mb-1">ยืนยันออเดอร์</h2>
       <h1 class="text-3xl font-extrabold text-blue-600">Confirm Order</h1>
       <p class="text-red-700 text-sm mt-1">**ไม่สามารถยกเลิกออเดอร์ได้**</p>
     </div>
 
+    <!-- Order Summary List Section -->
     <div class="px-6 max-h-[40vh] overflow-y-auto custom-scrollbar relative z-10">
       <div v-if="cartStore.item.length > 0" class="space-y-0.5">
         <div v-for="(cart, index) in cartStore.item" :key="index" class="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all">
@@ -62,6 +60,7 @@ const getMenuName = (id) => {
       </div>
     </div>
 
+    <!-- Total & Actions Section -->
     <div class="pb-6 px-6 bg-slate-50 mt-4 rounded-t-[2.5rem] relative z-20">
       <hr class="border-dashed border-gray-300 my-4" />
       <div class="flex justify-between items-end mb-6 px-2">

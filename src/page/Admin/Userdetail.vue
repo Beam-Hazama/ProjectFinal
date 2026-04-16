@@ -5,18 +5,15 @@ import { db } from '@/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
-
-const restaurants = ref([]);
-
-
 const userId = route.params.id;
 
-
+// --- State ---
+const restaurants = ref([]);
 const imageInputMethod = ref('file');
 const imagePreview = ref(null);
-
 const userData = ref({
     Firstname: '',
     Lastname: '',
@@ -32,7 +29,20 @@ const userData = ref({
     Age: ''
 });
 
+// --- Lifecycle ---
+onMounted(() => {
+    fetchRestaurants();
+    fetchUserData();
+});
 
+// --- Watchers ---
+watch(() => userData.value.ImageUrl, (newVal) => {
+    if (imageInputMethod.value === 'url') {
+        imagePreview.value = newVal;
+    }
+});
+
+// --- Methods ---
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -45,41 +55,27 @@ const fetchRestaurants = async () => {
     }
 };
 
-
 const fetchUserData = async () => {
-    if (userId) {
-        try {
-            const docRef = doc(db, 'User', userId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-
-                userData.value = { ...userData.value, ...data };
-                imagePreview.value = data.ImageUrl;
-                if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
-                    imageInputMethod.value = 'url';
-                }
-            } else {
-                alert("ไม่พบข้อมูลผู้ใช้งาน");
-                router.push('/Admin/Restaurantuser');
+    if (!userId) return;
+    
+    try {
+        const docRef = doc(db, 'User', userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            userData.value = { ...userData.value, ...data };
+            imagePreview.value = data.ImageUrl;
+            if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
+                imageInputMethod.value = 'url';
             }
-        } catch (error) {
-            console.error("Error fetching user:", error);
+        } else {
+            alert("ไม่พบข้อมูลผู้ใช้งาน");
+            router.push('/Admin/Restaurantuser');
         }
+    } catch (error) {
+        console.error("Error fetching user:", error);
     }
 };
-
-onMounted(() => {
-    fetchRestaurants();
-    fetchUserData();
-});
-
-watch(() => userData.value.ImageUrl, (newVal) => {
-    if (imageInputMethod.value === 'url') {
-        imagePreview.value = newVal;
-    }
-});
-
 
 const goBack = () => router.go(-1);
 </script>
@@ -143,26 +139,23 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label type="text"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Firstname }}
-                                    </label>
+                                    </div>
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
-                                    <label type="text"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
-                                        {{ userData.Lastname }}</label>
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                        {{ userData.Lastname }}</div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username
                                             <span class="text-red-500">*</span></span></label>
-                                    <label type="text"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-medium">
                                         {{ userData.Username }}
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-control">
@@ -171,48 +164,44 @@ const goBack = () => router.go(-1);
                                             Password
                                         </span>
                                     </label>
-                                    <label type="password"
-                                        class="input input-bordered w-full bg-slate-50 focus:input-primary">
-                                        {{ userData.Password }}
-                                    </label>
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                        ••••••••
+                                    </div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร
                                             <span class="text-red-500">*</span></span></label>
-                                    <label class="input input-bordered w-full">
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Restaurant }}
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">ระยะทาง <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label
-                                        class="input input-bordered w-full relative flex items-center pr-12 focus-within:ring-2 focus-within:ring-blue-500">
+                                    <div class="input input-bordered w-full relative flex items-center pr-12 bg-slate-50 text-slate-700">
                                         {{ userData.Distance || '-' }}
                                         <span
                                             class="absolute right-4 text-slate-400 pointer-events-none text-sm font-medium">กม.</span>
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label type="text"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Phone }}
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <label type="text"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50">
+                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Age || '-' }}
-                                    </label>
+                                    </div>
                                 </div>
 
                                 <div class="form-control md:col-span-2">

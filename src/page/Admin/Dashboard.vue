@@ -1,10 +1,12 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
 import { useDashboardStore } from '@/stores/dashboard';
-import layoutAdmin from '@/page/Admin/Admin.vue';
+import LayoutAdmin from '@/page/Admin/Admin.vue';
 
+// --- Initialization ---
 const dashboardStore = useDashboardStore();
 
+// --- Lifecycle ---
 onMounted(() => {
   dashboardStore.loadDashboardData();
 });
@@ -15,10 +17,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <layoutAdmin>
+  <LayoutAdmin>
     <div class="p-6">
 
 
+      <!-- Header and Filters -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div class="text-3xl font-bold text-slate-700">Dashboard</div>
 
@@ -68,7 +71,9 @@ onUnmounted(() => {
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
       </div>
 
+      <!-- Dashboard Highlights -->
       <div v-else class="space-y-6">
+        <!-- Order Status Summary -->
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div
@@ -95,6 +100,7 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <!-- KPI Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
 
@@ -152,7 +158,7 @@ onUnmounted(() => {
               <div>
                 <p class="text-sm font-bold text-slate-500 mb-1">เมนูอาหาร</p>
                 <h3 class="text-3xl font-extrabold text-slate-800">{{
-                  dashboardStore.filteredTotalProducts.toLocaleString() }}
+                  dashboardStore.filteredTotalMenus.toLocaleString() }}
                 </h3>
               </div>
               <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm">
@@ -189,6 +195,7 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <!-- Analytical Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
 
@@ -334,7 +341,7 @@ onUnmounted(() => {
 
       </div>
     </div>
-  </layoutAdmin>
+  </LayoutAdmin>
 </template>
 
 <style scoped>

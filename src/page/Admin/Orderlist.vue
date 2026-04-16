@@ -1,19 +1,22 @@
 <script setup>
-import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { onMounted, ref } from 'vue';
+import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useOderlistStore } from '@/stores/OrderList';
 
+// --- Initialization ---
 const orderStore = useOderlistStore();
+
+// --- State ---
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
+// --- Lifecycle ---
 onMounted(() => {
   orderStore.loadOrder();
 });
 
-
-
-const formatDate = (timestamp) => {
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   return date.toLocaleString('th-TH');
@@ -23,7 +26,7 @@ const openModal = (order) => {
   selectedOrder.value = order;
   showModal.value = true;
 };
- 
+
 const getStatusColor = (status) => {
   switch (status) {
     case 'pending': return 'badge-info text-white';
@@ -34,7 +37,7 @@ const getStatusColor = (status) => {
     case 'returned': return 'badge-error text-white bg-orange-500';
     default: return 'badge-ghost text-slate-500';
   }
-}
+};
 </script>
 
 <template>
@@ -81,7 +84,7 @@ const getStatusColor = (status) => {
                     {{ orders.statusOrder?.toUpperCase() || '-' }}
                   </span>
                 </td>
-                <td class="text-center text-sm">{{ formatDate(orders.CreatedAt) }}</td>
+                <td class="text-center text-sm">{{ formatTimestamp(orders.CreatedAt) }}</td>
                 <td class="text-center font-bold text-emerald-600">{{ orders.TotalPrice?.toLocaleString() }} ฿</td>
                 <td class="text-center">
                   <button @click="openModal(orders)"
@@ -123,7 +126,7 @@ const getStatusColor = (status) => {
               <span v-else>
                 Room: {{ selectedOrder.tableId }}
               </span>
-              <span>Date: {{ formatDate(selectedOrder.CreatedAt) }}</span>
+              <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
             </div>
           
 

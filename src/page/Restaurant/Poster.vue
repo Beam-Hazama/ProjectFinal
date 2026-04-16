@@ -2,11 +2,18 @@
 import { ref, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { usePosterStore } from '@/stores/posterStore';
-import { useAccountStore } from '@/stores/account'
+import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
+// --- Initialization ---
 const posterStore = usePosterStore();
+const accountStore = useAccountStore();
+const restaurantName = accountStore.user?.Restaurant;
+
+// --- State ---
+const localPosters = ref([]);
 const newPosterUrl = ref('');
+const displayDuration = ref(5);
 const isSubmittingPoster = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
@@ -15,39 +22,22 @@ const editingPosterId = ref(null);
 const hasSchedule = ref(false);
 const startTime = ref('');
 const endTime = ref('');
-const displayDuration = ref(5);
 
-const accountStore = useAccountStore()
-const restaurantName = accountStore.user?.Restaurant
-
+// --- Lifecycle ---
 onMounted(() => {
     if (restaurantName) {
         posterStore.loadPosters(restaurantName);
     }
 });
 
-const localPosters = ref([]);
-
+// --- Watchers ---
 watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-const onDragEnd = async () => {
-    const orderedIds = localPosters.value.map(p => p.id);
-    await posterStore.updatePosterOrder(orderedIds);
-};
+// --- Methods ---
 
-const openEditModal = (poster) => {
-    isEditing.value = true;
-    editingPosterId.value = poster.id;
-    newPosterUrl.value = poster.ImageUrl;
-    displayDuration.value = poster.displayDuration || 5;
-    hasSchedule.value = !!poster.hasSchedule;
-    startTime.value = poster.startTime || '';
-    endTime.value = poster.endTime || '';
-    showModal.value = true;
-};
-
+// Poster Management
 const handleSubmitPoster = async () => {
     if (!newPosterUrl.value.trim()) {
         alert('Please enter an image URL');
@@ -72,7 +62,6 @@ const handleSubmitPoster = async () => {
             posterData.startTime = startTime.value;
             posterData.endTime = endTime.value;
         } else {
-
             posterData.startTime = null;
             posterData.endTime = null;
         }
@@ -94,6 +83,42 @@ const handleSubmitPoster = async () => {
     }
 };
 
+const deletePoster = async (posterId) => {
+    if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
+        try {
+            await posterStore.deletePoster(posterId);
+        } catch (error) {
+            alert('Error deleting poster: ' + error.message);
+        }
+    }
+};
+
+const togglePosterStatus = async (poster) => {
+    try {
+        await posterStore.toggleActive(poster.id, poster.isActive);
+    } catch (error) {
+        alert('Error updating status: ' + error.message);
+    }
+};
+
+// Drag & Drop
+const onDragEnd = async () => {
+    const orderedIds = localPosters.value.map(p => p.id);
+    await posterStore.updatePosterOrder(orderedIds);
+};
+
+// Modal Management
+const openEditModal = (poster) => {
+    isEditing.value = true;
+    editingPosterId.value = poster.id;
+    newPosterUrl.value = poster.ImageUrl;
+    displayDuration.value = poster.displayDuration || 5;
+    hasSchedule.value = !!poster.hasSchedule;
+    startTime.value = poster.startTime || '';
+    endTime.value = poster.endTime || '';
+    showModal.value = true;
+};
+
 const closeModal = () => {
     showModal.value = false;
     isEditing.value = false;
@@ -105,25 +130,8 @@ const closeModal = () => {
     displayDuration.value = 5;
 };
 
-const togglePosterStatus = async (poster) => {
-    try {
-        await posterStore.toggleActive(poster.id, poster.isActive);
-    } catch (error) {
-        alert('Error updating status: ' + error.message);
-    }
-};
-
-const deletePoster = async (posterId) => {
-    if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
-        try {
-            await posterStore.deletePoster(posterId);
-        } catch (error) {
-            alert('Error deleting poster: ' + error.message);
-        }
-    }
-};
-
-const formatDate = (timestamp) => {
+// Helpers
+const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     if (typeof timestamp.toDate === 'function') {
         return timestamp.toDate().toLocaleString('th-TH');
@@ -147,6 +155,7 @@ const formatScheduleDate = (dateString) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6 font-sans">
+            <!-- Header Section -->
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">Poster</h1>
@@ -162,6 +171,7 @@ const formatScheduleDate = (dateString) => {
             </div>
 
 
+            <!-- Poster Management Modal -->
             <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
                 <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
                     <div
@@ -247,6 +257,7 @@ const formatScheduleDate = (dateString) => {
             </dialog>
 
 
+            <!-- Poster List Table Section -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
@@ -341,11 +352,11 @@ const formatScheduleDate = (dateString) => {
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatDate(poster.createdAt) }}
+                                        {{ formatTimestamp(poster.createdAt) }}
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatDate(poster.updatedAt) }}
+                                        {{ formatTimestamp(poster.updatedAt) }}
                                     </td>
 
                                     <td class="text-center">

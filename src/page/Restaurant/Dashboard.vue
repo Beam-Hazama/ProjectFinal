@@ -1,37 +1,40 @@
 <script setup>
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useRestaurantDashboardStore } from '@/stores/restaurantDashboard';
-import { useAccountStore } from '@/stores/account'
-import restaurantLayout from '@/page/Restaurant/restaurant.vue';
+import { useAccountStore } from '@/stores/accountStore';
+import RestaurantLayout from '@/page/Restaurant/restaurant.vue';
 
+// --- Initialization ---
 const dashboardStore = useRestaurantDashboardStore();
-const accountStore = useAccountStore()
+const accountStore = useAccountStore();
 
+// --- Lifecycle ---
 onMounted(async () => {
-    await accountStore.checkAuthState()
+    await accountStore.checkAuthState();
     if (accountStore.user?.Restaurant) {
-        dashboardStore.loadDashboardData(accountStore.user.Restaurant)
+        dashboardStore.loadDashboardData(accountStore.user.Restaurant);
     }
-})
+});
 
+onUnmounted(() => {
+    dashboardStore.clearListeners();
+});
+
+// --- Watchers ---
 watch(
     () => accountStore.user,
     (user) => {
         if (user?.Restaurant) {
-            dashboardStore.loadDashboardData(user.Restaurant)
+            dashboardStore.loadDashboardData(user.Restaurant);
         }
     }
-)
-
-onUnmounted(() => {
-    dashboardStore.clearListeners()
-})
+);
 </script>
 
 <template>
-    <restaurantLayout>
+    <RestaurantLayout>
         <div class="p-6">
-            <!-- Header & Filters -->
+            <!-- Header & Filters Section -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div class="text-3xl font-bold text-slate-700">Dashboard</div>
 
@@ -56,7 +59,7 @@ onUnmounted(() => {
             </div>
 
             <div v-else class="space-y-6">
-                <!-- Status Row -->
+                <!-- Order Status / Statistics Row -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div
                         class="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
@@ -84,7 +87,7 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- Main Stats -->
+                <!-- Main Financial & Volume Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div
                         class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
@@ -139,7 +142,7 @@ onUnmounted(() => {
                             <div>
                                 <p class="text-sm font-bold text-slate-500 mb-1">เมนูอาหารของคุณ</p>
                                 <h3 class="text-3xl font-extrabold text-slate-800">{{
-                                    dashboardStore.totalProducts.toLocaleString() }}</h3>
+                                    dashboardStore.totalMenus.toLocaleString() }}</h3>
                             </div>
                             <div
                                 class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm">
@@ -205,7 +208,7 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-                <!-- Tables Section -->
+                <!-- Top Menus & Recent Orders Tables -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                         <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
@@ -312,7 +315,7 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-    </restaurantLayout>
+    </RestaurantLayout>
 </template>
 
 <style scoped>

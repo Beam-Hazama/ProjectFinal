@@ -1,33 +1,33 @@
 <script setup>
+import { ref, computed, nextTick, onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
-import { ref, nextTick, onMounted, computed } from 'vue'
 import AdminLayout from './Admin.vue'
 import { useQRCodeStore } from '@/stores/qrcode'
 
+// --- Initialization ---
 const qrStore = useQRCodeStore()
-
 const baseUrl = 'https://192.168.1.45:5173'
 
+// --- State ---
+const isModalOpen = ref(false)
+const selectedRoom = ref(null)
+const roomForm = ref({ roomNumber: '', floor: '', building: '' })
+
+// --- Computed ---
 const rooms = computed(() => qrStore.rooms)
 
+// --- Lifecycle ---
 onMounted(() => {
   qrStore.fetchRooms()
 })
 
-const isModalOpen = ref(false)
-const isEditing = ref(false)
-const currentRoomId = ref(null)
-const roomForm = ref({ roomNumber: '', floor: '', building: '' })
-
+// --- Methods ---
 const openAddModal = () => {
-  isEditing.value = false
   roomForm.value = { roomNumber: '', floor: '', building: '' }
   isModalOpen.value = true
 }
 
-
-
-const formatDate = (date) => {
+const formatTimestamp = (date) => {
   if (!date) return 'กำลังโหลด...'
   const d = date.toDate ? date.toDate() : new Date(date)
   return d.toLocaleDateString('th-TH', {
@@ -38,18 +38,13 @@ const formatDate = (date) => {
 }
 
 const saveRoom = async () => {
-
   if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {
     alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง')
     return
   }
 
   try {
-    if (isEditing.value) {
-      await qrStore.updateRoom(currentRoomId.value, { ...roomForm.value })
-    } else {
-      await qrStore.addRoom({ ...roomForm.value })
-    }
+    await qrStore.addRoom({ ...roomForm.value })
     isModalOpen.value = false
   } catch (error) {
     console.error("Save error:", error)
@@ -66,7 +61,6 @@ const deleteRoom = async (roomId) => {
   }
 }
 
-const selectedRoom = ref(null)
 const printSpecificQR = async (room) => {
   selectedRoom.value = room
   await nextTick()
@@ -90,6 +84,7 @@ const printSpecificQR = async (room) => {
           </button>
         </div>
 
+        <!-- QR Code List Table -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="table w-full">
@@ -108,13 +103,14 @@ const printSpecificQR = async (room) => {
                   <td class="text-center">{{ room.building }}</td>
                   <td class="text-center">{{ room.floor }}</td>
                   <td class="text-center">{{ room.roomNumber }}</td>
-                  <td class="text-center">{{ formatDate(room.createdAt) }}</td>
+                  <td class="text-center">{{ formatTimestamp(room.createdAt) }}</td>
                   <td class="text-center border-none">
                     <button @click="printSpecificQR(room)"
-                      class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">Print QR</button>
+                      class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">
+                      Print QR
+                    </button>
                   </td>
                   <td class="text-center border-none">
-
                     <button @click="deleteRoom(room.id)" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -130,36 +126,40 @@ const printSpecificQR = async (room) => {
           </div>
         </div>
 
+        <!-- Add Room Modal -->
         <dialog :open="isModalOpen" class="modal bg-black/50">
           <div class="modal-box shadow-2xl">
-            <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'Edit Room' : 'Add New Room' }}</h3>
+            <h3 class="font-bold text-lg mb-4 text-slate-700">Add New Room QR Code</h3>
+            
             <div class="space-y-4">
-
               <div class="grid grid-cols-3 gap-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text">Building</span></label>
-                  <input v-model="roomForm.building" type="text"
+                  <input v-model="roomForm.building" type="text" placeholder="e.g. A"
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text">Floor</span></label>
-                  <input v-model="roomForm.floor" type="text"
+                  <input v-model="roomForm.floor" type="text" placeholder="e.g. 5"
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
-                <div>
-                  <div class="form-control">
-                    <label class="label"><span class="label-text">Room Number</span></label>
-                    <input v-model="roomForm.roomNumber" type="text"
-                      class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
-                  </div>
+                <div class="form-control">
+                  <label class="label"><span class="label-text">Room Number</span></label>
+                  <input v-model="roomForm.roomNumber" type="text" placeholder="e.g. 501"
+                    class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
               </div>
             </div>
+
             <div class="modal-action flex mt-8 justify-end gap-3">
               <button @click="isModalOpen = false"
-                class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
+                class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">
+                Cancel
+              </button>
               <button @click="saveRoom" :disabled="!roomForm.roomNumber || !roomForm.floor || !roomForm.building"
-                class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">Save</button>
+                class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
+                Save
+              </button>
             </div>
           </div>
         </dialog>

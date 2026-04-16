@@ -1,166 +1,161 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
-import { useCartStore } from '@/stores/cartStore'
+import { ref, watch, computed } from 'vue';
+import { useCartStore } from '@/stores/cartStore';
 
+// --- Initialization ---
 const props = defineProps({
   show: Boolean,
-  product: Object
-})
+  menu: Object
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close']);
+const cartStore = useCartStore();
 
-const cartStore = useCartStore()
+// --- State ---
+const quantity = ref(1);
+const note = ref('');
+const selections = ref({}); // Maps Group Index -> Selection (Array for checkbox, String for radio)
 
-const quantity = ref(1)
-const note = ref('')
-
-
-const selections = ref({})
-
+// --- Watchers ---
 watch(
-  () => props.product,
-  (product) => {
-    if (!product) return
+  () => props.menu,
+  (menu) => {
+    if (!menu) return;
 
-    const cartItem = cartStore.getItemById(product.id)
-    selections.value = {}
+    const cartItem = cartStore.getItemById(menu.id);
+    selections.value = {};
 
-    if (cartItem && cartItem.selections) {
-
-    }
-
-    if (product.OptionGroups) {
-      product.OptionGroups.forEach((g, i) => {
-        if (g.maxChoices > 1) {
-          selections.value[i] = []
+    // Initialize selections based on OptionGroups
+    if (menu.OptionGroups) {
+      menu.OptionGroups.forEach((group, index) => {
+        if (group.maxChoices > 1) {
+          selections.value[index] = [];
         } else {
-          selections.value[i] = null
+          selections.value[index] = null;
         }
-      })
+      });
     }
 
+    // Load existing cart item data if present
     if (cartItem) {
-      quantity.value = cartItem.Quantity
-
-      note.value = cartItem.baseNote || ''
-
+      quantity.value = cartItem.Quantity;
+      note.value = cartItem.baseNote || '';
     } else {
-      quantity.value = 1
-      note.value = ''
+      quantity.value = 1;
+      note.value = '';
     }
   },
   { immediate: true }
-)
+);
 
-const toggleRadio = (gIndex, choiceName) => {
-  if (selections.value[gIndex] === choiceName) {
-    selections.value[gIndex] = null
-  } else {
-    selections.value[gIndex] = choiceName
-  }
-}
-
-const confirmAdd = () => {
-  if (!isFormValid.value) return
-
-  let finalNote = note.value ? `หมายเหตุ: ${note.value}` : ''
-  let optionsNoteArr = []
-
-  if (props.product && props.product.OptionGroups) {
-    props.product.OptionGroups.forEach((g, i) => {
-      const sel = selections.value[i]
-      if (g.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
-        const choiceStrs = sel.map(name => {
-          const choice = g.choices.find(c => c.name === name)
-          return choice && Number(choice.price) > 0 ? `${name} (+฿${choice.price})` : name
-        })
-        optionsNoteArr.push(`${g.name}: ${choiceStrs.join(', ')}`)
-      } else if (g.maxChoices === 1 && sel) {
-        const choice = g.choices.find(c => c.name === sel)
-        const choiceStr = choice && Number(choice.price) > 0 ? `${sel} (+฿${choice.price})` : sel
-        optionsNoteArr.push(`${g.name}: ${choiceStr}`)
-      }
-    })
-  }
-
-  if (optionsNoteArr.length > 0) {
-    const combinedOptions = optionsNoteArr.join('\n')
-    finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions
-  }
-
-
-  let extraPrice = 0
-  if (props.product.OptionGroups) {
-    props.product.OptionGroups.forEach((g, i) => {
-      const sel = selections.value[i]
-      if (g.maxChoices > 1 && Array.isArray(sel)) {
-        sel.forEach(name => {
-          const choice = g.choices.find(c => c.name === name)
-          if (choice) extraPrice += (Number(choice.price) || 0)
-        })
-      } else if (g.maxChoices === 1 && sel) {
-        const choice = g.choices.find(c => c.name === sel)
-        if (choice) extraPrice += (Number(choice.price) || 0)
-      }
-    })
-  }
-
-  const basePrice = props.product.PromoPrice && Number(props.product.PromoPrice) > 0 ? Number(props.product.PromoPrice) : Number(props.product.Price)
-  const unitPrice = basePrice + extraPrice
-
-  cartStore.addOrUpdateItem(props.product, quantity.value, finalNote, unitPrice)
-  emit('close')
-}
-
+// --- Computed ---
 const isFormValid = computed(() => {
-  if (!props.product || !props.product.OptionGroups) return true
+  if (!props.menu || !props.menu.OptionGroups) return true;
 
-  for (let i = 0; i < props.product.OptionGroups.length; i++) {
-    const group = props.product.OptionGroups[i]
+  for (let i = 0; i < props.menu.OptionGroups.length; i++) {
+    const group = props.menu.OptionGroups[i];
     if (group.isRequired) {
-      const sel = selections.value[i]
+      const sel = selections.value[i];
       if (group.maxChoices > 1) {
-        if (!Array.isArray(sel) || sel.length === 0) return false
+        if (!Array.isArray(sel) || sel.length === 0) return false;
       } else {
-        if (!sel) return false
+        if (!sel) return false;
       }
     }
   }
-  return true
-})
+  return true;
+});
 
+// --- Methods ---
+const toggleRadio = (gIndex, choiceName) => {
+  if (selections.value[gIndex] === choiceName) {
+    selections.value[gIndex] = null;
+  } else {
+    selections.value[gIndex] = choiceName;
+  }
+};
 
-const totalPrice = () => {
-  if (!props.product) return 0
-  let base = props.product.PromoPrice && Number(props.product.PromoPrice) > 0 ? Number(props.product.PromoPrice) : Number(props.product.Price)
-  let extra = 0
+const calculateTotalPrice = () => {
+  if (!props.menu) return 0;
+  
+  // Base price (Promo or Regular)
+  let base = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
+    ? Number(props.menu.PromoPrice) 
+    : Number(props.menu.Price);
+    
+  let extra = 0;
 
-  if (props.product.OptionGroups) {
-    props.product.OptionGroups.forEach((g, i) => {
-      const sel = selections.value[i]
-      if (g.maxChoices > 1 && Array.isArray(sel)) {
+  // Add prices of selected options
+  if (props.menu.OptionGroups) {
+    props.menu.OptionGroups.forEach((group, index) => {
+      const sel = selections.value[index];
+      if (group.maxChoices > 1 && Array.isArray(sel)) {
         sel.forEach(name => {
-          const choice = g.choices.find(c => c.name === name)
-          if (choice) extra += (Number(choice.price) || 0)
-        })
-      } else if (g.maxChoices === 1 && sel) {
-        const choice = g.choices.find(c => c.name === sel)
-        if (choice) extra += (Number(choice.price) || 0)
+          const choice = group.choices.find(c => c.name === name);
+          if (choice) extra += (Number(choice.price) || 0);
+        });
+      } else if (group.maxChoices === 1 && sel) {
+        const choice = group.choices.find(c => c.name === sel);
+        if (choice) extra += (Number(choice.price) || 0);
       }
-    })
+    });
   }
 
-  return (base + extra) * quantity.value
-}
+  return (base + extra) * quantity.value;
+};
+
+const confirmAdd = () => {
+  if (!isFormValid.value) return;
+
+  let finalNote = note.value ? `หมายเหตุ: ${note.value}` : '';
+  let optionsNoteArr = [];
+
+  // 1. Calculate extra price and build the description of selected options
+  let extraPrice = 0;
+  if (props.menu && props.menu.OptionGroups) {
+    props.menu.OptionGroups.forEach((group, index) => {
+      const sel = selections.value[index];
+      
+      if (group.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
+        const choiceStrs = sel.map(name => {
+          const choice = group.choices.find(c => c.name === name);
+          if (choice) extraPrice += (Number(choice.price) || 0);
+          return choice && Number(choice.price) > 0 ? `${name} (+฿${choice.price})` : name;
+        });
+        optionsNoteArr.push(`${group.name}: ${choiceStrs.join(', ')}`);
+      } else if (group.maxChoices === 1 && sel) {
+        const choice = group.choices.find(c => c.name === sel);
+        if (choice) extraPrice += (Number(choice.price) || 0);
+        const choiceStr = choice && Number(choice.price) > 0 ? `${sel} (+฿${choice.price})` : sel;
+        optionsNoteArr.push(`${group.name}: ${choiceStr}`);
+      }
+    });
+  }
+
+  // 2. Combine option descriptions into the final note
+  if (optionsNoteArr.length > 0) {
+    const combinedOptions = optionsNoteArr.join('\n');
+    finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions;
+  }
+
+  // 3. Finalize unit price
+  const basePrice = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
+    ? Number(props.menu.PromoPrice) 
+    : Number(props.menu.Price);
+  const unitPrice = basePrice + extraPrice;
+
+  // 4. Update the cart
+  cartStore.addOrUpdateItem(props.menu, quantity.value, finalNote, unitPrice);
+  emit('close');
+};
 </script>
 
 <template>
   <Teleport to="body">
     <transition name="slide-in">
-      <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
-
-
-        <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
+        <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
+          <!-- Modal Header Section -->
+          <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
           <button @click="emit('close')"
             class="w-8 h-8 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-sm active:scale-95 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
@@ -188,10 +183,11 @@ const totalPrice = () => {
         </div>
 
 
+        <!-- Main Content Area -->
         <div class="flex-1 overflow-y-auto no-scrollbar pb-36 bg-gray-50">
 
           <div class="w-full h-[280px] bg-gray-200 relative">
-            <img v-if="product.ImageUrl" :src="product.ImageUrl" class="w-full h-full object-cover" />
+            <img v-if="menu.ImageUrl" :src="menu.ImageUrl" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
               <span class="text-6xl">🍲</span>
             </div>
@@ -201,20 +197,20 @@ const totalPrice = () => {
 
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
             <div class="flex justify-between items-center mb-2">
-              <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ product.Name }}</h2>
+              <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ menu.Name }}</h2>
               <div class="flex flex-col items-end">
-                <div v-if="product.PromoPrice && Number(product.PromoPrice) > 0"
-                  class="text-[18px] font-black text-red-500">฿{{ product.PromoPrice }}</div>
+                <div v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0"
+                  class="text-[18px] font-black text-red-500">฿{{ menu.PromoPrice }}</div>
                 <div class="text-gray-900"
-                  :class="product.PromoPrice && Number(product.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">
-                  ฿{{ product.Price }}</div>
+                  :class="menu.PromoPrice && Number(menu.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">
+                  ฿{{ menu.Price }}</div>
               </div>
             </div>
           </div>
 
 
-          <div v-if="product.OptionGroups && product.OptionGroups.length > 0">
-            <div v-for="(group, gIndex) in product.OptionGroups" :key="'group-' + gIndex"
+          <div v-if="menu.OptionGroups && menu.OptionGroups.length > 0">
+            <div v-for="(group, gIndex) in menu.OptionGroups" :key="'group-' + gIndex"
               class="bg-white px-5 py-4 border-b border-gray-100 mt-2">
               <div class="mb-3 flex justify-between items-start">
                 <div>
@@ -262,6 +258,7 @@ const totalPrice = () => {
         </div>
 
 
+        <!-- Footer / Action Bar -->
         <div
           class="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] px-4 pb-safe rounded-t-3xl z-20 flex flex-col items-center">
 
@@ -293,7 +290,7 @@ const totalPrice = () => {
             :class="isFormValid ? 'bg-blue-600 text-white active:scale-[0.98]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
             :disabled="!isFormValid" @click="confirmAdd">
             <span>เพิ่มไปยังตะกร้า</span>
-            <span>฿{{ totalPrice() }}</span>
+            <span>฿{{ calculateTotalPrice() }}</span>
           </button>
         </div>
 

@@ -1,71 +1,122 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch, nextTick } from 'vue';
-import { useMenuStore } from '@/stores/menu';
+import { useRoute, useRouter } from 'vue-router';
+import { db } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useQRCodeStore } from '@/stores/qrcode';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { useRoute, useRouter } from 'vue-router';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import MenuList from '@/page/component/blockmenu.vue';
 
-import ProductList from '@/page/component/blockmenu.vue';
-
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
-const cartStore = useCartStore();
 const menuStore = useMenuStore();
+const cartStore = useCartStore();
 const qrStore = useQRCodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
-
-
-const currentSlide = ref(0);
-let carouselTimeout = null;
-
-const isValidLocation = ref(false);
-const isLoading = ref(true);
-const currentRestaurant = ref(null);
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+// --- State ---
+const isValidLocation = ref(false);
+const isLoading = ref(true);
+const currentRestaurant = ref(null);
 const activeMenuTab = ref('');
 const searchQuery = ref('');
 const isSearchActive = ref(false);
 const searchInput = ref(null);
 const isCategoryModalOpen = ref(false);
 
-const toggleSearch = () => {
-    isSearchActive.value = !isSearchActive.value;
-    if (!isSearchActive.value) {
-        searchQuery.value = '';
-    } else {
+// Carousel State
+const currentSlide = ref(0);
+let carouselTimeout = null;
+
+// Intersection Observer State
+const isManualScrolling = ref(false);
+let observer = null;
+
+// --- Computed ---
+const displayCategories = computed(() => {
+    const categories = new Set();
+    // 1. Add official categories first
+    categoryStore.list.forEach(c => {
+        if (c.name) categories.add(c.name);
+    });
+    // 2. Add categories found in menu items of this restaurant
+    const restaurantMenus = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    restaurantMenus.forEach(item => {
+        if (item.Category) categories.add(item.Category);
+    });
+    return Array.from(categories);
+});
+
+const groupedMenu = computed(() => {
+    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    const groups = {};
+
+    displayCategories.value.forEach(cat => {
+        const catItems = allItems.filter(item => item.Category === cat);
+        // Apply search filter if active
+        if (searchQuery.value) {
+            const query = searchQuery.value.toLowerCase();
+            groups[cat] = catItems.filter(item =>
+                (item.Name && item.Name.toLowerCase().includes(query)) ||
+                (item.Description && item.Description.toLowerCase().includes(query))
+            );
+        } else {
+            groups[cat] = catItems;
+        }
+    });
+    return groups;
+});
+
+const totalVisibleItems = computed(() => {
+    return Object.values(groupedMenu.value).reduce((total, items) => total + items.length, 0);
+});
+
+// --- Lifecycle ---
+onMounted(async () => {
+    const isValid = await qrStore.validateRoom(building, floor, room);
+    isValidLocation.value = isValid;
+    isLoading.value = false;
+
+    if (isValid) {
+        await menuStore.loadMenu();
+        cartStore.loadcart(building, floor, room);
+        posterStore.loadPosters(restaurantName);
+        categoryStore.loadCategories(restaurantName);
+        fetchRestaurantDetails();
+        startCarousel();
+
+        // Initialize Observer after DOM updates
         nextTick(() => {
-            searchInput.value?.focus();
+            initIntersectionObserver();
         });
     }
-};
+});
 
-const toggleCategoryModal = () => {
-    isCategoryModalOpen.value = !isCategoryModalOpen.value;
-};
+onUnmounted(() => {
+    stopCarousel();
+    if (observer) observer.disconnect();
+});
 
-
-const fetchRestaurantDetails = async () => {
-    try {
-        const q = query(collection(db, "Restaurant"), where("Name", "==", restaurantName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            currentRestaurant.value = querySnapshot.docs[0].data();
-        }
-    } catch (error) {
-        console.error("Error fetching restaurant details for poster:", error);
+// --- Watchers ---
+watch(() => posterStore.activePosters, (newVal) => {
+    if (newVal && newVal.length > 0 && !carouselTimeout) {
+        startCarousel();
     }
-}
+}, { deep: true });
 
+// --- Methods ---
+
+// Carousel Management
 const startCarousel = () => {
     stopCarousel();
     if (posterStore.activePosters?.length > 1) {
@@ -102,96 +153,39 @@ const goToSlide = (index) => {
     startCarousel();
 };
 
-watch(() => posterStore.activePosters, (newVal) => {
-    if (newVal && newVal.length > 0 && !carouselTimeout) {
-        startCarousel();
+// UI Toggles
+const toggleSearch = () => {
+    isSearchActive.value = !isSearchActive.value;
+    if (!isSearchActive.value) {
+        searchQuery.value = '';
+    } else {
+        nextTick(() => {
+            searchInput.value?.focus();
+        });
     }
-}, { deep: true });
+};
 
-onMounted(async () => {
-    const isValid = await qrStore.validateRoom(building, floor, room);
-    isValidLocation.value = isValid;
-    isLoading.value = false;
+const toggleCategoryModal = () => {
+    isCategoryModalOpen.value = !isCategoryModalOpen.value;
+};
 
-    if (isValid) {
-        menuStore.loadMenu();
-        cartStore.loadcart(building, floor, room);
-        posterStore.loadPosters(restaurantName);
-        categoryStore.loadCategories(restaurantName);
-        fetchRestaurantDetails();
-        startCarousel();
+// Data Fetching
+const fetchRestaurantDetails = async () => {
+    try {
+        const q = query(collection(db, "Restaurant"), where("Name", "==", restaurantName));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            currentRestaurant.value = querySnapshot.docs[0].data();
+        }
+    } catch (error) {
+        console.error("Error fetching restaurant details for poster:", error);
     }
-});
+}
 
-onUnmounted(() => {
-    stopCarousel();
-});
-
+// Navigation
 const goBack = () => {
     router.push(`/user/${building}/${floor}/${room}`);
 };
-
-const filteredMenu = computed(() => {
-    let items = menuStore.list || [];
-
-    items = items.filter(item => item.Restaurant === restaurantName);
-
-    if (activeMenuTab.value !== 'เมนูทั้งหมด' && activeMenuTab.value !== 'โปรโมชั่น' && activeMenuTab.value !== 'รีวิว') {
-        items = items.filter(item =>
-            (item.Category && item.Category === activeMenuTab.value) ||
-            (item.role && (Array.isArray(item.role) ? item.role.includes(activeMenuTab.value) : item.role === activeMenuTab.value)) ||
-            (item.Name && item.Name.includes(activeMenuTab.value))
-        );
-    }
-
-    return items;
-});
-
-const displayCategories = computed(() => {
-    const categories = new Set();
-
-    // 1. Add official categories first (to maintain store order if any)
-    categoryStore.list.forEach(c => {
-        if (c.name) categories.add(c.name);
-    });
-
-    // 2. Add categories found in menu items of this restaurant
-    const restaurantMenus = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
-    restaurantMenus.forEach(item => {
-        if (item.Category) categories.add(item.Category);
-    });
-
-    return Array.from(categories);
-});
-
-const groupedMenu = computed(() => {
-    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
-    const groups = {};
-
-    displayCategories.value.forEach(cat => {
-        const catItems = allItems.filter(item => item.Category === cat);
-
-        // Apply search filter if active
-        if (searchQuery.value) {
-            const query = searchQuery.value.toLowerCase();
-            groups[cat] = catItems.filter(item =>
-                (item.Name && item.Name.toLowerCase().includes(query)) ||
-                (item.Description && item.Description.toLowerCase().includes(query))
-            );
-        } else {
-            groups[cat] = catItems;
-        }
-    });
-
-    return groups;
-});
-
-const totalVisibleItems = computed(() => {
-    return Object.values(groupedMenu.value).reduce((total, items) => total + items.length, 0);
-});
-
-const isManualScrolling = ref(false);
-let observer = null;
 
 const scrollToCategory = (categoryName) => {
     isManualScrolling.value = true;
@@ -221,64 +215,45 @@ const scrollToCategory = (categoryName) => {
     }, 1000);
 };
 
-onMounted(async () => {
-    const isValid = await qrStore.validateRoom(building, floor, room);
-    isValidLocation.value = isValid;
-    isLoading.value = false;
+// Intersection Observer Logic
+const initIntersectionObserver = () => {
+    const options = {
+        root: null,
+        rootMargin: '-65px 0px -70% 0px', // Trigger near the sticky header
+        threshold: 0
+    };
 
-    if (isValid) {
-        await menuStore.loadMenu();
-        cartStore.loadcart(building, floor, room);
-        posterStore.loadPosters(restaurantName);
-        categoryStore.loadCategories(restaurantName);
-        fetchRestaurantDetails();
-        startCarousel();
+    observer = new IntersectionObserver((entries) => {
+        if (isManualScrolling.value) return;
 
-        // Initialize Observer after DOM updates
-        nextTick(() => {
-            const options = {
-                root: null,
-                rootMargin: '-65px 0px -70% 0px', // Trigger near the sticky header
-                threshold: 0
-            };
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                const catName = entry.target.id.replace('category-', '');
+                activeMenuTab.value = catName;
 
-            observer = new IntersectionObserver((entries) => {
-                if (isManualScrolling.value) return;
-
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        const catName = entry.target.id.replace('category-', '');
-                        activeMenuTab.value = catName;
-
-                        // Scroll the tab bar active category into view
-                        const tabElement = document.getElementById(`tab-${catName}`);
-                        if (tabElement) {
-                            tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                        }
-                    }
-                });
-            }, options);
-
-            // Observe all category sections
-            document.querySelectorAll('[id^="category-"]').forEach((section) => {
-                observer.observe(section);
-            });
+                // Scroll the tab bar active category into view
+                const tabElement = document.getElementById(`tab-${catName}`);
+                if (tabElement) {
+                    tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
         });
-    }
-});
+    }, options);
 
-onUnmounted(() => {
-    stopCarousel();
-    if (observer) observer.disconnect();
-});
-
+    // Observe all category sections
+    document.querySelectorAll('[id^="category-"]').forEach((section) => {
+        observer.observe(section);
+    });
+};
 </script>
 
 <template>
+    <!-- Global Loading State -->
     <div v-if="isLoading" class="min-h-screen flex items-center justify-center bg-gray-50">
         <div class="loading loading-spinner loading-lg text-blue-600"></div>
     </div>
 
+    <!-- Error State: Room Not Found -->
     <div v-else-if="!isValidLocation"
         class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
         <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
@@ -293,15 +268,14 @@ onUnmounted(() => {
     </div>
 
     <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans relative">
-
-
+        <!-- Area 1: Poster Carousel Section -->
         <div class="relative w-full h-[220px]"
-            :class="{ 'bg-red-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
+            :class="{ 'bg-blue-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
 
             <div v-if="posterStore.activePosters.length > 0" class="w-full h-full overflow-hidden relative"
                 @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-
+                <!-- Slides Wrapper -->
                 <div class="flex transition-transform duration-500 ease-out h-full w-full"
                     :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
                     <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -311,7 +285,7 @@ onUnmounted(() => {
                     </div>
                 </div>
 
-
+                <!-- Navigation Arrows -->
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity z-10">
                     <button @click="prevSlide"
@@ -320,7 +294,7 @@ onUnmounted(() => {
                         class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
                 </div>
 
-
+                <!-- Dot Indicators -->
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-10">
                     <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index"
@@ -330,14 +304,14 @@ onUnmounted(() => {
                 </div>
             </div>
 
-
+            <!-- Single Poster or Fallback -->
             <div v-else class="w-full h-full">
                 <img v-if="currentRestaurant?.PosterUrl" :src="currentRestaurant.PosterUrl"
                     class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
 
-
+            <!-- Control Layer -->
             <div class="absolute top-0 w-full px-4 pt-4 pb-2 flex justify-between items-center z-40">
                 <button @click="goBack"
                     class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
@@ -346,12 +320,10 @@ onUnmounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                     </svg>
                 </button>
-
-
             </div>
         </div>
 
-
+        <!-- Area 2: Restaurant Summary Info -->
         <div class="relative z-10 px-2 -mt-10 mb-2">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div class="flex justify-between items-start mb-2">
@@ -364,7 +336,6 @@ onUnmounted(() => {
                         </svg>
                     </button>
                 </div>
-
 
                 <div class="flex items-center text-[12px] text-gray-600 mb-3 gap-2 flex-wrap">
                     <div class="flex items-center text-amber-500 font-bold">
@@ -386,11 +357,10 @@ onUnmounted(() => {
                     <span class="text-gray-300">•</span>
                     <span>2.1 กม.</span>
                 </div>
-
             </div>
         </div>
 
-
+        <!-- Area 3: Sticky Navigation & Search Bar Section -->
         <div class="sticky top-0 z-30 bg-white border-b border-gray-100 mt-2 shadow-sm">
             <div class="flex items-center min-h-[50px]">
 
@@ -420,7 +390,7 @@ onUnmounted(() => {
                     </button>
                 </div>
 
-                <!-- Normal Mode Header -->
+                <!-- Normal Mode Header: Tabs & Toggles -->
                 <template v-else>
                     <button @click="toggleSearch" class="px-3 py-3 border-r border-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -444,7 +414,6 @@ onUnmounted(() => {
                             :id="`tab-${categoryName}`"
                             :class="{ 'text-blue-600 font-bold': activeMenuTab === categoryName }">
                             {{ categoryName }}
-
                             <div v-if="activeMenuTab === categoryName"
                                 class="absolute bottom-0 left-0 w-full h-[3px] bg-blue-600 rounded-t-md"></div>
                         </button>
@@ -453,7 +422,7 @@ onUnmounted(() => {
             </div>
         </div>
 
-
+        <!-- Area 4: Menu List Sections -->
         <div id="menu-section" class="bg-white pt-2 pb-10 min-h-screen">
             <!-- Normal Grouped Menu (Hidden if no search results) -->
             <template v-if="totalVisibleItems > 0">
@@ -463,18 +432,17 @@ onUnmounted(() => {
                     <div
                         class="px-4 py-4 bg-gray-50/50 flex items-center justify-between border-y border-gray-100/50 mb-4">
                         <h3 class="text-[17px] font-black text-gray-800 tracking-tight">{{ categoryName }}</h3>
-                        
                     </div>
 
                     <div class="px-4">
                         <div class="animate-fade-in mb-8">
-                            <ProductList :selectionRole="groupedMenu[categoryName]" />
+                            <MenuList :selectionRole="groupedMenu[categoryName]" />
                         </div>
                     </div>
                 </div>
             </template>
 
-            <!-- No Results Found -->
+            <!-- No Results Found Empty State -->
             <div v-else class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none"
@@ -491,15 +459,14 @@ onUnmounted(() => {
             </div>
         </div>
 
-
-
+        <!-- Area 5: Floating Action Button: Cart -->
         <div class="fixed bottom-6 right-6 z-50 animate-fade-in group">
             <button @click="router.push(`/user/cart/${building}/${floor}/${room}`)"
                 class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 hover:scale-105 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0z" />
                 </svg>
                 <span v-if="cartStore.summaryQuantity > 0"
                     class="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
@@ -508,8 +475,7 @@ onUnmounted(() => {
             </button>
         </div>
 
-
-        <!-- Category Selection Modal (Bottom Sheet) -->
+        <!-- Area 6: Category Selection Modal (Bottom Sheet) -->
         <div v-if="isCategoryModalOpen" class="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:p-4">
             <!-- Backdrop -->
             <div @click="toggleCategoryModal" class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"></div>
@@ -518,8 +484,6 @@ onUnmounted(() => {
             <div class="relative bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]">
                 <!-- Drag Handle -->
                 <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-1"></div>
-
-                
 
                 <div class="overflow-y-auto custom-scrollbar">
                     <div class="flex flex-col">
@@ -541,11 +505,8 @@ onUnmounted(() => {
                         </button>
                     </div>
                 </div>
-
-                
             </div>
         </div>
-
     </div>
 </template>
 
@@ -556,9 +517,7 @@ onUnmounted(() => {
 
 .no-scrollbar {
     -ms-overflow-style: none;
-
     scrollbar-width: none;
-
 }
 
 .animate-fade-in {
@@ -566,25 +525,13 @@ onUnmounted(() => {
 }
 
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
 @keyframes slideUp {
-    0% {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+    0% { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
 }
 
 .animate-slide-up {

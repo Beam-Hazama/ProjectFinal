@@ -1,178 +1,171 @@
 <script setup>
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
-import { useAccountStore } from '@/stores/account';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
+
+// --- Initialization ---
 const accountStore = useAccountStore();
-const restaurantName = accountStore.user?.Restaurant
+const restaurantName = accountStore.user?.Restaurant;
+
+// --- State ---
 const loading = ref(true);
 const docId = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 const selectedFile = ref(null);
-
-
 const now = ref(new Date());
 let timer;
 
 const RestaurantData = reactive({
-  Name: '',
-  Category: '',
-  Phone: '',
-  Distance: '',
-  Address: '',
-  ImageUrl: '',
-  OpenTime: '',
-  CloseTime: '',
-  Status: '',
-  ManualStatus: 'auto',
-  CreatedAt: null,
-  UpdatedAt: null
+    Name: '',
+    Category: '',
+    Phone: '',
+    Distance: '',
+    Address: '',
+    ImageUrl: '',
+    OpenTime: '',
+    CloseTime: '',
+    Status: '',
+    ManualStatus: 'auto',
+    CreatedAt: null,
+    UpdatedAt: null
 });
 
+// --- Methods ---
+
+// Helpers
 const calculateStatus = () => {
+    if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
+    if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
 
-  if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
+    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
+    const [openH, openM] = RestaurantData.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = RestaurantData.CloseTime.split(':').map(Number);
 
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
 
-  if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
-
-  const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-  const [openH, openM] = RestaurantData.OpenTime.split(':').map(Number);
-  const [closeH, closeM] = RestaurantData.CloseTime.split(':').map(Number);
-
-  const openMinutes = openH * 60 + openM;
-  const closeMinutes = closeH * 60 + closeM;
-
-  if (closeMinutes > openMinutes) {
-
-    return (currentTime >= openMinutes && currentTime < closeMinutes) ? 'open' : 'close';
-  } else {
-
-    return (currentTime >= openMinutes || currentTime < closeMinutes) ? 'open' : 'close';
-  }
+    if (closeMinutes > openMinutes) {
+        return (currentTime >= openMinutes && currentTime < closeMinutes) ? 'open' : 'close';
+    } else {
+        return (currentTime >= openMinutes || currentTime < closeMinutes) ? 'open' : 'close';
+    }
 };
 
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleString('th-TH');
+};
 
-watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () => RestaurantData.ManualStatus], () => {
-  RestaurantData.Status = calculateStatus();
-});
-
+// Data Fetching
 const fetchRestaurantByName = async () => {
-
-  if (!accountStore.isLoggedIn) {
-    await accountStore.checkAuthState();
-  }
-
-  const nameFromUser = accountStore.user?.Restaurant;
-
-  if (!nameFromUser) {
-    console.warn("No restaurant found in user account");
-    loading.value = false;
-    return;
-  }
-
-  loading.value = true;
-
-  try {
-    const q = query(
-      collection(db, "Restaurant"),
-      where("Name", "==", nameFromUser)
-    );
-
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const restaurantDoc = querySnapshot.docs[0];
-      docId.value = restaurantDoc.id;
-
-      const data = restaurantDoc.data();
-      Object.assign(RestaurantData, data);
-
-      if (!RestaurantData.ManualStatus) {
-        RestaurantData.ManualStatus = 'auto';
-      }
-
-      imagePreview.value = RestaurantData.ImageUrl;
-      RestaurantData.Status = calculateStatus();
-
-      if (
-        RestaurantData.ImageUrl &&
-        RestaurantData.ImageUrl.startsWith("http")
-      ) {
-        imageInputMethod.value = "url";
-      }
-    } else {
-      console.warn("Restaurant not found in database");
+    if (!accountStore.isLoggedIn) {
+        await accountStore.checkAuthState();
     }
 
-  } catch (error) {
-    console.error("Error fetching restaurant:", error);
-  } finally {
-    loading.value = false;
-  }
+    const nameFromUser = accountStore.user?.Restaurant;
+    if (!nameFromUser) {
+        console.warn("No restaurant found in user account");
+        loading.value = false;
+        return;
+    }
+
+    loading.value = true;
+    try {
+        const q = query(
+            collection(db, "Restaurant"),
+            where("Name", "==", nameFromUser)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const restaurantDoc = querySnapshot.docs[0];
+            docId.value = restaurantDoc.id;
+            const data = restaurantDoc.data();
+            Object.assign(RestaurantData, data);
+
+            if (!RestaurantData.ManualStatus) {
+                RestaurantData.ManualStatus = 'auto';
+            }
+
+            imagePreview.value = RestaurantData.ImageUrl;
+            RestaurantData.Status = calculateStatus();
+
+            if (RestaurantData.ImageUrl && RestaurantData.ImageUrl.startsWith("http")) {
+                imageInputMethod.value = "url";
+            }
+        } else {
+            console.warn("Restaurant not found in database");
+        }
+    } catch (error) {
+        console.error("Error fetching restaurant:", error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+// Actions
+const saveProfile = async () => {
+    if (!docId.value) return;
+    try {
+        await updateDoc(doc(db, 'Restaurant', docId.value), {
+            Name: RestaurantData.Name,
+            Category: RestaurantData.Category || '',
+            Phone: RestaurantData.Phone,
+            Distance: RestaurantData.Distance,
+            Address: RestaurantData.Address,
+            ImageUrl: RestaurantData.ImageUrl,
+            OpenTime: RestaurantData.OpenTime,
+            CloseTime: RestaurantData.CloseTime,
+            Status: RestaurantData.Status,
+            ManualStatus: RestaurantData.ManualStatus,
+            UpdatedAt: serverTimestamp()
+        });
+        alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
+        fetchRestaurantByName();
+    } catch (error) {
+        alert('เกิดข้อผิดพลาด: ' + error.message);
+    }
 };
 
 const handleFileUpload = (event) => {
-  selectedFile.value = event.target.files[0];
-  if (selectedFile.value) {
-    const previewUrl = URL.createObjectURL(selectedFile.value);
-    imagePreview.value = previewUrl;
-    RestaurantData.ImageUrl = previewUrl;
-  }
+    selectedFile.value = event.target.files[0];
+    if (selectedFile.value) {
+        const previewUrl = URL.createObjectURL(selectedFile.value);
+        imagePreview.value = previewUrl;
+        RestaurantData.ImageUrl = previewUrl;
+    }
 };
 
-const saveProfile = async () => {
-  if (!docId.value) return;
-  try {
-
-    await updateDoc(doc(db, 'Restaurant', docId.value), {
-      Name: RestaurantData.Name,
-      Category: RestaurantData.Category || '',
-      Phone: RestaurantData.Phone,
-      Distance: RestaurantData.Distance,
-      Address: RestaurantData.Address,
-      ImageUrl: RestaurantData.ImageUrl,
-      OpenTime: RestaurantData.OpenTime,
-      CloseTime: RestaurantData.CloseTime,
-      Status: RestaurantData.Status,
-      ManualStatus: RestaurantData.ManualStatus,
-      UpdatedAt: serverTimestamp()
-    });
-    alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
-    fetchRestaurantByName();
-  } catch (error) {
-    alert('เกิดข้อผิดพลาด: ' + error.message);
-  }
-};
-
-const formatDate = (timestamp) => {
-  if (!timestamp) return '-';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleString('th-TH');
-};
-
-onMounted(() => {
-  fetchRestaurantByName();
-  timer = setInterval(() => {
-    now.value = new Date();
-  }, 1000);
-});
-
-onUnmounted(() => {
-  if (timer) clearInterval(timer);
+// --- Watchers ---
+watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () => RestaurantData.ManualStatus], () => {
+    RestaurantData.Status = calculateStatus();
 });
 
 watch(
-  () => accountStore.user,
-  (newUser) => {
-    if (newUser?.Restaurant) {
-      fetchRestaurantByName(newUser.Restaurant)
-    }
-  },
-  { immediate: true }
-)
+    () => accountStore.user,
+    (newUser) => {
+        if (newUser?.Restaurant) {
+            fetchRestaurantByName();
+        }
+    },
+    { immediate: true }
+);
+
+// --- Lifecycle ---
+onMounted(() => {
+    fetchRestaurantByName();
+    timer = setInterval(() => {
+        now.value = new Date();
+    }, 1000);
+});
+
+onUnmounted(() => {
+    if (timer) clearInterval(timer);
+});
 </script>
 
 <template>
@@ -182,6 +175,7 @@ watch(
     </div>
 
     <div v-else class="p-6 font-sans">
+      <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <h1 class="text-3xl font-bold text-slate-700">Profile</h1>
@@ -198,6 +192,7 @@ watch(
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
+          <!-- Restaurant Image Management -->
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพร้าน</h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs mb-8">
@@ -250,6 +245,7 @@ watch(
             </div>
           </div>
 
+          <!-- Profile Details Form Section -->
           <div class="p-8 lg:col-span-2 space-y-8">
 
 

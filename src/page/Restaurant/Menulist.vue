@@ -1,99 +1,89 @@
 <script setup>
-import { db } from '@/firebase';
-import Layoutrestaurant from '@/page/Restaurant/restaurant.vue';
-import { useMenuStore } from '@/stores/menu';
-import { useAccountStore } from '@/stores/account';
-import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
-import { RouterLink } from 'vue-router';
 import { onMounted, watch } from 'vue';
+import { RouterLink } from 'vue-router';
+import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { useMenuStore } from '@/stores/menuStore';
+import { useAccountStore } from '@/stores/accountStore';
+import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
+// --- Initialization ---
 const MenuStore = useMenuStore();
 const accountStore = useAccountStore();
 
-const loadData = async () => {
-  await accountStore.checkAuthState()
-
-  const restaurantName = accountStore.user?.Restaurant
-  if (!restaurantName) {
-    console.warn("No restaurant found in account")
-    return
-  }
-
-  await MenuStore.loadMenuRestaurant(restaurantName)
-}
-
+// --- Lifecycle ---
 onMounted(() => {
-  loadData();
-});
-
-watch(() => accountStore.user, (newUser) => {
-  if (newUser?.Restaurant) {
     loadData();
-  }
 });
 
+// --- Watchers ---
+watch(() => accountStore.user, (newUser) => {
+    if (newUser?.Restaurant) {
+        loadData();
+    }
+});
 
-const switchStatus = async (product) => {
-  try {
-    const newStatus = product.Status === 'open' ? 'close' : 'open';
+// --- Methods ---
+const loadData = async () => {
+    await accountStore.checkAuthState();
+    const restaurantName = accountStore.user?.Restaurant;
+    if (!restaurantName) {
+        console.warn("No restaurant found in account");
+        return;
+    }
+    await MenuStore.loadMenuRestaurant(restaurantName);
+};
 
-    const productRef = doc(db, 'Menu', product.id);
+const switchStatus = async (menu) => {
+    try {
+        const newStatus = menu.Status === 'open' ? 'close' : 'open';
+        const menuRef = doc(db, 'Menu', menu.id);
 
-    await updateDoc(productRef, {
-      Status: newStatus,
-      UpdatedAt: serverTimestamp(),
-      status: deleteField(),
-      updatedAt: deleteField()
-    });
-
-
-
-  } catch (error) {
-    console.error("Error updating status:", error);
-    alert("ไม่สามารถเปลี่ยนสถานะได้");
-  }
-}
-
+        await updateDoc(menuRef, {
+            Status: newStatus,
+            UpdatedAt: serverTimestamp(),
+            status: deleteField(),
+            updatedAt: deleteField()
+        });
+    } catch (error) {
+        console.error("Error updating status:", error);
+        alert("ไม่สามารถเปลี่ยนสถานะได้");
+    }
+};
 
 const deleteMenu = async (id, name) => {
-  if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
-    try {
-      const productRef = doc(db, 'Menu', id);
-      await deleteDoc(productRef);
-
-    } catch (error) {
-      console.error("Error deleting menu:", error);
-      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+    if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
+        try {
+            const menuRef = doc(db, 'Menu', id);
+            await deleteDoc(menuRef);
+        } catch (error) {
+            console.error("Error deleting menu:", error);
+            alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+        }
     }
-  }
-}
+};
 
-const formatDate = (timestamp) => {
-  if (!timestamp) return '-';
-  let date;
+const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    let date;
 
-  if (timestamp && typeof timestamp.toDate === 'function') {
-    date = timestamp.toDate();
-  }
-  else if (timestamp && typeof timestamp.seconds === 'number') {
-    date = new Date(timestamp.seconds * 1000);
-  }
+    if (timestamp && typeof timestamp.toDate === 'function') {
+        date = timestamp.toDate();
+    } else if (timestamp && typeof timestamp.seconds === 'number') {
+        date = new Date(timestamp.seconds * 1000);
+    } else {
+        date = new Date(timestamp);
+    }
 
-  else {
-    date = new Date(timestamp);
-  }
-
-
-  if (isNaN(date.getTime())) return '-';
-
-  return date.toLocaleString('th-TH');
-}
+    if (isNaN(date.getTime())) return '-';
+    return date.toLocaleString('th-TH');
+};
 </script>
 
 <template>
-  <Layoutrestaurant>
+  <LayoutRestaurant>
     <div class="p-6">
-
+      <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
@@ -108,6 +98,7 @@ const formatDate = (timestamp) => {
         </RouterLink>
       </div>
 
+      <!-- Menu Data Table Section -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
@@ -124,47 +115,47 @@ const formatDate = (timestamp) => {
             </thead>
 
             <tbody class="text-slate-600">
-              <tr v-for="product in MenuStore.list" :key="product.id"
+              <tr v-for="menu in MenuStore.list" :key="menu.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                 <td class="pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="product.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover" />
+                        <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover" />
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ product.Name }}</div>
+                      <div class="font-bold text-slate-800">{{ menu.Name }}</div>
                     </div>
                   </div>
                 </td>
 
-                <td class="text-center font-medium">{{ product.Price }} ฿</td>
+                <td class="text-center font-medium">{{ menu.Price }} ฿</td>
                 <td class="text-center">
-                  <div class="font-medium">{{ product.Category }}</div>
+                  <div class="font-medium">{{ menu.Category }}</div>
                 </td>
 
                 <td class="text-center">
-                  <button @click="switchStatus(product)"
+                  <button @click="switchStatus(menu)"
                     class="badge gap-1 text-[10px] text-white font-bold border-none mx-auto cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-sm"
-                    :class="product.Status === 'open' ? 'badge-success' : 'badge-error'">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white" :class="{ 'animate-pulse': product.Status === 'open' }"></span>
-                    {{ product.Status === 'open' ? 'Open Now' : 'Closed' }}
+                    :class="menu.Status === 'open' ? 'badge-success' : 'badge-error'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white" :class="{ 'animate-pulse': menu.Status === 'open' }"></span>
+                    {{ menu.Status === 'open' ? 'Open Now' : 'Closed' }}
                   </button>
                 </td>
 
                 <td class="text-center text-xs">
-                  {{ formatDate(product.CreatedAt || product.createdAt) }}
+                  {{ formatTimestamp(menu.CreatedAt || menu.createdAt) }}
                 </td>
 
                 <td class="text-center text-xs">
-                  {{ formatDate(product.UpdatedAt || product.updatedAt) }}
+                  {{ formatTimestamp(menu.UpdatedAt || menu.updatedAt) }}
                 </td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-1">
                     <RouterLink class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50"
-                      :to="{ name: 'Restaurant Edit Menu', params: { id: product.id } }">
+                      :to="{ name: 'Restaurant Edit Menu', params: { id: menu.id } }">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -173,7 +164,7 @@ const formatDate = (timestamp) => {
                       Edit
                     </RouterLink>
 
-                    <button @click="deleteMenu(product.id, product.Name)"
+                    <button @click="deleteMenu(menu.id, menu.Name)"
                       class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -193,5 +184,5 @@ const formatDate = (timestamp) => {
         </div>
       </div>
     </div>
-  </Layoutrestaurant>
+  </LayoutRestaurant>
 </template>

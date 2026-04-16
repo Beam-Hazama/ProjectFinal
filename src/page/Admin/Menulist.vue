@@ -1,57 +1,43 @@
 <script setup>
-import { db } from '@/firebase';
-import LayoutAdmin from '@/page/Admin/Admin.vue';
-import { useMenuStore } from '@/stores/menu';
-import { doc, deleteDoc } from 'firebase/firestore';
-import { RouterLink } from 'vue-router';
 import { onMounted } from 'vue';
+import { RouterLink } from 'vue-router';
 
-const MenuStore = useMenuStore();
+// Components & Stores
+import LayoutAdmin from '@/page/Admin/Admin.vue';
+import { useMenuStore } from '@/stores/menuStore';
 
+// --- Initialization ---
+const menuStore = useMenuStore();
+
+// --- Lifecycle ---
 onMounted(() => {
-  MenuStore.loadMenu();
+  menuStore.loadMenu();
 });
 
-
-const formatDate = (timestamp) => {
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
 
   if (typeof timestamp.toDate === 'function') {
     return timestamp.toDate().toLocaleString('th-TH');
   }
-
-
   return new Date(timestamp).toLocaleString('th-TH');
-}
-const deleteMenu = async (id, name) => {
-  if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
-    try {
-
-      await deleteDoc(doc(db, 'Menu', id));
-
-      await MenuStore.loadMenu();
-
-
-      console.log("ลบเมนูเรียบร้อย");
-    } catch (error) {
-      console.error("Error deleting menu:", error);
-      alert("ลบไม่สำเร็จ: " + error.message);
-    }
-  }
-}
-
-
+};
 </script>
 
 <template>
   <LayoutAdmin>
     <div class="p-6">
+      <!-- Header Section -->
       <div class="flex justify-between items-start mb-7">
-        <div class="text-3xl font-bold text-slate-700">Menu List</div>
+        <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
       </div>
+
+      <!-- Data Table Container -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
+            <!-- Table Head -->
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">MENU</th>
@@ -65,32 +51,42 @@ const deleteMenu = async (id, name) => {
               </tr>
             </thead>
 
+            <!-- Table Body -->
             <tbody class="text-slate-600">
-              <tr v-for="product in MenuStore.list" :key="product.id"
+              <tr v-for="menu in menuStore.list" :key="menu.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+
+                <!-- Menu Information -->
                 <td class="pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="product.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover" />
+                        <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover"
+                          :alt="menu.Name" />
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ product.Name }}</div>
+                      <div class="font-bold text-slate-800">{{ menu.Name }}</div>
                     </div>
                   </div>
                 </td>
 
+                <!-- Restaurant Name -->
                 <td class="text-center">
-                  <div class="font-medium">{{ product.Restaurant }}</div>
-                </td>
-                <td class="text-center font-medium">{{ product.Price }} ฿</td>
-                <td class="text-center">
-                  <div class="font-medium">{{ product.Category }}</div>
+                  <div class="font-medium">{{ menu.Restaurant }}</div>
                 </td>
 
+                <!-- Price -->
+                <td class="text-center font-medium">{{ menu.Price }} ฿</td>
+
+                <!-- Category -->
                 <td class="text-center">
-                  <div v-if="product.Status === 'open'"
+                  <div class="font-medium">{{ menu.Category }}</div>
+                </td>
+
+                <!-- Status Badge -->
+                <td class="text-center">
+                  <div v-if="menu.Status === 'open'"
                     class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
@@ -101,17 +97,18 @@ const deleteMenu = async (id, name) => {
                   </div>
                 </td>
 
+                <!-- Timestamps -->
                 <td class="text-center text-xs">
-                  {{ formatDate(product.CreatedAt || product.createdAt) }}
+                  {{ formatTimestamp(menu.CreatedAt) }}
+                </td>
+                <td class="text-center text-xs">
+                  {{ formatTimestamp(menu.UpdatedAt) }}
                 </td>
 
-                <td class="text-center text-xs">
-                  {{ formatDate(product.UpdatedAt || product.updatedAt) }}
-                </td>
-
+                <!-- Actions -->
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
-                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: product.id } }"
+                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }"
                       class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">
@@ -121,7 +118,6 @@ const deleteMenu = async (id, name) => {
                       </svg>
                       Details
                     </RouterLink>
-                    
                   </div>
                 </td>
               </tr>

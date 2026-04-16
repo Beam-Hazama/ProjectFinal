@@ -1,34 +1,46 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useMenuStore } from '@/stores/menu';
 import { useRoute, useRouter } from 'vue-router';
-import product from '@/page/component/blockmenu.vue';
+import { useMenuStore } from '@/stores/menuStore';
+import MenuList from '@/page/component/blockmenu.vue';
 
+// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
-const menu = useMenuStore();
+const menuStore = useMenuStore();
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+// --- State ---
 const searchQuery = ref('');
 
-onMounted(() => {
-    if (menu.list.length === 0) {
-        menu.loadMenu();
+// Custom Directives (Internal)
+const vFocus = {
+    mounted(el) {
+        el.focus();
     }
-});
+};
 
-const filteredMenu = computed(() => {
+// --- Computed ---
+const filteredMenus = computed(() => {
     if (!searchQuery.value) return [];
 
-    return menu.list.filter(item =>
+    return menuStore.list.filter(item =>
         item.Name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
         item.Restaurant?.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
 });
 
+// --- Lifecycle ---
+onMounted(() => {
+    if (menuStore.list.length === 0) {
+        menuStore.loadMenu();
+    }
+});
+
+// --- Methods ---
 const goBack = () => {
     router.push(`/User/${building}/${floor}/${room}`);
 };
@@ -36,7 +48,7 @@ const goBack = () => {
 
 <template>
     <div class="min-h-screen bg-gray-50 pb-24 font-sans flex flex-col">
-
+        <!-- Search Header Section -->
         <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm flex items-center gap-3">
             <button @click="goBack" class="p-2 -ml-2 text-gray-400 hover:text-blue-600 active:scale-95 transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -66,10 +78,9 @@ const goBack = () => {
             </div>
         </div>
 
-
+        <!-- Search Results & States Section -->
         <div class="flex-1 px-4 pt-5 pb-10">
-
-
+            <!-- Initial State: No Query -->
             <div v-if="!searchQuery"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400 animate-fade-in">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-30" fill="none"
@@ -80,37 +91,23 @@ const goBack = () => {
                 <p class="text-sm font-medium">พิมพ์เพื่อค้นหาเมนู หรือ ร้านอาหาร</p>
             </div>
 
-
-            <div v-else-if="filteredMenu.length === 0"
+            <!-- Empty Results State -->
+            <div v-else-if="filteredMenus.length === 0"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400 animate-fade-in">
                 <span class="text-4xl opacity-50 mb-2">🍽️</span>
                 <p class="text-[13px] font-medium">ไม่พบผลการค้นหาสำหรับ "{{ searchQuery }}"</p>
             </div>
 
-
+            <!-- Search Results List Section -->
             <div v-else class="animate-fade-in">
                 <div class="mb-4">
-                    <h3 class="text-[14px] font-bold text-gray-800">ผลการค้นหา ({{ filteredMenu.length }})</h3>
+                    <h3 class="text-[14px] font-bold text-gray-800">ผลการค้นหา ({{ filteredMenus.length }})</h3>
                 </div>
-                <product :selectionRole="filteredMenu"></product>
+                <MenuList :selectionRole="filteredMenus"></MenuList>
             </div>
-
         </div>
     </div>
 </template>
-
-<script>
-
-export default {
-    directives: {
-        focus: {
-            mounted(el) {
-                el.focus();
-            }
-        }
-    }
-}
-</script>
 
 <style scoped>
 .animate-fade-in {
