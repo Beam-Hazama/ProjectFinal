@@ -15,6 +15,7 @@ import Adminrestaurantlist from "@/page/Admin/Restaurantlist.vue";
 import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
 import Adminpostermanage from "@/page/Admin/Poster.vue";
 import AdminCategory from "@/page/Admin/Category.vue";
+import AdminCommission from "@/page/Admin/Commission.vue";
 
 import Menudetail from "@/page/Admin/Menudetail.vue";
 import Managerestaurant from "@/page/component/Managerestaurant.vue";
@@ -150,6 +151,12 @@ const router = createRouter({
       path: '/Admin/Category',
       name: 'Admin Category',
       component: AdminCategory,
+      meta: { requiresAuth: true, role: 'admin' },
+    },
+    {
+      path: '/Admin/Commission',
+      name: 'Commission',
+      component: AdminCommission,
       meta: { requiresAuth: true, role: 'admin' },
     },
 

@@ -32,6 +32,10 @@ const isLoading = ref(true);
 const localCategories = ref([]);
 const selectedMenu = ref(null);
 const showModal = ref(false);
+const selectedRestaurantCategories = ref([]);
+const showFilterSheet = ref(false);
+const isFilterOpenOnly = ref(false);
+const isFilterPromoOnly = ref(false);
 
 // Carousel State
 const currentSlide = ref(0);
@@ -148,6 +152,29 @@ const openMenuModal = (menu) => {
 const isShopClosed = (restaurantName) => {
   const shop = restaurantStore.list.find(r => r.Name === restaurantName);
   return shop?.Status === 'close';
+};
+
+const resetFilters = () => {
+    isFilterOpenOnly.value = false;
+    isFilterPromoOnly.value = false;
+    selectedRestaurantCategories.value = [];
+};
+
+const toggleCategory = (name) => {
+    if (name === '') {
+        selectedRestaurantCategories.value = [];
+        return;
+    }
+    const index = selectedRestaurantCategories.value.indexOf(name);
+    if (index > -1) {
+        selectedRestaurantCategories.value.splice(index, 1);
+    } else {
+        selectedRestaurantCategories.value.push(name);
+    }
+};
+
+const applyFilters = () => {
+    showFilterSheet.value = false;
 };
 </script>
 
@@ -301,13 +328,120 @@ const isShopClosed = (restaurantName) => {
 
     <!-- Area 6: Restaurant Discovery Section -->
     <div id="restaurant-section">
-      <div class="px-5 mb-3">
+      <div class="px-5 mb-4 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
+        
+        <div class="flex items-center gap-1.5 text-[12px] font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
+          @click="showFilterSheet = true">
+          <span>ตัวกรอง</span>
+        </div>
       </div>
+
+      <!-- Bottom Sheet Filter -->
+      <Teleport to="body">
+        <div v-if="showFilterSheet" class="fixed inset-0 z-[100] flex items-end justify-center">
+          <!-- Backdrop -->
+          <div 
+            class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
+            @click="showFilterSheet = false">
+          </div>
+          
+          <!-- Sheet Content -->
+          <div 
+            class="relative w-full max-w-lg bg-white rounded-t-[32px] shadow-2xl transition-transform duration-300 transform translate-y-0 flex flex-col max-h-[90vh]"
+            :class="showFilterSheet ? 'translate-y-0' : 'translate-y-full'">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 flex justify-between items-center border-b border-gray-50">
+              <h2 class="text-xl font-bold text-gray-800">ตัวกรอง</h2>
+              <button 
+                @click="showFilterSheet = false"
+                class="p-2 text-gray-400 hover:text-gray-600 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-6 pb-32">
+              
+              <!-- Status Section -->
+              <div class="space-y-6 mb-8">
+                <div class="flex justify-between items-center group cursor-pointer" @click="isFilterOpenOnly = !isFilterOpenOnly">
+                    <span class="text-base font-medium text-gray-700">ร้านอาหารที่เปิดเท่านั้น</span>
+                    <input type="checkbox" v-model="isFilterOpenOnly" class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
+                </div>
+                
+                <div class="flex justify-between items-center group cursor-pointer" @click="isFilterPromoOnly = !isFilterPromoOnly">
+                    <div class="flex flex-col">
+                        <span class="text-base font-bold text-gray-800">โปรโมชั่น</span>
+                        <span class="text-sm text-gray-500 font-medium mt-0.5">ค้นหาร้านที่มีส่วนลดพิเศษ</span>
+                    </div>
+                    <input type="checkbox" v-model="isFilterPromoOnly" class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
+                </div>
+              </div>
+              
+              <!-- Category Section -->
+              <div class="mb-8">
+                <h3 class="text-base font-bold text-gray-800 mb-4">ประเภทอาหาร</h3>
+                <div class="flex flex-wrap gap-2">
+                  <!-- All Option -->
+                  <button 
+                    @click="toggleCategory('')"
+                    :class="[
+                      'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
+                      selectedRestaurantCategories.length === 0 
+                        ? 'bg-blue-50 border-blue-500 text-blue-600' 
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
+                    ]">
+                    ทั้งหมด
+                  </button>
+                  
+                  <!-- Category Chips -->
+                  <button 
+                    v-for="cat in localCategories" 
+                    :key="'sheet-' + cat.id"
+                    @click="toggleCategory(cat.name)"
+                    :class="[
+                      'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
+                      selectedRestaurantCategories.includes(cat.name) 
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 font-black' 
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
+                    ]">
+                    {{ cat.name }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fixed Footer Actions -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
+               <button 
+                 @click="resetFilters"
+                 class="flex-1 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-[15px] active:scale-95 transition-all hover:bg-gray-200">
+                 ล้างค่า
+               </button>
+               <button 
+                 @click="applyFilters"
+                 class="flex-[1.5] py-4 rounded-xl bg-blue-600 text-white font-bold text-[15px] active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-200">
+                 ค้นหา
+               </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
 
       <div class="px-4">
         <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
-          <RestaurantList :building="building" :floor="floor" :room="room"></RestaurantList>
+          <RestaurantList 
+            :building="building" 
+            :floor="floor" 
+            :room="room" 
+            :categoryFilter="selectedRestaurantCategories"
+            :openOnly="isFilterOpenOnly"
+            :promoOnly="isFilterPromoOnly">
+          </RestaurantList>
         </div>
 
         <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">

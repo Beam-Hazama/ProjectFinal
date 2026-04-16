@@ -14,9 +14,11 @@ export const useDashboardStore = defineStore('dashboard', {
     allOrders: [],
     allMenus: [],
     allRestaurants: [],
-    
+
     // Filter Selections
-    timeFilter: '7days',
+    timeFilter: 'thisMonth',
+    customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
+    customEndDate: new Date().toISOString().split('T')[0],
     restaurantFilter: 'all',
     menuCategoryFilter: 'all',
     menuFilter: 'all',
@@ -27,13 +29,15 @@ export const useDashboardStore = defineStore('dashboard', {
     totalMenus: 0,
     filteredTotalMenus: 0,
     totalRestaurants: 0,
+    totalCommission: 0,
+    netPayouts: 0,
 
     // Analytics Sets
     topRestaurants: [],
     topMenuItems: [],
     recentOrders: [],
     orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
-    
+
     // Chart Processing Arrays
     revenueByDay: [],
     categoriesCount: [],
@@ -80,6 +84,7 @@ export const useDashboardStore = defineStore('dashboard', {
         chart: {
           id: 'revenue-bar-chart',
           toolbar: { show: false },
+          zoom: { enabled: false },
           fontFamily: 'inherit',
         },
         xaxis: {
@@ -116,7 +121,7 @@ export const useDashboardStore = defineStore('dashboard', {
     categoryChartOptions: (state) => {
       const labels = state.categoriesCount.map(cat => cat.name);
       return {
-        chart: { id: 'category-donut-chart', fontFamily: 'inherit' },
+        chart: { id: 'category-donut-chart', fontFamily: 'inherit', zoom: { enabled: false } },
         labels: labels,
         colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
         legend: { position: 'bottom' },
@@ -159,6 +164,7 @@ export const useDashboardStore = defineStore('dashboard', {
         chart: {
           id: 'peak-hours-chart',
           toolbar: { show: false },
+          zoom: { enabled: false },
           fontFamily: 'inherit',
           type: 'area'
         },
@@ -206,6 +212,13 @@ export const useDashboardStore = defineStore('dashboard', {
       this.menuFilter = filter;
       this.applyFilters();
     },
+    setCustomDates(start, end) {
+      this.customStartDate = start;
+      this.customEndDate = end;
+      if (this.timeFilter === 'custom') {
+        this.applyFilters();
+      }
+    },
 
     /**
      * Centralized logic to filter allOrders based on current UI selections.
@@ -220,6 +233,8 @@ export const useDashboardStore = defineStore('dashboard', {
       const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
       const restRevenueMap = {};
       const menuMetricsMap = {};
+
+      let totalCommissionCalc = 0;
 
       // 1. Time Boundary Configuration
       const now = new Date();
@@ -237,6 +252,11 @@ export const useDashboardStore = defineStore('dashboard', {
         startTime = new Date();
         startTime.setDate(1);
         startTime.setHours(0, 0, 0, 0);
+      } else if (this.timeFilter === 'custom' && this.customStartDate && this.customEndDate) {
+        startTime = new Date(this.customStartDate);
+        startTime.setHours(0, 0, 0, 0);
+        now.setTime(new Date(this.customEndDate).getTime());
+        now.setHours(23, 59, 59, 999);
       }
 
       // 2. Data Lookup Preparation
@@ -247,6 +267,12 @@ export const useDashboardStore = defineStore('dashboard', {
           categoryMap[m.id] = m.Category;
           menusDict[m.id] = m;
         }
+      });
+
+      // 2.1 Restaurant Rate Lookup
+      const restRateMap = {};
+      this.allRestaurants.forEach(r => {
+        if (r.Name) restRateMap[r.Name] = Number(r.CommissionRate || 0);
       });
 
       // 3. Main Filtering Loop
@@ -278,13 +304,13 @@ export const useDashboardStore = defineStore('dashboard', {
         const matchingItems = order.Menu.filter(item => {
           // Restaurant Check
           if (this.restaurantFilter !== 'all' && item.Restaurant !== this.restaurantFilter) return false;
-          
+
           // Category Check
           if (this.menuCategoryFilter !== 'all') {
             const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
             if (itemCategory !== this.menuCategoryFilter) return false;
           }
-          
+
           // Specific Menu Check
           if (this.menuFilter !== 'all') {
             const itemId = item.menuId || item.id;
@@ -301,7 +327,7 @@ export const useDashboardStore = defineStore('dashboard', {
 
           if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
             const validRevenueItems = matchingItems.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
-            
+
             if (validRevenueItems.length > 0) {
               filteredOrdersCount++;
               let orderLocalTotal = 0;
@@ -329,6 +355,10 @@ export const useDashboardStore = defineStore('dashboard', {
                 }
                 menuMetricsMap[menuId].qty += itemQty;
                 menuMetricsMap[menuId].revenue += itemRevenue;
+
+                // Commission per item calculation
+                const restRate = restRateMap[restName] || 0;
+                totalCommissionCalc += (itemRevenue * restRate) / 100;
               });
 
               filteredRevenue += orderLocalTotal;
@@ -359,6 +389,8 @@ export const useDashboardStore = defineStore('dashboard', {
 
       this.totalOrders = filteredOrdersCount;
       this.totalRevenue = filteredRevenue;
+      this.totalCommission = totalCommissionCalc;
+      this.netPayouts = filteredRevenue - totalCommissionCalc;
 
       // 6. Child Processor Calls
       this.processRevenueByDay(validOrdersForChart);
@@ -405,7 +437,7 @@ export const useDashboardStore = defineStore('dashboard', {
         const orders = snapshot.docs.map(doc => {
           const data = doc.data();
           let orderTotal = 0;
-          
+
           // Calculate individual order revenue if possible
           if (data.statusOrder !== 'cancelled' && data.statusOrder !== 'returned') {
             if (data.Netprice) orderTotal = Number(data.Netprice);
@@ -441,9 +473,11 @@ export const useDashboardStore = defineStore('dashboard', {
       // 3. Load Restaurants
       const restaurantsQuery = query(collection(db, 'Restaurant'));
       this.unsubscribeRestaurants = onSnapshot(restaurantsQuery, (snapshot) => {
-        const restaurants = snapshot.docs.map(doc => doc.data().Name || doc.id);
-        this.allRestaurants = restaurants;
-        this.availableRestaurants = [...new Set(restaurants)];
+        const fullData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const names = fullData.map(r => r.Name || r.id);
+        
+        this.allRestaurants = fullData; // Store full data objects
+        this.availableRestaurants = [...new Set(names)];
         this.totalRestaurants = snapshot.size;
         this.restaurantsLoading = false;
         this.applyFilters();
@@ -471,6 +505,17 @@ export const useDashboardStore = defineStore('dashboard', {
       if (this.timeFilter === 'today') daysCount = 0;
       else if (this.timeFilter === 'thisMonth') daysCount = today.getDate() - 1;
       else if (this.timeFilter === 'all') daysCount = 29;
+      else if (this.timeFilter === 'custom' && this.customStartDate && this.customEndDate) {
+        const start = new Date(this.customStartDate);
+        const end = new Date(this.customEndDate);
+        daysCount = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysCount > 31) daysCount = 31; // Limit chart view for performance
+        if (daysCount < 0) daysCount = 0;
+        
+        // Reset today logic for custom range if end is not today
+        today.setTime(end.getTime());
+        today.setHours(0, 0, 0, 0);
+      }
 
       // Fill empty days for chart consistency
       for (let i = daysCount; i >= 0; i--) {
@@ -521,16 +566,39 @@ export const useDashboardStore = defineStore('dashboard', {
       const hourlyDistribution = Array(24).fill(0);
       orders.forEach(order => {
         if (order.CreatedAt) {
-          const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-          const hour = orderDate.getHours();
-          hourlyDistribution[hour]++;
+          // Defensive date parsing to handle Firebase Timestamps, plain JS Dates, 
+          // or serialized JSON objects ({seconds, nanoseconds})
+          let orderDate;
+          if (order.CreatedAt.toDate) {
+            orderDate = order.CreatedAt.toDate();
+          } else if (order.CreatedAt.seconds) {
+            orderDate = new Date(order.CreatedAt.seconds * 1000);
+          } else {
+            orderDate = new Date(order.CreatedAt);
+          }
+
+          if (!isNaN(orderDate.getTime())) {
+            const hour = orderDate.getHours();
+            hourlyDistribution[hour]++;
+          }
         }
       });
 
-      this.ordersByHour = hourlyDistribution.map((count, hour) => ({
+      // Map the 24 hours
+      const chartData = hourlyDistribution.map((count, hour) => ({
         hour: `${hour.toString().padStart(2, '0')}:00`,
         count: count
       }));
+
+      // Add a 24:00 (End of Day) boundary point to "close" the area series
+      // This ensures orders between 23:01 and 23:59 are visually represented by the line 
+      // sloping from 23:00 to the end of the day.
+      chartData.push({
+        hour: "23:59",
+        count: 0
+      });
+
+      this.ordersByHour = chartData;
     }
   }
 });

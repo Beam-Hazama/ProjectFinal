@@ -81,12 +81,12 @@ const getMenuName = (id) => {
 </script>
 
 <template>
-    <div class="w-full min-h-screen p-4 space-y-5 bg-slate-50 font-sans pb-24">
+    <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans pb-24">
         
         <!-- Billing Header Section -->
         <div class="flex justify-between items-start mb-2">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-200">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -94,23 +94,27 @@ const getMenuName = (id) => {
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-black tracking-tight text-slate-800 uppercase">Bill</h1>
-                    <p class="text-[10px] font-bold text-blue-500 tracking-widest uppercase mt-0.5">Payment Summary</p>
+                    <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Bill</h1>
+                    <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {{ displayLocation }}
+                    </p>
                 </div>
             </div>
             <router-link :to="`/User/${building}/${floor}/${room}`"
-                class="btn btn-sm btn-circle bg-white border-slate-200 text-slate-400 hover:text-blue-600 shadow-sm transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                    stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50">
+                <span class="text-sm font-bold">ย้อนกลับ</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                    class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
             </router-link>
-        </div>
-
-        <!-- Location Badge Section -->
-        <div class="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100/50">
-            <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-            <span class="text-xs font-bold text-blue-700 tracking-tight">{{ displayLocation }}</span>
         </div>
 
         <!-- Receipt History Section -->
@@ -188,35 +192,6 @@ const getMenuName = (id) => {
                             </span>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Grand Summary Layer -->
-            <div class="mt-8 bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-900/40 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
-                
-                <div class="relative z-10">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black tracking-[0.2em] text-blue-400 uppercase">Grand Total Summary</span>
-                        <div class="flex items-center gap-1.5 bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/30">
-                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
-                            <span class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Ready to Pay</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-[14px] font-bold text-slate-500">฿</span>
-                        <span class="text-6xl font-black font-mono tracking-tighter">{{ totalAmount.toLocaleString() }}</span>
-                    </div>
-                    
-                    <p class="text-[11px] text-slate-500 font-bold mt-4 leading-relaxed">
-                        ยอดรวมชำระทั้งหมดสำหรับตำแหน่ง <span class="text-white">"{{ displayLocation }}"</span> <br/>
-                        กรุณาตรวจสอบรายการอาหารก่อนทำการชำระที่เคาน์เตอร์
-                    </p>
                 </div>
             </div>
         </div>

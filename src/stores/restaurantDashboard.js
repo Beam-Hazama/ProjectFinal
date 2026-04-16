@@ -13,15 +13,16 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     // Data List
     allOrders: [],      // Orders containing items from this restaurant
     allMenus: [],       // Menu items belonging to this restaurant
-    
+
     // Filters
-    timeFilter: '7days',
+    timeFilter: 'thisMonth',
     currentRestaurant: null,
 
     // Summary Metrics
     totalOrders: 0,
     totalRevenue: 0,
     totalMenus: 0,
+    commissionRate: 0,
 
     // Status & Rankings
     orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
@@ -61,7 +62,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     salesChartOptions: (state) => {
       const categories = state.revenueByDay.map(day => day.date);
       return {
-        chart: { id: 'revenue-bar-chart', toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { id: 'revenue-bar-chart', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'inherit' },
         xaxis: {
           categories: categories,
           labels: { style: { colors: '#64748b', fontSize: '12px' } }
@@ -92,7 +93,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     categoryChartOptions: (state) => {
       const labels = state.categoriesCount.map(cat => cat.name);
       return {
-        chart: { id: 'category-donut-chart', fontFamily: 'inherit' },
+        chart: { id: 'category-donut-chart', fontFamily: 'inherit', zoom: { enabled: false } },
         labels: labels,
         colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
         legend: { position: 'bottom' },
@@ -119,6 +120,12 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     /**
+     * Financial summaries after commission.
+     */
+    totalCommission: (state) => (state.totalRevenue * (state.commissionRate || 0)) / 100,
+    netRevenue: (state) => state.totalRevenue - ((state.totalRevenue * (state.commissionRate || 0)) / 100),
+
+    /**
      * ApexCharts: Series data for Peak Hours Area Chart.
      */
     peakHoursChartSeries: (state) => {
@@ -132,15 +139,15 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     peakHoursChartOptions: (state) => {
       const categories = state.ordersByHour.map(h => h.hour);
       return {
-        chart: { id: 'peak-hours-chart', toolbar: { show: false }, fontFamily: 'inherit', type: 'area' },
+        chart: { id: 'peak-hours-chart', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'inherit', type: 'area' },
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
         fill: {
           type: 'gradient',
           gradient: {
-            shadeIntensity: 1, 
-            opacityFrom: 0.4, 
-            opacityTo: 0.05, 
+            shadeIntensity: 1,
+            opacityFrom: 0.4,
+            opacityTo: 0.05,
             stops: [0, 90, 100]
           }
         },
@@ -320,6 +327,15 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         console.error("Error fetching dashboard menus:", error);
         this.menusLoading = false;
       });
+
+      // 3. Sync Restaurant Profile for Commission Rate
+      const restaurantQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
+      onSnapshot(restaurantQuery, (snapshot) => {
+        if (!snapshot.empty) {
+          const data = snapshot.docs[0].data();
+          this.commissionRate = data.CommissionRate || 0;
+        }
+      });
     },
 
     /**
@@ -346,7 +362,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         if (order.localTotal > 0 && order.CreatedAt) {
           const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
           orderDate.setHours(0, 0, 0, 0);
-          
+
           const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
           if (days[dateString] !== undefined) {
             days[dateString] += Number(order.localTotal);
@@ -382,14 +398,35 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       const hourlyDistribution = Array(24).fill(0);
       orders.forEach(order => {
         if (order.CreatedAt) {
-          const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-          hourlyDistribution[orderDate.getHours()]++;
+          // Robust date parsing (Firestore Timestamps, JS Dates, or plain objects)
+          let orderDate;
+          if (order.CreatedAt.toDate) {
+            orderDate = order.CreatedAt.toDate();
+          } else if (order.CreatedAt.seconds) {
+            orderDate = new Date(order.CreatedAt.seconds * 1000);
+          } else {
+            orderDate = new Date(order.CreatedAt);
+          }
+
+          if (!isNaN(orderDate.getTime())) {
+            const hour = orderDate.getHours();
+            hourlyDistribution[hour]++;
+          }
         }
       });
-      this.ordersByHour = hourlyDistribution.map((count, hour) => ({
+
+      const chartData = hourlyDistribution.map((count, hour) => ({
         hour: `${hour.toString().padStart(2, '0')}:00`,
         count: count
       }));
+
+      // Add a 24:00 (End of Day) boundary point to visually "close" the area series
+      chartData.push({
+        hour: "23:59",
+        count: 0
+      });
+
+      this.ordersByHour = chartData;
     }
   }
 });

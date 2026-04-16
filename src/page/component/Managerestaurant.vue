@@ -25,6 +25,7 @@ const RestaurantData = reactive({
   Status: '',
   OpenTime: '',
   CloseTime: '',
+  CommissionRate: 0,
   CreatedAt: null,
   UpdatedAt: null
 });
@@ -263,6 +264,15 @@ const goBack = () => {
                   <textarea placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
                     v-model="RestaurantData.Address" :readonly="mode === 'View Restaurant'"></textarea>
+                </div>
+
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">ค่าธรรมเนียม Commission (%)</span>
+                  </label>
+                  <input type="number" min="0" max="100" placeholder="ระบุกำไรที่หักจากร้านค้า (เช่น 10)"
+                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 font-bold text-indigo-600"
+                    v-model="RestaurantData.CommissionRate" :readonly="mode === 'View Restaurant'" />
                 </div>
                 
 

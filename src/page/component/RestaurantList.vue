@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useRestaurant } from '@/stores/Restaurant';
+import { useMenuStore } from '@/stores/menuStore';
 
 // --- Initialization ---
 const props = defineProps({
@@ -11,10 +12,23 @@ const props = defineProps({
     searchQuery: {
         type: String,
         default: ''
+    },
+    categoryFilter: {
+        type: Array,
+        default: () => []
+    },
+    openOnly: {
+        type: Boolean,
+        default: false
+    },
+    promoOnly: {
+        type: Boolean,
+        default: false
     }
 });
 
 const restaurantStore = useRestaurant();
+const menuStore = useMenuStore();
 const router = useRouter();
 
 // --- State ---
@@ -37,14 +51,42 @@ onUnmounted(() => {
 const sortedRestaurants = computed(() => {
     if (!restaurantStore.list) return [];
 
+    let list = [...restaurantStore.list];
+
+    // Filter by Category if specified (Multi-select)
+    if (props.categoryFilter && props.categoryFilter.length > 0) {
+        list = list.filter(shop => {
+            return menuStore.list.some(m => 
+                m.Restaurant === shop.Name && 
+                props.categoryFilter.includes(m.Category)
+            );
+        });
+    }
+
+    // Filter by Open Only
+    if (props.openOnly) {
+        list = list.filter(shop => !isShopClosed(shop));
+    }
+
+    // Filter by Promotions Only
+    if (props.promoOnly) {
+        list = list.filter(shop => {
+            // Check if this restaurant has any menu items with a PromoPrice > 0
+            return menuStore.list.some(m => 
+                m.Restaurant === shop.Name && 
+                m.PromoPrice && Number(m.PromoPrice) > 0
+            );
+        });
+    }
+
     // Sort restaurants: open ones first, closed ones last
-    return [...restaurantStore.list].sort((a, b) => {
+    return list.sort((a, b) => {
         const aClosed = isShopClosed(a);
         const bClosed = isShopClosed(b);
 
         if (aClosed && !bClosed) return 1;
         if (!aClosed && bClosed) return -1;
-        return 0; 
+        return 0;
     });
 });
 
@@ -79,6 +121,23 @@ const isShopClosed = (shop) => {
 
 const goToRestaurantMenu = (restaurantName) => {
     router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.building}/${props.floor}/${props.room}`);
+};
+
+/**
+ * Derives unique food categories for a restaurant from the global menu list.
+ */
+const getRestaurantCategories = (restaurantName) => {
+    if (!menuStore.list) return '';
+    const categories = menuStore.list
+        .filter(m => m.Restaurant === restaurantName && m.Category)
+        .map(m => m.Category);
+    
+    const unique = [...new Set(categories)];
+    if (unique.length === 0) return '';
+    
+    // Show up to 3 categories then truncate
+    const displayList = unique.slice(0, 3);
+    return displayList.join(', ') + (unique.length > 3 ? '...' : '');
 };
 </script>
 
@@ -115,6 +174,12 @@ const goToRestaurantMenu = (restaurantName) => {
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
                 <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ shop.Name }}</h3>
                 
+                <!-- Food Categories Display -->
+                <p v-if="getRestaurantCategories(shop.Name)" 
+                   class="text-[11px] text-gray-500 font-medium truncate mb-1 opacity-80">
+                    {{ getRestaurantCategories(shop.Name) }}
+                </p>
+                
                 <!-- ระยะทางใต้ชื่อร้าน -->
                 <div v-if="shop.Distance" class="flex items-center gap-1 text-[11px] text-gray-500 mb-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,27 +189,7 @@ const goToRestaurantMenu = (restaurantName) => {
                     <span>{{ shop.Distance }} กม.</span>
                 </div>
 
-                <p class="font-medium text-[12px] flex items-center gap-1"
-                    :class="isShopClosed(shop) ? 'text-red-500' : 'text-gray-500'">
-                    <template v-if="!isShopClosed(shop)">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 20 20"
-                            fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        เปิดรับออเดอร์
-                    </template>
-                    <template v-else>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20"
-                            fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        ปิดรับออเดอร์
-                    </template>
-                </p>
+
             </div>
 
         </button>

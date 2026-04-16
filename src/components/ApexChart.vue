@@ -47,7 +47,14 @@ const initChart = () => {
             ...props.options.chart,
             type: props.type,
             height: props.height,
-            width: props.width
+            width: props.width,
+            // ซ่อนแถบเครื่องมือ (ซูมเข้า/ออก) ตามที่ผู้ใช้ต้องการ
+            toolbar: {
+                show: false
+            },
+            zoom: {
+                enabled: false
+            }
         },
         series: props.series
     };
@@ -92,7 +99,14 @@ watch(() => props.options, (newOptions) => {
                 ...newOptions.chart,
                 type: props.type,
                 height: props.height,
-                width: props.width
+                width: props.width,
+                // ซ่อนแถบเครื่องมือ (ซูมเข้า/ออก) ตามที่ผู้ใช้ต้องการ
+                toolbar: {
+                    show: false
+                },
+                zoom: {
+                    enabled: false
+                }
             }
         });
     }
