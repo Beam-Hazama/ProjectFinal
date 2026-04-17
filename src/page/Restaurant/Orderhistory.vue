@@ -189,7 +189,7 @@ const formatTimestamp = (timestamp) => {
                                 <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
                             </span>
                             <span v-else>
-                                Table: {{ selectedOrder.tableId }}
+                                Room: {{ selectedOrder.roomId }}
                             </span>
                             <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>

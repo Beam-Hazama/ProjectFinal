@@ -125,7 +125,6 @@ export const useCartStore = defineStore("cart", {
       try {
         const orderData = {
           OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
-          tableId: `${this.building}-${this.floor}-${this.room}`,
           building: this.building,
           floor: this.floor,
           room: this.room,

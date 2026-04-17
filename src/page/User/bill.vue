@@ -13,7 +13,7 @@ const menuStore = useMenuStore();
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
-const tableId = `${building}-${floor}-${room}`;
+const roomId = `${building}-${floor}-${room}`;
 
 // --- Computed ---
 const displayLocation = computed(() => {
@@ -22,7 +22,9 @@ const displayLocation = computed(() => {
 
 const userOrders = computed(() => {
     return orderListStore.list
-        .filter(order => String(order.tableId).trim() === String(tableId).trim())
+        .filter(order => order.building === building && 
+                         order.floor === floor && 
+                         order.room === room)
         .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0)); // Newest first
 });
 
@@ -49,8 +51,8 @@ const totalAmount = computed(() => {
 
 // --- Lifecycle ---
 onMounted(async () => {
-    if (tableId) {
-        await orderListStore.loadOrderUser(tableId);
+    if (building && floor && room) {
+        await orderListStore.loadOrderUser(building, floor, room);
     }
     menuStore.loadMenu();
 });

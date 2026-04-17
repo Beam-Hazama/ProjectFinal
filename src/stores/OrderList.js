@@ -245,12 +245,14 @@ export const useOderlistStore = defineStore("oderlist", {
     /**
      * Load orders for a specific table/room (Customer View).
      */
-    async loadOrderUser(tableId) {
+    async loadOrderUser(building, floor, room) {
       this.clearListener();
 
       const orderQuery = query(
         collection(db, "Order"),
-        where("tableId", "==", tableId)
+        where("building", "==", building),
+        where("floor", "==", floor),
+        where("room", "==", room)
       );
 
       this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {

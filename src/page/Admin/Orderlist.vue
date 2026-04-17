@@ -76,7 +76,7 @@ const getStatusColor = (status) => {
                 </td>
                 <td class="text-center font-medium text-slate-700">
                   <span v-if="orders.room" class="font-bold text-indigo-600">{{ orders.room }}</span>
-                  <span v-else>{{ orders.tableId || '-' }}</span>
+                  <span v-else>{{ orders.roomId || '-' }}</span>
                 </td>
 
                 <td class="text-center">
@@ -87,8 +87,7 @@ const getStatusColor = (status) => {
                 <td class="text-center text-sm">{{ formatTimestamp(orders.CreatedAt) }}</td>
                 <td class="text-center font-bold text-emerald-600">{{ orders.TotalPrice?.toLocaleString() }} ฿</td>
                 <td class="text-center">
-                  <button @click="openModal(orders)"
-                    class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
+                  <button @click="openModal(orders)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                       stroke="currentColor" class="w-4 h-4">
                       <path stroke-linecap="round" stroke-linejoin="round"
@@ -124,11 +123,11 @@ const getStatusColor = (status) => {
                 <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
               </span>
               <span v-else>
-                Room: {{ selectedOrder.tableId }}
+                Room: {{ selectedOrder.roomId }}
               </span>
               <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
             </div>
-          
+
 
             <div class="overflow-x-auto">
               <table class="table w-full table-compact">
@@ -169,7 +168,7 @@ const getStatusColor = (status) => {
               <span class="text-2xl font-bold text-emerald-600">{{ selectedOrder.TotalPrice?.toLocaleString() }}
                 ฿</span>
             </div>
-          </div> 
+          </div>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">

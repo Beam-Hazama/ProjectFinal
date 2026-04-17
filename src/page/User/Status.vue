@@ -22,7 +22,7 @@ const menuStore = useMenuStore();
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
-const tableId = `${building}-${floor}-${room}`;
+const roomId = `${building}-${floor}-${room}`;
 
 // --- State ---
 const notificationPermission = ref(
@@ -36,7 +36,9 @@ const displayLocation = computed(() => {
 
 const roomOrders = computed(() => {
   return orderListStore.list.filter(order => {
-    const isOwner = String(order.tableId).trim() === String(tableId).trim();
+    const isOwner = order.building === building && 
+                    order.floor === floor && 
+                    order.room === room;
     if (!isOwner) return false;
 
     const hasActiveItems = (order.Menu || []).some(item =>
@@ -49,8 +51,8 @@ const roomOrders = computed(() => {
 
 // --- Lifecycle ---
 onMounted(() => {
-  if (tableId) {
-    orderListStore.loadOrderUser(tableId);
+  if (building && floor && room) {
+    orderListStore.loadOrderUser(building, floor, room);
   }
   menuStore.loadMenu();
 
@@ -86,7 +88,7 @@ const getMenuName = (id) => {
 const confirmReceived = async (orderId, itemId) => {
   if (confirm('ยืนยันว่าได้รับรายการนี้แล้ว?')) {
     await orderListStore.updateSingleItemStatus(orderId, itemId, 'received');
-    orderListStore.loadOrderUser(tableId);
+    orderListStore.loadOrderUser(roomId);
   }
 };
 

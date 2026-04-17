@@ -5,7 +5,9 @@ import { useMenuStore } from '@/stores/menuStore';
 
 // --- Initialization ---
 const props = defineProps({
-  tableId: String
+  building: String,
+  floor: String,
+  room: String
 });
 const router = useRouter();
 const cartStore = useCartStore();
@@ -13,13 +15,20 @@ const menuStore = useMenuStore();
 
 // --- Methods ---
 const payment = () => {
-  cartStore.placeorder(props.tableId);
+  cartStore.placeorder();
 
   const dlg = document.getElementById('my_modal_1');
   if (dlg?.close) dlg.close();
   
   cartStore.clearcart();
-  router.push({ name: 'Status', params: { tableId: props.tableId } });
+  router.push({ 
+    name: 'Status', 
+    params: { 
+      building: props.building, 
+      floor: props.floor, 
+      room: props.room 
+    } 
+  });
 };
 
 const editOrder = () => {

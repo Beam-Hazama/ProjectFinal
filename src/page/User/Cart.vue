@@ -82,10 +82,6 @@ const removeItem = (index) => {
       class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5">
       <div class="flex justify-between items-center mb-6">
         <span class="text-xl font-bold text-slate-800">รายการสั่งซื้อ</span>
-        <button @click="$router.push({ name: 'UserWithParams', params: { building, floor, room } })"
-          class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
-          + เพิ่มรายการ
-        </button>
       </div>
 
       <div v-if="!cartStore.item || cartStore.item.length === 0"
@@ -95,7 +91,7 @@ const removeItem = (index) => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
-        <span>ยังไม่มีสินค้าในตะกร้า</span>
+        <span>ยังไม่มีรายการอาหารในตะกร้า</span>
       </div>
 
       <TransitionGroup name="list" tag="div" class="divide-y divide-slate-100">
@@ -201,7 +197,7 @@ const removeItem = (index) => {
     </div>
 
     <dialog id="my_modal_1" class="modal">
-      <confirm-order :tableId="`${building}-${floor}-${room}`"></confirm-order>
+      <confirm-order :building="building" :floor="floor" :room="room"></confirm-order>
     </dialog>
   </div>
 </template>

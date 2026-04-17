@@ -45,15 +45,26 @@ let observer = null;
 // --- Computed ---
 const displayCategories = computed(() => {
     const categories = new Set();
-    // 1. Add official categories first
+    
+    // Check if there are any promotional items for this restaurant
+    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    const hasPromo = allItems.some(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+    
+    // 1. Add "โปรโมชั่น" first if exists
+    if (hasPromo) {
+        categories.add("โปรโมชั่น");
+    }
+
+    // 2. Add official categories
     categoryStore.list.forEach(c => {
         if (c.name) categories.add(c.name);
     });
-    // 2. Add categories found in menu items of this restaurant
-    const restaurantMenus = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
-    restaurantMenus.forEach(item => {
+
+    // 3. Add categories found in menu items of this restaurant
+    allItems.forEach(item => {
         if (item.Category) categories.add(item.Category);
     });
+
     return Array.from(categories);
 });
 
@@ -62,7 +73,13 @@ const groupedMenu = computed(() => {
     const groups = {};
 
     displayCategories.value.forEach(cat => {
-        const catItems = allItems.filter(item => item.Category === cat);
+        let catItems;
+        if (cat === "โปรโมชั่น") {
+            catItems = allItems.filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+        } else {
+            catItems = allItems.filter(item => item.Category === cat);
+        }
+
         // Apply search filter if active
         if (searchQuery.value) {
             const query = searchQuery.value.toLowerCase();

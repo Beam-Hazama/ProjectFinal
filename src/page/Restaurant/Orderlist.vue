@@ -262,7 +262,7 @@ const getRowStatusColor = (status) => {
                                 <span v-if="order.building && order.room" class="font-bold text-slate-700 text-sm">
                                     {{ order.building }} / {{ order.floor }} / {{ order.room }}
                                 </span>
-                                <span v-else class="font-bold text-slate-700">{{ order.tableId || 'N/A' }}</span>
+                                <span v-else class="font-bold text-slate-700">{{ order.roomId || 'N/A' }}</span>
                             </div>
                         </div>
                         <div class="text-right">
