@@ -25,7 +25,7 @@ const userData = ref({
     Role: 'restaurant',
     ImageUrl: '',
     Restaurant: '',
-    Distance: '',
+    Email: '',
     Age: ''
 });
 
@@ -178,12 +178,10 @@ const goBack = () => router.go(-1);
                                 </div>
 
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-bold text-slate-600">ระยะทาง <span
-                                                class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full relative flex items-center pr-12 bg-slate-50 text-slate-700">
-                                        {{ userData.Distance || '-' }}
-                                        <span
-                                            class="absolute right-4 text-slate-400 pointer-events-none text-sm font-medium">กม.</span>
+                                    <label class="label"><span class="label-text font-bold text-slate-600">Email <span
+                                                 class="text-red-500">*</span></span></label>
+                                    <div class="input input-bordered w-full relative flex items-center bg-slate-50 text-slate-700">
+                                        {{ userData.Email }}
                                     </div>
                                 </div>
 
@@ -200,7 +198,7 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
-                                        {{ userData.Age || '-' }}
+                                        {{ userData.Age }}
                                     </div>
                                 </div>
 

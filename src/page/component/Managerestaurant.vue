@@ -17,7 +17,6 @@ const imageInputMethod = ref('file');
 
 const RestaurantData = reactive({
   Name: '',
-  Category: '',
   Phone: '',
   Distance: '',
   Address: '',
@@ -25,7 +24,6 @@ const RestaurantData = reactive({
   Status: '',
   OpenTime: '',
   CloseTime: '',
-  CommissionRate: 0,
   CreatedAt: null,
   UpdatedAt: null
 });
@@ -224,21 +222,14 @@ const goBack = () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ชื่อร้านค้า <span
+                    <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร<span
                         class="text-red-500">*</span></span>
                   </label>
                   <input type="text" placeholder="ระบุชื่อร้านอาหารของคุณ"
                     class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                     v-model="RestaurantData.Name" :readonly="mode === 'View Restaurant'" />
                 </div>
-                <div class="form-control md:col-span-2">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">ประเภทอาหาร</span>
-                  </label>
-                  <input type="text" placeholder="เช่น อาหารจานเดียว, เครื่องดื่ม, ของหวาน"
-                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                    v-model="RestaurantData.Category" :readonly="mode === 'View Restaurant'" />
-                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
@@ -259,26 +250,14 @@ const goBack = () => {
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ที่อยู่ร้านค้า</span>
+                    <span class="label-text font-medium text-slate-600">ที่อยู่</span>
                   </label>
                   <textarea placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
                     v-model="RestaurantData.Address" :readonly="mode === 'View Restaurant'"></textarea>
                 </div>
 
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">ค่าธรรมเนียม Commission (%)</span>
-                  </label>
-                  <input type="number" min="0" max="100" placeholder="ระบุกำไรที่หักจากร้านค้า (เช่น 10)"
-                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 font-bold text-indigo-600"
-                    v-model="RestaurantData.CommissionRate" :readonly="mode === 'View Restaurant'" />
-                </div>
-                
-
-
-
-                <div class="form-control">
+                <div v-if="mode !== 'Add Restaurant'" class="form-control">
                   <label class="label"><span
                       class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
                   <select class="select select-bordered w-full disabled:opacity-100 disabled:text-slate-800 disabled:bg-slate-50" v-model="RestaurantData.ManualStatus" :disabled="mode === 'View Restaurant'">
@@ -287,7 +266,7 @@ const goBack = () => {
                   </select>
                 </div>
 
-                <div class="form-control">
+                <div v-if="mode !== 'Add Restaurant'" class="form-control">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
@@ -299,7 +278,7 @@ const goBack = () => {
                   </select>
 
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                <div v-if="mode !== 'Add Restaurant'" class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">เวลาเปิด</span>

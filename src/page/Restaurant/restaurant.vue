@@ -135,14 +135,6 @@ const logout = async () => {
 
             <!-- Main Content Area -->
             <div class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
-                <div class="text-sm breadcrumbs text-slate-400 mb-4 hidden md:block">
-                    <ul>
-                        <li>Restaurant</li>
-                        <li>{{ (route.name || 'Dashboard').replace('Restaurants ', '').replace('Restaurant ', '') }}
-                        </li>
-                    </ul>
-                </div>
-
                 <slot></slot>
             </div>
 

@@ -15,12 +15,12 @@ const docId = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
 const selectedFile = ref(null);
+const isEditing = ref(false);
 const now = ref(new Date());
 let timer;
 
 const RestaurantData = reactive({
     Name: '',
-    Category: '',
     Phone: '',
     Distance: '',
     Address: '',
@@ -113,7 +113,6 @@ const saveProfile = async () => {
     try {
         await updateDoc(doc(db, 'Restaurant', docId.value), {
             Name: RestaurantData.Name,
-            Category: RestaurantData.Category || '',
             Phone: RestaurantData.Phone,
             Distance: RestaurantData.Distance,
             Address: RestaurantData.Address,
@@ -125,10 +124,16 @@ const saveProfile = async () => {
             UpdatedAt: serverTimestamp()
         });
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
+        isEditing.value = false;
         fetchRestaurantByName();
     } catch (error) {
         alert('เกิดข้อผิดพลาด: ' + error.message);
     }
+};
+
+const cancelEdit = () => {
+    fetchRestaurantByName();
+    isEditing.value = false;
 };
 
 const handleFileUpload = (event) => {
@@ -182,9 +187,25 @@ onUnmounted(() => {
         </div>
 
         <div class="flex gap-3">
-          <button @click="saveProfile"
-            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300">
-            บันทึกข้อมูลโปรไฟล์
+          <button v-if="isEditing" @click="cancelEdit"
+            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-lg px-6 transition-all duration-300 font-bold">
+            Cancel
+          </button>
+          
+          <button @click="isEditing ? saveProfile() : isEditing = true"
+            :class="[
+                'btn border-none shadow-md rounded-lg px-6 transition-all duration-300 font-bold gap-2 min-w-[100px]',
+                isEditing ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
+            ]">
+            <template v-if="!isEditing">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              Edit
+            </template>
+            <template v-else>
+              Save
+            </template>
           </button>
         </div>
       </div>
@@ -254,32 +275,30 @@ onUnmounted(() => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
                   <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านค้า *</span></label>
-                  <input type="text" v-model="RestaurantData.Name" class="input input-bordered w-full bg-slate-50" />
+                  <input type="text" v-model="RestaurantData.Name" :disabled="!isEditing"
+                    class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                 </div>
-                <div class="form-control md:col-span-2">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ประเภทอาหาร</span></label>
-                  <input type="text" placeholder="เช่น อาหารจานเดียว, เครื่องดื่ม, ของหวาน"
-                    v-model="RestaurantData.Category" class="input input-bordered w-full bg-slate-50" />
-                </div>
+
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label"><span
                         class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span></label>
-                    <input type="text" v-model="RestaurantData.Phone" class="input input-bordered w-full bg-slate-50" />
+                    <input type="text" v-model="RestaurantData.Phone" :disabled="!isEditing"
+                      class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                   </div>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-medium text-slate-600">ระยะทาง
                         (กิโลเมตร)</span></label>
-                    <input type="text" placeholder="เช่น 1.5, 2" v-model="RestaurantData.Distance"
-                      class="input input-bordered w-full bg-slate-50" />
+                    <input type="text" placeholder="เช่น 1.5, 2" v-model="RestaurantData.Distance" :disabled="!isEditing"
+                      class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                   </div>
                 </div>
 
                 <div class="form-control md:col-span-2">
                   <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ร้านค้า</span></label>
-                  <textarea v-model="RestaurantData.Address" placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
-                    class="textarea textarea-bordered w-full bg-slate-50 h-24"></textarea>
+                  <textarea v-model="RestaurantData.Address" placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด" :disabled="!isEditing"
+                    class="textarea textarea-bordered w-full bg-slate-50 h-24 disabled:bg-slate-100 disabled:text-slate-500"></textarea>
                 </div>
 
 
@@ -287,7 +306,7 @@ onUnmounted(() => {
                 <div class="form-control">
                   <label class="label"><span
                       class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
-                  <select class="select select-bordered w-full " v-model="RestaurantData.ManualStatus">
+                  <select class="select select-bordered w-full disabled:bg-slate-100 disabled:text-slate-500" v-model="RestaurantData.ManualStatus" :disabled="!isEditing">
                     <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
                     <option value="manual">⚙️ กำหนดเอง</option>
                   </select>
@@ -298,8 +317,8 @@ onUnmounted(() => {
                     <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
                   </label>
                   <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-700 disabled:cursor-not-allowed transition-all"
-                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto'">
+                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed transition-all"
+                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto' || !isEditing">
                     <option value="open">🟢 เปิดให้บริการ (Open)</option>
                     <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
                   </select>
@@ -307,12 +326,14 @@ onUnmounted(() => {
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text font-medium text-slate-600">เวลาเปิด</span></label>
-                  <input type="time" v-model="RestaurantData.OpenTime" class="input input-bordered w-full" />
+                  <input type="time" v-model="RestaurantData.OpenTime" :disabled="!isEditing"
+                    class="input input-bordered w-full disabled:bg-slate-100 disabled:text-slate-500" />
                 </div>
 
                 <div class="form-control">
                   <label class="label"><span class="label-text font-medium text-slate-600">เวลาปิด</span></label>
-                  <input type="time" v-model="RestaurantData.CloseTime" class="input input-bordered w-full" />
+                  <input type="time" v-model="RestaurantData.CloseTime" :disabled="!isEditing"
+                    class="input input-bordered w-full disabled:bg-slate-100 disabled:text-slate-500" />
                 </div>
               </div>
             </div>
