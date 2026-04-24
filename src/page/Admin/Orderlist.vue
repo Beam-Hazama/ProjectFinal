@@ -3,19 +3,15 @@ import { onMounted, ref } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useOderlistStore } from '@/stores/OrderList';
 
-// --- Initialization ---
 const orderStore = useOderlistStore();
 
-// --- State ---
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
-// --- Lifecycle ---
 onMounted(() => {
   orderStore.loadOrder();
 });
 
-// --- Methods ---
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -106,7 +102,6 @@ const getStatusColor = (status) => {
         </div>
       </div>
 
-
       <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
         <div class="modal-box relative">
           <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
@@ -127,7 +122,6 @@ const getStatusColor = (status) => {
               </span>
               <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
             </div>
-
 
             <div class="overflow-x-auto">
               <table class="table w-full table-compact">

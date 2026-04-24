@@ -7,23 +7,19 @@ import { useMenuStore } from '@/stores/menuStore';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const MenuStore = useMenuStore();
 const accountStore = useAccountStore();
 
-// --- Lifecycle ---
 onMounted(() => {
     loadData();
 });
 
-// --- Watchers ---
 watch(() => accountStore.user, (newUser) => {
     if (newUser?.Restaurant) {
         loadData();
     }
 });
 
-// --- Methods ---
 const loadData = async () => {
     await accountStore.checkAuthState();
     const restaurantName = accountStore.user?.Restaurant;
@@ -83,7 +79,7 @@ const formatTimestamp = (timestamp) => {
 <template>
   <LayoutRestaurant>
     <div class="p-6">
-      <!-- Header Section -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <div class="text-3xl font-bold text-slate-700">Menu List</div>
@@ -98,7 +94,7 @@ const formatTimestamp = (timestamp) => {
         </RouterLink>
       </div>
 
-      <!-- Menu Data Table Section -->
+      
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">

@@ -3,29 +3,19 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/accountStore';
 
-
-// --- Stores & Router ---
 const accountStore = useAccountStore();
 const router = useRouter();
 
-// --- Reactive State ---
 const username = ref('');
 const password = ref('');
 const errorMessage = ref('');
 const showPassword = ref(false);
 
-// --- Methods ---
-/**
- * Handle user login with username and password
- */
 const login = async () => {
   try {
     errorMessage.value = '';
     const role = await accountStore.login(username.value, password.value);
 
-    // Redirect based on user role
-
-    // Redirect based on user role
     if (role === 'admin') {
       router.push({ name: 'Admin' });
     } else {
@@ -37,15 +27,12 @@ const login = async () => {
   }
 };
 
-/**
- * Handle forgot password click
- */
 const handleForgotPassword = () => {
   errorMessage.value = 'หากลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ';
 };
 
 onMounted(async () => {
-  // Try to restore session
+
   await accountStore.checkAuthState();
 });
 </script>
@@ -53,16 +40,16 @@ onMounted(async () => {
 <template>
   <div
     class="flex items-center justify-center min-h-screen relative bg-cover bg-center bg-no-repeat overflow-hidden bg-[url('https://travel.mthai.com/app/uploads/2017/06/first-google-result-image-capital-city-141-593907b7d8916__880.jpg')]">
-    <!-- Background Overlay -->
+    
     <div class="absolute inset-0 backdrop-blur-sm bg-black/20"></div>
 
-    <!-- Login Card -->
+    
     <div
       class="relative flex flex-col m-6 bg-white shadow-2xl rounded-2xl md:flex-row overflow-hidden transform transition duration-500 hover:scale-[1.02] hover:shadow-[0px_0px_35px_rgba(59,130,246,0.3)]">
 
-      <!-- Left Side: Form -->
+      
       <div class="flex flex-col justify-center p-8 md:p-10 w-full md:w-[450px]">
-        <!-- Header -->
+        
         <h1 class="text-5xl font-bold text-blue-600 relative w-fit mb-8">
           Login
           <span
@@ -71,12 +58,12 @@ onMounted(async () => {
 
         <p class="text-gray-400 mb-8 mt-2">Please enter your Username & Password</p>
 
-        <!-- Error Message -->
+        
         <p v-if="errorMessage" class="text-red-500 text-sm mb-4 font-medium animate-pulse flex items-center gap-2">
           <span>⚠️</span> {{ errorMessage }}
         </p>
 
-        <!-- Input: Username -->
+        
         <div class="mb-4">
           <label class="text-blue-500 text-sm block mb-1.5 font-bold uppercase tracking-wide">Username</label>
           <div
@@ -86,7 +73,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Input: Password -->
+        
         <div class="mb-7">
           <label class="text-blue-500 text-sm block mb-1.5 font-bold uppercase tracking-wide">Password</label>
           <div
@@ -107,7 +94,7 @@ onMounted(async () => {
               </svg>
             </button>
           </div>
-          <!-- Forgot Password Link -->
+          
           <div class="flex justify-end mt-1">
             <button type="button" @click="handleForgotPassword"
               class="text-[11px] text-blue-500 hover:text-blue-700 font-bold transition duration-200">
@@ -116,9 +103,7 @@ onMounted(async () => {
           </div>
         </div>
 
-
-
-        <!-- Action: Login Email/Password -->
+        
         <button
           class="w-full p-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition duration-300 shadow-lg shadow-blue-200 active:scale-[0.98]"
           @click="login">
@@ -126,7 +111,7 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Right Side: Decorative Image -->
+      
       <div class="relative hidden md:block w-[400px]">
         <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/43/64/77/3ei4enw-open-daily-from.jpg"
           class="absolute inset-0 w-full h-full object-cover" alt="Login Background">
@@ -135,3 +120,4 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+

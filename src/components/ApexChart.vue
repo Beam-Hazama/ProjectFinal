@@ -48,7 +48,7 @@ const initChart = () => {
             type: props.type,
             height: props.height,
             width: props.width,
-            // ซ่อนแถบเครื่องมือ (ซูมเข้า/ออก) ตามที่ผู้ใช้ต้องการ
+
             toolbar: {
                 show: false
             },
@@ -64,7 +64,7 @@ const initChart = () => {
 };
 
 onMounted(() => {
-    // Wait slightly to ensure window.ApexCharts is available if script loading is slow
+
     if (window.ApexCharts) {
         initChart();
     } else {
@@ -74,7 +74,7 @@ onMounted(() => {
                 initChart();
             }
         }, 100);
-        // Timeout after 5 seconds
+
         setTimeout(() => clearInterval(checkInterval), 5000);
     }
 });
@@ -100,7 +100,7 @@ watch(() => props.options, (newOptions) => {
                 type: props.type,
                 height: props.height,
                 width: props.width,
-                // ซ่อนแถบเครื่องมือ (ซูมเข้า/ออก) ตามที่ผู้ใช้ต้องการ
+
                 toolbar: {
                     show: false
                 },
@@ -112,3 +112,4 @@ watch(() => props.options, (newOptions) => {
     }
 }, { deep: true });
 </script>
+

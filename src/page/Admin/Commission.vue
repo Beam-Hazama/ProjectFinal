@@ -4,70 +4,48 @@ import { useDashboardStore } from '@/stores/dashboard';
 import { useCommissionStore } from '@/stores/commissionStore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const dashboardStore = useDashboardStore();
 const commissionStore = useCommissionStore();
 
-// Local state for temporary rate changes before saving
 const localRates = ref({});
 const isEditing = ref(false);
 
-// --- Lifecycle ---
 onMounted(async () => {
-    // Ensure data is loaded
+
     await dashboardStore.loadDashboardData();
     await commissionStore.loadCommissionRates();
-    
-    // Initialize local rates from store
+
     localRates.value = { ...commissionStore.rates };
 });
 
 onUnmounted(() => {
-    // Cleaning up if necessary, but dashboardStore might be needed elsewhere
-    // dashboardStore.clearListeners();
+
     commissionStore.clearListener();
 });
 
-// --- Computed Metrics ---
 const restaurantData = computed(() => {
     if (!dashboardStore.availableRestaurants) return [];
 
-    // Calculate revenue per restaurant based on current dashboard filters
     const revenueMap = {};
-    
-    // We iterate through allOrders that have been filtered already by dashboardStore
-    // However, the dashboardStore.topRestaurants already has this summarized!
-    // But topRestaurants is limited to 5. We need all.
-    
-    // Let's re-calculate logic from applyFilters to get ALL restaurants
+
     dashboardStore.allOrders.forEach(order => {
-        // ... (Same filtering logic as dashboardStore.applyFilters)
-        // For simplicity, we can rely on how dashboardStore processes data
-        // but here we want it grouped by restaurant for the commission table.
+
     });
 
-    // Actually, the most reliable way is to compute it here similar to how dashboardStore does it
-    // but specific to our needs.
     
     const map = {};
     dashboardStore.allOrders.forEach(order => {
-        // Basic filtering for status
+
         if (order.statusOrder === 'cancelled' || order.statusOrder === 'returned') return;
-        
-        // Date filtering (Sync with dashboardStore.timeFilter)
-        // ... (Omitting full implementation for brevity, assuming standard dashboard filters apply)
+
     });
 
-    // For this implementation, I will use a reactive grouping 
-    // that mirrors the dashboard's current filtered state.
     
     return dashboardStore.availableRestaurants.map(restName => {
-        // Find revenue for this restaurant in the current filtered state
-        // Since dashboardStore doesn't expose a full revenue map, we'll derive it
+
         let revenue = 0;
         dashboardStore.allOrders.forEach(order => {
-             // Basic time filter check (simplified for now to match dashboard)
-             // In a real app, I'd move the aggregation logic to a shared getter
+
              if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
                  if (order.Menu && Array.isArray(order.Menu)) {
                      order.Menu.forEach(item => {
@@ -106,26 +84,8 @@ const totalNetPayout = computed(() => {
     return restaurantData.value.reduce((sum, r) => sum + r.net, 0);
 });
 
-// --- Methods ---
 const updateLocalRate = (name, val) => {
     localRates.value[name] = Number(val);
-};
-
-const saveRate = async (name) => {
-    const rate = localRates.value[name];
-    
-    // Find restaurant ID by name matching
-    // Note: This assumes restaurant Name is unique and we can find the doc ID.
-    // In your system, loadListRestaurant provides the list with IDs.
-    const restaurantObj = dashboardStore.allRestaurants.find(r => (typeof r === 'string' ? r === name : r.Name === name));
-    
-    // We need the ID. Let's find it from the restaurant list in the store if available.
-    // Since dashboardStore.loadDashboardData only maps names, I'll use a safer approach.
-    // I'll update commissionStore to handle Name-to-ID mapping if needed, 
-    // or just pass the ID if I had it.
-    
-    // Let's assume we have access to the ID in the rates map from commissionStore
-    // which was loaded via snapshot.
 };
 
 const saveAll = async () => {
@@ -143,29 +103,26 @@ const cancelEdit = () => {
     isEditing.value = false;
 };
 
-// Sync localRates when store rates change (initial load or real-time updates)
 watch(() => commissionStore.rates, (newRates) => {
-    // We only initialize localRates if they are empty (first load)
-    // or if the user hasn't started editing to avoid overwriting their current input.
+
     if (Object.keys(localRates.value).length === 0) {
         localRates.value = { ...newRates };
     }
 }, { deep: true, immediate: true });
-
 
 </script>
 
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      <!-- Header -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800">Commission Management</h1>
+          <h1 class="text-3xl font-bold text-slate-800">Commission</h1>
         </div>
 
         <div class="flex gap-3">
-          <!-- Time Filter (Reused from Dashboard) -->
+          
           <div class="flex items-center gap-2">
             <div v-if="dashboardStore.timeFilter === 'custom'" class="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <input 
@@ -196,7 +153,7 @@ watch(() => commissionStore.rates, (newRates) => {
         </div>
       </div>
 
-      <!-- KPI Summary Cards -->
+      
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
            <p class="text-sm font-bold text-slate-500 mb-1">รายได้รวม</p>
@@ -218,7 +175,7 @@ watch(() => commissionStore.rates, (newRates) => {
         </div>
       </div>
 
-      <!-- Commission Table -->
+      
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
@@ -284,7 +241,7 @@ watch(() => commissionStore.rates, (newRates) => {
         </div>
       </div>
       
-      <!-- Action Bar -->
+      
       <div class="mt-6 flex justify-end gap-3">
          <button v-if="isEditing" @click="cancelEdit" 
            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-32 transition-all font-bold" 
@@ -313,3 +270,4 @@ watch(() => commissionStore.rates, (newRates) => {
     </div>
   </LayoutAdmin>
 </template>
+

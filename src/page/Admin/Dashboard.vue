@@ -3,10 +3,8 @@ import { onMounted, onUnmounted } from 'vue';
 import { useDashboardStore } from '@/stores/dashboard';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const dashboardStore = useDashboardStore();
 
-// --- Lifecycle ---
 onMounted(() => {
   dashboardStore.loadDashboardData();
 });
@@ -20,8 +18,7 @@ onUnmounted(() => {
   <LayoutAdmin>
     <div class="p-6">
 
-
-      <!-- Header and Filters -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div class="text-3xl font-bold text-slate-700">Dashboard</div>
 
@@ -81,15 +78,14 @@ onUnmounted(() => {
         </div>
       </div>
 
-
       <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
       </div>
 
-      <!-- Dashboard Highlights -->
+      
       <div v-else class="space-y-6">
-        <!-- Order Status Summary -->
+        
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div
@@ -116,10 +112,10 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- KPI Statistics -->
+        
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 
-          <!-- 1. Gross Revenue -->
+          
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -142,7 +138,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- 2. System Commission -->
+          
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -163,7 +159,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- 3. Total Orders -->
+          
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -184,7 +180,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- 4. Total Menus -->
+          
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -204,7 +200,7 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- 5. Total Restaurants -->
+          
           <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
             <div
@@ -226,10 +222,8 @@ onUnmounted(() => {
           </div>
         </div>
 
-
-        <!-- Analytical Charts -->
+        
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2">
             <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
@@ -245,7 +239,6 @@ onUnmounted(() => {
                 :series="dashboardStore.salesChartSeries"></apexchart>
             </div>
           </div>
-
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-1">
             <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
@@ -369,8 +362,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-
-
       </div>
     </div>
   </LayoutAdmin>
@@ -381,3 +372,4 @@ onUnmounted(() => {
   min-height: 100%;
 }
 </style>
+

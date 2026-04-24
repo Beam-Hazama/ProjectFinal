@@ -4,10 +4,8 @@ import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { usePosterStore } from '@/stores/posterStore';
 
-// --- Initialization ---
 const posterStore = usePosterStore();
 
-// --- State ---
 const localPosters = ref([]);
 const newPosterUrl = ref('');
 const isSubmitting = ref(false);
@@ -19,17 +17,14 @@ const startTime = ref('');
 const endTime = ref('');
 const displayDuration = ref();
 
-// --- Lifecycle ---
 onMounted(() => {
     posterStore.loadPosters();
 });
 
-// --- Watchers ---
 watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-// --- Methods ---
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     if (typeof timestamp.toDate === 'function') {
@@ -155,7 +150,6 @@ const onDragEnd = async () => {
                 </button>
             </div>
 
-
             <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
                 <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
                     <div
@@ -232,7 +226,6 @@ const onDragEnd = async () => {
                     </div>
                 </div>
             </dialog>
-
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -370,3 +363,4 @@ const onDragEnd = async () => {
         </div>
     </LayoutAdmin>
 </template>
+

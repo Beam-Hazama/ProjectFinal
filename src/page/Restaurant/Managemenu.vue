@@ -9,7 +9,6 @@ import { useCategoryStore } from '@/stores/categoryStore';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const MenuStore = useMenuStore();
@@ -18,7 +17,6 @@ const categoryStore = useCategoryStore();
 const accountStore = useAccountStore();
 const menuId = route.params.id;
 
-// --- State ---
 const mode = ref('');
 const selectedFile = ref(null);
 const imagePreview = ref('');
@@ -36,7 +34,6 @@ const MenuData = reactive({
     OptionGroups: [],
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
     await accountStore.checkAuthState();
     if (route.params.id) {
@@ -64,25 +61,22 @@ onMounted(async () => {
     categoryStore.loadCategories();
 });
 
-// --- Watchers ---
 watch(() => MenuData.ImageUrl, (newVal) => {
     if (imageInputMethod.value === 'url') {
         imagePreview.value = newVal;
     }
 });
 
-// --- Methods ---
 const checkAddMenu = async (data) => {
     try {
         let MenuId;
         const ImageUrl = data.ImageUrl || '';
 
-        // Clean up empty option groups and choices
         const cleanOptionGroups = (data.OptionGroups || []).map(group => {
             return {
                 name: group.name.trim(),
-                isRequired: group.isRequired !== false, // Defaults to true
-                maxChoices: group.maxChoices ? Number(group.maxChoices) : 1, // Defaulting to 1 if not specified
+                isRequired: group.isRequired !== false,
+                maxChoices: group.maxChoices ? Number(group.maxChoices) : 1,
                 choices: group.choices
                     .filter(c => c.name.trim() !== '')
                     .map(c => ({ name: c.name.trim(), price: Number(c.price) || 0 }))
@@ -174,7 +168,7 @@ const goBack = () => {
 <template>
     <LayoutAdmin>
         <div class="p-6 font-sans">
-            <!-- Header Section -->
+            
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">
@@ -198,7 +192,7 @@ const goBack = () => {
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
-                    <!-- Image Preview & Management -->
+                    
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none"
@@ -269,7 +263,7 @@ const goBack = () => {
                         </div>
                     </div>
 
-                    <!-- Core Menu Details Form -->
+                    
                     <div class="p-8 lg:col-span-2 space-y-8">
 
                         <div>
@@ -379,10 +373,9 @@ const goBack = () => {
                                     </select>
                                 </div>
 
-
                             </div>
 
-                            <!-- Advanced Options: Sub-menus & Choices -->
+                            
                             <div class="mt-12">
                                 <h3
                                     class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
@@ -398,7 +391,6 @@ const goBack = () => {
                                         <div v-for="(group, gIndex) in MenuData.OptionGroups" :key="'group-' + gIndex"
                                             class="relative pb-6 border-b border-slate-100 last:border-0 last:pb-0 group">
 
-
                                             <button @click="removeOptionGroup(gIndex)"
                                                 class="absolute top-0 right-0 btn btn-square btn-sm btn-ghost text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors z-10"
                                                 title="ลบหมวดหมู่">
@@ -408,7 +400,6 @@ const goBack = () => {
                                                         d="M6 18L18 6M6 6l12 12" />
                                                 </svg>
                                             </button>
-
 
                                             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-4 pr-10 items-end">
                                                 <div class="form-control">
@@ -450,7 +441,6 @@ const goBack = () => {
                                                     </div>
                                                 </div>
                                             </div>
-
 
                                             <div class="pl-2 md:pl-4 border-l-2 border-slate-100">
                                                 <div class="flex items-center justify-between mb-2">
@@ -506,7 +496,6 @@ const goBack = () => {
                                             </div>
                                         </div>
                                     </transition-group>
-
 
                                     <div v-if="!MenuData.OptionGroups || MenuData.OptionGroups.length === 0"
                                         class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">

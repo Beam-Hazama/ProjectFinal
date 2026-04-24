@@ -5,11 +5,9 @@ import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const accountStore = useAccountStore();
 const restaurantName = accountStore.user?.Restaurant;
 
-// --- State ---
 const loading = ref(true);
 const docId = ref(null);
 const imagePreview = ref('');
@@ -33,9 +31,6 @@ const RestaurantData = reactive({
     UpdatedAt: null
 });
 
-// --- Methods ---
-
-// Helpers
 const calculateStatus = () => {
     if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
     if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
@@ -60,7 +55,6 @@ const formatTimestamp = (timestamp) => {
     return date.toLocaleString('th-TH');
 };
 
-// Data Fetching
 const fetchRestaurantByName = async () => {
     if (!accountStore.isLoggedIn) {
         await accountStore.checkAuthState();
@@ -107,7 +101,6 @@ const fetchRestaurantByName = async () => {
     }
 };
 
-// Actions
 const saveProfile = async () => {
     if (!docId.value) return;
     try {
@@ -145,7 +138,6 @@ const handleFileUpload = (event) => {
     }
 };
 
-// --- Watchers ---
 watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () => RestaurantData.ManualStatus], () => {
     RestaurantData.Status = calculateStatus();
 });
@@ -160,7 +152,6 @@ watch(
     { immediate: true }
 );
 
-// --- Lifecycle ---
 onMounted(() => {
     fetchRestaurantByName();
     timer = setInterval(() => {
@@ -180,7 +171,7 @@ onUnmounted(() => {
     </div>
 
     <div v-else class="p-6 font-sans">
-      <!-- Header Section -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
           <h1 class="text-3xl font-bold text-slate-700">Profile</h1>
@@ -213,7 +204,7 @@ onUnmounted(() => {
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
-          <!-- Restaurant Image Management -->
+          
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">รูปภาพร้าน</h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs mb-8">
@@ -249,7 +240,6 @@ onUnmounted(() => {
                 <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
               </div>
 
-
               <div v-else class="w-full animate-fade-in">
                 <div class="relative">
                   <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
@@ -266,9 +256,8 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Profile Details Form Section -->
+          
           <div class="p-8 lg:col-span-2 space-y-8">
-
 
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
@@ -278,7 +267,6 @@ onUnmounted(() => {
                   <input type="text" v-model="RestaurantData.Name" :disabled="!isEditing"
                     class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                 </div>
-
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
@@ -300,8 +288,6 @@ onUnmounted(() => {
                   <textarea v-model="RestaurantData.Address" placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด" :disabled="!isEditing"
                     class="textarea textarea-bordered w-full bg-slate-50 h-24 disabled:bg-slate-100 disabled:text-slate-500"></textarea>
                 </div>
-
-
 
                 <div class="form-control">
                   <label class="label"><span

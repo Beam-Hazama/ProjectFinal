@@ -2,12 +2,8 @@ import { defineStore } from "pinia";
 import { db } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-/**
- * Cart Store
- * Manages the shopping cart state, persistence (localStorage), and order placement.
- */
 export const useCartStore = defineStore("cart", {
-  // --- State ---
+
   state: () => ({
     item: [],
     building: null,
@@ -15,35 +11,25 @@ export const useCartStore = defineStore("cart", {
     room: null,
   }),
 
-  // --- Getters ---
   getters: {
-    /**
-     * Helper to find a specific menu item within the cart.
-     */
+    
     getItemById: (state) => {
       return (menuId) => state.item.find(i => i.id === menuId) || null;
     },
 
-    /**
-     * Total quantity of all items in the cart.
-     */
+    
     summaryQuantity(state) {
       return state.item.reduce((acc, item) => acc + item.Quantity, 0);
     },
 
-    /**
-     * Total price of all items in the cart.
-     */
+    
     summaryPrice(state) {
       return state.item.reduce((acc, item) => acc + (item.Price * item.Quantity), 0);
     },
   },
 
-  // --- Actions ---
   actions: {
-    /**
-     * Load cart data from localStorage for a specific location.
-     */
+    
     loadcart(building, floor, room) {
       this.building = building;
       this.floor = floor;
@@ -64,9 +50,7 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    /**
-     * Persist current cart state to localStorage.
-     */
+    
     saveToStorage() {
       if (this.building && this.floor && this.room) {
         const storageKey = `cart-data-${this.building}-${this.floor}-${this.room}`;
@@ -74,9 +58,7 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    /**
-     * Add a new item to the cart or update existing one with a unique tracking ID.
-     */
+    
     addOrUpdateItem(menu, quantity, note, unitPrice) {
       const priceToUse = unitPrice !== undefined ? unitPrice : menu.Price;
 
@@ -95,17 +77,13 @@ export const useCartStore = defineStore("cart", {
       this.saveToStorage();
     },
 
-    /**
-     * Remove an item from the cart by its index.
-     */
+    
     removeItemInCart(index) {
       this.item.splice(index, 1);
       this.saveToStorage();
     },
 
-    /**
-     * Update the quantity of an item in the cart.
-     */
+    
     updateQuantity(index, increment) {
       if (this.item[index]) {
         const newQuantity = this.item[index].Quantity + increment;
@@ -118,9 +96,7 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    /**
-     * Finalize cart and submit a new order to Firestore.
-     */
+    
     async placeorder() {
       try {
         const orderData = {
@@ -148,12 +124,11 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    /**
-     * Clear all items from the current cart.
-     */
+    
     clearcart() {
       this.item = [];
       this.saveToStorage();
     }
   }
 });
+

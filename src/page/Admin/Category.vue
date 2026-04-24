@@ -4,27 +4,22 @@ import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
 
-// --- Initialization ---
 const categoryStore = useCategoryStore();
 
-// --- State ---
 const localCategories = ref([]);
 const newCategoryName = ref('');
 const newCategoryImageUrl = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
 
-// --- Lifecycle ---
 onMounted(() => {
     categoryStore.loadCategories();
 });
 
-// --- Watchers ---
 watch(() => categoryStore.list, (newList) => {
     localCategories.value = [...newList];
 }, { deep: true, immediate: true });
 
-// --- Methods ---
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     if (typeof timestamp.toDate === 'function') {
@@ -94,7 +89,6 @@ const onDragEnd = async () => {
                 </button>
             </div>
 
-
             <div v-if="showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
@@ -121,7 +115,6 @@ const onDragEnd = async () => {
                             </div>
                         </div>
 
-
                         <div v-if="newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
                             <img :src="newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
@@ -145,7 +138,6 @@ const onDragEnd = async () => {
                     </div>
                 </div>
             </div>
-
 
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -222,3 +214,4 @@ const onDragEnd = async () => {
         </div>
     </LayoutAdmin>
 </template>
+

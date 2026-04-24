@@ -4,24 +4,19 @@ import QrcodeVue from 'qrcode.vue'
 import AdminLayout from './Admin.vue'
 import { useQRCodeStore } from '@/stores/qrcode'
 
-// --- Initialization ---
 const qrStore = useQRCodeStore()
 const baseUrl = 'https://192.168.1.45:5173'
 
-// --- State ---
 const isModalOpen = ref(false)
 const selectedRoom = ref(null)
 const roomForm = ref({ roomNumber: '', floor: '', building: '' })
 
-// --- Computed ---
 const rooms = computed(() => qrStore.rooms)
 
-// --- Lifecycle ---
 onMounted(() => {
   qrStore.fetchRooms()
 })
 
-// --- Methods ---
 const openAddModal = () => {
   roomForm.value = { roomNumber: '', floor: '', building: '' }
   isModalOpen.value = true
@@ -84,7 +79,7 @@ const printSpecificQR = async (room) => {
           </button>
         </div>
 
-        <!-- QR Code List Table -->
+        
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="table w-full">
@@ -126,7 +121,7 @@ const printSpecificQR = async (room) => {
           </div>
         </div>
 
-        <!-- Add Room Modal -->
+        
         <dialog :open="isModalOpen" class="modal bg-black/50">
           <div class="modal-box shadow-2xl">
             <h3 class="font-bold text-lg mb-4 text-slate-700">Add New Room QR Code</h3>

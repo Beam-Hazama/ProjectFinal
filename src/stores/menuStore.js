@@ -12,22 +12,15 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 
-/**
- * Menu Store
- * Manages the menu items for all restaurants, including real-time loading and persistence.
- */
 export const useMenuStore = defineStore('menu', {
-  // --- State ---
+
   state: () => ({
     list: [],
     unsubscribe: null,
   }),
 
-  // --- Actions ---
   actions: {
-    /**
-     * Clear the active Firestore listener and reset the menu list.
-     */
+    
     clearListener() {
       if (this.unsubscribe) {
         this.unsubscribe();
@@ -36,9 +29,7 @@ export const useMenuStore = defineStore('menu', {
       this.list = [];
     },
 
-    /**
-     * Load all menu items from the system in real-time.
-     */
+    
     async loadMenu() {
       this.clearListener();
       
@@ -53,9 +44,7 @@ export const useMenuStore = defineStore('menu', {
       });
     },
 
-    /**
-     * Load menu items belonging to a specific restaurant in real-time.
-     */
+    
     async loadMenuRestaurant(restaurantName) {
       this.clearListener();
 
@@ -74,9 +63,7 @@ export const useMenuStore = defineStore('menu', {
       });
     },
 
-    /**
-     * Add a new menu item to the database.
-     */
+    
     async addMenu(menuData) {
       const timestamp = serverTimestamp();
       await addDoc(collection(db, 'Menu'), {
@@ -86,16 +73,14 @@ export const useMenuStore = defineStore('menu', {
       });
     },
 
-    /**
-     * Update an existing menu item and perform field cleanup.
-     */
+    
     async menuUpdate(menuId, menuData) {
       const menuRef = doc(db, 'Menu', menuId);
       
       const updatedData = {
         ...menuData,
         UpdatedAt: serverTimestamp(),
-        // Cleanup legacy snake_case fields if they exist
+
         status: deleteField(),
         updatedAt: deleteField()
       };
@@ -104,3 +89,4 @@ export const useMenuStore = defineStore('menu', {
     },
   },
 });
+

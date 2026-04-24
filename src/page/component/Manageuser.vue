@@ -6,11 +6,9 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, getDocs, doc, query, where, setDoc, serverTimestamp } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 
-// --- State ---
 const isLoading = ref(false);
 const restaurants = ref([]);
 const imageInputMethod = ref('file');
@@ -31,29 +29,25 @@ const userData = ref({
     Age: ''
 });
 
-// --- Lifecycle ---
 onMounted(() => {
     fetchRestaurants();
 });
 
-// --- Watchers ---
 watch(() => userData.value.ImageUrl, (newVal) => {
     if (imageInputMethod.value === 'url') {
         imagePreview.value = newVal;
     }
 });
 
-// --- Computed ---
 const isFormValid = computed(() => {
     const { Firstname, Lastname, Username, Restaurant, Phone, Address, Email, ImageUrl, Age, Password } = userData.value;
-    // Basic required field check
+
     if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Email || !ImageUrl || !Age || !Password) return false;
-    // Phone length validation
+
     if (Phone.length !== 10) return false;
     return true;
 });
 
-// --- Methods ---
 const fetchRestaurants = async () => {
     try {
         const querySnapshot = await getDocs(collection(db, 'Restaurant'));
@@ -89,7 +83,6 @@ const handleSave = async () => {
     try {
         isLoading.value = true;
 
-        // Check if username already exists
         const q = query(collection(db, 'User'), where('Username', '==', Username));
         const querySnapshot = await getDocs(q);
 
@@ -99,12 +92,10 @@ const handleSave = async () => {
             return;
         }
 
-        // Authentication creation (using a fake email pattern for system accounts)
         const fakeEmail = `${Username.toLowerCase().trim()}@system.local`;
         const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, Password);
         const uid = userCredential.user.uid;
 
-        // Firestore user profile creation
         await setDoc(doc(db, 'User', uid), {
             Firstname,
             Lastname,
@@ -154,7 +145,7 @@ const goBack = () => router.go(-1);
 <template>
     <LayoutAdmin>
         <div class="min-h-screen p-6 md:p-8 font-sans bg-slate-50/50">
-            <!-- Header Section -->
+            
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
@@ -177,7 +168,7 @@ const goBack = () => router.go(-1);
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
-                    <!-- Image Management Section -->
+                    
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             รูปภาพหน้าร้าน <span class="text-red-500">*</span>
@@ -220,7 +211,6 @@ const goBack = () => router.go(-1);
                                 <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
                             </div>
 
-
                             <div v-else class="w-full animate-fade-in">
                                 <div class="relative">
                                     <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
@@ -239,7 +229,7 @@ const goBack = () => router.go(-1);
                         </div>
                     </div>
 
-                    <!-- User Details Form Section -->
+                    
                     <div class="p-8 lg:col-span-2 space-y-8">
                         <div>
                             <h3

@@ -4,22 +4,18 @@ import { useOderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from './restaurant.vue';
 
-// --- Initialization ---
 const orderStore = useOderlistStore();
 const accountStore = useAccountStore();
 
-// --- State ---
 const loading = ref(true);
 const selections = ref({});
 
-// --- Lifecycle ---
 onMounted(async () => {
     await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
     loading.value = false;
 });
 
-// --- Computed ---
 const restaurantOrders = computed(() => {
     if (!accountStore.user || !accountStore.user.Restaurant) return [];
 
@@ -74,9 +70,6 @@ const restaurantOrders = computed(() => {
     );
 });
 
-// --- Methods ---
-
-// Selection Management
 const toggleSelection = (orderId, itemId, type) => {
     if (!selections.value[orderId]) {
         selections.value[orderId] = {};
@@ -110,7 +103,6 @@ const hasWaitingItems = (order) => {
     return order.displayItems.some(i => !i.itemStatus || i.itemStatus === 'waiting');
 };
 
-// Order Actions
 const saveChanges = async (order) => {
     try {
         const orderSelections = selections.value[order.id];
@@ -190,7 +182,6 @@ const areOtherRestaurantsReady = (order) => {
     return !anyWaiting;
 };
 
-// UI Helpers
 const getStatusColor = (status) => {
     switch (status) {
         case 'pending': return 'badge-info text-white';
@@ -217,13 +208,12 @@ const getRowStatusColor = (status) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6 font-sans">
-            <!-- Header Section -->
+            
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
 
                 </div>
-
 
             </div>
 
@@ -231,7 +221,7 @@ const getRowStatusColor = (status) => {
                 <span class="loading loading-spinner loading-lg text-indigo-600"></span>
             </div>
 
-            <!-- Empty State Section -->
+            
             <div v-else-if="restaurantOrders.length === 0"
                 class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-slate-300">
                 <div class="bg-indigo-50 p-6 rounded-full mb-4">
@@ -245,11 +235,10 @@ const getRowStatusColor = (status) => {
                 <p class="text-slate-400 mt-1">ยังไม่มีรายการสั่งซื้อสำหรับร้านของคุณในขณะนี้</p>
             </div>
 
-            <!-- Active Orders Grid Section -->
+            
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div v-for="order in restaurantOrders" :key="order.id"
                     class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col">
-
 
                     <div class="bg-slate-50/80 p-4 border-b border-slate-100 flex justify-between items-center">
                         <div class="flex items-center gap-3">
@@ -276,11 +265,9 @@ const getRowStatusColor = (status) => {
                         </div>
                     </div>
 
-
                     <div class="p-4 flex-grow space-y-4">
                         <div v-for="(item, index) in order.displayItems" :key="index"
                             class="flex flex-row gap-4 items-center border-b border-slate-50 last:border-0 pb-4 last:pb-0">
-
 
                             <div class="flex flex-col gap-2 flex-shrink-0"
                                 v-if="!item.itemStatus || item.itemStatus === 'waiting'">
@@ -291,14 +278,12 @@ const getRowStatusColor = (status) => {
                                         @change="toggleSelection(order.id, item.uniqueKey, 'advance')" />
                                 </label>
 
-
                                 <label class="cursor-pointer flex items-center gap-1">
                                     <input type="checkbox" class="checkbox checkbox-error checkbox-xs"
                                         :checked="getSelectionType(order.id, item.uniqueKey) === 'cancel'"
                                         @change="toggleSelection(order.id, item.uniqueKey, 'cancel')" />
                                 </label>
                             </div>
-
 
                             <div class="flex gap-3 flex-grow">
                                 <div

@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import ConfirmOrder from './ConfirmOrder.vue';
 
-// --- Initialization ---
 const cartStore = useCartStore();
 const route = useRoute();
 
@@ -12,17 +11,14 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-// --- Computed ---
 const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
 
-// --- Lifecycle ---
 onMounted(() => {
   cartStore.loadcart(building, floor, room);
 });
 
-// --- Methods ---
 const showConfirmModal = () => {
   if (cartStore.item.length > 0) {
     const modal = document.getElementById('my_modal_1');
@@ -43,7 +39,7 @@ const removeItem = (index) => {
   <div
     class="w-full min-h-screen p-4 pb-32 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
     
-    <!-- Cart Header Section -->
+    
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -77,7 +73,7 @@ const removeItem = (index) => {
       </button>
     </div>
 
-    <!-- Order Items List Section -->
+    
     <div
       class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-5">
       <div class="flex justify-between items-center mb-6">
@@ -98,12 +94,12 @@ const removeItem = (index) => {
         <div v-for="(cart, index) in cartStore.item" :key="index"
           class="group relative py-6 first:pt-0 last:pb-0 transition-all duration-300">
           <div class="flex gap-4">
-            <!-- Product Image -->
+            
             <div class="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
               <img :src="cart.ImageUrl || 'https://via.placeholder.com/150'" class="w-full h-full object-cover" />
             </div>
 
-            <!-- Product Info -->
+            
             <div class="flex-grow min-w-0 flex flex-col justify-between py-0.5">
               <div>
                 <div class="flex justify-between items-start">
@@ -126,10 +122,9 @@ const removeItem = (index) => {
                   </div>
                 </div>
 
-
               </div>
 
-              <!-- Quantity Controls -->
+              
               <div class="flex items-center gap-3 mt-3">
                 <div class="flex items-center bg-slate-50 rounded-xl p-1 shadow-inner border border-slate-100">
                   <button @click="cartStore.updateQuantity(index, -1)"
@@ -159,7 +154,7 @@ const removeItem = (index) => {
       </TransitionGroup>
     </div>
 
-    <!-- Pricing Summary Section -->
+    
     <div class="bg-white/90 backdrop-blur-lg shadow-xl border border-white/60 rounded-2xl p-5 space-y-3">
       <div class="flex justify-between text-gray-600">
         <span>ค่าอาหาร</span>

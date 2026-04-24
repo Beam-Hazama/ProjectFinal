@@ -3,26 +3,21 @@ import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useOderlistStore } from '@/stores/OrderList';
 
-// --- Initialization ---
 const orderStore = useOderlistStore();
 
-// --- State ---
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
-// --- Computed ---
 const historyOrders = computed(() => {
     if (!orderStore.sortedOrders) return [];
-    // Only show orders that have a status and are not 'pending'
+
     return orderStore.sortedOrders.filter(order => order.statusOrder && order.statusOrder !== 'pending');
 });
 
-// --- Lifecycle ---
 onMounted(() => {
     orderStore.loadOrderinadmin();
 });
 
-// --- Methods ---
 const openModal = (order) => {
     selectedOrder.value = order;
     showModal.value = true;
@@ -129,7 +124,6 @@ const formatTimestamp = (timestamp) => {
                 </div>
             </div>
 
-
             <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
                 <div class="modal-box relative">
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
@@ -214,3 +208,4 @@ const formatTimestamp = (timestamp) => {
         </div>
     </LayoutAdmin>
 </template>
+

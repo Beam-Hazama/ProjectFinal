@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 
-// --- Initialization ---
 const route = useRoute();
 const cartStore = useCartStore();
 
@@ -13,7 +12,6 @@ const props = defineProps({
     room: { type: String, required: true }
 });
 
-// --- Computed ---
 const menuItems = computed(() => [
     {
         name: 'User',
@@ -42,14 +40,13 @@ const menuItems = computed(() => [
     }
 ]);
 
-// --- Methods ---
 const isActive = (name) => {
     return route.name === name;
 };
 </script>
 
 <template>
-    <!-- Bottom Tab Bar Navigation -->
+    
     <div
         class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-[55] pb-safe">
         <div class="flex justify-around items-center h-16">
@@ -76,3 +73,4 @@ const isActive = (name) => {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 </style>
+

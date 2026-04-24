@@ -4,11 +4,9 @@ import { useRestaurantDashboardStore } from '@/stores/restaurantDashboard';
 import { useAccountStore } from '@/stores/accountStore';
 import RestaurantLayout from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const dashboardStore = useRestaurantDashboardStore();
 const accountStore = useAccountStore();
 
-// --- Lifecycle ---
 onMounted(async () => {
     await accountStore.checkAuthState();
     if (accountStore.user?.Restaurant) {
@@ -20,7 +18,6 @@ onUnmounted(() => {
     dashboardStore.clearListeners();
 });
 
-// --- Watchers ---
 watch(
     () => accountStore.user,
     (user) => {
@@ -34,7 +31,7 @@ watch(
 <template>
     <RestaurantLayout>
         <div class="p-6">
-            <!-- Header & Filters Section -->
+            
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div class="text-3xl font-bold text-slate-700">Dashboard</div>
 
@@ -48,18 +45,17 @@ watch(
                         <option value="all">ทั้งหมด</option>
                     </select>
 
-
                 </div>
             </div>
 
-            <!-- Loading State -->
+            
             <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
                 <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
                 <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
             </div>
 
             <div v-else class="space-y-6">
-                <!-- Order Status / Statistics Row -->
+                
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div
                         class="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
@@ -87,7 +83,7 @@ watch(
                     </div>
                 </div>
 
-                <!-- Main Financial & Volume Stats -->
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div
                         class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
@@ -179,7 +175,7 @@ watch(
                     </div>
                 </div>
 
-                <!-- Charts Section -->
+                
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2">
                         <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
@@ -231,7 +227,7 @@ watch(
                     </div>
                 </div>
 
-                <!-- Top Menus & Recent Orders Tables -->
+                
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                         <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
@@ -346,3 +342,4 @@ watch(
     min-height: 100%;
 }
 </style>
+

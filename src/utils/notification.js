@@ -1,9 +1,4 @@
-/**
- * Notification Utility
- * Handles browser notifications and sound alerts.
- */
 
-// Simple base64 encoded notification sound (a subtle ping)
 const NOTIFICATION_SOUND_URL = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTlvT19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18=";
 
 export const playNotificationSound = () => {
@@ -42,9 +37,3 @@ export const showBrowserNotification = async (title, body, options = {}) => {
     }
 };
 
-export const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) return "unsupported";
-    
-    const permission = await Notification.requestPermission();
-    return permission;
-};

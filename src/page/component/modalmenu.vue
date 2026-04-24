@@ -2,7 +2,6 @@
 import { ref, watch, computed } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
 
-// --- Initialization ---
 const props = defineProps({
   show: Boolean,
   menu: Object
@@ -11,12 +10,10 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const cartStore = useCartStore();
 
-// --- State ---
 const quantity = ref(1);
 const note = ref('');
-const selections = ref({}); // Maps Group Index -> Selection (Array for checkbox, String for radio)
+const selections = ref({});
 
-// --- Watchers ---
 watch(
   () => props.menu,
   (menu) => {
@@ -25,7 +22,6 @@ watch(
     const cartItem = cartStore.getItemById(menu.id);
     selections.value = {};
 
-    // Initialize selections based on OptionGroups
     if (menu.OptionGroups) {
       menu.OptionGroups.forEach((group, index) => {
         if (group.maxChoices > 1) {
@@ -36,7 +32,6 @@ watch(
       });
     }
 
-    // Load existing cart item data if present
     if (cartItem) {
       quantity.value = cartItem.Quantity;
       note.value = cartItem.baseNote || '';
@@ -48,7 +43,6 @@ watch(
   { immediate: true }
 );
 
-// --- Computed ---
 const isFormValid = computed(() => {
   if (!props.menu || !props.menu.OptionGroups) return true;
 
@@ -66,7 +60,6 @@ const isFormValid = computed(() => {
   return true;
 });
 
-// --- Methods ---
 const toggleRadio = (gIndex, choiceName) => {
   if (selections.value[gIndex] === choiceName) {
     selections.value[gIndex] = null;
@@ -77,15 +70,13 @@ const toggleRadio = (gIndex, choiceName) => {
 
 const calculateTotalPrice = () => {
   if (!props.menu) return 0;
-  
-  // Base price (Promo or Regular)
+
   let base = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
     ? Number(props.menu.PromoPrice) 
     : Number(props.menu.Price);
     
   let extra = 0;
 
-  // Add prices of selected options
   if (props.menu.OptionGroups) {
     props.menu.OptionGroups.forEach((group, index) => {
       const sel = selections.value[index];
@@ -110,7 +101,6 @@ const confirmAdd = () => {
   let finalNote = note.value ? `หมายเหตุ: ${note.value}` : '';
   let optionsNoteArr = [];
 
-  // 1. Calculate extra price and build the description of selected options
   let extraPrice = 0;
   if (props.menu && props.menu.OptionGroups) {
     props.menu.OptionGroups.forEach((group, index) => {
@@ -132,19 +122,16 @@ const confirmAdd = () => {
     });
   }
 
-  // 2. Combine option descriptions into the final note
   if (optionsNoteArr.length > 0) {
     const combinedOptions = optionsNoteArr.join('\n');
     finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions;
   }
 
-  // 3. Finalize unit price
   const basePrice = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
     ? Number(props.menu.PromoPrice) 
     : Number(props.menu.Price);
   const unitPrice = basePrice + extraPrice;
 
-  // 4. Update the cart
   cartStore.addOrUpdateItem(props.menu, quantity.value, finalNote, unitPrice);
   emit('close');
 };
@@ -154,7 +141,7 @@ const confirmAdd = () => {
   <Teleport to="body">
     <transition name="slide-in">
         <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
-          <!-- Modal Header Section -->
+          
           <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
           <button @click="emit('close')"
             class="w-8 h-8 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-sm active:scale-95 transition-transform">
@@ -182,8 +169,7 @@ const confirmAdd = () => {
           </div>
         </div>
 
-
-        <!-- Main Content Area -->
+        
         <div class="flex-1 overflow-y-auto no-scrollbar pb-36 bg-gray-50">
 
           <div class="w-full h-[280px] bg-gray-200 relative">
@@ -191,7 +177,6 @@ const confirmAdd = () => {
             <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
               <span class="text-6xl">🍲</span>
             </div>
-
 
           </div>
 
@@ -207,7 +192,6 @@ const confirmAdd = () => {
               </div>
             </div>
           </div>
-
 
           <div v-if="menu.OptionGroups && menu.OptionGroups.length > 0">
             <div v-for="(group, gIndex) in menu.OptionGroups" :key="'group-' + gIndex"
@@ -248,7 +232,6 @@ const confirmAdd = () => {
             </div>
           </div>
 
-
           <div class="bg-white px-5 py-4 mt-2 mb-8 border-b border-gray-100">
             <h3 class="font-bold text-gray-800 text-[15px] mb-3">รายละเอียดเพิ่มเติม</h3>
             <textarea v-model="note"
@@ -257,8 +240,7 @@ const confirmAdd = () => {
 
         </div>
 
-
-        <!-- Footer / Action Bar -->
+        
         <div
           class="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] px-4 pb-safe rounded-t-3xl z-20 flex flex-col items-center">
 
@@ -283,7 +265,6 @@ const confirmAdd = () => {
               </svg>
             </button>
           </div>
-
 
           <button
             class="w-full rounded-xl py-3.5 px-4 font-bold transition-all flex justify-between items-center mb-4 shadow-md"

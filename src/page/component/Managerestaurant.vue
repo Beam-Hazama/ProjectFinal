@@ -5,11 +5,9 @@ import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'fir
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 
-// --- State ---
 const mode = ref('');
 const selectedFile = ref(null);
 const imagePreview = ref('');
@@ -28,7 +26,6 @@ const RestaurantData = reactive({
   UpdatedAt: null
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
   if (route.params.id) {
     if (route.path.toLowerCase().includes('/admin/restaurentdetail')) {
@@ -54,14 +51,12 @@ onMounted(async () => {
   }
 });
 
-// --- Watchers ---
 watch(() => RestaurantData.ImageUrl, (newVal) => {
   if (imageInputMethod.value === 'url') {
     imagePreview.value = newVal;
   }
 });
 
-// --- Methods ---
 const checkSaveRestaurant = async (data) => {
   try {
     const { id, CreatedAt, UpdatedAt, ...saveData } = data;
@@ -133,7 +128,7 @@ const goBack = () => {
   <LayoutAdmin>
     <div class="min-h-screen p-6 md:p-8 font-sans">
 
-      <!-- Header Section -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
@@ -155,7 +150,7 @@ const goBack = () => {
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
-          <!-- Image Profile / Preview Section -->
+          
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
               รูปภาพหน้าร้าน
@@ -198,7 +193,6 @@ const goBack = () => {
                 <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
               </div>
 
-
               <div v-else-if="imageInputMethod === 'url' && mode !== 'View Restaurant'" class="w-full animate-fade-in">
                 <div class="relative">
                   <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
@@ -215,7 +209,7 @@ const goBack = () => {
             </div>
           </div>
 
-          <!-- Form Details Section -->
+          
           <div class="p-8 lg:col-span-2 space-y-8">
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>

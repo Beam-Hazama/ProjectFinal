@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue';
 import MenuOrderModal from './modalmenu.vue';
 import { useRestaurant } from '@/stores/Restaurant';
 
-// --- Initialization ---
 const props = defineProps({
   selectionRole: Array,
   layout: {
@@ -14,20 +13,16 @@ const props = defineProps({
 
 const RestaurantStore = useRestaurant();
 
-// --- State ---
 const selectedMenu = ref(null);
 const showModal = ref(false);
 
-// --- Lifecycle ---
 onMounted(() => {
   RestaurantStore.loadListRestaurant();
 });
 
-// --- Computed ---
 const sortedMenus = computed(() => {
   if (!props.selectionRole) return [];
-  
-  // Sort: Available items first
+
   return [...props.selectionRole].sort((a, b) => {
     const aAvailable = a.Status === 'open' && !isShopClosed(a.Restaurant);
     const bAvailable = b.Status === 'open' && !isShopClosed(b.Restaurant);
@@ -38,7 +33,6 @@ const sortedMenus = computed(() => {
   });
 });
 
-// --- Methods ---
 const isShopClosed = (restaurantName) => {
   const shop = RestaurantStore.list.find(r => r.Name === restaurantName);
   return shop?.Status === 'close';
@@ -59,7 +53,7 @@ const openModal = (menu) => {
       :class="[(menu.Status !== 'open' || isShopClosed(menu.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
       :disabled="menu.Status !== 'open' || isShopClosed(menu.Restaurant)" @click="openModal(menu)">
 
-      <!-- Horizontal Layout Content -->
+      
       <template v-if="layout === 'horizontal'">
         <figure
           class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
@@ -97,7 +91,7 @@ const openModal = (menu) => {
         </div>
       </template>
 
-      <!-- Vertical Layout Content (Default) -->
+      
       <template v-else>
        
         <div class="w-full aspect-square relative bg-gray-100 overflow-hidden">

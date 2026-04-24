@@ -4,21 +4,17 @@ import { useOderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const orderStore = useOderlistStore();
 const accountStore = useAccountStore();
 
-// --- State ---
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
-// --- Lifecycle ---
 onMounted(async () => {
     await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
 });
 
-// --- Computed ---
 const historyOrders = computed(() => {
     if (!accountStore.user || !accountStore.user.Restaurant) return [];
     const myRestaurant = accountStore.user.Restaurant;
@@ -65,7 +61,6 @@ const historyOrders = computed(() => {
     });
 });
 
-// --- Methods ---
 const openModal = (order) => {
     selectedOrder.value = order;
     showModal.value = true;
@@ -97,12 +92,12 @@ const formatTimestamp = (timestamp) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6">
-            <!-- Header Section -->
+            
             <div class="flex justify-between items-start mb-7">
                 <div class="text-3xl font-bold text-slate-700">Order History</div>
             </div>
 
-            <!-- Order History Data Table Section -->
+            
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
@@ -171,7 +166,7 @@ const formatTimestamp = (timestamp) => {
                 </div>
             </div>
 
-            <!-- Order Detail Modal Section -->
+            
             <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
                 <div class="modal-box relative">
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
@@ -253,3 +248,4 @@ const formatTimestamp = (timestamp) => {
         </div>
     </LayoutRestaurant>
 </template>
+

@@ -5,12 +5,10 @@ import { usePosterStore } from '@/stores/posterStore';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
-// --- Initialization ---
 const posterStore = usePosterStore();
 const accountStore = useAccountStore();
 const restaurantName = accountStore.user?.Restaurant;
 
-// --- State ---
 const localPosters = ref([]);
 const newPosterUrl = ref('');
 const displayDuration = ref(5);
@@ -23,21 +21,16 @@ const hasSchedule = ref(false);
 const startTime = ref('');
 const endTime = ref('');
 
-// --- Lifecycle ---
 onMounted(() => {
     if (restaurantName) {
         posterStore.loadPosters(restaurantName);
     }
 });
 
-// --- Watchers ---
 watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-// --- Methods ---
-
-// Poster Management
 const handleSubmitPoster = async () => {
     if (!newPosterUrl.value.trim()) {
         alert('Please enter an image URL');
@@ -101,13 +94,11 @@ const togglePosterStatus = async (poster) => {
     }
 };
 
-// Drag & Drop
 const onDragEnd = async () => {
     const orderedIds = localPosters.value.map(p => p.id);
     await posterStore.updatePosterOrder(orderedIds);
 };
 
-// Modal Management
 const openEditModal = (poster) => {
     isEditing.value = true;
     editingPosterId.value = poster.id;
@@ -130,7 +121,6 @@ const closeModal = () => {
     displayDuration.value = 5;
 };
 
-// Helpers
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     if (typeof timestamp.toDate === 'function') {
@@ -155,7 +145,7 @@ const formatScheduleDate = (dateString) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6 font-sans">
-            <!-- Header Section -->
+            
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">Poster</h1>
@@ -170,8 +160,7 @@ const formatScheduleDate = (dateString) => {
                 </button>
             </div>
 
-
-            <!-- Poster Management Modal -->
+            
             <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
                 <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
                     <div
@@ -256,8 +245,7 @@ const formatScheduleDate = (dateString) => {
                 </div>
             </dialog>
 
-
-            <!-- Poster List Table Section -->
+            
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
@@ -393,3 +381,4 @@ const formatScheduleDate = (dateString) => {
         </div>
     </LayoutRestaurant>
 </template>
+

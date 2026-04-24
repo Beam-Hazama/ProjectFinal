@@ -7,14 +7,11 @@ import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useRestaurant } from '@/stores/Restaurant';
 
-// --- Initialization ---
 const restaurantStore = useRestaurant();
 
-// --- State ---
 const now = ref(new Date());
 let timer;
 
-// --- Lifecycle ---
 onMounted(async () => {
   await restaurantStore.loadListRestaurant();
 
@@ -27,7 +24,6 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
-// --- Methods ---
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);

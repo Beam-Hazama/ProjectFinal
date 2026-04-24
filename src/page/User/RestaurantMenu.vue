@@ -10,7 +10,6 @@ import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import MenuList from '@/page/component/blockmenu.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
@@ -24,7 +23,6 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-// --- State ---
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 const currentRestaurant = ref(null);
@@ -34,33 +32,26 @@ const isSearchActive = ref(false);
 const searchInput = ref(null);
 const isCategoryModalOpen = ref(false);
 
-// Carousel State
 const currentSlide = ref(0);
 let carouselTimeout = null;
 
-// Intersection Observer State
 const isManualScrolling = ref(false);
 let observer = null;
 
-// --- Computed ---
 const displayCategories = computed(() => {
     const categories = new Set();
-    
-    // Check if there are any promotional items for this restaurant
+
     const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
     const hasPromo = allItems.some(item => item.PromoPrice && Number(item.PromoPrice) > 0);
-    
-    // 1. Add "โปรโมชั่น" first if exists
+
     if (hasPromo) {
         categories.add("โปรโมชั่น");
     }
 
-    // 2. Add official categories
     categoryStore.list.forEach(c => {
         if (c.name) categories.add(c.name);
     });
 
-    // 3. Add categories found in menu items of this restaurant
     allItems.forEach(item => {
         if (item.Category) categories.add(item.Category);
     });
@@ -80,7 +71,6 @@ const groupedMenu = computed(() => {
             catItems = allItems.filter(item => item.Category === cat);
         }
 
-        // Apply search filter if active
         if (searchQuery.value) {
             const query = searchQuery.value.toLowerCase();
             groups[cat] = catItems.filter(item =>
@@ -98,7 +88,6 @@ const totalVisibleItems = computed(() => {
     return Object.values(groupedMenu.value).reduce((total, items) => total + items.length, 0);
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
     const isValid = await qrStore.validateRoom(building, floor, room);
     isValidLocation.value = isValid;
@@ -112,7 +101,6 @@ onMounted(async () => {
         fetchRestaurantDetails();
         startCarousel();
 
-        // Initialize Observer after DOM updates
         nextTick(() => {
             initIntersectionObserver();
         });
@@ -124,16 +112,12 @@ onUnmounted(() => {
     if (observer) observer.disconnect();
 });
 
-// --- Watchers ---
 watch(() => posterStore.activePosters, (newVal) => {
     if (newVal && newVal.length > 0 && !carouselTimeout) {
         startCarousel();
     }
 }, { deep: true });
 
-// --- Methods ---
-
-// Carousel Management
 const startCarousel = () => {
     stopCarousel();
     if (posterStore.activePosters?.length > 1) {
@@ -170,7 +154,6 @@ const goToSlide = (index) => {
     startCarousel();
 };
 
-// UI Toggles
 const toggleSearch = () => {
     isSearchActive.value = !isSearchActive.value;
     if (!isSearchActive.value) {
@@ -186,7 +169,6 @@ const toggleCategoryModal = () => {
     isCategoryModalOpen.value = !isCategoryModalOpen.value;
 };
 
-// Data Fetching
 const fetchRestaurantDetails = async () => {
     try {
         const q = query(collection(db, "Restaurant"), where("Name", "==", restaurantName));
@@ -199,7 +181,6 @@ const fetchRestaurantDetails = async () => {
     }
 }
 
-// Navigation
 const goBack = () => {
     router.push(`/user/${building}/${floor}/${room}`);
 };
@@ -211,7 +192,7 @@ const scrollToCategory = (categoryName) => {
 
     const element = document.getElementById(`category-${categoryName}`);
     if (element) {
-        const headerOffset = 60; // Offset for sticky tab bar
+        const headerOffset = 60;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -226,17 +207,15 @@ const scrollToCategory = (categoryName) => {
         });
     }
 
-    // Allow observer to take back control after animation
     setTimeout(() => {
         isManualScrolling.value = false;
     }, 1000);
 };
 
-// Intersection Observer Logic
 const initIntersectionObserver = () => {
     const options = {
         root: null,
-        rootMargin: '-65px 0px -70% 0px', // Trigger near the sticky header
+        rootMargin: '-65px 0px -70% 0px',
         threshold: 0
     };
 
@@ -248,7 +227,6 @@ const initIntersectionObserver = () => {
                 const catName = entry.target.id.replace('category-', '');
                 activeMenuTab.value = catName;
 
-                // Scroll the tab bar active category into view
                 const tabElement = document.getElementById(`tab-${catName}`);
                 if (tabElement) {
                     tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -257,7 +235,6 @@ const initIntersectionObserver = () => {
         });
     }, options);
 
-    // Observe all category sections
     document.querySelectorAll('[id^="category-"]').forEach((section) => {
         observer.observe(section);
     });
@@ -265,12 +242,12 @@ const initIntersectionObserver = () => {
 </script>
 
 <template>
-    <!-- Global Loading State -->
+    
     <div v-if="isLoading" class="min-h-screen flex items-center justify-center bg-gray-50">
         <div class="loading loading-spinner loading-lg text-blue-600"></div>
     </div>
 
-    <!-- Error State: Room Not Found -->
+    
     <div v-else-if="!isValidLocation"
         class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
         <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
@@ -285,14 +262,14 @@ const initIntersectionObserver = () => {
     </div>
 
     <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans relative">
-        <!-- Area 1: Poster Carousel Section -->
+        
         <div class="relative w-full h-[220px]"
             :class="{ 'bg-blue-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
 
             <div v-if="posterStore.activePosters.length > 0" class="w-full h-full overflow-hidden relative"
                 @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-                <!-- Slides Wrapper -->
+                
                 <div class="flex transition-transform duration-500 ease-out h-full w-full"
                     :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
                     <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -302,7 +279,7 @@ const initIntersectionObserver = () => {
                     </div>
                 </div>
 
-                <!-- Navigation Arrows -->
+                
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity z-10">
                     <button @click="prevSlide"
@@ -311,7 +288,7 @@ const initIntersectionObserver = () => {
                         class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
                 </div>
 
-                <!-- Dot Indicators -->
+                
                 <div v-if="posterStore.activePosters.length > 1"
                     class="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-10">
                     <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index"
@@ -321,14 +298,14 @@ const initIntersectionObserver = () => {
                 </div>
             </div>
 
-            <!-- Single Poster or Fallback -->
+            
             <div v-else class="w-full h-full">
                 <img v-if="currentRestaurant?.PosterUrl" :src="currentRestaurant.PosterUrl"
                     class="w-full h-full object-cover" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
 
-            <!-- Control Layer -->
+            
             <div class="absolute top-0 w-full px-4 pt-4 pb-2 flex justify-between items-center z-40">
                 <button @click="goBack"
                     class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
@@ -340,7 +317,7 @@ const initIntersectionObserver = () => {
             </div>
         </div>
 
-        <!-- Area 2: Restaurant Summary Info -->
+        
         <div class="relative z-10 px-2 -mt-10 mb-2">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div class="flex justify-between items-start mb-2">
@@ -377,11 +354,11 @@ const initIntersectionObserver = () => {
             </div>
         </div>
 
-        <!-- Area 3: Sticky Navigation & Search Bar Section -->
+        
         <div class="sticky top-0 z-30 bg-white border-b border-gray-100 mt-2 shadow-sm">
             <div class="flex items-center min-h-[50px]">
 
-                <!-- Search Mode Header -->
+                
                 <div v-if="isSearchActive" class="flex-1 flex items-center px-3 gap-2 animate-fade-in">
                     <div class="relative flex-1">
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -407,7 +384,7 @@ const initIntersectionObserver = () => {
                     </button>
                 </div>
 
-                <!-- Normal Mode Header: Tabs & Toggles -->
+                
                 <template v-else>
                     <button @click="toggleSearch" class="px-3 py-3 border-r border-gray-100 text-gray-500 hover:text-blue-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -439,13 +416,13 @@ const initIntersectionObserver = () => {
             </div>
         </div>
 
-        <!-- Area 4: Menu List Sections -->
+        
         <div id="menu-section" class="bg-white pt-2 pb-10 min-h-screen">
-            <!-- Normal Grouped Menu (Hidden if no search results) -->
+            
             <template v-if="totalVisibleItems > 0">
                 <div v-for="categoryName in displayCategories" :key="categoryName" :id="`category-${categoryName}`"
                     v-show="groupedMenu[categoryName]?.length > 0" class="scroll-mt-16">
-                    <!-- Category Heading -->
+                    
                     <div
                         class="px-4 py-4 bg-gray-50/50 flex items-center justify-between border-y border-gray-100/50 mb-4">
                         <h3 class="text-[17px] font-black text-gray-800 tracking-tight">{{ categoryName }}</h3>
@@ -459,7 +436,7 @@ const initIntersectionObserver = () => {
                 </div>
             </template>
 
-            <!-- No Results Found Empty State -->
+            
             <div v-else class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none"
@@ -476,7 +453,7 @@ const initIntersectionObserver = () => {
             </div>
         </div>
 
-        <!-- Area 5: Floating Action Button: Cart -->
+        
         <div class="fixed bottom-6 right-6 z-50 animate-fade-in group">
             <button @click="router.push(`/user/cart/${building}/${floor}/${room}`)"
                 class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 hover:scale-105 transition-all duration-300">
@@ -492,14 +469,14 @@ const initIntersectionObserver = () => {
             </button>
         </div>
 
-        <!-- Area 6: Category Selection Modal (Bottom Sheet) -->
+        
         <div v-if="isCategoryModalOpen" class="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:p-4">
-            <!-- Backdrop -->
+            
             <div @click="toggleCategoryModal" class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-fade-in"></div>
 
-            <!-- Content Container -->
+            
             <div class="relative bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]">
-                <!-- Drag Handle -->
+                
                 <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-1"></div>
 
                 <div class="overflow-y-auto custom-scrollbar">
@@ -568,3 +545,4 @@ const initIntersectionObserver = () => {
     border-radius: 10px;
 }
 </style>
+

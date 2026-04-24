@@ -13,21 +13,14 @@ import {
 } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
-// No separate initialization needed for DB as it's directly imported
-
-// --- State ---
 const users = ref([]);
 const restaurants = ref([]);
-const isLoading = ref(false);
 
-// --- Lifecycle ---
 onMounted(() => {
     fetchUsers();
     fetchRestaurants();
 });
 
-// --- Methods ---
 const fetchUsers = async () => {
     try {
         const q = query(
@@ -68,7 +61,6 @@ const toggleUserStatus = async (user) => {
 
     if (confirm(`คุณต้องการเปลี่ยนสถานะของ "${user.Firstname}" เป็น ${newStatus.toUpperCase()} ใช่หรือไม่?`)) {
         try {
-            isLoading.value = true;
             const userRef = doc(db, 'User', user.id);
             await updateDoc(userRef, {
                 Status: newStatus,
@@ -79,8 +71,6 @@ const toggleUserStatus = async (user) => {
         } catch (error) {
             console.error("Error updating status:", error);
             alert("ไม่สามารถอัปเดตสถานะได้: " + error.message);
-        } finally {
-            isLoading.value = false;
         }
     }
 };
@@ -93,15 +83,12 @@ const getRestaurantImage = (restaurantName) => {
 const deleteUser = async (id, name) => {
     if (confirm(`คุณต้องการลบผู้ใช้งาน "${name}" ใช่หรือไม่?`)) {
         try {
-            isLoading.value = true;
             await deleteDoc(doc(db, 'User', id));
             alert("ลบผู้ใช้งานสำเร็จ");
             await fetchUsers();
         } catch (error) {
             console.error("Error deleting user:", error);
             alert("ไม่สามารถลบข้อมูลได้: " + error.message);
-        } finally {
-            isLoading.value = false;
         }
     }
 };

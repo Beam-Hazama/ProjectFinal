@@ -2,19 +2,15 @@
 import { onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
-// Components & Stores
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useMenuStore } from '@/stores/menuStore';
 
-// --- Initialization ---
 const menuStore = useMenuStore();
 
-// --- Lifecycle ---
 onMounted(() => {
   menuStore.loadMenu();
 });
 
-// --- Methods ---
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-';
 
@@ -28,16 +24,16 @@ const formatTimestamp = (timestamp) => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      <!-- Header Section -->
+      
       <div class="flex justify-between items-start mb-7">
         <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
       </div>
 
-      <!-- Data Table Container -->
+      
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
-            <!-- Table Head -->
+            
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
               <tr>
                 <th class="py-4 pl-6">MENU</th>
@@ -51,12 +47,12 @@ const formatTimestamp = (timestamp) => {
               </tr>
             </thead>
 
-            <!-- Table Body -->
+            
             <tbody class="text-slate-600">
               <tr v-for="menu in menuStore.list" :key="menu.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
 
-                <!-- Menu Information -->
+                
                 <td class="pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
@@ -71,20 +67,20 @@ const formatTimestamp = (timestamp) => {
                   </div>
                 </td>
 
-                <!-- Restaurant Name -->
+                
                 <td class="text-center">
                   <div class="font-medium">{{ menu.Restaurant }}</div>
                 </td>
 
-                <!-- Price -->
+                
                 <td class="text-center font-medium">{{ menu.Price }} ฿</td>
 
-                <!-- Category -->
+                
                 <td class="text-center">
                   <div class="font-medium">{{ menu.Category }}</div>
                 </td>
 
-                <!-- Status Badge -->
+                
                 <td class="text-center">
                   <div v-if="menu.Status === 'open'"
                     class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
@@ -97,7 +93,7 @@ const formatTimestamp = (timestamp) => {
                   </div>
                 </td>
 
-                <!-- Timestamps -->
+                
                 <td class="text-center text-xs">
                   {{ formatTimestamp(menu.CreatedAt) }}
                 </td>
@@ -105,7 +101,7 @@ const formatTimestamp = (timestamp) => {
                   {{ formatTimestamp(menu.UpdatedAt) }}
                 </td>
 
-                <!-- Actions -->
+                
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
                     <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }"

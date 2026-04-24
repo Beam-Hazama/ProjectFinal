@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useOderlistStore } from '@/stores/OrderList';
 import { useMenuStore } from '@/stores/menuStore';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const orderListStore = useOderlistStore();
@@ -15,7 +14,6 @@ const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 const roomId = `${building}-${floor}-${room}`;
 
-// --- Computed ---
 const displayLocation = computed(() => {
     return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
@@ -25,7 +23,7 @@ const userOrders = computed(() => {
         .filter(order => order.building === building && 
                          order.floor === floor && 
                          order.room === room)
-        .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0)); // Newest first
+        .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0));
 });
 
 const myOrders = computed(() => {
@@ -49,7 +47,6 @@ const totalAmount = computed(() => {
     return myOrders.value.reduce((sum, order) => sum + (order.grandTotal || 0), 0);
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
     if (building && floor && room) {
         await orderListStore.loadOrderUser(building, floor, room);
@@ -57,9 +54,6 @@ onMounted(async () => {
     menuStore.loadMenu();
 });
 
-// --- Methods ---
-
-// Formatting
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
     try {
@@ -85,7 +79,7 @@ const getMenuName = (id) => {
 <template>
     <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans pb-24">
         
-        <!-- Billing Header Section -->
+        
         <div class="flex justify-between items-start mb-2">
             <div class="flex items-center gap-2">
                 <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -119,7 +113,7 @@ const getMenuName = (id) => {
             </router-link>
         </div>
 
-        <!-- Receipt History Section -->
+        
         <div v-if="myOrders.length === 0" class="flex flex-col items-center justify-center py-20 text-gray-400 space-y-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -133,7 +127,7 @@ const getMenuName = (id) => {
             <div v-for="order in myOrders" :key="order.id"
                 class="bg-white/90 backdrop-blur-md shadow-2xl border border-white/60 rounded-[32px] overflow-hidden">
 
-                <!-- Receipt Header Decor -->
+                
                 <div class="p-5 border-b border-blue-100 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
@@ -153,7 +147,7 @@ const getMenuName = (id) => {
                     </div>
                 </div>
 
-                <!-- Receipt Body: Order Items -->
+                
                 <div class="p-5 space-y-4">
                     <div v-for="(item, index) in order.receivedItems" :key="index"
                         class="flex justify-between items-center group">
@@ -171,7 +165,7 @@ const getMenuName = (id) => {
                     </div>
                 </div>
 
-                <!-- Receipt Footer: Totals -->
+                
                 <div class="p-5 bg-gradient-to-b from-slate-50/50 to-white/50 border-t border-dashed border-slate-200">
                     <div class="space-y-2 mb-4">
                         <div class="flex justify-between text-xs text-slate-500 font-bold">

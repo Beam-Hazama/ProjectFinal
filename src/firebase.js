@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore } from 'firebase/firestore'
+import { getAuth } from "firebase/auth";
 import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -15,11 +15,9 @@ const firebaseConfig = {
   measurementId: "G-SQNBMD58DH"
 };
 
-
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
-
 
 const db = getFirestore(app);
 

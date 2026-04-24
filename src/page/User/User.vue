@@ -13,7 +13,6 @@ import MenuList from '@/page/component/blockmenu.vue';
 import BottomNavigation from '@/page/User/BottomNavigation.vue';
 import MenuOrderModal from '@/page/component/modalmenu.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
@@ -26,7 +25,6 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
-// --- State ---
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 const localCategories = ref([]);
@@ -37,11 +35,9 @@ const showFilterSheet = ref(false);
 const isFilterOpenOnly = ref(false);
 const isFilterPromoOnly = ref(false);
 
-// Carousel State
 const currentSlide = ref(0);
 let carouselTimeout = null;
 
-// --- Computed ---
 const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
 });
@@ -58,7 +54,6 @@ const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
   const isValid = await qrStore.validateRoom(building, floor, room);
   isValidLocation.value = isValid;
@@ -79,7 +74,6 @@ onUnmounted(() => {
   stopCarousel();
 });
 
-// --- Watchers ---
 watch(() => categoryStore.list, (newList) => {
   localCategories.value = [...(newList || [])];
 }, { deep: true, immediate: true });
@@ -103,9 +97,6 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
   }
 });
 
-// --- Methods ---
-
-// Carousel Management
 const startCarousel = () => {
   stopCarousel();
   if (posterStore.activePosters?.length > 1) {
@@ -142,13 +133,11 @@ const goToSlide = (index) => {
   startCarousel();
 };
 
-// Modal Logic
 const openMenuModal = (menu) => {
   selectedMenu.value = menu;
   showModal.value = true;
 };
 
-// Shop Logic
 const isShopClosed = (restaurantName) => {
   const shop = restaurantStore.list.find(r => r.Name === restaurantName);
   return shop?.Status === 'close';
@@ -179,13 +168,13 @@ const applyFilters = () => {
 </script>
 
 <template>
-  <!-- Global Loading State -->
+  
   <div v-if="isLoading"
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <div class="loading loading-spinner loading-lg text-blue-600"></div>
   </div>
 
-  <!-- Invalid Location Error State -->
+  
   <div v-else-if="!isValidLocation"
     class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
@@ -201,7 +190,7 @@ const applyFilters = () => {
 
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
 
-    <!-- Area 1: Location Header Section -->
+    
     <div class="px-5 pt-6 pb-2">
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
@@ -221,7 +210,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Area 2: Search Input Trigger Section -->
+    
     <div class="px-4 py-3">
       <div class="relative">
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -237,12 +226,12 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Area 3: Marketing Poster Carousel Section -->
+    
     <div class="px-4 mt-4">
       <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
         @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-        <!-- Slides Wrapper -->
+        
         <div class="flex transition-transform duration-500 ease-out h-36"
           :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -251,7 +240,7 @@ const applyFilters = () => {
           </div>
         </div>
 
-        <!-- Navigation Arrows -->
+        
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity">
           <button @click="prevSlide"
@@ -260,7 +249,7 @@ const applyFilters = () => {
             class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
         </div>
 
-        <!-- Dot Indicators -->
+        
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
           <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index" @click="goToSlide(index)"
@@ -270,7 +259,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Area 4: Popular Categories Slider Section -->
+    
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
@@ -294,7 +283,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Area 5: Promotion Scroll View Section -->
+    
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
@@ -326,7 +315,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Area 6: Restaurant Discovery Section -->
+    
     <div id="restaurant-section">
       <div class="px-5 mb-4 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
@@ -337,21 +326,21 @@ const applyFilters = () => {
         </div>
       </div>
 
-      <!-- Bottom Sheet Filter -->
+      
       <Teleport to="body">
         <div v-if="showFilterSheet" class="fixed inset-0 z-[100] flex items-end justify-center">
-          <!-- Backdrop -->
+          
           <div 
             class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
             @click="showFilterSheet = false">
           </div>
           
-          <!-- Sheet Content -->
+          
           <div 
             class="relative w-full max-w-lg bg-white rounded-t-[32px] shadow-2xl transition-transform duration-300 transform translate-y-0 flex flex-col max-h-[90vh]"
             :class="showFilterSheet ? 'translate-y-0' : 'translate-y-full'">
             
-            <!-- Header -->
+            
             <div class="px-6 py-4 flex justify-between items-center border-b border-gray-50">
               <h2 class="text-xl font-bold text-gray-800">ตัวกรอง</h2>
               <button 
@@ -363,10 +352,10 @@ const applyFilters = () => {
               </button>
             </div>
 
-            <!-- Scrollable Content -->
+            
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-6 pb-32">
               
-              <!-- Status Section -->
+              
               <div class="space-y-6 mb-8">
                 <div class="flex justify-between items-center group cursor-pointer" @click="isFilterOpenOnly = !isFilterOpenOnly">
                     <span class="text-base font-medium text-gray-700">ร้านอาหารที่เปิดเท่านั้น</span>
@@ -382,11 +371,11 @@ const applyFilters = () => {
                 </div>
               </div>
               
-              <!-- Category Section -->
+              
               <div class="mb-8">
                 <h3 class="text-base font-bold text-gray-800 mb-4">ประเภทอาหาร</h3>
                 <div class="flex flex-wrap gap-2">
-                  <!-- All Option -->
+                  
                   <button 
                     @click="toggleCategory('')"
                     :class="[
@@ -398,7 +387,7 @@ const applyFilters = () => {
                     ทั้งหมด
                   </button>
                   
-                  <!-- Category Chips -->
+                  
                   <button 
                     v-for="cat in localCategories" 
                     :key="'sheet-' + cat.id"
@@ -415,7 +404,7 @@ const applyFilters = () => {
               </div>
             </div>
 
-            <!-- Fixed Footer Actions -->
+            
             <div class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
                <button 
                  @click="resetFilters"
@@ -451,7 +440,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    <!-- Background & Utility Layers -->
+    
     <BottomNavigation :building="building" :floor="floor" :room="room" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>

@@ -4,16 +4,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
 
-import { useRestaurant } from '@/stores/Restaurant';
-
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
-const restaurantStore = useRestaurant();
 
-// --- State ---
 const imagePreview = ref('');
 
 const menuData = reactive({
@@ -28,7 +23,6 @@ const menuData = reactive({
   OptionGroups: [],
 });
 
-// --- Methods ---
 const goBack = () => {
   router.go(-1);
 };
@@ -43,15 +37,13 @@ onMounted(async () => {
       imagePreview.value = res.ImageUrl;
     }
   }
-
-  restaurantStore.loadListRestaurant();
 });
 </script>
 
 <template>
   <LayoutAdmin>
     <div class="p-6 font-sans">
-      <!-- Header Section -->
+      
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div class="flex items-center gap-4">
           <h1 class="text-3xl font-bold text-slate-700">Menu Detail</h1>
@@ -70,7 +62,7 @@ onMounted(async () => {
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100 mb-4">
-          <!-- Sidebar: Menu Image -->
+          
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24"
@@ -98,9 +90,9 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Main Content: Menu Information -->
+          
           <div class="p-8 lg:col-span-2 space-y-8">
-            <!-- General Information -->
+            
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
                 ข้อมูลทั่วไป
@@ -186,7 +178,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- Option Groups Section -->
+            
             <div class="mt-12">
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
                 <span>ตัวเลือกเพิ่มเติม</span>
@@ -259,7 +251,7 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                <!-- Empty State -->
+                
                 <div v-else
                   class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
                   <div class="text-slate-300 mb-4">
@@ -282,3 +274,4 @@ onMounted(async () => {
     </div>
   </LayoutAdmin>
 </template>
+

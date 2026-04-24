@@ -1,18 +1,14 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-// --- Initialization ---
 const route = useRoute();
 const router = useRouter();
 const userId = route.params.id;
 
-// --- State ---
-const restaurants = ref([]);
-const imageInputMethod = ref('file');
 const imagePreview = ref(null);
 const userData = ref({
     Firstname: '',
@@ -29,31 +25,9 @@ const userData = ref({
     Age: ''
 });
 
-// --- Lifecycle ---
 onMounted(() => {
-    fetchRestaurants();
     fetchUserData();
 });
-
-// --- Watchers ---
-watch(() => userData.value.ImageUrl, (newVal) => {
-    if (imageInputMethod.value === 'url') {
-        imagePreview.value = newVal;
-    }
-});
-
-// --- Methods ---
-const fetchRestaurants = async () => {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'Restaurant'));
-        restaurants.value = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error("Error fetching restaurants:", error);
-    }
-};
 
 const fetchUserData = async () => {
     if (!userId) return;

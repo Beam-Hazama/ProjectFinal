@@ -2,23 +2,16 @@ import { defineStore } from 'pinia';
 import { db } from '@/firebase';
 import { doc, setDoc, query, collection, onSnapshot } from 'firebase/firestore';
 
-/**
- * Commission Store
- * Manages commission rates and logic for restaurants.
- */
 export const useCommissionStore = defineStore('commission', {
   state: () => ({
-    rates: {}, // Map of restaurantId -> commission percentage
-    nameToId: {}, // Map of restaurantName -> restaurantId
+    rates: {},
+    nameToId: {},
     loading: false,
     unsubscribe: null
   }),
 
   actions: {
-    /**
-     * Load all restaurant documents to get the commission rates.
-     * We sync this in real-time.
-     */
+    
     async loadCommissionRates() {
       if (this.unsubscribe) this.unsubscribe();
       
@@ -32,7 +25,7 @@ export const useCommissionStore = defineStore('commission', {
           const data = doc.data();
           const name = data.Name || doc.id;
           newNameToId[name] = doc.id;
-          // Default to 0 if not set
+
           newRates[name] = data.CommissionRate !== undefined ? Number(data.CommissionRate) : 0;
         });
         this.rates = newRates;
@@ -44,11 +37,7 @@ export const useCommissionStore = defineStore('commission', {
       });
     },
 
-    /**
-     * Update the commission rate for a specific restaurant.
-     * @param {string} restaurantId 
-     * @param {number} rate 
-     */
+    
     async updateRate(idOrName, rate) {
       const id = this.nameToId[idOrName] || idOrName;
       const restaurantRef = doc(db, 'Restaurant', id);
@@ -78,3 +67,4 @@ export const useCommissionStore = defineStore('commission', {
     }
   }
 });
+
