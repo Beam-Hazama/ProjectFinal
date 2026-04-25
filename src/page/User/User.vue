@@ -144,38 +144,32 @@ const isShopClosed = (restaurantName) => {
 };
 
 const resetFilters = () => {
-    isFilterOpenOnly.value = false;
-    isFilterPromoOnly.value = false;
-    selectedRestaurantCategories.value = [];
+  isFilterOpenOnly.value = false;
+  isFilterPromoOnly.value = false;
+  selectedRestaurantCategories.value = [];
 };
 
 const toggleCategory = (name) => {
-    if (name === '') {
-        selectedRestaurantCategories.value = [];
-        return;
-    }
-    const index = selectedRestaurantCategories.value.indexOf(name);
-    if (index > -1) {
-        selectedRestaurantCategories.value.splice(index, 1);
-    } else {
-        selectedRestaurantCategories.value.push(name);
-    }
+  if (name === '') {
+    selectedRestaurantCategories.value = [];
+    return;
+  }
+  const index = selectedRestaurantCategories.value.indexOf(name);
+  if (index > -1) {
+    selectedRestaurantCategories.value.splice(index, 1);
+  } else {
+    selectedRestaurantCategories.value.push(name);
+  }
 };
 
 const applyFilters = () => {
-    showFilterSheet.value = false;
+  showFilterSheet.value = false;
 };
 </script>
 
 <template>
-  
-  <div v-if="isLoading"
-    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-    <div class="loading loading-spinner loading-lg text-blue-600"></div>
-  </div>
 
-  
-  <div v-else-if="!isValidLocation"
+  <div v-if="!isValidLocation"
     class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -190,7 +184,7 @@ const applyFilters = () => {
 
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
 
-    
+
     <div class="px-5 pt-6 pb-2">
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
@@ -210,7 +204,7 @@ const applyFilters = () => {
       </div>
     </div>
 
-    
+
     <div class="px-4 py-3">
       <div class="relative">
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -226,12 +220,12 @@ const applyFilters = () => {
       </div>
     </div>
 
-    
+
     <div class="px-4 mt-4">
       <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
         @mouseenter="stopCarousel" @mouseleave="startCarousel">
 
-        
+
         <div class="flex transition-transform duration-500 ease-out h-36"
           :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="poster in posterStore.activePosters" :key="poster.id"
@@ -240,7 +234,7 @@ const applyFilters = () => {
           </div>
         </div>
 
-        
+
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity">
           <button @click="prevSlide"
@@ -249,7 +243,7 @@ const applyFilters = () => {
             class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
         </div>
 
-        
+
         <div v-if="posterStore.activePosters.length > 1"
           class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
           <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index" @click="goToSlide(index)"
@@ -259,11 +253,11 @@ const applyFilters = () => {
       </div>
     </div>
 
-    
+
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
-        <button @click="$router.push(`/user/all-categories/${building}/${floor}/${room}`)" 
+        <button @click="$router.push(`/user/all-categories/${building}/${floor}/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
@@ -283,19 +277,19 @@ const applyFilters = () => {
       </div>
     </div>
 
-    
+
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="$router.push(`/user/all-promotions/${building}/${floor}/${room}`)" 
+        <button @click="$router.push(`/user/all-promotions/${building}/${floor}/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
-        <div v-for="menu in promotionMenus" :key="menu.id"
-          @click="openMenuModal(menu)"
+        <div v-for="menu in promotionMenus" :key="menu.id" @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
-            <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover w-full h-full" alt="Menu Image" />
+            <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover w-full h-full"
+              alt="Menu Image" />
           </div>
           <div class="p-2.5">
             <div class="flex justify-between items-start">
@@ -315,87 +309,85 @@ const applyFilters = () => {
       </div>
     </div>
 
-    
+
     <div id="restaurant-section">
       <div class="px-5 mb-4 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
-        
-        <div class="flex items-center gap-1.5 text-[12px] font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
+
+        <div
+          class="flex items-center gap-1.5 text-[12px] font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
           @click="showFilterSheet = true">
           <span>ตัวกรอง</span>
         </div>
       </div>
 
-      
+
       <Teleport to="body">
         <div v-if="showFilterSheet" class="fixed inset-0 z-[100] flex items-end justify-center">
-          
-          <div 
-            class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
+
+          <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
             @click="showFilterSheet = false">
           </div>
-          
-          
-          <div 
+
+
+          <div
             class="relative w-full max-w-lg bg-white rounded-t-[32px] shadow-2xl transition-transform duration-300 transform translate-y-0 flex flex-col max-h-[90vh]"
             :class="showFilterSheet ? 'translate-y-0' : 'translate-y-full'">
-            
-            
+
+
             <div class="px-6 py-4 flex justify-between items-center border-b border-gray-50">
               <h2 class="text-xl font-bold text-gray-800">ตัวกรอง</h2>
-              <button 
-                @click="showFilterSheet = false"
-                class="p-2 text-gray-400 hover:text-gray-600 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <button @click="showFilterSheet = false" class="p-2 text-gray-400 hover:text-gray-600 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            
+
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-6 pb-32">
-              
-              
+
+
               <div class="space-y-6 mb-8">
-                <div class="flex justify-between items-center group cursor-pointer" @click="isFilterOpenOnly = !isFilterOpenOnly">
-                    <span class="text-base font-medium text-gray-700">ร้านอาหารที่เปิดเท่านั้น</span>
-                    <input type="checkbox" v-model="isFilterOpenOnly" class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
+                <div class="flex justify-between items-center group cursor-pointer"
+                  @click="isFilterOpenOnly = !isFilterOpenOnly">
+                  <span class="text-base font-medium text-gray-700">ร้านอาหารที่เปิดเท่านั้น</span>
+                  <input type="checkbox" v-model="isFilterOpenOnly"
+                    class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
                 </div>
-                
-                <div class="flex justify-between items-center group cursor-pointer" @click="isFilterPromoOnly = !isFilterPromoOnly">
-                    <div class="flex flex-col">
-                        <span class="text-base font-bold text-gray-800">โปรโมชั่น</span>
-                        <span class="text-sm text-gray-500 font-medium mt-0.5">ค้นหาร้านที่มีส่วนลดพิเศษ</span>
-                    </div>
-                    <input type="checkbox" v-model="isFilterPromoOnly" class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
+
+                <div class="flex justify-between items-center group cursor-pointer"
+                  @click="isFilterPromoOnly = !isFilterPromoOnly">
+                  <div class="flex flex-col">
+                    <span class="text-base font-bold text-gray-800">โปรโมชั่น</span>
+                    <span class="text-sm text-gray-500 font-medium mt-0.5">ค้นหาร้านที่มีส่วนลดพิเศษ</span>
+                  </div>
+                  <input type="checkbox" v-model="isFilterPromoOnly"
+                    class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
                 </div>
               </div>
-              
-              
+
+
               <div class="mb-8">
                 <h3 class="text-base font-bold text-gray-800 mb-4">ประเภทอาหาร</h3>
                 <div class="flex flex-wrap gap-2">
-                  
-                  <button 
-                    @click="toggleCategory('')"
-                    :class="[
-                      'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
-                      selectedRestaurantCategories.length === 0 
-                        ? 'bg-blue-50 border-blue-500 text-blue-600' 
-                        : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
-                    ]">
+
+                  <button @click="toggleCategory('')" :class="[
+                    'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
+                    selectedRestaurantCategories.length === 0
+                      ? 'bg-blue-50 border-blue-500 text-blue-600'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
+                  ]">
                     ทั้งหมด
                   </button>
-                  
-                  
-                  <button 
-                    v-for="cat in localCategories" 
-                    :key="'sheet-' + cat.id"
-                    @click="toggleCategory(cat.name)"
+
+
+                  <button v-for="cat in localCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.name)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
-                      selectedRestaurantCategories.includes(cat.name) 
-                        ? 'bg-blue-50 border-blue-500 text-blue-600 font-black' 
+                      selectedRestaurantCategories.includes(cat.name)
+                        ? 'bg-blue-50 border-blue-500 text-blue-600 font-black'
                         : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
                     ]">
                     {{ cat.name }}
@@ -404,18 +396,17 @@ const applyFilters = () => {
               </div>
             </div>
 
-            
-            <div class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
-               <button 
-                 @click="resetFilters"
-                 class="flex-1 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-[15px] active:scale-95 transition-all hover:bg-gray-200">
-                 ล้างค่า
-               </button>
-               <button 
-                 @click="applyFilters"
-                 class="flex-[1.5] py-4 rounded-xl bg-blue-600 text-white font-bold text-[15px] active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-200">
-                 ค้นหา
-               </button>
+
+            <div
+              class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
+              <button @click="resetFilters"
+                class="flex-1 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-[15px] active:scale-95 transition-all hover:bg-gray-200">
+                ล้างค่า
+              </button>
+              <button @click="applyFilters"
+                class="flex-[1.5] py-4 rounded-xl bg-blue-600 text-white font-bold text-[15px] active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-200">
+                ค้นหา
+              </button>
             </div>
           </div>
         </div>
@@ -423,24 +414,19 @@ const applyFilters = () => {
 
       <div class="px-4">
         <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
-          <RestaurantList 
-            :building="building" 
-            :floor="floor" 
-            :room="room" 
-            :categoryFilter="selectedRestaurantCategories"
-            :openOnly="isFilterOpenOnly"
-            :promoOnly="isFilterPromoOnly">
+          <RestaurantList :building="building" :floor="floor" :room="room"
+            :categoryFilter="selectedRestaurantCategories" :openOnly="isFilterOpenOnly" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
         </div>
 
         <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
           <span class="text-4xl opacity-50 mb-2">🏪</span>
-          <p class="text-[13px] font-medium">ไม่พบร้านค้าในขณะนี้</p>
+          <p class="text-[13px] font-medium">ไม่พบร้านอาหารในขณะนี้</p>
         </div>
       </div>
     </div>
 
-    
+
     <BottomNavigation :building="building" :floor="floor" :room="room" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>

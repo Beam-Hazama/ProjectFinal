@@ -41,12 +41,7 @@ const goToCategory = (catName) => {
 
         
         <div class="flex-1 px-4 pt-6">
-            <div v-if="categoryStore.list.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
-                <div class="loading loading-spinner loading-md mb-2"></div>
-                <p class="text-xs">กำลังโหลดหมวดหมู่...</p>
-            </div>
-
-            <div v-else class="grid grid-cols-3 sm:grid-cols-4 gap-4 animate-fade-in">
+            <div v-if="categoryStore.list.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-4 animate-fade-in">
                 <div v-for="cat in categoryStore.list" :key="cat.id" 
                     @click="goToCategory(cat.name)"
                     class="flex flex-col items-center cursor-pointer group">

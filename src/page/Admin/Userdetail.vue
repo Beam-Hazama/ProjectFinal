@@ -2,12 +2,12 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
 const route = useRoute();
 const router = useRouter();
-const userId = route.params.id;
+const username = route.params.username;
 
 const imagePreview = ref(null);
 const userData = ref({
@@ -30,13 +30,13 @@ onMounted(() => {
 });
 
 const fetchUserData = async () => {
-    if (!userId) return;
+    if (!username) return;
     
     try {
-        const docRef = doc(db, 'User', userId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
+        const q = query(collection(db, 'User'), where('Username', '==', username));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const data = querySnapshot.docs[0].data();
             userData.value = { ...userData.value, ...data };
             imagePreview.value = data.ImageUrl;
             if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
@@ -179,7 +179,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                             (Address) <span class="text-red-500">*</span></span></label>
-                                    <textarea rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
+                                    <textarea rows="3"
                                         class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"
                                         readonly="">{{ userData.Address }}</textarea>
                                 </div>

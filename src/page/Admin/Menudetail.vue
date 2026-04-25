@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
 
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -28,11 +28,12 @@ const goBack = () => {
 };
 
 onMounted(async () => {
-  if (route.params.id) {
-    const menuSnap = await getDoc(doc(db, 'Menu', route.params.id));
+  if (route.params.name) {
+    const q = query(collection(db, 'Menu'), where('Name', '==', route.params.name));
+    const querySnapshot = await getDocs(q);
 
-    if (menuSnap.exists()) {
-      const res = menuSnap.data();
+    if (!querySnapshot.empty) {
+      const res = querySnapshot.docs[0].data();
       Object.assign(menuData, res);
       imagePreview.value = res.ImageUrl;
     }
@@ -42,12 +43,10 @@ onMounted(async () => {
 
 <template>
   <LayoutAdmin>
-    <div class="p-6 font-sans">
+    <div class="p-6">
       
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div class="flex items-center gap-4">
-          <h1 class="text-3xl font-bold text-slate-700">Menu Detail</h1>
-        </div>
+      <div class="flex justify-between items-start mb-6">
+        <h1 class="text-3xl font-bold text-slate-700">Menu Detail</h1>
 
         <div class="flex gap-3">
           <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200 gap-2 w-28 rounded-xl font-bold">

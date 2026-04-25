@@ -8,6 +8,10 @@ const props = defineProps({
   layout: {
     type: String,
     default: 'vertical'
+  },
+  hideRestaurantName: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -15,9 +19,19 @@ const RestaurantStore = useRestaurant();
 
 const selectedMenu = ref(null);
 const showModal = ref(false);
+const now = ref(new Date());
+let timer;
 
 onMounted(() => {
   RestaurantStore.loadListRestaurant();
+  timer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+});
+
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
 });
 
 const sortedMenus = computed(() => {
@@ -35,7 +49,30 @@ const sortedMenus = computed(() => {
 
 const isShopClosed = (restaurantName) => {
   const shop = RestaurantStore.list.find(r => r.Name === restaurantName);
-  return shop?.Status === 'close';
+  if (!shop) return true;
+  if (!shop.OpenTime || !shop.CloseTime) return true;
+
+  try {
+    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
+    const currentDayName = now.value.toLocaleString('en-US', { weekday: 'long' });
+
+    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
+      return true;
+    }
+
+    const [openH, openM] = shop.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+
+    if (closeMin > openMin) {
+      return !(currentTime >= openMin && currentTime < closeMin);
+    } else {
+      return !(currentTime >= openMin || currentTime < closeMin);
+    }
+  } catch (e) {
+    return true;
+  }
 };
 
 const openModal = (menu) => {
@@ -53,7 +90,7 @@ const openModal = (menu) => {
       :class="[(menu.Status !== 'open' || isShopClosed(menu.Restaurant)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
       :disabled="menu.Status !== 'open' || isShopClosed(menu.Restaurant)" @click="openModal(menu)">
 
-      
+
       <template v-if="layout === 'horizontal'">
         <figure
           class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
@@ -70,20 +107,21 @@ const openModal = (menu) => {
             class="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
           </div>
-          <div v-else-if="menu.Status !== 'open'"
-            class="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div v-else-if="menu.Status !== 'open'" class="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span class="text-white font-bold text-[10px] bg-red-500/90 px-2 py-1 rounded-md shadow-sm">หมด</span>
           </div>
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
           <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.Name }}</h3>
-          <p class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
-          <div class="flex justify-between items-end mt-auto">
+          
+          <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
+          <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex items-center gap-2">
               <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
                 ฿{{ menu.PromoPrice }}
               </p>
-              <p class="font-bold text-[14px] text-gray-800" :class="{ 'line-through text-gray-400 text-[12px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
+              <p class="font-bold text-[14px] text-gray-800"
+                :class="{ 'line-through text-gray-400 text-[12px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
                 ฿{{ menu.Price }}
               </p>
             </div>
@@ -91,9 +129,9 @@ const openModal = (menu) => {
         </div>
       </template>
 
-      
+
       <template v-else>
-       
+
         <div class="w-full aspect-square relative bg-gray-100 overflow-hidden">
           <img v-if="menu.ImageUrl" :src="menu.ImageUrl"
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -117,18 +155,19 @@ const openModal = (menu) => {
           </div>
         </div>
 
-        
+
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
           <div class="space-y-0.5">
             <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ menu.Name }}</h3>
-            <p class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
+            <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           </div>
-          <div class="flex justify-between items-end mt-auto">
+          <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex flex-wrap items-center gap-1.5">
               <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[14px] text-red-500">
                 ฿{{ menu.PromoPrice }}
               </p>
-              <p class="font-bold text-[13px] text-gray-800" :class="{ 'line-through text-gray-400 text-[11px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
+              <p class="font-bold text-[13px] text-gray-800"
+                :class="{ 'line-through text-gray-400 text-[11px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
                 ฿{{ menu.Price }}
               </p>
             </div>

@@ -1,14 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
-const route = useRoute();
 const router = useRouter();
 
-const mode = ref('');
 const selectedFile = ref(null);
 const imagePreview = ref('');
 const imageInputMethod = ref('file');
@@ -19,37 +17,22 @@ const RestaurantData = reactive({
   Distance: '',
   Address: '',
   ImageUrl: '',
-  Status: '',
   OpenTime: '',
   CloseTime: '',
+  OpenDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
   CreatedAt: null,
   UpdatedAt: null
 });
 
-onMounted(async () => {
-  if (route.params.id) {
-    if (route.path.toLowerCase().includes('/admin/restaurentdetail')) {
-      mode.value = 'View Restaurant';
-    } else {
-      mode.value = 'Update Restaurant';
-    }
-
-    const resSnap = await getDoc(doc(db, 'Restaurant', route.params.id));
-
-    if (resSnap.exists()) {
-      const res = resSnap.data();
-      Object.assign(RestaurantData, res);
-      imagePreview.value = res.ImageUrl;
-      if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
-        imageInputMethod.value = 'url';
-      }
-    } else {
-      console.log("ไม่พบข้อมูลร้านค้าชิ้นนี้ในระบบ");
-    }
-  } else {
-    mode.value = 'Add Restaurant';
-  }
-});
+const daysOfWeek = [
+  { label: 'อา.', value: 'Sunday' },
+  { label: 'จ.', value: 'Monday' },
+  { label: 'อ.', value: 'Tuesday' },
+  { label: 'พ.', value: 'Wednesday' },
+  { label: 'พฤ.', value: 'Thursday' },
+  { label: 'ศ.', value: 'Friday' },
+  { label: 'ส.', value: 'Saturday' }
+];
 
 watch(() => RestaurantData.ImageUrl, (newVal) => {
   if (imageInputMethod.value === 'url') {
@@ -62,10 +45,6 @@ const checkSaveRestaurant = async (data) => {
     const { id, CreatedAt, UpdatedAt, ...saveData } = data;
     const colName = 'Restaurant';
 
-    if (!saveData.ManualStatus) {
-      saveData.ManualStatus = 'auto';
-    }
-
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     const [openH, openM] = (saveData.OpenTime || '00:00').split(':').map(Number);
@@ -73,29 +52,26 @@ const checkSaveRestaurant = async (data) => {
     const openMin = openH * 60 + openM;
     const closeMin = closeH * 60 + closeM;
 
-    if (saveData.ManualStatus === 'auto') {
-      let autoStatus = 'close';
+    // Automatically calculate status on save
+    let autoStatus = 'close';
+    const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
+    
+    // ตรวจสอบวันเปิดให้บริการ
+    if (saveData.OpenDays && saveData.OpenDays.includes(currentDayName)) {
       if (closeMin > openMin) {
         if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
       } else {
         if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
       }
-      saveData.Status = autoStatus;
     }
+    
+    saveData.Status = autoStatus;
 
-    if (mode.value === 'Add Restaurant') {
-      await addDoc(collection(db, colName), {
-        ...saveData,
-        CreatedAt: serverTimestamp(),
-        UpdatedAt: serverTimestamp()
-      });
-    } else {
-      const docId = route.params.id;
-      await updateDoc(doc(db, colName, docId), {
-        ...saveData,
-        UpdatedAt: serverTimestamp()
-      });
-    }
+    await addDoc(collection(db, colName), {
+      ...saveData,
+      CreatedAt: serverTimestamp(),
+      UpdatedAt: serverTimestamp()
+    });
 
     router.push({ name: 'Restaurant List' });
   } catch (error) {
@@ -113,12 +89,6 @@ const handleFileUpload = (event) => {
   }
 };
 
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleString('th-TH');
-};
-
 const goBack = () => {
   router.go(-1);
 };
@@ -126,20 +96,17 @@ const goBack = () => {
 
 <template>
   <LayoutAdmin>
-    <div class="min-h-screen p-6 md:p-8 font-sans">
-
+    <div class="p-6">
       
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">
-            {{ mode === 'Add Restaurant' ? 'Add New Restaurant' : mode === 'View Restaurant' ? 'Restaurant Details' : 'Edit Restaurant' }}
-          </h1>
+      <div class="flex justify-between items-start mb-6">
+        <div class="text-3xl font-bold text-slate-700">
+          Add New Restaurant
         </div>
 
         <div class="flex gap-3">
           <button @click="goBack"
             class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28">Cancel</button>
-          <button v-if="mode !== 'View Restaurant'" @click="checkSaveRestaurant(RestaurantData)"
+          <button @click="checkSaveRestaurant(RestaurantData)"
             :disabled="!RestaurantData.Name"
             class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-100 hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300 w-28 rounded-xl font-bold">
             Save
@@ -149,7 +116,6 @@ const goBack = () => {
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
-
           
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
@@ -166,7 +132,7 @@ const goBack = () => {
                 </div>
               </div>
 
-              <div v-if="mode !== 'View Restaurant'" role="tablist" class="tabs tabs-boxed  bg-white border border-slate-200 p-1 ">
+              <div role="tablist" class="tabs tabs-boxed  bg-white border border-slate-200 p-1 ">
                 <a role="tab" class="tab text-xs h-8 transition-all"
                   :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
                   @click="imageInputMethod = 'file'">
@@ -179,7 +145,7 @@ const goBack = () => {
                 </a>
               </div>
 
-              <div v-if="imageInputMethod === 'file' && mode !== 'View Restaurant'" class="w-full text-center animate-fade-in">
+              <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
                 <label
                   class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-10">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -193,9 +159,10 @@ const goBack = () => {
                 <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
               </div>
 
-              <div v-else-if="imageInputMethod === 'url' && mode !== 'View Restaurant'" class="w-full animate-fade-in">
+              <div v-else-if="imageInputMethod === 'url'" class="w-full animate-fade-in">
                 <div class="relative">
-                  <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
+                  <input type="text"
+
                     class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
                     v-model="RestaurantData.ImageUrl" />
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-3 text-slate-400"
@@ -209,7 +176,6 @@ const goBack = () => {
             </div>
           </div>
 
-          
           <div class="p-8 lg:col-span-2 space-y-8">
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
@@ -219,9 +185,9 @@ const goBack = () => {
                     <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร<span
                         class="text-red-500">*</span></span>
                   </label>
-                  <input type="text" placeholder="ระบุชื่อร้านอาหารของคุณ"
+                  <input type="text"
                     class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                    v-model="RestaurantData.Name" :readonly="mode === 'View Restaurant'" />
+                    v-model="RestaurantData.Name" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -229,50 +195,29 @@ const goBack = () => {
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span>
                     </label>
-                    <input type="text" placeholder="ระบุเบอร์โทรศัพท์ร้านอาหาร"
+                    <input type="text"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model="RestaurantData.Phone" :readonly="mode === 'View Restaurant'" />
+                      v-model="RestaurantData.Phone" />
                   </div>
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
                     </label>
-                    <input type="text" placeholder="เช่น 1.5, 2"
+                    <input type="number"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model="RestaurantData.Distance" :readonly="mode === 'View Restaurant'" />
+                      v-model.number="RestaurantData.Distance" min="0" step="any" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ที่อยู่</span>
                   </label>
-                  <textarea placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด"
+                  <textarea
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
-                    v-model="RestaurantData.Address" :readonly="mode === 'View Restaurant'"></textarea>
+                    v-model="RestaurantData.Address"></textarea>
                 </div>
 
-                <div v-if="mode !== 'Add Restaurant'" class="form-control">
-                  <label class="label"><span
-                      class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
-                  <select class="select select-bordered w-full disabled:opacity-100 disabled:text-slate-800 disabled:bg-slate-50" v-model="RestaurantData.ManualStatus" :disabled="mode === 'View Restaurant'">
-                    <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
-                    <option value="manual">⚙️ กำหนดเอง</option>
-                  </select>
-                </div>
-
-                <div v-if="mode !== 'Add Restaurant'" class="form-control">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
-                  </label>
-                  <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-50 disabled:text-slate-800 disabled:opacity-100 transition-all"
-                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto' || mode === 'View Restaurant'">
-                    <option value="open">🟢 เปิดให้บริการ (Open)</option>
-                    <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
-                  </select>
-
-                </div>
-                <div v-if="mode !== 'Add Restaurant'" class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">เวลาเปิด</span>
@@ -280,7 +225,7 @@ const goBack = () => {
                     <div class="relative">
                       <input type="time"
                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                        v-model="RestaurantData.OpenTime" :readonly="mode === 'View Restaurant'" />
+                        v-model="RestaurantData.OpenTime" />
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -294,19 +239,38 @@ const goBack = () => {
                       <span class="label-text font-medium text-slate-600">เวลาปิด</span>
                     </label>
                     <div class="relative">
-                      <input type="time"
-                        class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
-                        v-model="RestaurantData.CloseTime" :readonly="mode === 'View Restaurant'" />
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+                    <input type="time"
+                      class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10"
+                      v-model="RestaurantData.CloseTime" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
                 </div>
 
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">วันเปิดให้บริการ</span>
+                  </label>
+                  <div class="flex flex-wrap gap-2 mt-1">
+                    <label v-for="day in daysOfWeek" :key="day.value" 
+                      class="flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-all"
+                      :class="[
+                        RestaurantData.OpenDays && RestaurantData.OpenDays.includes(day.value) 
+                          ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold' 
+                          : 'bg-white border-slate-200 text-slate-400',
+                        'hover:border-blue-300'
+                      ]">
+                      <input type="checkbox" :value="day.value" v-model="RestaurantData.OpenDays" class="hidden" />
+                      <span>{{ day.label }}</span>
+                    </label>
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-2">หากไม่ได้เลือกวันใดวันหนึ่ง ร้านจะแสดงสถานะเป็น "ปิดชั่วคราว" ในวันนั้นอัตโนมัติ</div>
+                </div>
               </div>
+            </div>
             </div>
 
           </div>

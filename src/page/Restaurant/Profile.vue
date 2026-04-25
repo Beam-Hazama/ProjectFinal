@@ -25,29 +25,20 @@ const RestaurantData = reactive({
     ImageUrl: '',
     OpenTime: '',
     CloseTime: '',
-    Status: '',
-    ManualStatus: 'auto',
+    OpenDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     CreatedAt: null,
     UpdatedAt: null
 });
 
-const calculateStatus = () => {
-    if (RestaurantData.ManualStatus === 'manual') return RestaurantData.Status;
-    if (!RestaurantData.OpenTime || !RestaurantData.CloseTime) return 'close';
-
-    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-    const [openH, openM] = RestaurantData.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = RestaurantData.CloseTime.split(':').map(Number);
-
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    if (closeMinutes > openMinutes) {
-        return (currentTime >= openMinutes && currentTime < closeMinutes) ? 'open' : 'close';
-    } else {
-        return (currentTime >= openMinutes || currentTime < closeMinutes) ? 'open' : 'close';
-    }
-};
+const daysOfWeek = [
+    { label: 'อา.', value: 'Sunday' },
+    { label: 'จ.', value: 'Monday' },
+    { label: 'อ.', value: 'Tuesday' },
+    { label: 'พ.', value: 'Wednesday' },
+    { label: 'พฤ.', value: 'Thursday' },
+    { label: 'ศ.', value: 'Friday' },
+    { label: 'ส.', value: 'Saturday' }
+];
 
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '-';
@@ -81,12 +72,7 @@ const fetchRestaurantByName = async () => {
             const data = restaurantDoc.data();
             Object.assign(RestaurantData, data);
 
-            if (!RestaurantData.ManualStatus) {
-                RestaurantData.ManualStatus = 'auto';
-            }
-
             imagePreview.value = RestaurantData.ImageUrl;
-            RestaurantData.Status = calculateStatus();
 
             if (RestaurantData.ImageUrl && RestaurantData.ImageUrl.startsWith("http")) {
                 imageInputMethod.value = "url";
@@ -112,8 +98,7 @@ const saveProfile = async () => {
             ImageUrl: RestaurantData.ImageUrl,
             OpenTime: RestaurantData.OpenTime,
             CloseTime: RestaurantData.CloseTime,
-            Status: RestaurantData.Status,
-            ManualStatus: RestaurantData.ManualStatus,
+            OpenDays: RestaurantData.OpenDays,
             UpdatedAt: serverTimestamp()
         });
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
@@ -137,10 +122,6 @@ const handleFileUpload = (event) => {
         RestaurantData.ImageUrl = previewUrl;
     }
 };
-
-watch([now, () => RestaurantData.OpenTime, () => RestaurantData.CloseTime, () => RestaurantData.ManualStatus], () => {
-    RestaurantData.Status = calculateStatus();
-});
 
 watch(
     () => accountStore.user,
@@ -166,11 +147,7 @@ onUnmounted(() => {
 
 <template>
   <LayoutRestaurant>
-    <div v-if="loading" class="flex justify-center items-center min-h-screen">
-      <span class="loading loading-spinner loading-lg text-blue-600"></span>
-    </div>
-
-    <div v-else class="p-6 font-sans">
+    <div class="p-6 font-sans">
       
       <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
         <div>
@@ -263,7 +240,7 @@ onUnmounted(() => {
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านค้า *</span></label>
+                  <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร *</span></label>
                   <input type="text" v-model="RestaurantData.Name" :disabled="!isEditing"
                     class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                 </div>
@@ -278,38 +255,17 @@ onUnmounted(() => {
                   <div class="form-control">
                     <label class="label"><span class="label-text font-medium text-slate-600">ระยะทาง
                         (กิโลเมตร)</span></label>
-                    <input type="text" placeholder="เช่น 1.5, 2" v-model="RestaurantData.Distance" :disabled="!isEditing"
+                    <input type="number" v-model.number="RestaurantData.Distance" :disabled="!isEditing" min="0" step="any"
                       class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
                   </div>
                 </div>
 
                 <div class="form-control md:col-span-2">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ร้านค้า</span></label>
-                  <textarea v-model="RestaurantData.Address" placeholder="ระบุที่อยู่ร้านอาหารอย่างละเอียด" :disabled="!isEditing"
+                  <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ร้านอาหาร</span></label>
+                  <textarea v-model="RestaurantData.Address" :disabled="!isEditing"
                     class="textarea textarea-bordered w-full bg-slate-50 h-24 disabled:bg-slate-100 disabled:text-slate-500"></textarea>
                 </div>
 
-                <div class="form-control">
-                  <label class="label"><span
-                      class="label-text font-medium text-slate-600">ตั้งค่าการเปิด-ปิด</span></label>
-                  <select class="select select-bordered w-full disabled:bg-slate-100 disabled:text-slate-500" v-model="RestaurantData.ManualStatus" :disabled="!isEditing">
-                    <option value="auto">⏱️ ทำงานตามเวลาอัตโนมัติ</option>
-                    <option value="manual">⚙️ กำหนดเอง</option>
-                  </select>
-                </div>
-
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">สถานะร้านอาหารปัจจุบัน</span>
-                  </label>
-                  <select
-                    class="select select-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed transition-all"
-                    v-model="RestaurantData.Status" :disabled="RestaurantData.ManualStatus === 'auto' || !isEditing">
-                    <option value="open">🟢 เปิดให้บริการ (Open)</option>
-                    <option value="close">🔴 ปิดชั่วคราว (Closed)</option>
-                  </select>
-
-                </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text font-medium text-slate-600">เวลาเปิด</span></label>
                   <input type="time" v-model="RestaurantData.OpenTime" :disabled="!isEditing"
@@ -320,6 +276,26 @@ onUnmounted(() => {
                   <label class="label"><span class="label-text font-medium text-slate-600">เวลาปิด</span></label>
                   <input type="time" v-model="RestaurantData.CloseTime" :disabled="!isEditing"
                     class="input input-bordered w-full disabled:bg-slate-100 disabled:text-slate-500" />
+                </div>
+
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">วันเปิดให้บริการ</span>
+                  </label>
+                  <div class="flex flex-wrap gap-2 mt-1">
+                    <label v-for="day in daysOfWeek" :key="day.value" 
+                      class="flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-all"
+                      :class="[
+                        RestaurantData.OpenDays.includes(day.value) 
+                          ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold' 
+                          : 'bg-white border-slate-200 text-slate-400',
+                        !isEditing ? 'opacity-70 cursor-not-allowed' : 'hover:border-blue-300'
+                      ]">
+                      <input type="checkbox" :value="day.value" v-model="RestaurantData.OpenDays" :disabled="!isEditing" class="hidden" />
+                      <span>{{ day.label }}</span>
+                    </label>
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-2">หากไม่ได้เลือกวันใดวันหนึ่ง ร้านจะแสดงสถานะเป็น "ปิดชั่วคราว" ในวันนั้นอัตโนมัติ</div>
                 </div>
               </div>
             </div>

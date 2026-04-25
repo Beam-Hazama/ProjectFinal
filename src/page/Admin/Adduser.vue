@@ -213,7 +213,8 @@ const goBack = () => router.go(-1);
 
                             <div v-else class="w-full animate-fade-in">
                                 <div class="relative">
-                                    <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
+                                    <input type="text"
+
                                         class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
                                         v-model="userData.ImageUrl" />
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -247,23 +248,20 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Firstname" @input="filterNumbers('Firstname')"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50"
-                                        placeholder="กรอกชื่อจริง" />
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Lastname" @input="filterNumbers('Lastname')"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50"
-                                        placeholder="กรอกนามสกุล" />
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username
                                             <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="userData.Username"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50"
-                                        placeholder="สำหรับใช้ Login" />
+                                        class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control">
@@ -273,8 +271,7 @@ const goBack = () => router.go(-1);
                                         </span>
                                     </label>
                                     <input type="password" v-model="userData.Password"
-                                        class="input input-bordered w-full bg-slate-50 focus:input-primary"
-                                        placeholder="กรอกรหัสผ่าน" />
+                                        class="input input-bordered w-full bg-slate-50 focus:input-primary" />
                                 </div>
 
                                 <div class="form-control">
@@ -292,7 +289,6 @@ const goBack = () => router.go(-1);
                                             <span class="text-red-500">*</span></span></label>
                                     <div class="relative">
                                         <input type="email" v-model="userData.Email"
-                                            placeholder="example@email.com"
                                             class="input input-bordered w-full bg-slate-50 focus:input-primary text-left" />
                                     </div>
                                 </div>
@@ -301,7 +297,7 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.Phone" placeholder="0xx-xxx-xxxx"
+                                    <input type="text" v-model="userData.Phone"
                                         maxlength="10" @input="filterNonNumbers('Phone')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
@@ -310,14 +306,14 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="number" v-model="userData.Age" placeholder="กรอกอายุ"
+                                    <input type="number" v-model="userData.Age"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                             (Address) <span class="text-red-500">*</span></span></label>
-                                    <textarea v-model="userData.Address" rows="3" placeholder="ระบุที่อยู่ปัจจุบัน"
+                                    <textarea v-model="userData.Address" rows="3"
                                         class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>
                                 </div>
                             </div>

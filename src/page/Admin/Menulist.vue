@@ -83,12 +83,12 @@ const formatTimestamp = (timestamp) => {
                 
                 <td class="text-center">
                   <div v-if="menu.Status === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>
                     Closed
                   </div>
                 </td>
@@ -104,7 +104,7 @@ const formatTimestamp = (timestamp) => {
                 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
-                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }"
+                    <RouterLink :to="{ name: 'Admin menu detail', params: { name: menu.Name } }"
                       class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">

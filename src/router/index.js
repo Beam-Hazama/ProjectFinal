@@ -16,9 +16,10 @@ import AdminCategory from "@/page/Admin/Category.vue";
 import AdminCommission from "@/page/Admin/Commission.vue";
 
 import Menudetail from "@/page/Admin/Menudetail.vue";
-import Managerestaurant from "@/page/component/Managerestaurant.vue";
+import Restaurantdetail from "@/page/Admin/Restaurantdetail.vue";
+import Addrestaurant from "@/page/Admin/Addrestaurant.vue";
 import Userdetail from "@/page/Admin/Userdetail.vue";
-import Manageuser from "@/page/component/Manageuser.vue";
+import Adduser from "@/page/Admin/Adduser.vue";
 
 import Restaurants from "@/page/Restaurant/restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
@@ -158,7 +159,7 @@ const router = createRouter({
     },
 
     {
-      path: '/Admin/Menulist/Menudatail:id',
+      path: '/Admin/Menulist/Menudatail/:name',
       name: 'Admin menu detail',
       component: Menudetail,
       meta: { requiresAuth: true, role: 'admin' },
@@ -166,11 +167,11 @@ const router = createRouter({
     {
       path: '/Admin/Restaurant/Adduser',
       name: 'Admin Add User',
-      component: Manageuser,
+      component: Adduser,
       meta: { requiresAuth: true, role: 'admin' },
     },
     {
-      path: '/Admin/Restaurant/Userdetail/:id',
+      path: '/Admin/Restaurantuser/Userdetail/:username',
       name: 'Admin User Detail',
       component: Userdetail,
       meta: { requiresAuth: true, role: 'admin' },
@@ -179,19 +180,13 @@ const router = createRouter({
     {
       path: '/Admin/Restaurant/Addrestaurant',
       name: 'Admin Add restaurant',
-      component: Managerestaurant,
+      component: Addrestaurant,
       meta: { requiresAuth: true, role: 'admin' },
     },
     {
-      path: '/Restaurant/Edit/:id',
-      name: 'Restaurant update ',
-      component: Managerestaurant,
-      meta: { requiresAuth: true, role: 'admin' },
-    },
-    {
-      path: '/admin/restaurentdetail/:id',
+      path: '/Admin/Restaurantlist/Restaurentdetail/:name',
       name: 'Admin Restaurant Detail',
-      component: Managerestaurant,
+      component: Restaurantdetail,
       meta: { requiresAuth: true, role: 'admin' },
     },
 

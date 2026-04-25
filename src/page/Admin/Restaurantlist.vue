@@ -30,6 +30,21 @@ const formatTimestamp = (timestamp) => {
   return date.toLocaleString('th-TH');
 };
 
+const formatOpenDays = (days) => {
+  if (!days || !days.length) return '-';
+  if (days.length === 7) return 'ทุกวัน';
+  const shortDays = {
+    'Sunday': 'อา.',
+    'Monday': 'จ.',
+    'Tuesday': 'อ.',
+    'Wednesday': 'พ.',
+    'Thursday': 'พฤ.',
+    'Friday': 'ศ.',
+    'Saturday': 'ส.'
+  };
+  return days.map(d => shortDays[d] || d).join(', ');
+};
+
 const getAutoStatus = (restaurant) => {
   if (restaurant.ManualStatus === 'manual') return restaurant.Status;
   if (!restaurant.OpenTime || !restaurant.CloseTime) return 'close';
@@ -52,7 +67,7 @@ const getAutoStatus = (restaurant) => {
 };
 
 const deleteRestaurant = async (id, name) => {
-  if (confirm(`คุณต้องการลบร้านค้า "${name}" ใช่หรือไม่?`)) {
+  if (confirm(`คุณต้องการลบร้านอาหาร "${name}" ใช่หรือไม่?`)) {
     try {
       await deleteDoc(doc(db, 'Restaurant', id));
       await restaurantStore.loadListRestaurant();
@@ -87,6 +102,7 @@ const deleteRestaurant = async (id, name) => {
                 <th class="py-4 pl-6">RESTAURANT</th>
                 <th class="text-center">STATUS</th>
                 <th class="text-center">OPEN-CLOSE</th>
+                <th class="text-center">OPEN DAYS</th>
                 <th class="text-center">CREATED AT</th>
                 <th class="text-center">UPDATED AT</th>
                 <th class="text-center">ACTION</th>
@@ -112,12 +128,12 @@ const deleteRestaurant = async (id, name) => {
 
                 <td class="text-center">
                   <div v-if="getAutoStatus(restaurant) === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>
                     Closed
                   </div>
                 </td>
@@ -130,12 +146,16 @@ const deleteRestaurant = async (id, name) => {
                   <div v-else class="text-xs text-slate-400 italic">ไม่ได้ระบุเวลา</div>
                 </td>
 
+                <td class="text-center text-xs font-medium text-slate-600">
+                  {{ formatOpenDays(restaurant.OpenDays) }}
+                </td>
+
                 <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.CreatedAt) }}</td>
                 <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.UpdatedAt) }}</td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
-                    <RouterLink :to="`/admin/restaurentdetail/${restaurant.id}`"
+                    <RouterLink :to="{ name: 'Admin Restaurant Detail', params: { name: restaurant.Name } }"
                       class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">

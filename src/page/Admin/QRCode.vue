@@ -130,17 +130,20 @@ const printSpecificQR = async (room) => {
               <div class="grid grid-cols-3 gap-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text">Building</span></label>
-                  <input v-model="roomForm.building" type="text" placeholder="e.g. A"
+                  <input v-model="roomForm.building" type="text"
+
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text">Floor</span></label>
-                  <input v-model="roomForm.floor" type="text" placeholder="e.g. 5"
+                  <input v-model="roomForm.floor" type="text"
+
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text">Room Number</span></label>
-                  <input v-model="roomForm.roomNumber" type="text" placeholder="e.g. 501"
+                  <input v-model="roomForm.roomNumber" type="text"
+
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
               </div>

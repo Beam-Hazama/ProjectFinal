@@ -217,12 +217,7 @@ const getRowStatusColor = (status) => {
 
             </div>
 
-            <div v-if="loading" class="flex justify-center py-20">
-                <span class="loading loading-spinner loading-lg text-indigo-600"></span>
-            </div>
-
-            
-            <div v-else-if="restaurantOrders.length === 0"
+            <div v-if="restaurantOrders.length === 0"
                 class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-slate-300">
                 <div class="bg-indigo-50 p-6 rounded-full mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-400" fill="none"

@@ -204,7 +204,7 @@ const deleteUser = async (id, name) => {
                     </div>
 
                     <div class="px-6 pb-6 pt-2 flex gap-3">
-                        <RouterLink :to="`/Admin/Restaurant/Userdetail/${user.id}`"
+                        <RouterLink :to="`/Admin/Restaurantuser/Userdetail/${user.Username}`"
                             class="flex-[2] btn btn-sm btn-ghost text-indigo-600 hover:bg-indigo-50 border-none rounded-xl font-bold transition-all duration-300">
                             View
                         </RouterLink>

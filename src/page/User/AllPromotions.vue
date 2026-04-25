@@ -42,12 +42,7 @@ const goBack = () => {
 
         
         <div class="flex-1 px-4 pt-6">
-            <div v-if="menuStore.list.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
-                <div class="loading loading-spinner loading-md mb-2"></div>
-                <p class="text-xs">กำลังโหลดเมนู...</p>
-            </div>
-
-            <div v-else-if="promotionMenus.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
+            <div v-if="promotionMenus.length === 0" class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <span class="text-4xl opacity-50 mb-2">🏷️</span>
                 <p class="text-[13px] font-medium">ยังไม่มีรายการโปรโมชั่นในขณะนี้</p>
             </div>

@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
+import { useRestaurant } from '@/stores/Restaurant';
 
 const props = defineProps({
   show: Boolean,
@@ -9,10 +10,61 @@ const props = defineProps({
 
 const emit = defineEmits(['close']);
 const cartStore = useCartStore();
+const restaurantStore = useRestaurant();
 
 const quantity = ref(1);
 const note = ref('');
 const selections = ref({});
+
+const now = ref(new Date());
+let timer;
+
+onMounted(() => {
+  if (restaurantStore.list.length === 0) {
+    restaurantStore.loadListRestaurant();
+  }
+  timer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+});
+
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
+
+const isShopClosed = computed(() => {
+  if (!props.menu) return false;
+  const shop = restaurantStore.list.find(r => r.Name === props.menu.Restaurant);
+  if (!shop) return true;
+  if (!shop.OpenTime || !shop.CloseTime) return true;
+
+  try {
+    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
+    const currentDayName = now.value.toLocaleString('en-US', { weekday: 'long' });
+
+    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
+      return true;
+    }
+
+    const [openH, openM] = shop.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+
+    if (closeMin > openMin) {
+      return !(currentTime >= openMin && currentTime < closeMin);
+    } else {
+      return !(currentTime >= openMin || currentTime < closeMin);
+    }
+  } catch (e) {
+    return true;
+  }
+});
+
+const isAvailable = computed(() => {
+  return props.menu?.Status === 'open' && !isShopClosed.value;
+});
 
 watch(
   () => props.menu,
@@ -71,10 +123,10 @@ const toggleRadio = (gIndex, choiceName) => {
 const calculateTotalPrice = () => {
   if (!props.menu) return 0;
 
-  let base = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
-    ? Number(props.menu.PromoPrice) 
+  let base = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0
+    ? Number(props.menu.PromoPrice)
     : Number(props.menu.Price);
-    
+
   let extra = 0;
 
   if (props.menu.OptionGroups) {
@@ -96,7 +148,7 @@ const calculateTotalPrice = () => {
 };
 
 const confirmAdd = () => {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value || !isAvailable.value) return;
 
   let finalNote = note.value ? `หมายเหตุ: ${note.value}` : '';
   let optionsNoteArr = [];
@@ -105,7 +157,7 @@ const confirmAdd = () => {
   if (props.menu && props.menu.OptionGroups) {
     props.menu.OptionGroups.forEach((group, index) => {
       const sel = selections.value[index];
-      
+
       if (group.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
         const choiceStrs = sel.map(name => {
           const choice = group.choices.find(c => c.name === name);
@@ -127,8 +179,8 @@ const confirmAdd = () => {
     finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions;
   }
 
-  const basePrice = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0 
-    ? Number(props.menu.PromoPrice) 
+  const basePrice = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0
+    ? Number(props.menu.PromoPrice)
     : Number(props.menu.Price);
   const unitPrice = basePrice + extraPrice;
 
@@ -140,9 +192,9 @@ const confirmAdd = () => {
 <template>
   <Teleport to="body">
     <transition name="slide-in">
-        <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
-          
-          <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
+      <div v-if="show" class="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
+
+        <div class="absolute top-0 w-full z-10 flex items-center justify-between p-3">
           <button @click="emit('close')"
             class="w-8 h-8 rounded-full bg-white/70 backdrop-blur-md flex items-center justify-center text-gray-800 shadow-sm active:scale-95 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
@@ -169,7 +221,7 @@ const confirmAdd = () => {
           </div>
         </div>
 
-        
+
         <div class="flex-1 overflow-y-auto no-scrollbar pb-36 bg-gray-50">
 
           <div class="w-full h-[280px] bg-gray-200 relative">
@@ -184,8 +236,8 @@ const confirmAdd = () => {
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ menu.Name }}</h2>
               <div class="flex flex-col items-end">
-                <div v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0"
-                  class="text-[18px] font-black text-red-500">฿{{ menu.PromoPrice }}</div>
+                <div v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="text-[18px] font-black text-red-500">
+                  ฿{{ menu.PromoPrice }}</div>
                 <div class="text-gray-900"
                   :class="menu.PromoPrice && Number(menu.PromoPrice) > 0 ? 'text-[12px] line-through text-gray-400' : 'text-[16px] font-black'">
                   ฿{{ menu.Price }}</div>
@@ -240,7 +292,7 @@ const confirmAdd = () => {
 
         </div>
 
-        
+
         <div
           class="absolute bottom-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] px-4 pb-safe rounded-t-3xl z-20 flex flex-col items-center">
 
@@ -268,9 +320,10 @@ const confirmAdd = () => {
 
           <button
             class="w-full rounded-xl py-3.5 px-4 font-bold transition-all flex justify-between items-center mb-4 shadow-md"
-            :class="isFormValid ? 'bg-blue-600 text-white active:scale-[0.98]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
-            :disabled="!isFormValid" @click="confirmAdd">
-            <span>เพิ่มไปยังตะกร้า</span>
+            :class="isFormValid && isAvailable ? 'bg-blue-600 text-white active:scale-[0.98]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+            :disabled="!isFormValid || !isAvailable" @click="confirmAdd">
+            <span v-if="!isAvailable">{{ isShopClosed ? 'ร้านปิดอยู่' : 'สินค้าหมด' }}</span>
+            <span v-else>เพิ่มไปยังตะกร้า</span>
             <span>฿{{ calculateTotalPrice() }}</span>
           </button>
         </div>

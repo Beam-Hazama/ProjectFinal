@@ -239,16 +239,34 @@ const initIntersectionObserver = () => {
         observer.observe(section);
     });
 };
+
+const formatOpenDays = (daysArray) => {
+    if (!daysArray || daysArray.length === 0) return 'ไม่ได้ระบุ';
+    if (daysArray.length === 7) return 'ทุกวัน';
+
+    const dayMap = {
+        'Monday': 'จ.',
+        'Tuesday': 'อ.',
+        'Wednesday': 'พ.',
+        'Thursday': 'พฤ.',
+        'Friday': 'ศ.',
+        'Saturday': 'ส.',
+        'Sunday': 'อา.'
+    };
+
+    const sortedDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    const sortedSelected = daysArray.sort((a, b) => {
+        return sortedDays.indexOf(a) - sortedDays.indexOf(b);
+    });
+
+    return sortedSelected.map(day => dayMap[day]).join(', ');
+};
 </script>
 
 <template>
     
-    <div v-if="isLoading" class="min-h-screen flex items-center justify-center bg-gray-50">
-        <div class="loading loading-spinner loading-lg text-blue-600"></div>
-    </div>
-
-    
-    <div v-else-if="!isValidLocation"
+    <div v-if="!isValidLocation"
         class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
         <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -318,38 +336,32 @@ const initIntersectionObserver = () => {
         </div>
 
         
-        <div class="relative z-10 px-2 -mt-10 mb-2">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div class="flex justify-between items-start mb-2">
+        <div class="relative z-10 px-2 -mt-10 mb-1">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div class="flex justify-between items-start">
                     <h1 class="font-bold text-xl text-gray-800 truncate pr-2">{{ restaurantName }}</h1>
-                    <button class="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                        </svg>
-                    </button>
                 </div>
+                
+                <div v-if="currentRestaurant" class="mt-3 flex flex-col gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="text-[11px] font-bold">{{ formatOpenDays(currentRestaurant.OpenDays) }}</span>
+                        </div>
 
-                <div class="flex items-center text-[12px] text-gray-600 mb-3 gap-2 flex-wrap">
-                    <div class="flex items-center text-amber-500 font-bold">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                            class="w-3.5 h-3.5 mr-0.5">
-                            <path fill-rule="evenodd"
-                                d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <span>4.6 <span class="text-gray-400 font-normal">(362)</span></span>
+                        <div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-[11px] font-bold">{{ currentRestaurant.OpenTime }} - {{ currentRestaurant.CloseTime }}</span>
+                        </div>
+
+                        <div v-if="currentRestaurant.Distance" class="flex items-center gap-1 bg-gray-50 text-gray-600 px-2.5 py-1 rounded-md ml-auto">
+                            <span class="text-[11px] font-bold">📍 {{ currentRestaurant.Distance }} กม.</span>
+                        </div>
                     </div>
-                    <span class="text-gray-300">›</span>
-                    <div class="flex items-center gap-1">
-                        <span class="text-[10px]">🛵</span>
-                        <span>จัดส่ง ▾</span>
-                    </div>
-                    <span class="text-gray-300">•</span>
-                    <span>฿0 <span class="line-through text-gray-400">฿13</span></span>
-                    <span class="text-gray-300">•</span>
-                    <span>2.1 กม.</span>
                 </div>
             </div>
         </div>
@@ -430,7 +442,7 @@ const initIntersectionObserver = () => {
 
                     <div class="px-4">
                         <div class="animate-fade-in mb-8">
-                            <MenuList :selectionRole="groupedMenu[categoryName]" />
+                            <MenuList :selectionRole="groupedMenu[categoryName]" :hideRestaurantName="true" />
                         </div>
                     </div>
                 </div>

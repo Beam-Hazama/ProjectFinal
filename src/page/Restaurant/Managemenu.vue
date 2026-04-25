@@ -247,7 +247,8 @@ const goBack = () => {
 
                             <div v-else class="w-full animate-fade-in">
                                 <div class="relative">
-                                    <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
+                                    <input type="text"
+
                                         class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
                                         v-model="MenuData.ImageUrl" />
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -290,7 +291,8 @@ const goBack = () => {
                                         <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                                                 class="text-red-500">*</span></span>
                                     </label>
-                                    <input type="text" placeholder="เช่น ข้าวกะเพราไก่ไข่ดาว"
+                                    <input type="text"
+
                                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                         v-model="MenuData.Name" />
                                 </div>
@@ -300,7 +302,8 @@ const goBack = () => {
                                                 class="text-red-500">*</span></span>
                                     </label>
                                     <div class="relative">
-                                        <input type="number" placeholder="0"
+                                        <input type="number"
+
                                             class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Price" />
                                         <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
@@ -311,7 +314,8 @@ const goBack = () => {
                                         <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
                                     </label>
                                     <div class="relative">
-                                        <input type="number" placeholder="ไม่มี"
+                                        <input type="number"
+
                                             class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700"
                                             v-model="MenuData.PromoPrice" />
                                         <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
@@ -342,7 +346,7 @@ const goBack = () => {
                                     </select>
                                     <p v-if="mode === 'Update Menu' || route.params.restaurantName"
                                         class="text-[10px] text-slate-400 mt-1 italic">
-                                        * ไม่สามารถเปลี่ยนร้านค้าได้
+                                        * ไม่สามารถเปลี่ยนร้านอาหารได้
                                     </p>
                                 </div>
 
@@ -408,7 +412,8 @@ const goBack = () => {
                                                             class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก
                                                             <span class="text-red-500">*</span></span>
                                                     </label>
-                                                    <input type="text" placeholder="เช่น ระดับความหวาน, ท็อปปิ้ง"
+                                                    <input type="text"
+
                                                         class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                                         v-model="group.name" />
                                                 </div>
@@ -421,7 +426,7 @@ const goBack = () => {
                                                     <div class="relative">
                                                         <input type="number" min="1"
                                                             class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200"
-                                                            v-model="group.maxChoices" placeholder="1" />
+                                                            v-model="group.maxChoices" />
                                                         <span
                                                             class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
                                                     </div>
@@ -456,14 +461,16 @@ const goBack = () => {
                                                         class="flex items-start gap-4">
 
                                                         <div class="form-control flex-1">
-                                                            <input type="text" placeholder="ชื่อรายการ (เช่น หวาน 50%)"
+                                                            <input type="text"
+
                                                                 class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10"
                                                                 v-model="choice.name" />
                                                         </div>
 
                                                         <div class="form-control w-32">
                                                             <div class="relative">
-                                                                <input type="number" placeholder="0"
+                                                                <input type="number"
+
                                                                     class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10"
                                                                     v-model="choice.price" />
                                                                 <span
