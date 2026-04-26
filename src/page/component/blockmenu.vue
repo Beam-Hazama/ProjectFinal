@@ -50,6 +50,9 @@ const sortedMenus = computed(() => {
 const isShopClosed = (restaurantName) => {
   const shop = RestaurantStore.list.find(r => r.Name === restaurantName);
   if (!shop) return true;
+  if (shop.Status === 'close') return true;
+  if (shop.Status === 'open') return false;
+
   if (!shop.OpenTime || !shop.CloseTime) return true;
 
   try {

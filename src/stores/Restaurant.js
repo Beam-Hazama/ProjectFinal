@@ -17,7 +17,8 @@ export const useRestaurant = defineStore('Restaurant', {
     list: [],
     restaurantName: '',
     menus: [],
-    restaurant: null
+    restaurant: null,
+    unsubscribe: null
   }),
 
   actions: {
@@ -58,14 +59,23 @@ export const useRestaurant = defineStore('Restaurant', {
 
     
     async loadListRestaurant() {
+      this.clearListener();
       const RestaurantCol = collection(db, 'Restaurant');
-      onSnapshot(RestaurantCol, (snapshot) => {
+      this.unsubscribe = onSnapshot(RestaurantCol, (snapshot) => {
         this.list = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
       });
     },
+
+    clearListener() {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+        this.unsubscribe = null;
+      }
+      this.list = [];
+    }
   },
 });
 

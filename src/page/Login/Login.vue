@@ -10,9 +10,12 @@ const username = ref('');
 const password = ref('');
 const errorMessage = ref('');
 const showPassword = ref(false);
+const isLoading = ref(false);
 
 const login = async () => {
+  if (isLoading.value) return;
   try {
+    isLoading.value = true;
     errorMessage.value = '';
     const role = await accountStore.login(username.value, password.value);
 
@@ -24,6 +27,8 @@ const login = async () => {
   } catch (error) {
     console.error('Login Error:', error.message);
     errorMessage.value = error.message;
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -105,9 +110,11 @@ onMounted(async () => {
 
         
         <button
-          class="w-full p-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition duration-300 shadow-lg shadow-blue-200 active:scale-[0.98]"
+          :disabled="isLoading"
+          class="w-full p-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition duration-300 shadow-lg shadow-blue-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           @click="login">
-          Login
+          <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
+          {{ isLoading ? 'Logging in...' : 'Login' }}
         </button>
       </div>
 

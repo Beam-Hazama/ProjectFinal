@@ -1,10 +1,10 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
-import { useOderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/OrderList';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from './restaurant.vue';
 
-const orderStore = useOderlistStore();
+const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
 
 const loading = ref(true);

@@ -26,6 +26,7 @@ const RestaurantData = reactive({
     OpenTime: '',
     CloseTime: '',
     OpenDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    Status: 'auto',
     CreatedAt: null,
     UpdatedAt: null
 });
@@ -71,6 +72,7 @@ const fetchRestaurantByName = async () => {
             docId.value = restaurantDoc.id;
             const data = restaurantDoc.data();
             Object.assign(RestaurantData, data);
+            if (!RestaurantData.Status) RestaurantData.Status = 'auto';
 
             imagePreview.value = RestaurantData.ImageUrl;
 
@@ -99,6 +101,7 @@ const saveProfile = async () => {
             OpenTime: RestaurantData.OpenTime,
             CloseTime: RestaurantData.CloseTime,
             OpenDays: RestaurantData.OpenDays,
+            Status: RestaurantData.Status || 'auto',
             UpdatedAt: serverTimestamp()
         });
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
@@ -240,9 +243,9 @@ onUnmounted(() => {
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
-                  <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร *</span></label>
-                  <input type="text" v-model="RestaurantData.Name" :disabled="!isEditing"
-                    class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500" />
+                  <label class="label"><span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span></label>
+                  <input type="text" v-model="RestaurantData.Name" disabled
+                    class="input input-bordered w-full bg-slate-50 disabled:bg-slate-100 disabled:text-slate-500 cursor-not-allowed" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -264,6 +267,32 @@ onUnmounted(() => {
                   <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ร้านอาหาร</span></label>
                   <textarea v-model="RestaurantData.Address" :disabled="!isEditing"
                     class="textarea textarea-bordered w-full bg-slate-50 h-24 disabled:bg-slate-100 disabled:text-slate-500"></textarea>
+                </div>
+
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">สถานะร้าน (ตั้งค่าทันที)</span>
+                  </label>
+                  <div class="flex flex-wrap gap-3 mt-1">
+                    <button type="button" @click="RestaurantData.Status = 'open'" :disabled="!isEditing"
+                      class="btn flex-1 min-w-[120px] transition-all duration-300"
+                      :class="RestaurantData.Status === 'open' ? '!bg-emerald-500 hover:!bg-emerald-600 !text-white border-none shadow-md shadow-emerald-200 disabled:opacity-70' : 'bg-white border-emerald-500 text-emerald-600 hover:bg-emerald-50 disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400'">
+                      เปิดทันที
+                    </button>
+                    <button type="button" @click="RestaurantData.Status = 'close'" :disabled="!isEditing"
+                      class="btn flex-1 min-w-[120px] transition-all duration-300"
+                      :class="RestaurantData.Status === 'close' ? '!bg-red-500 hover:!bg-red-600 !text-white border-none shadow-md shadow-red-200 disabled:opacity-70' : 'bg-white border-red-500 text-red-600 hover:bg-red-50 disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400'">
+                      ปิดทันที
+                    </button>
+                    <button type="button" @click="RestaurantData.Status = 'auto'" :disabled="!isEditing"
+                      class="btn flex-1 min-w-[120px] transition-all duration-300"
+                      :class="RestaurantData.Status === 'auto' || !RestaurantData.Status ? '!bg-blue-500 hover:!bg-blue-600 !text-white border-none shadow-md shadow-blue-200 disabled:opacity-70' : 'bg-white border-blue-500 text-blue-600 hover:bg-blue-50 disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400'">
+                      อัตโนมัติ (ตามเวลา)
+                    </button>
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-2">
+                    เลือก "อัตโนมัติ" เพื่อให้ร้านเปิด-ปิดตามเวลาและวันที่กำหนดด้านล่าง
+                  </div>
                 </div>
 
                 <div class="form-control">

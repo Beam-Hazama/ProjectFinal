@@ -37,6 +37,9 @@ const isShopClosed = computed(() => {
   if (!props.menu) return false;
   const shop = restaurantStore.list.find(r => r.Name === props.menu.Restaurant);
   if (!shop) return true;
+  if (shop.Status === 'close') return true;
+  if (shop.Status === 'open') return false;
+
   if (!shop.OpenTime || !shop.CloseTime) return true;
 
   try {

@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
-import { useOderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/OrderList';
 
-const orderStore = useOderlistStore();
+const orderStore = useOrderlistStore();
 
 const selectedOrder = ref(null);
 const showModal = ref(false);

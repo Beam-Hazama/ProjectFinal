@@ -16,10 +16,6 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    openOnly: {
-        type: Boolean,
-        default: false
-    },
     promoOnly: {
         type: Boolean,
         default: false
@@ -49,6 +45,8 @@ const sortedRestaurants = computed(() => {
 
     let list = [...restaurantStore.list];
 
+    list = list.filter(shop => !isShopClosed(shop));
+
     if (props.categoryFilter && props.categoryFilter.length > 0) {
         list = list.filter(shop => {
             return menuStore.list.some(m =>
@@ -56,10 +54,6 @@ const sortedRestaurants = computed(() => {
                 props.categoryFilter.includes(m.Category)
             );
         });
-    }
-
-    if (props.openOnly) {
-        list = list.filter(shop => !isShopClosed(shop));
     }
 
     if (props.promoOnly) {
@@ -72,17 +66,13 @@ const sortedRestaurants = computed(() => {
         });
     }
 
-    return list.sort((a, b) => {
-        const aClosed = isShopClosed(a);
-        const bClosed = isShopClosed(b);
-
-        if (aClosed && !bClosed) return 1;
-        if (!aClosed && bClosed) return -1;
-        return 0;
-    });
+    return list;
 });
 
 const isShopClosed = (shop) => {
+    if (shop.Status === 'close') return true;
+    if (shop.Status === 'open') return false;
+
     if (!shop.OpenTime || !shop.CloseTime) return true;
 
     try {

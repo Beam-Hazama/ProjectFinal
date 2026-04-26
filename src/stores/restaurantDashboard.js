@@ -10,6 +10,12 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     allMenus: [],
 
     timeFilter: 'thisMonth',
+    customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
+    customEndDate: new Date().toISOString().split('T')[0],
+    
+    menuCategoryFilters: [],
+    menuFilters: [],
+
     currentRestaurant: null,
 
     totalOrders: 0,
@@ -29,6 +35,11 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     menusLoading: true,
     unsubscribeOrders: null,
     unsubscribeMenus: null,
+
+    availableMenus: [],
+    filteredTotalMenus: 0,
+    isError: false,
+    errorMessage: ''
   }),
 
   getters: {
@@ -135,13 +146,56 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         colors: ['#f59e0b'],
         tooltip: { y: { formatter: (val) => val + " ออเดอร์" } }
       };
+    },
+    
+    hasActiveFilters: (state) => {
+      return state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0;
     }
   },
 
   actions: {
-    
     setTimeFilter(filter) {
       this.timeFilter = filter;
+      this.applyFilters();
+    },
+    setCustomDates(start, end) {
+      this.customStartDate = start;
+      this.customEndDate = end;
+      if (this.timeFilter === 'custom') {
+        this.applyFilters();
+      }
+    },
+    toggleCategoryFilter(category) {
+      const index = this.menuCategoryFilters.indexOf(category);
+      if (index > -1) {
+        this.menuCategoryFilters.splice(index, 1);
+      } else {
+        this.menuCategoryFilters.push(category);
+      }
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+    clearCategoryFilters() {
+      this.menuCategoryFilters = [];
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+    toggleMenuFilter(id) {
+      const index = this.menuFilters.indexOf(id);
+      if (index > -1) {
+        this.menuFilters.splice(index, 1);
+      } else {
+        this.menuFilters.push(id);
+      }
+      this.applyFilters();
+    },
+    clearMenuFilters() {
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+    clearAllFilters() {
+      this.menuCategoryFilters = [];
+      this.menuFilters = [];
       this.applyFilters();
     },
 
@@ -172,7 +226,17 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         startTime = new Date();
         startTime.setDate(1);
         startTime.setHours(0, 0, 0, 0);
+      } else if (this.timeFilter === 'custom') {
+        startTime = new Date(this.customStartDate);
+        startTime.setHours(0, 0, 0, 0);
+        now = new Date(this.customEndDate);
+        now.setHours(23, 59, 59, 999);
       }
+
+      const categoryMap = {};
+      this.allMenus.forEach(m => {
+        categoryMap[m.id] = m.Category || 'ไม่ระบุหมวดหมู่';
+      });
 
       this.allOrders.forEach(order => {
         const createdAt = order.CreatedAt;
@@ -181,8 +245,31 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
         if (orderDate < startTime || orderDate > now) return;
 
-        const myItems = (order.Menu || [])
-          .filter(item => item.Restaurant === this.currentRestaurant);
+        if (!order.Menu || order.Menu.length === 0) {
+          if (this.menuCategoryFilters.length > 0 || this.menuFilters.length > 0) {
+            return;
+          }
+          const cStatus = order.statusOrder || 'pending';
+          statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
+          recentOrdersArray.push(order);
+          return;
+        }
+
+        const myItems = order.Menu.filter(item => {
+          if (item.Restaurant !== this.currentRestaurant) return false;
+
+          if (this.menuCategoryFilters.length > 0) {
+            const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
+            if (!this.menuCategoryFilters.includes(itemCategory)) return false;
+          }
+
+          if (this.menuFilters.length > 0) {
+            const menuId = item.id || item.menuId;
+            if (!this.menuFilters.includes(menuId)) return false;
+          }
+
+          return true;
+        });
 
         if (myItems.length > 0) {
           const cStatus = order.statusOrder || 'pending';
@@ -237,9 +324,27 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.totalOrders = filteredOrdersCount;
       this.totalRevenue = filteredRevenue;
 
+      // Filter menus for available dropdown options
+      let filteredMenus = this.allMenus;
+      if (this.menuCategoryFilters.length > 0) {
+        filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
+      }
+      this.filteredTotalMenus = filteredMenus.length;
+      this.processCategoriesCount(filteredMenus);
+
+      // Generate available categories for dropdown
+      const catList = this.allMenus.map(m => m.Category).filter(c => c && c.trim() !== '');
+      this.availableCategories = [...new Set(catList)];
+      
+      // Update available menus based on filtered category
+      this.availableMenus = filteredMenus.map(m => ({
+        id: m.id,
+        Name: m.Name,
+        Restaurant: m.Restaurant
+      }));
+
       this.processRevenueByDay(validOrdersForChart);
       this.processPeakHours(validOrdersForChart);
-      this.processCategoriesCount(this.allMenus);
     },
 
     
@@ -258,6 +363,8 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       this.ordersLoading = true;
       this.menusLoading = true;
+      this.isError = false;
+      this.errorMessage = '';
 
       const ordersQuery = query(collection(db, 'Order'));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
@@ -268,6 +375,8 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       }, (error) => {
         console.error("Error fetching dashboard orders:", error);
         this.ordersLoading = false;
+        this.isError = true;
+        this.errorMessage = "ไม่สามารถโหลดข้อมูลออเดอร์ได้";
       });
 
       const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
@@ -280,6 +389,8 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       }, (error) => {
         console.error("Error fetching dashboard menus:", error);
         this.menusLoading = false;
+        this.isError = true;
+        this.errorMessage = "ไม่สามารถโหลดข้อมูลเมนูได้";
       });
 
       const restaurantQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));

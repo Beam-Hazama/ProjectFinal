@@ -13,9 +13,9 @@ export const useDashboardStore = defineStore('dashboard', {
     timeFilter: 'thisMonth',
     customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
     customEndDate: new Date().toISOString().split('T')[0],
-    restaurantFilter: 'all',
-    menuCategoryFilter: 'all',
-    menuFilter: 'all',
+    restaurantFilters: [],
+    menuCategoryFilters: [],
+    menuFilters: [],
 
     totalOrders: 0,
     totalRevenue: 0,
@@ -163,6 +163,10 @@ export const useDashboardStore = defineStore('dashboard', {
         colors: ['#f59e0b'],
         tooltip: { y: { formatter: (val) => val + " ออเดอร์" } }
       };
+    },
+    
+    hasActiveFilters: (state) => {
+      return state.restaurantFilters.length > 0 || state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0;
     }
   },
 
@@ -172,16 +176,55 @@ export const useDashboardStore = defineStore('dashboard', {
       this.timeFilter = filter;
       this.applyFilters();
     },
-    setRestaurantFilter(filter) {
-      this.restaurantFilter = filter;
+    toggleRestaurantFilter(name) {
+      const index = this.restaurantFilters.indexOf(name);
+      if (index > -1) {
+        this.restaurantFilters.splice(index, 1);
+      } else {
+        this.restaurantFilters.push(name);
+      }
+      this.menuFilters = [];
+      if (this.restaurantFilters.length > 0 && this.menuCategoryFilters.length > 0) {
+        const validCategoriesForRests = new Set(this.allMenus.filter(m => this.restaurantFilters.includes(m.Restaurant)).map(m => m.Category));
+        this.menuCategoryFilters = this.menuCategoryFilters.filter(c => validCategoriesForRests.has(c));
+      }
       this.applyFilters();
     },
-    setMenuCategoryFilter(filter) {
-      this.menuCategoryFilter = filter;
+    clearRestaurantFilters() {
+      this.restaurantFilters = [];
+      this.menuFilters = [];
       this.applyFilters();
     },
-    setMenuFilter(filter) {
-      this.menuFilter = filter;
+    toggleCategoryFilter(category) {
+      const index = this.menuCategoryFilters.indexOf(category);
+      if (index > -1) {
+        this.menuCategoryFilters.splice(index, 1);
+      } else {
+        this.menuCategoryFilters.push(category);
+      }
+      this.menuFilters = [];
+      if (this.menuCategoryFilters.length > 0 && this.restaurantFilters.length > 0) {
+        const validRestsForCats = new Set(this.allMenus.filter(m => this.menuCategoryFilters.includes(m.Category)).map(m => m.Restaurant));
+        this.restaurantFilters = this.restaurantFilters.filter(r => validRestsForCats.has(r));
+      }
+      this.applyFilters();
+    },
+    clearCategoryFilters() {
+      this.menuCategoryFilters = [];
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+    toggleMenuFilter(id) {
+      const index = this.menuFilters.indexOf(id);
+      if (index > -1) {
+        this.menuFilters.splice(index, 1);
+      } else {
+        this.menuFilters.push(id);
+      }
+      this.applyFilters();
+    },
+    clearMenuFilters() {
+      this.menuFilters = [];
       this.applyFilters();
     },
     setCustomDates(start, end) {
@@ -190,6 +233,12 @@ export const useDashboardStore = defineStore('dashboard', {
       if (this.timeFilter === 'custom') {
         this.applyFilters();
       }
+    },
+    clearAllFilters() {
+      this.restaurantFilters = [];
+      this.menuCategoryFilters = [];
+      this.menuFilters = [];
+      this.applyFilters();
     },
 
     
@@ -249,7 +298,7 @@ export const useDashboardStore = defineStore('dashboard', {
         if (orderDate < startTime || orderDate > now) return;
 
         if (!order.Menu || order.Menu.length === 0) {
-          if (this.restaurantFilter !== 'all' || this.menuCategoryFilter !== 'all' || this.menuFilter !== 'all') {
+          if (this.restaurantFilters.length > 0 || this.menuCategoryFilters.length > 0 || this.menuFilters.length > 0) {
             return;
           }
           const cStatus = order.statusOrder || 'pending';
@@ -266,16 +315,16 @@ export const useDashboardStore = defineStore('dashboard', {
 
         const matchingItems = order.Menu.filter(item => {
 
-          if (this.restaurantFilter !== 'all' && item.Restaurant !== this.restaurantFilter) return false;
+          if (this.restaurantFilters.length > 0 && !this.restaurantFilters.includes(item.Restaurant)) return false;
 
-          if (this.menuCategoryFilter !== 'all') {
+          if (this.menuCategoryFilters.length > 0) {
             const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
-            if (itemCategory !== this.menuCategoryFilter) return false;
+            if (!this.menuCategoryFilters.includes(itemCategory)) return false;
           }
 
-          if (this.menuFilter !== 'all') {
+          if (this.menuFilters.length > 0) {
             const itemId = item.menuId || item.id;
-            if (itemId !== this.menuFilter) return false;
+            if (!this.menuFilters.includes(itemId)) return false;
           }
           return true;
         });
@@ -352,11 +401,27 @@ export const useDashboardStore = defineStore('dashboard', {
       this.processPeakHours(validOrdersForChart);
 
       let filteredMenus = this.allMenus;
-      if (this.restaurantFilter !== 'all') {
-        filteredMenus = this.allMenus.filter(m => m.Restaurant === this.restaurantFilter);
+      if (this.restaurantFilters.length > 0) {
+        filteredMenus = filteredMenus.filter(m => this.restaurantFilters.includes(m.Restaurant));
+      }
+      if (this.menuCategoryFilters.length > 0) {
+        filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
       }
       this.filteredTotalMenus = filteredMenus.length;
       this.processCategoriesCount(filteredMenus);
+      this.availableMenus = filteredMenus.filter(m => m.Name).map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
+      
+      const catList = this.allMenus
+        .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.Restaurant))
+        .map(m => m.Category)
+        .filter(c => c && c.trim() !== '');
+      this.availableCategories = [...new Set(catList)];
+      
+      const restList = this.allMenus
+        .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
+        .map(m => m.Restaurant)
+        .filter(r => r && r.trim() !== '');
+      this.availableRestaurants = [...new Set(restList)];
     },
 
     

@@ -22,6 +22,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
+  restaurantStore.clearListener();
 });
 
 const formatTimestamp = (timestamp) => {

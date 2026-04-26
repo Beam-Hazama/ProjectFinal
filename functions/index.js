@@ -51,19 +51,21 @@ exports.sendOrderPushNotification = onDocumentUpdated("Order/{orderId}", async (
 
   if (messagesToSend.length === 0) return null;
 
-  const messagePayload = {
-    notification: {
-      title: messagesToSend[0].title,
-      body: messagesToSend[0].body
-    },
-    tokens: afterData.deviceTokens
-  };
+  for (const msg of messagesToSend) {
+    const messagePayload = {
+      notification: {
+        title: msg.title,
+        body: msg.body
+      },
+      tokens: afterData.deviceTokens
+    };
 
-  try {
-    const response = await admin.messaging().sendEachForMulticast(messagePayload);
-    console.log(`Successfully sent ${response.successCount} customer messages.`);
-  } catch (error) {
-    console.error("Error sending push notification to customer:", error);
+    try {
+      const response = await admin.messaging().sendEachForMulticast(messagePayload);
+      console.log(`Successfully sent ${response.successCount} customer messages for order ${afterData.OrderNumber}.`);
+    } catch (error) {
+      console.error("Error sending push notification to customer:", error);
+    }
   }
   
   return null;

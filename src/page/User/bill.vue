@@ -1,12 +1,12 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useOderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/OrderList';
 import { useMenuStore } from '@/stores/menuStore';
 
 const route = useRoute();
 const router = useRouter();
-const orderListStore = useOderlistStore();
+const orderListStore = useOrderlistStore();
 const menuStore = useMenuStore();
 
 const building = route.params.building || '-';

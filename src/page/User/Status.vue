@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useOderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/OrderList';
 import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
 import { app, db, messaging as defaultMessaging } from '@/firebase';
@@ -13,7 +13,7 @@ const IS_NOTIFICATION_ENABLED = true;
 
 const route = useRoute();
 const router = useRouter();
-const orderListStore = useOderlistStore();
+const orderListStore = useOrderlistStore();
 const cartStore = useCartStore();
 const menuStore = useMenuStore();
 

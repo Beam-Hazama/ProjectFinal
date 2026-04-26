@@ -27,12 +27,13 @@ const room = route.params.room || '-';
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
+const isError = ref(false);
+const errorMessage = ref('');
 const localCategories = ref([]);
 const selectedMenu = ref(null);
 const showModal = ref(false);
 const selectedRestaurantCategories = ref([]);
 const showFilterSheet = ref(false);
-const isFilterOpenOnly = ref(false);
 const isFilterPromoOnly = ref(false);
 
 const currentSlide = ref(0);
@@ -51,27 +52,63 @@ const filteredMenus = computed(() => {
 });
 
 const promotionMenus = computed(() => {
-  return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+  return (menuStore.list || []).filter(item => {
+    if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
+    return !isShopClosed(item.Restaurant);
+  });
+});
+
+const activeCategories = computed(() => {
+  return localCategories.value.filter(cat => {
+    return (menuStore.list || []).some(item => {
+      if (isShopClosed(item.Restaurant)) return false;
+      const matchesCategory = (item.Category && item.Category === cat.name) ||
+        (item.role && (Array.isArray(item.role) ? item.role.includes(cat.name) : item.role === cat.name)) ||
+        (item.Name && item.Name.includes(cat.name));
+      return matchesCategory;
+    });
+  });
 });
 
 onMounted(async () => {
-  const isValid = await qrStore.validateRoom(building, floor, room);
-  isValidLocation.value = isValid;
-  isLoading.value = false;
-
-  if (isValid) {
-    restaurantStore.loadListRestaurant();
-    menuStore.loadMenu();
-    cartStore.loadcart(building, floor, room);
-    posterStore.loadPosters();
-    categoryStore.loadCategories();
-
-    setTimeout(startCarousel, 500);
-  }
+  await loadAllData();
 });
+
+const loadAllData = async () => {
+  try {
+    isLoading.value = true;
+    isError.value = false;
+    errorMessage.value = '';
+
+    const isValid = await qrStore.validateRoom(building, floor, room);
+    isValidLocation.value = isValid;
+
+    if (isValid) {
+      await Promise.all([
+        restaurantStore.loadListRestaurant(),
+        menuStore.loadMenu(),
+        cartStore.loadcart(building, floor, room),
+        posterStore.loadPosters(),
+        categoryStore.loadCategories()
+      ]);
+      setTimeout(startCarousel, 500);
+    }
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    isError.value = true;
+    errorMessage.value = "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต";
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 onUnmounted(() => {
   stopCarousel();
+  
+  restaurantStore.clearListener();
+  menuStore.clearListener();
+  posterStore.clearListener();
+  categoryStore.clearListener();
 });
 
 watch(() => categoryStore.list, (newList) => {
@@ -138,13 +175,39 @@ const openMenuModal = (menu) => {
   showModal.value = true;
 };
 
-const isShopClosed = (restaurantName) => {
+function isShopClosed(restaurantName) {
   const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-  return shop?.Status === 'close';
+  if (!shop) return true;
+  if (shop.Status === 'close') return true;
+  if (shop.Status === 'open') return false;
+
+  if (!shop.OpenTime || !shop.CloseTime) return true;
+
+  try {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
+
+    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
+      return true;
+    }
+
+    const [openH, openM] = shop.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+
+    if (closeMin > openMin) {
+      return !(currentTime >= openMin && currentTime < closeMin);
+    } else {
+      return !(currentTime >= openMin || currentTime < closeMin);
+    }
+  } catch (e) {
+    return true;
+  }
 };
 
 const resetFilters = () => {
-  isFilterOpenOnly.value = false;
   isFilterPromoOnly.value = false;
   selectedRestaurantCategories.value = [];
 };
@@ -169,7 +232,25 @@ const applyFilters = () => {
 
 <template>
 
-  <div v-if="!isValidLocation"
+  <div v-if="isLoading" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+    <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
+    <p class="text-slate-500 font-medium animate-pulse">กำลังเตรียมความอร่อย...</p>
+  </div>
+
+  <div v-else-if="isError" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
+    <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <h2 class="text-xl font-bold text-slate-800 mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</h2>
+    <p class="text-slate-500 mb-6">{{ errorMessage }}</p>
+    <button @click="loadAllData" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
+      ลองใหม่อีกครั้ง
+    </button>
+  </div>
+
+  <div v-else-if="!isValidLocation"
     class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -261,7 +342,7 @@ const applyFilters = () => {
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in localCategories" :key="cat.id"
+        <div v-for="cat in activeCategories" :key="cat.id"
           @click="$router.push(`/user/category/${cat.name}/${building}/${floor}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
@@ -351,13 +432,6 @@ const applyFilters = () => {
 
               <div class="space-y-6 mb-8">
                 <div class="flex justify-between items-center group cursor-pointer"
-                  @click="isFilterOpenOnly = !isFilterOpenOnly">
-                  <span class="text-base font-medium text-gray-700">ร้านอาหารที่เปิดเท่านั้น</span>
-                  <input type="checkbox" v-model="isFilterOpenOnly"
-                    class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
-                </div>
-
-                <div class="flex justify-between items-center group cursor-pointer"
                   @click="isFilterPromoOnly = !isFilterPromoOnly">
                   <div class="flex flex-col">
                     <span class="text-base font-bold text-gray-800">โปรโมชั่น</span>
@@ -383,7 +457,7 @@ const applyFilters = () => {
                   </button>
 
 
-                  <button v-for="cat in localCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.name)"
+                  <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.name)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
                       selectedRestaurantCategories.includes(cat.name)
@@ -415,7 +489,7 @@ const applyFilters = () => {
       <div class="px-4">
         <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
           <RestaurantList :building="building" :floor="floor" :room="room"
-            :categoryFilter="selectedRestaurantCategories" :openOnly="isFilterOpenOnly" :promoOnly="isFilterPromoOnly">
+            :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
         </div>
 

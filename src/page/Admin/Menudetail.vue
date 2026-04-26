@@ -94,7 +94,7 @@ onMounted(async () => {
             
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
-                ข้อมูลทั่วไป
+                ข้อมูลเมนูอาหาร
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div class="form-control md:col-span-2">
@@ -223,7 +223,7 @@ onMounted(async () => {
                     <div class="pl-2 md:pl-4 border-l-2 border-slate-100">
                       <div class="flex items-center justify-between mb-2">
                         <label class="label px-0">
-                          <span class="label-text font-medium text-slate-600">รายการย่อย</span>
+                          <span class="label-text font-medium text-slate-600">ตัวเลือก</span>
                         </label>
                       </div>
 

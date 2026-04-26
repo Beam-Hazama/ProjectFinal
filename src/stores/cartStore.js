@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { db } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export const useCartStore = defineStore("cart", {
 
@@ -54,7 +54,11 @@ export const useCartStore = defineStore("cart", {
     saveToStorage() {
       if (this.building && this.floor && this.room) {
         const storageKey = `cart-data-${this.building}-${this.floor}-${this.room}`;
-        localStorage.setItem(storageKey, JSON.stringify(this.item));
+        if (this.item.length === 0) {
+          localStorage.removeItem(storageKey);
+        } else {
+          localStorage.setItem(storageKey, JSON.stringify(this.item));
+        }
       }
     },
 
@@ -99,8 +103,9 @@ export const useCartStore = defineStore("cart", {
     
     async placeorder() {
       try {
+        const orderRef = doc(collection(db, 'Order'));
         const orderData = {
-          OrderNumber: `${Math.floor(Math.random() * 90000) + 10000}`,
+          OrderNumber: orderRef.id.substring(0, 7).toUpperCase(),
           building: this.building,
           floor: this.floor,
           room: this.room,
@@ -115,7 +120,8 @@ export const useCartStore = defineStore("cart", {
           CreatedAt: serverTimestamp()
         };
 
-        await addDoc(collection(db, 'Order'), orderData);
+        await setDoc(orderRef, orderData);
+        this.clearcart();
         return true;
       } catch (error) {
         console.error("Order placement error:", error);

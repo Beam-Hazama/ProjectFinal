@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { useOderlistStore } from './OrderList';
+import { useOrderlistStore } from './OrderList';
 import { useMenuStore } from './menuStore';
 
 export const useAccountStore = defineStore('user-account', {
@@ -72,7 +72,7 @@ export const useAccountStore = defineStore('user-account', {
 
     
     async logout() {
-      const orderStore = useOderlistStore();
+      const orderStore = useOrderlistStore();
       const menuStore = useMenuStore();
 
       orderStore.clearListener();

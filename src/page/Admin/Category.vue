@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
@@ -14,6 +14,10 @@ const showModal = ref(false);
 
 onMounted(() => {
     categoryStore.loadCategories();
+});
+
+onUnmounted(() => {
+    categoryStore.clearListener();
 });
 
 watch(() => categoryStore.list, (newList) => {

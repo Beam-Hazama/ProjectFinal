@@ -159,7 +159,7 @@ const router = createRouter({
     },
 
     {
-      path: '/Admin/Menulist/Menudatail/:name',
+      path: '/Admin/Menulist/Menudetail/:name',
       name: 'Admin menu detail',
       component: Menudetail,
       meta: { requiresAuth: true, role: 'admin' },
@@ -184,7 +184,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'admin' },
     },
     {
-      path: '/Admin/Restaurantlist/Restaurentdetail/:name',
+      path: '/Admin/Restaurantlist/Restaurantdetail/:name',
       name: 'Admin Restaurant Detail',
       component: Restaurantdetail,
       meta: { requiresAuth: true, role: 'admin' },

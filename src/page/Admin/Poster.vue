@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { usePosterStore } from '@/stores/posterStore';
@@ -19,6 +19,10 @@ const displayDuration = ref();
 
 onMounted(() => {
     posterStore.loadPosters();
+});
+
+onUnmounted(() => {
+    posterStore.clearListener();
 });
 
 watch(() => posterStore.list, (newList) => {
@@ -363,4 +367,3 @@ const onDragEnd = async () => {
         </div>
     </LayoutAdmin>
 </template>
-

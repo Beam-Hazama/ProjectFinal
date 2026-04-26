@@ -9,11 +9,12 @@ import {
   updateDoc,
   doc,
   getDoc,
+  runTransaction,
   deleteField
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
-export const useOderlistStore = defineStore("oderlist", {
+export const useOrderlistStore = defineStore("orderlist", {
 
   state: () => ({
     list: [],
@@ -55,9 +56,11 @@ export const useOderlistStore = defineStore("oderlist", {
     async updateOrderStatus(orderId, newStatus, restaurantName) {
       try {
         const orderRef = doc(db, 'Order', orderId);
-        const orderSnap = await getDoc(orderRef);
 
-        if (orderSnap.exists()) {
+        await runTransaction(db, async (transaction) => {
+          const orderSnap = await transaction.get(orderRef);
+          if (!orderSnap.exists()) return;
+
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
             if (item.Restaurant === restaurantName) {
@@ -68,26 +71,12 @@ export const useOderlistStore = defineStore("oderlist", {
 
           const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          await updateDoc(orderRef, {
+          transaction.update(orderRef, {
             Menu: updatedMenu,
             statusOrder: globalStatus,
             UpdatedAt: serverTimestamp()
           });
-
-          if (newStatus === 'cancelled') {
-            for (const item of updatedMenu) {
-              if (item.Restaurant === restaurantName) {
-                const menuRef = doc(db, 'Menu', item.id);
-                await updateDoc(menuRef, {
-                  Status: 'close',
-                  UpdatedAt: serverTimestamp(),
-                  status: deleteField(),
-                  updatedAt: deleteField()
-                }).catch(e => console.error("Menu sync fail:", e));
-              }
-            }
-          }
-        }
+        });
       } catch (error) {
         console.error("Error updating order status:", error);
         throw error;
@@ -98,9 +87,11 @@ export const useOderlistStore = defineStore("oderlist", {
     async updateSingleItemStatus(orderId, itemId, newStatus) {
       try {
         const orderRef = doc(db, 'Order', orderId);
-        const orderSnap = await getDoc(orderRef);
 
-        if (orderSnap.exists()) {
+        await runTransaction(db, async (transaction) => {
+          const orderSnap = await transaction.get(orderRef);
+          if (!orderSnap.exists()) return;
+
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
             if (item.id === itemId) {
@@ -111,22 +102,12 @@ export const useOderlistStore = defineStore("oderlist", {
 
           const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          await updateDoc(orderRef, {
+          transaction.update(orderRef, {
             Menu: updatedMenu,
             statusOrder: globalStatus,
             UpdatedAt: serverTimestamp()
           });
-
-          if (newStatus === 'cancelled') {
-            const menuRef = doc(db, 'Menu', itemId);
-            await updateDoc(menuRef, {
-              Status: 'close',
-              UpdatedAt: serverTimestamp(),
-              status: deleteField(),
-              updatedAt: deleteField()
-            }).catch(e => console.error("Menu sync fail:", e));
-          }
-        }
+        });
       } catch (error) {
         console.error("Error updating single item status:", error);
         throw error;
@@ -137,9 +118,11 @@ export const useOderlistStore = defineStore("oderlist", {
     async updateMultipleItemsStatus(orderId, updates) {
       try {
         const orderRef = doc(db, 'Order', orderId);
-        const orderSnap = await getDoc(orderRef);
 
-        if (orderSnap.exists()) {
+        await runTransaction(db, async (transaction) => {
+          const orderSnap = await transaction.get(orderRef);
+          if (!orderSnap.exists()) return;
+
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
             const update = updates.find(u => u.itemId === item.id);
@@ -151,24 +134,12 @@ export const useOderlistStore = defineStore("oderlist", {
 
           const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
 
-          await updateDoc(orderRef, {
+          transaction.update(orderRef, {
             Menu: updatedMenu,
             statusOrder: globalStatus,
             UpdatedAt: serverTimestamp()
           });
-
-          for (const update of updates) {
-            if (update.newStatus === 'cancelled') {
-              const menuRef = doc(db, 'Menu', update.itemId);
-              await updateDoc(menuRef, {
-                Status: 'close',
-                UpdatedAt: serverTimestamp(),
-                status: deleteField(),
-                updatedAt: deleteField()
-              }).catch(e => console.error("Menu sync fail:", e));
-            }
-          }
-        }
+        });
       } catch (error) {
         console.error("Error updating multiple items:", error);
         throw error;
@@ -179,33 +150,23 @@ export const useOderlistStore = defineStore("oderlist", {
     async rejectOrderGlobal(orderId) {
       try {
         const orderRef = doc(db, 'Order', orderId);
-        const orderSnap = await getDoc(orderRef);
 
-        if (orderSnap.exists()) {
+        await runTransaction(db, async (transaction) => {
+          const orderSnap = await transaction.get(orderRef);
+          if (!orderSnap.exists()) return;
+
           const orderData = orderSnap.data();
-
           const updatedMenu = orderData.Menu.map(item => ({
             ...item,
             itemStatus: (item.itemStatus === 'cancelled') ? 'cancelled' : 'returned'
           }));
 
-          await updateDoc(orderRef, {
+          transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: 'returned'
+            statusOrder: 'returned',
+            UpdatedAt: serverTimestamp()
           });
-
-          for (const item of updatedMenu) {
-            if (item.itemStatus === 'cancelled') {
-              const menuRef = doc(db, 'Menu', item.id);
-              await updateDoc(menuRef, {
-                Status: 'close',
-                UpdatedAt: serverTimestamp(),
-                status: deleteField(),
-                updatedAt: deleteField()
-              }).catch(e => console.error("Global return sync fail:", e));
-            }
-          }
-        }
+        });
       } catch (error) {
         console.error("Error rejecting global order:", error);
         throw error;

@@ -2,23 +2,63 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
+import { useRestaurant } from '@/stores/Restaurant';
 import MenuList from '@/page/component/blockmenu.vue';
 
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
+const restaurantStore = useRestaurant();
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+function isShopClosed(restaurantName) {
+  const shop = restaurantStore.list.find(r => r.Name === restaurantName);
+  if (!shop) return true;
+  if (shop.Status === 'close') return true;
+  if (shop.Status === 'open') return false;
+
+  if (!shop.OpenTime || !shop.CloseTime) return true;
+
+  try {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
+
+    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
+      return true;
+    }
+
+    const [openH, openM] = shop.OpenTime.split(':').map(Number);
+    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+
+    if (closeMin > openMin) {
+      return !(currentTime >= openMin && currentTime < closeMin);
+    } else {
+      return !(currentTime >= openMin || currentTime < closeMin);
+    }
+  } catch (e) {
+    return true;
+  }
+}
+
 const promotionMenus = computed(() => {
-    return (menuStore.list || []).filter(item => item.PromoPrice && Number(item.PromoPrice) > 0);
+    return (menuStore.list || []).filter(item => {
+        if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
+        return !isShopClosed(item.Restaurant);
+    });
 });
 
 onMounted(() => {
     if (menuStore.list.length === 0) {
         menuStore.loadMenu();
+    }
+    if (restaurantStore.list.length === 0) {
+        restaurantStore.loadListRestaurant();
     }
 });
 

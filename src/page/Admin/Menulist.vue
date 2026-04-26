@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -9,6 +9,10 @@ const menuStore = useMenuStore();
 
 onMounted(() => {
   menuStore.loadMenu();
+});
+
+onUnmounted(() => {
+  menuStore.clearListener();
 });
 
 const formatTimestamp = (timestamp) => {
