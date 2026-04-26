@@ -112,7 +112,7 @@ const handleSave = async () => {
             CreatedAt: serverTimestamp(),
             UpdatedAt: serverTimestamp()
         });
-        
+
         alert("เพิ่มผู้ใช้สำเร็จ!");
         router.push('/Admin/Restaurantuser');
     } catch (error) {
@@ -145,13 +145,13 @@ const goBack = () => router.go(-1);
 <template>
     <LayoutAdmin>
         <div class="min-h-screen p-6 md:p-8 font-sans bg-slate-50/50">
-            
+
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
                         Add New User
                     </h1>
-                 
+
                 </div>
 
                 <div class="flex gap-3">
@@ -168,7 +168,7 @@ const goBack = () => router.go(-1);
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
 
-                    
+
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             รูปภาพหน้าร้าน <span class="text-red-500">*</span>
@@ -214,7 +214,6 @@ const goBack = () => router.go(-1);
                             <div v-else class="w-full animate-fade-in">
                                 <div class="relative">
                                     <input type="text"
-
                                         class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
                                         v-model="userData.ImageUrl" />
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +229,7 @@ const goBack = () => router.go(-1);
                         </div>
                     </div>
 
-                    
+
                     <div class="p-8 lg:col-span-2 space-y-8">
                         <div>
                             <h3
@@ -280,7 +279,7 @@ const goBack = () => router.go(-1);
                                     <select v-model="userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
                                         <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name
-                                        }}</option>
+                                            }}</option>
                                     </select>
                                 </div>
 
@@ -297,14 +296,13 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <input type="text" v-model="userData.Phone"
-                                        maxlength="10" @input="filterNonNumbers('Phone')"
+                                    <input type="text" v-model="userData.Phone" maxlength="10"
+                                        @input="filterNonNumbers('Phone')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
- 
+
                                 <div class="form-control">
-                                    <label class="label"><span
-                                            class="label-text font-medium text-slate-600">อายุ <span
+                                    <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
                                     <input type="number" v-model="userData.Age"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />

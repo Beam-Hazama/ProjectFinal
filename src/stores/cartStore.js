@@ -65,18 +65,23 @@ export const useCartStore = defineStore("cart", {
     
     addOrUpdateItem(menu, quantity, note, unitPrice) {
       const priceToUse = unitPrice !== undefined ? unitPrice : menu.Price;
+      const existingItem = this.item.find(i => i.id === (menu.menuId || menu.id) && i.note === note);
 
-      this.item.push({
-        id: menu.id,
-        Name: menu.Name,
-        cartItemId: `${menu.id}-${Math.random().toString(36).substr(2, 9)}`,
-        Price: priceToUse,
-        basePrice: menu.Price,
-        ImageUrl: menu.ImageUrl,
-        Quantity: quantity,
-        note: note,
-        Restaurant: menu.Restaurant
-      });
+      if (existingItem) {
+        existingItem.Quantity += quantity;
+      } else {
+        this.item.push({
+          id: menu.menuId || menu.id,
+          Name: menu.Name,
+          cartItemId: `${menu.menuId || menu.id}-${Math.random().toString(36).substr(2, 9)}`,
+          Price: priceToUse,
+          basePrice: menu.Price,
+          ImageUrl: menu.ImageUrl,
+          Quantity: quantity,
+          note: note,
+          Restaurant: menu.Restaurant
+        });
+      }
 
       this.saveToStorage();
     },

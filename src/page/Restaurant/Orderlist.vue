@@ -137,7 +137,7 @@ const saveChanges = async (order) => {
             }
 
             if (newStatus !== item.itemStatus) {
-                itemUpdates.push({ itemId: item.id, newStatus });
+                itemUpdates.push({ itemId: item.cartItemId, newStatus });
             }
         }
 

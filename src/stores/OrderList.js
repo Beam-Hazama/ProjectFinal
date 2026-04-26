@@ -33,7 +33,7 @@ export const useOrderlistStore = defineStore("orderlist", {
 
   actions: {
     
-    async _recalculateGlobalStatus(updatedMenu) {
+    _recalculateGlobalStatus(updatedMenu) {
       const allItemsFinished = updatedMenu.every(item =>
         ['received', 'dispatched', 'cancelled', 'returned'].includes(item.itemStatus)
       );
@@ -69,7 +69,7 @@ export const useOrderlistStore = defineStore("orderlist", {
             return item;
           });
 
-          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -94,13 +94,13 @@ export const useOrderlistStore = defineStore("orderlist", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            if (item.id === itemId) {
+            if (item.cartItemId === itemId) {
               return { ...item, itemStatus: newStatus };
             }
             return item;
           });
 
-          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -125,14 +125,14 @@ export const useOrderlistStore = defineStore("orderlist", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            const update = updates.find(u => u.itemId === item.id);
+            const update = updates.find(u => u.itemId === item.cartItemId);
             if (update) {
               return { ...item, itemStatus: update.newStatus };
             }
             return item;
           });
 
-          const globalStatus = await this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,

@@ -455,7 +455,7 @@ const requestNotificationPermission = async () => {
             </div>
             <div class="text-right flex flex-col items-end gap-1">
               <span class="text-sm font-black text-gray-800">฿{{ formatPrice(item.Price * item.Quantity) }}</span>
-              <button v-if="item.itemStatus === 'dispatched'" @click="confirmReceived(order.id, item.id)"
+              <button v-if="item.itemStatus === 'dispatched'" @click="confirmReceived(order.id, item.cartItemId)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันรับอาหาร
               </button>

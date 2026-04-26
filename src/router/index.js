@@ -44,6 +44,7 @@ import UserRestaurantMenu from "@/page/User/RestaurantMenu.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // User routes are public to allow customers to scan QR codes and place orders without logging in.
     {
       path: '/User',
       name: 'UserDefault',
