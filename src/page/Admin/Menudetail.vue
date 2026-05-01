@@ -44,12 +44,13 @@ onMounted(async () => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      
+
       <div class="flex justify-between items-start mb-6">
         <h1 class="text-3xl font-bold text-slate-700">Menu Detail</h1>
 
         <div class="flex gap-3">
-          <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200 gap-2 w-28 rounded-xl font-bold">
+          <button @click="goBack"
+            class="btn btn-ghost text-slate-500 hover:bg-slate-200 gap-2 w-28 rounded-xl font-bold">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
               stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -61,7 +62,7 @@ onMounted(async () => {
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100 mb-4">
-          
+
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24"
@@ -89,9 +90,9 @@ onMounted(async () => {
             </div>
           </div>
 
-          
+
           <div class="p-8 lg:col-span-2 space-y-8">
-            
+
             <div>
               <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">
                 ข้อมูลเมนูอาหาร
@@ -102,17 +103,20 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                         class="text-red-500">*</span></span>
                   </label>
-                  <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                  <div
+                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
                     {{ menuData.Name }}
                   </div>
                 </div>
 
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ราคาปกติ <span class="text-red-500">*</span></span>
+                    <span class="label-text font-medium text-slate-600">ราคาปกติ <span
+                        class="text-red-500">*</span></span>
                   </label>
                   <div class="relative">
-                    <div class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 flex items-center justify-end">
+                    <div
+                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 flex items-center justify-end">
                       {{ menuData.Price }}
                     </div>
                     <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
@@ -124,7 +128,8 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
                   </label>
                   <div class="relative">
-                    <div class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700 flex items-center justify-end">
+                    <div
+                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700 flex items-center justify-end">
                       {{ menuData.PromoPrice || 'ไม่มี' }}
                     </div>
                     <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
@@ -135,7 +140,8 @@ onMounted(async () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">รายละเอียด</span>
                   </label>
-                  <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                  <div
+                    class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
                     {{ menuData.Description }}
                   </div>
                 </div>
@@ -144,7 +150,8 @@ onMounted(async () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ร้านอาหาร</span>
                   </label>
-                  <div class="input input-bordered w-full focus:select-primary bg-slate-50 border-slate-200 flex items-center">
+                  <div
+                    class="input input-bordered w-full focus:select-primary bg-slate-50 border-slate-200 flex items-center">
                     {{ menuData.Restaurant }}
                   </div>
                 </div>
@@ -153,7 +160,8 @@ onMounted(async () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร</span>
                   </label>
-                  <div class="input input-bordered w-full focus:select-primary bg-slate-50 border-slate-200 flex items-center">
+                  <div
+                    class="input input-bordered w-full focus:select-primary bg-slate-50 border-slate-200 flex items-center">
                     {{ menuData.Category }}
                   </div>
                 </div>
@@ -162,7 +170,8 @@ onMounted(async () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">สถานะการขาย</span>
                   </label>
-                  <div class="block w-full px-4 py-2 rounded-lg text-center font-medium bg-slate-50 border border-slate-200">
+                  <div
+                    class="block w-full px-4 py-2 rounded-lg text-center font-medium bg-slate-50 border border-slate-200">
                     <span v-if="menuData.Status === 'open'" class="text-green-600">
                       🟢 เปิดขาย (Open)
                     </span>
@@ -177,9 +186,10 @@ onMounted(async () => {
               </div>
             </div>
 
-            
+
             <div class="mt-12">
-              <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
+              <h3
+                class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
                 <span>ตัวเลือกเพิ่มเติม</span>
               </h3>
 
@@ -193,7 +203,8 @@ onMounted(async () => {
                         <label class="label">
                           <span class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก</span>
                         </label>
-                        <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                        <div
+                          class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
                           {{ group.name.replace(' / คุณสมบัติพิเศษ', '') }}
                         </div>
                       </div>
@@ -203,7 +214,8 @@ onMounted(async () => {
                           <span class="label-text font-medium text-slate-600">จำนวนที่เลือกได้</span>
                         </label>
                         <div class="relative">
-                          <div class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                          <div
+                            class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200 flex items-center">
                             {{ group.maxChoices }}
                           </div>
                           <span class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
@@ -214,7 +226,8 @@ onMounted(async () => {
                         <label class="label">
                           <span class="label-text font-medium text-slate-600">สถานะการเลือก</span>
                         </label>
-                        <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
+                        <div
+                          class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
                           {{ group.isRequired ? 'บังคับเลือก ' : 'ไม่บังคับ ' }}
                         </div>
                       </div>
@@ -231,14 +244,16 @@ onMounted(async () => {
                         <div v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex"
                           class="flex items-start gap-4">
                           <div class="form-control flex-1">
-                            <div class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center">
+                            <div
+                              class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center">
                               {{ choice.name }}
                             </div>
                           </div>
 
                           <div class="form-control w-32">
                             <div class="relative">
-                              <div class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center justify-end">
+                              <div
+                                class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center justify-end">
                                 {{ choice.price }}
                               </div>
                               <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
@@ -250,7 +265,7 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                
+
                 <div v-else
                   class="py-12 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50/50">
                   <div class="text-slate-300 mb-4">
@@ -273,4 +288,3 @@ onMounted(async () => {
     </div>
   </LayoutAdmin>
 </template>
-

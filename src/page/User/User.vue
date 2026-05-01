@@ -104,7 +104,7 @@ const loadAllData = async () => {
 
 onUnmounted(() => {
   stopCarousel();
-  
+
   restaurantStore.clearListener();
   menuStore.clearListener();
   posterStore.clearListener();
@@ -232,20 +232,25 @@ const applyFilters = () => {
 
 <template>
 
-  <div v-if="isLoading" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+  <div v-if="isLoading"
+    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
     <p class="text-slate-500 font-medium animate-pulse">กำลังเตรียมความอร่อย...</p>
   </div>
 
-  <div v-else-if="isError" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
+  <div v-else-if="isError"
+    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
     <h2 class="text-xl font-bold text-slate-800 mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</h2>
     <p class="text-slate-500 mb-6">{{ errorMessage }}</p>
-    <button @click="loadAllData" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
+    <button @click="loadAllData"
+      class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
       ลองใหม่อีกครั้ง
     </button>
   </div>

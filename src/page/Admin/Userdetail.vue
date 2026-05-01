@@ -31,7 +31,7 @@ onMounted(() => {
 
 const fetchUserData = async () => {
     if (!username) return;
-    
+
     try {
         const q = query(collection(db, 'User'), where('Username', '==', username));
         const querySnapshot = await getDocs(q);
@@ -110,21 +110,24 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Firstname }}
                                     </div>
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
                                             <span class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Lastname }}</div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username
                                             <span class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-medium">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-medium">
                                         {{ userData.Username }}
                                     </div>
                                 </div>
@@ -135,7 +138,8 @@ const goBack = () => router.go(-1);
                                             Password
                                         </span>
                                     </label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         ••••••••
                                     </div>
                                 </div>
@@ -143,15 +147,17 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร
                                             <span class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Restaurant }}
                                     </div>
                                 </div>
 
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Email <span
-                                                 class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full relative flex items-center bg-slate-50 text-slate-700">
+                                                class="text-red-500">*</span></span></label>
+                                    <div
+                                        class="input input-bordered w-full relative flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Email }}
                                     </div>
                                 </div>
@@ -160,7 +166,8 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span
                                             class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Phone }}
                                     </div>
                                 </div>
@@ -168,7 +175,8 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
                                                 class="text-red-500">*</span></span></label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
+                                    <div
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Age }}
                                     </div>
                                 </div>
