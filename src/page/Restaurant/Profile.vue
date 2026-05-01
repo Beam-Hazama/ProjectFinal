@@ -1,7 +1,8 @@
 <script setup>
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { db, storage } from '@/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
@@ -11,7 +12,6 @@ const restaurantName = accountStore.user?.Restaurant;
 const loading = ref(true);
 const docId = ref(null);
 const imagePreview = ref('');
-const imageInputMethod = ref('file');
 const selectedFile = ref(null);
 const isEditing = ref(false);
 const now = ref(new Date());
@@ -75,10 +75,6 @@ const fetchRestaurantByName = async () => {
             if (!RestaurantData.Status) RestaurantData.Status = 'auto';
 
             imagePreview.value = RestaurantData.ImageUrl;
-
-            if (RestaurantData.ImageUrl && RestaurantData.ImageUrl.startsWith("http")) {
-                imageInputMethod.value = "url";
-            }
         } else {
             console.warn("Restaurant not found in database");
         }
@@ -89,40 +85,73 @@ const fetchRestaurantByName = async () => {
     }
 };
 
+const isSubmitting = ref(false);
+
 const saveProfile = async () => {
-    if (!docId.value) return;
+    if (!docId.value) {
+        alert("ไม่พบข้อมูลร้านอาหารในระบบ ไม่สามารถบันทึกได้");
+        return;
+    }
+    
     try {
+        isSubmitting.value = true;
+        let ImageUrl = RestaurantData.ImageUrl;
+
+        if (selectedFile.value) {
+            console.log("Uploading new profile image...");
+            try {
+                const fileName = `restaurants/${docId.value}_${Date.now()}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                ImageUrl = await getDownloadURL(snapshot.ref);
+                console.log("Upload successful, new URL:", ImageUrl);
+            } catch (uploadError) {
+                console.error("Error uploading image:", uploadError);
+                alert("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: " + uploadError.message);
+                isSubmitting.value = false;
+                return;
+            }
+        }
+
+        console.log("Updating Firestore document:", docId.value);
         await updateDoc(doc(db, 'Restaurant', docId.value), {
             Name: RestaurantData.Name,
             Phone: RestaurantData.Phone,
             Distance: RestaurantData.Distance,
             Address: RestaurantData.Address,
-            ImageUrl: RestaurantData.ImageUrl,
+            ImageUrl: ImageUrl,
             OpenTime: RestaurantData.OpenTime,
             CloseTime: RestaurantData.CloseTime,
             OpenDays: RestaurantData.OpenDays,
             Status: RestaurantData.Status || 'auto',
             UpdatedAt: serverTimestamp()
         });
+        
         alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
         isEditing.value = false;
-        fetchRestaurantByName();
+        selectedFile.value = null;
+        await fetchRestaurantByName();
     } catch (error) {
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+        console.error("Error saving profile:", error);
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+    } finally {
+        isSubmitting.value = false;
     }
 };
 
 const cancelEdit = () => {
+    selectedFile.value = null;
     fetchRestaurantByName();
     isEditing.value = false;
 };
 
 const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-    if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value);
+    const file = event.target.files[0];
+    if (file) {
+        selectedFile.value = file;
+        const previewUrl = URL.createObjectURL(file);
         imagePreview.value = previewUrl;
-        RestaurantData.ImageUrl = previewUrl;
+        console.log("File selected for upload:", file.name);
     }
 };
 
@@ -158,25 +187,23 @@ onUnmounted(() => {
         </div>
 
         <div class="flex gap-3">
-          <button v-if="isEditing" @click="cancelEdit"
-            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-lg px-6 transition-all duration-300 font-bold">
+          <button v-if="isEditing" @click="cancelEdit" :disabled="isSubmitting"
+            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-lg px-6 transition-all duration-300 font-bold disabled:bg-slate-200">
             Cancel
           </button>
           
-          <button @click="isEditing ? saveProfile() : isEditing = true"
-            :class="[
-                'btn border-none shadow-md rounded-lg px-6 transition-all duration-300 font-bold gap-2 min-w-[100px]',
-                isEditing ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
-            ]">
-            <template v-if="!isEditing">
+          <button v-if="!isEditing" @click="isEditing = true"
+            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300 font-bold gap-2 min-w-[100px]">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
               Edit
-            </template>
-            <template v-else>
-              Save
-            </template>
+          </button>
+
+          <button v-else @click="saveProfile" :disabled="isSubmitting"
+            class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300 font-bold min-w-[100px] disabled:bg-slate-200">
+            <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+            <span v-else>Save</span>
           </button>
         </div>
       </div>
@@ -197,42 +224,19 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div role="tablist" class="tabs tabs-boxed bg-white border border-slate-200 p-1">
-                <a role="tab" class="tab text-xs h-8"
-                  :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
-                  @click="imageInputMethod = 'file'">อัปโหลดไฟล์</a>
-                <a role="tab" class="tab text-xs h-8"
-                  :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'url' }"
-                  @click="imageInputMethod = 'url'">ใช้ URL</a>
+              <div class="flex flex-col gap-4 w-full">
+                  <label 
+                      class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl transition-all"
+                      :class="{ 'opacity-50 cursor-not-allowed grayscale pointer-events-none': !isEditing }">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      คลิกเพื่อเปลี่ยนรูปภาพ
+                      <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" :disabled="!isEditing" />
+                  </label>
+                  <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
               </div>
 
-              <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
-                <label
-                  class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-10">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  เลือกรูปภาพจากเครื่อง
-                  <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
-                </label>
-                <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
-              </div>
-
-              <div v-else class="w-full animate-fade-in">
-                <div class="relative">
-                  <input type="text" placeholder="วางลิงก์รูปภาพ (https://...)"
-                    class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
-                    v-model="RestaurantData.ImageUrl" />
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-3 text-slate-400"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                </div>
-                <div class="text-[10px] text-slate-400 mt-2 text-center">รูปภาพจะแสดงตัวอย่างด้านบนทันที</div>
-              </div>
             </div>
           </div>
 

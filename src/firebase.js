@@ -1,7 +1,8 @@
-
 import { initializeApp } from "firebase/app";
 import { getFirestore } from 'firebase/firestore'
 import { getAuth } from "firebase/auth";
+import "firebase/storage";
+import { getStorage } from "firebase/storage";
 import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -16,10 +17,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
-
 const db = getFirestore(app);
+
+let storage;
+try {
+  storage = getStorage(app);
+} catch (err) {
+  console.error("Firebase Storage initialization failed:", err);
+}
 
 let messaging = null;
 if (typeof window !== "undefined") {
@@ -38,5 +44,6 @@ export {
   app,
   db,
   auth,
+  storage,
   messaging
 }

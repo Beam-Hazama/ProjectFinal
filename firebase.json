@@ -33,6 +33,7 @@
     ]
   },
   "storage": {
+    "bucket": "projectfinal-eb377.firebasestorage.app",
     "rules": "storage.rules"
   },
   "emulators": {

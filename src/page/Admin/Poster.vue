@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { usePosterStore } from '@/stores/posterStore';
+import { storage } from '@/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const posterStore = usePosterStore();
 
@@ -12,10 +14,11 @@ const isSubmitting = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
 const editingPosterId = ref(null);
+const selectedFile = ref(null);
 const hasSchedule = ref(false);
 const startTime = ref('');
 const endTime = ref('');
-const displayDuration = ref();
+const displayDuration = ref(5);
 
 onMounted(() => {
     posterStore.loadPosters();
@@ -53,7 +56,7 @@ const openEditModal = (poster) => {
     isEditing.value = true;
     editingPosterId.value = poster.id;
     newPosterUrl.value = poster.ImageUrl;
-    displayDuration.value = poster.displayDuration;
+    displayDuration.value = poster.displayDuration || 5;
     hasSchedule.value = !!poster.hasSchedule;
     startTime.value = poster.startTime || '';
     endTime.value = poster.endTime || '';
@@ -68,26 +71,45 @@ const closeModal = () => {
     hasSchedule.value = false;
     startTime.value = '';
     endTime.value = '';
-    displayDuration.value = null;
+    displayDuration.value = 5;
+    selectedFile.value = null;
 };
 
 const handleAddPoster = async () => {
-    if (!newPosterUrl.value.trim()) {
-        alert('Please enter an image URL');
-        return;
-    }
-
-    if (hasSchedule.value && (!startTime.value || !endTime.value)) {
-        alert('Please select both start and end times for the schedule.');
-        return;
-    }
-
     try {
         isSubmitting.value = true;
+        let ImageUrl = newPosterUrl.value || '';
+
+        if (selectedFile.value) {
+            try {
+                const fileName = `posters/admin_${Date.now()}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                ImageUrl = await getDownloadURL(snapshot.ref);
+            } catch (uploadError) {
+                console.error('Error uploading poster image:', uploadError);
+                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+                isSubmitting.value = false;
+                return;
+            }
+        }
+
+        if (!ImageUrl) {
+            alert('Please select a poster image file');
+            isSubmitting.value = false;
+            return;
+        }
+
+        if (hasSchedule.value && (!startTime.value || !endTime.value)) {
+            alert('Please select both start and end times for the schedule.');
+            isSubmitting.value = false;
+            return;
+        }
+
         const posterData = {
-            ImageUrl: newPosterUrl.value.trim(),
+            ImageUrl: ImageUrl,
             hasSchedule: hasSchedule.value,
-            displayDuration: displayDuration.value
+            displayDuration: displayDuration.value || 5
         };
 
         if (hasSchedule.value) {
@@ -112,6 +134,14 @@ const handleAddPoster = async () => {
         alert('Error saving poster: ' + error.message);
     } finally {
         isSubmitting.value = false;
+    }
+};
+
+const handleFileUpload = (event) => {
+    selectedFile.value = event.target.files[0];
+    if (selectedFile.value) {
+        const previewUrl = URL.createObjectURL(selectedFile.value);
+        newPosterUrl.value = previewUrl;
     }
 };
 
@@ -156,63 +186,59 @@ const onDragEnd = async () => {
 
             <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
                 <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
-                    <div
-                        class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                        <h3 class="font-bold text-lg text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}
-                        </h3>
-
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                        <h3 class="font-bold text-lg text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}</h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
 
                     <div class="p-6 overflow-y-auto w-full">
-                        <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-6">
                             <div class="flex flex-col gap-4">
+                                <label class="text-sm font-bold text-slate-700">รูปภาพโพสเตอร์</label>
                                 <div class="w-full">
-                                    <label class="label pt-0">
-                                        <span class="label-text font-medium text-slate-600">Image URL</span>
+                                    <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        คลิกเพื่อเลือกไฟล์รูปภาพ
+                                        <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
                                     </label>
-                                    <input type="text" v-model="newPosterUrl" ref="urlInput"
-                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
-                                </div>
-                                <div class="w-full md:w-32">
-                                    <label class="label pt-0">
-                                        <span class="label-text font-medium text-slate-600">Duration (sec)</span>
-                                    </label>
-                                    <input type="number" min="1" v-model="displayDuration"
-                                        class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                                 </div>
                             </div>
 
-                            <div class="mt-2 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                            <div class="w-full">
+                                <label class="label pt-0 pb-1">
+                                    <span class="label-text font-bold text-slate-700">ระยะเวลาแสดงผล (วินาที)</span>
+                                </label>
+                                <input type="number" min="1" v-model="displayDuration"
+                                    class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800 h-12 rounded-xl" />
+                            </div>
+
+                            <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                                 <label class="cursor-pointer flex items-center gap-2 w-fit mb-3">
-                                    <input type="checkbox" v-model="hasSchedule"
-                                        class="checkbox checkbox-sm checkbox-primary" />
+                                    <input type="checkbox" v-model="hasSchedule" class="checkbox checkbox-sm checkbox-primary" />
                                     <span class="label-text font-bold text-slate-700">Schedule Time</span>
                                 </label>
 
                                 <div v-if="hasSchedule" class="flex flex-col md:flex-row gap-4 animate-fade-in">
                                     <div class="flex-1">
-                                        <label class="label pt-0">
-                                            <span class="label-text font-medium text-slate-600">Start Time</span>
-                                        </label>
-                                        <input type="datetime-local" v-model="startTime"
-                                            class="input input-bordered w-full bg-white transition-colors text-slate-800" />
+                                        <label class="label pt-0"><span class="label-text font-medium text-slate-600">Start Time</span></label>
+                                        <input type="datetime-local" v-model="startTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                     <div class="flex-1">
-                                        <label class="label pt-0">
-                                            <span class="label-text font-medium text-slate-600">End Time</span>
-                                        </label>
-                                        <input type="datetime-local" v-model="endTime"
-                                            class="input input-bordered w-full bg-white transition-colors text-slate-800" />
+                                        <label class="label pt-0"><span class="label-text font-medium text-slate-600">End Time</span></label>
+                                        <input type="datetime-local" v-model="endTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div v-show="newPosterUrl"
-                                class="mt-2 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-48">
-                                <img :src="newPosterUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
-                                    alt="Preview" />
-                                <div
-                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                            <div v-if="newPosterUrl" class="border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-48">
+                                <img :src="newPosterUrl" class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                     <span class="text-white font-medium text-sm">Preview</span>
                                 </div>
                             </div>
@@ -220,10 +246,8 @@ const onDragEnd = async () => {
                     </div>
 
                     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
-                        <button @click="closeModal"
-                            class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
-                        <button @click="handleAddPoster" :disabled="isSubmitting || !newPosterUrl.trim()"
-                            class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
+                        <button @click="closeModal" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
+                        <button @click="handleAddPoster" :disabled="isSubmitting || !newPosterUrl" class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                             <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
                             <span v-else>Save</span>
                         </button>

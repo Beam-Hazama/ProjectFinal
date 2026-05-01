@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
+import { storage } from '@/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const categoryStore = useCategoryStore();
 
@@ -11,6 +13,7 @@ const newCategoryName = ref('');
 const newCategoryImageUrl = ref('');
 const isSubmitting = ref(false);
 const showModal = ref(false);
+const selectedFile = ref(null);
 
 onMounted(() => {
     categoryStore.loadCategories();
@@ -37,16 +40,34 @@ const handleAddCategory = async () => {
         alert('Please enter a category name');
         return;
     }
-    if (!newCategoryImageUrl.value.trim()) {
-        alert('Please enter an image URL');
-        return;
-    }
-
+    
     try {
         isSubmitting.value = true;
+        let ImageUrl = '';
+
+        if (selectedFile.value) {
+            try {
+                const fileName = `categories/${Date.now()}_${selectedFile.value.name}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                ImageUrl = await getDownloadURL(snapshot.ref);
+            } catch (uploadError) {
+                console.error('Error uploading category image:', uploadError);
+                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+                isSubmitting.value = false;
+                return;
+            }
+        }
+
+        if (!ImageUrl) {
+            alert('Please enter an image URL or upload a file');
+            isSubmitting.value = false;
+            return;
+        }
+
         await categoryStore.addCategory({
             name: newCategoryName.value.trim(),
-            ImageUrl: newCategoryImageUrl.value.trim()
+            ImageUrl: ImageUrl
         });
         closeModal();
     } catch (error) {
@@ -56,10 +77,19 @@ const handleAddCategory = async () => {
     }
 };
 
+const handleFileUpload = (event) => {
+    selectedFile.value = event.target.files[0];
+    if (selectedFile.value) {
+        const previewUrl = URL.createObjectURL(selectedFile.value);
+        newCategoryImageUrl.value = previewUrl;
+    }
+};
+
 const closeModal = () => {
     showModal.value = false;
     newCategoryName.value = '';
     newCategoryImageUrl.value = '';
+    selectedFile.value = null;
 };
 
 const deleteCategory = async (categoryId, categoryName) => {
@@ -110,12 +140,19 @@ const onDragEnd = async () => {
                                 <input type="text" v-model="newCategoryName"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
-                            <div>
-                                <label class="label pt-0">
-                                    <span class="label-text font-medium text-slate-600">Image URL</span>
-                                </label>
-                                <input type="text" v-model="newCategoryImageUrl"
-                                    class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
+                            
+                            <div class="flex flex-col gap-4">
+                                <label class="text-sm font-bold text-slate-700">รูปภาพหมวดหมู่</label>
+                                
+                                <div class="w-full">
+                                    <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        คลิกเพื่อเลือกไฟล์รูปภาพ
+                                        <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

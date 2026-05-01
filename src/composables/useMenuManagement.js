@@ -1,7 +1,8 @@
 import { reactive, ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/firebase';
 import { useMenuStore } from '@/stores/menuStore';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
@@ -19,7 +20,6 @@ export function useMenuManagement() {
     const mode = ref('');
     const selectedFile = ref(null);
     const imagePreview = ref('');
-    const imageInputMethod = ref('file');
 
     const MenuData = reactive({
         Name: '',
@@ -47,9 +47,6 @@ export function useMenuManagement() {
                 });
 
                 imagePreview.value = res.ImageUrl || '';
-                if (res.ImageUrl && res.ImageUrl.startsWith('http')) {
-                    imageInputMethod.value = 'url';
-                }
             }
         } else {
             mode.value = 'Add Menu';
@@ -60,16 +57,23 @@ export function useMenuManagement() {
         categoryStore.loadCategories();
     });
 
-    watch(() => MenuData.ImageUrl, (newVal) => {
-        if (imageInputMethod.value === 'url') {
-            imagePreview.value = newVal;
-        }
-    });
-
     const checkAddMenu = async (data) => {
         try {
             let MenuId;
-            const ImageUrl = data.ImageUrl || '';
+            let ImageUrl = data.ImageUrl;
+
+            if (selectedFile.value) {
+                try {
+                    const fileName = `${Date.now()}_${selectedFile.value.name}`;
+                    const fileRef = storageRef(storage, `menus/${fileName}`);
+                    const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                    ImageUrl = await getDownloadURL(snapshot.ref);
+                } catch (uploadError) {
+                    console.error('Error uploading image:', uploadError);
+                    alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+                    return;
+                }
+            }
 
             const cleanOptionGroups = (data.OptionGroups || []).map(group => {
                 return {
@@ -122,7 +126,6 @@ export function useMenuManagement() {
             const previewUrl = URL.createObjectURL(selectedFile.value);
             imagePreview.value = previewUrl;
             MenuData.ImageUrl = previewUrl;
-            MenuStore.imageList[menuId] = previewUrl;
         }
     };
 
@@ -167,7 +170,6 @@ export function useMenuManagement() {
         MenuData,
         mode,
         imagePreview,
-        imageInputMethod,
         Restaurant,
         categoryStore,
         checkAddMenu,

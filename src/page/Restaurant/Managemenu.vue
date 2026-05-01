@@ -6,7 +6,6 @@ const {
     MenuData,
     mode,
     imagePreview,
-    imageInputMethod,
     Restaurant,
     categoryStore,
     checkAddMenu,
@@ -70,47 +69,18 @@ const {
                                     <span class="text-sm font-medium">ไม่มีรูปภาพ</span>
                                 </div>
                             </div>
-
-                            <div role="tablist" class="tabs tabs-boxed bg-white border border-slate-200 p-1">
-                                <a role="tab" class="tab text-xs h-8 transition-all"
-                                    :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
-                                    @click="imageInputMethod = 'file'">
-                                    อัปโหลดไฟล์
-                                </a>
-                                <a role="tab" class="tab text-xs h-8 transition-all"
-                                    :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'url' }"
-                                    @click="imageInputMethod = 'url'">
-                                    ใช้ URL
-                                </a>
-                            </div>
-
-                            <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
-                                <label
-                                    class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
-                                    เลือกรูปภาพจากเครื่อง
-                                    <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
-                                </label>
-                                <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
-                            </div>
-
-                            <div v-else class="w-full animate-fade-in">
-                                <div class="relative">
-                                    <input type="text"
-                                        class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
-                                        v-model="MenuData.ImageUrl" />
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="h-4 w-4 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 105.656 5.656l1.1 1.1" />
-                                    </svg>
+                            
+                            <div class="flex flex-col gap-4 w-full">
+                                <div class="w-full">
+                                    <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl transition-all">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        คลิกเพื่อเลือกไฟล์รูปภาพ
+                                        <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
+                                    </label>
+                                    <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
                                 </div>
-                                <div class="text-[10px] text-slate-400 mt-2 text-center">รูปภาพจะแสดงตัวอย่างด้านบนทันที</div>
                             </div>
                         </div>
                     </div>

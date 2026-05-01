@@ -39,9 +39,6 @@ const fetchUserData = async () => {
             const data = querySnapshot.docs[0].data();
             userData.value = { ...userData.value, ...data };
             imagePreview.value = data.ImageUrl;
-            if (data.ImageUrl && data.ImageUrl.startsWith('http')) {
-                imageInputMethod.value = 'url';
-            }
         } else {
             alert("ไม่พบข้อมูลผู้ใช้งาน");
             router.push('/Admin/Restaurantuser');

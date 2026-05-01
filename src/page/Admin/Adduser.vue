@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { auth, db } from '@/firebase';
+import { auth, db, storage } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, getDocs, doc, query, where, setDoc, serverTimestamp } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
@@ -11,8 +12,8 @@ const router = useRouter();
 
 const isLoading = ref(false);
 const restaurants = ref([]);
-const imageInputMethod = ref('file');
 const imagePreview = ref(null);
+const selectedFile = ref(null);
 
 const userData = ref({
     Firstname: '',
@@ -31,12 +32,6 @@ const userData = ref({
 
 onMounted(() => {
     fetchRestaurants();
-});
-
-watch(() => userData.value.ImageUrl, (newVal) => {
-    if (imageInputMethod.value === 'url') {
-        imagePreview.value = newVal;
-    }
 });
 
 const isFormValid = computed(() => {
@@ -61,14 +56,11 @@ const fetchRestaurants = async () => {
 };
 
 const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            imagePreview.value = e.target.result;
-            userData.value.ImageUrl = e.target.result;
-        };
-        reader.readAsDataURL(file);
+    selectedFile.value = event.target.files[0];
+    if (selectedFile.value) {
+        const previewUrl = URL.createObjectURL(selectedFile.value);
+        imagePreview.value = previewUrl;
+        userData.value.ImageUrl = previewUrl;
     }
 };
 
@@ -82,6 +74,22 @@ const handleSave = async () => {
 
     try {
         isLoading.value = true;
+
+        let finalImageUrl = '';
+
+        if (selectedFile.value) {
+            try {
+                const fileName = `users/${Username}_${Date.now()}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                finalImageUrl = await getDownloadURL(snapshot.ref);
+            } catch (uploadError) {
+                console.error("Error uploading user image:", uploadError);
+                alert("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพประจำตัว");
+                isLoading.value = false;
+                return;
+            }
+        }
 
         const q = query(collection(db, 'User'), where('Username', '==', Username));
         const querySnapshot = await getDocs(q);
@@ -108,7 +116,7 @@ const handleSave = async () => {
             Age: Age,
             Status: Status || 'active',
             Role: 'restaurant',
-            ImageUrl: ImageUrl || '',
+            ImageUrl: finalImageUrl || '',
             CreatedAt: serverTimestamp(),
             UpdatedAt: serverTimestamp()
         });
@@ -172,6 +180,7 @@ const goBack = () => router.go(-1);
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             รูปภาพหน้าร้าน <span class="text-red-500">*</span>
+                            รูปภาพประจำตัว <span class="text-red-500">*</span>
                         </h3>
 
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
@@ -180,51 +189,19 @@ const goBack = () => router.go(-1);
                                 <img v-if="imagePreview || userData.ImageUrl" :src="imagePreview || userData.ImageUrl"
                                     class="w-full h-full object-cover" />
                                 <div v-else class="text-slate-400 flex flex-col items-center">
-                                    <span class="text-sm font-medium">ไม่มีรูปภาพร้าน</span>
+                                    <span class="text-sm font-medium">ไม่มีรูปภาพ</span>
                                 </div>
                             </div>
 
-                            <div role="tablist" class="tabs tabs-boxed  bg-white border border-slate-200 p-1 ">
-                                <a role="tab" class="tab text-xs h-8 transition-all"
-                                    :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'file' }"
-                                    @click="imageInputMethod = 'file'">
-                                    อัปโหลดไฟล์
-                                </a>
-                                <a role="tab" class="tab text-xs h-8 transition-all"
-                                    :class="{ 'tab-active bg-blue-100 text-blue-600 font-bold': imageInputMethod === 'url' }"
-                                    @click="imageInputMethod = 'url'">
-                                    ใช้ URL
-                                </a>
-                            </div>
-
-                            <div v-if="imageInputMethod === 'file'" class="w-full text-center animate-fade-in">
-                                <label
-                                    class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            <div class="flex flex-col gap-4 w-full">
+                                <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                     </svg>
-                                    เลือกรูปภาพจากเครื่อง
+                                    คลิกเพื่อเลือกไฟล์รูปภาพ
                                     <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
                                 </label>
-                                <div class="text-[10px] text-slate-400 mt-2">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
-                            </div>
-
-                            <div v-else class="w-full animate-fade-in">
-                                <div class="relative">
-                                    <input type="text"
-                                        class="input input-bordered input-sm w-full pl-9 focus:input-primary bg-white h-10"
-                                        v-model="userData.ImageUrl" />
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="h-4 w-4 absolute left-3 top-3 text-slate-400" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                    </svg>
-                                </div>
-                                <div class="text-[10px] text-slate-400 mt-2 text-center">รูปภาพจะแสดงตัวอย่างด้านบนทันที
-                                </div>
+                                <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
                             </div>
                         </div>
                     </div>

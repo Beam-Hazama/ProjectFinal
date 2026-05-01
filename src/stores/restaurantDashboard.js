@@ -211,7 +211,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
       const menuMetricsMap = {};
 
-      const now = new Date();
+      let now = new Date();
       now.setHours(23, 59, 59, 999);
 
       let startTime = new Date(0);
