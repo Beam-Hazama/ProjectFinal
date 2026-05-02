@@ -18,19 +18,19 @@ export const useCartStore = defineStore("cart", {
     },
 
     
-    summaryQuantity(state) {
+    totalQuantity(state) {
       return state.item.reduce((acc, item) => acc + item.Quantity, 0);
     },
 
-    
-    summaryPrice(state) {
+
+    totalPrice(state) {
       return state.item.reduce((acc, item) => acc + (item.Price * item.Quantity), 0);
     },
   },
 
   actions: {
     
-    loadcart(building, floor, room) {
+    loadCart(building, floor, room) {
       this.building = building;
       this.floor = floor;
       this.room = room;
@@ -106,7 +106,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     
-    async placeorder() {
+    async placeOrder() {
       try {
         const orderRef = doc(collection(db, 'Order'));
         const orderData = {
@@ -129,13 +129,13 @@ export const useCartStore = defineStore("cart", {
             id: i.menuId || i.id,
             itemStatus: 'waiting'
           })),
-          TotalPrice: this.summaryPrice,
+          TotalPrice: this.totalPrice,
           statusOrder: 'pending',
           CreatedAt: serverTimestamp()
         };
 
         await setDoc(orderRef, orderData);
-        this.clearcart();
+        this.clearCart();
         return true;
       } catch (error) {
         console.error("Order placement error:", error);
@@ -145,7 +145,7 @@ export const useCartStore = defineStore("cart", {
     },
 
     
-    clearcart() {
+    clearCart() {
       this.item = [];
       this.saveToStorage();
     }

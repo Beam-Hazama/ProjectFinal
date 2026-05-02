@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
@@ -12,26 +13,39 @@ const router = useRouter();
 const cartStore = useCartStore();
 const menuStore = useMenuStore();
 
-const payment = () => {
-  cartStore.placeorder();
+const emit = defineEmits(['close-modal']);
 
-  const dlg = document.getElementById('my_modal_1');
-  if (dlg?.close) dlg.close();
-  
-  cartStore.clearcart();
-  router.push({ 
-    name: 'Status', 
-    params: { 
-      building: props.building, 
-      floor: props.floor, 
-      room: props.room 
-    } 
-  });
+const isPlacingOrder = ref(false);
+
+const payment = async () => {
+  if (isPlacingOrder.value) return;
+
+  try {
+    isPlacingOrder.value = true;
+    const success = await cartStore.placeOrder();
+    
+    if (success) {
+      emit('close-modal');
+      
+      router.push({ 
+        name: 'Status', 
+        params: { 
+          building: props.building, 
+          floor: props.floor, 
+          room: props.room 
+        } 
+      });
+    }
+  } catch (error) {
+    console.error("Payment error:", error);
+    // Error is already handled by alert in store, but we catch it here to reset loading
+  } finally {
+    isPlacingOrder.value = false;
+  }
 };
 
 const editOrder = () => {
-  const dlg = document.getElementById('my_modal_1');
-  if (dlg?.close) dlg.close();
+  emit('close-modal');
 };
 
 const getMenuName = (id) => {
@@ -73,15 +87,17 @@ const getMenuName = (id) => {
       <div class="flex justify-between items-end mb-6 px-2">
         <span class="text-xl font-medium">ยอดรวมทั้งสิ้น</span>
         <div class="text-right">
-          <span class="text-4xl font-black text-blue-600">{{ cartStore.summaryPrice.toLocaleString() }}</span>
+          <span class="text-4xl font-black text-blue-600">{{ cartStore.totalPrice.toLocaleString() }}</span>
           <span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
         </div>
       </div>
 
       <div class="flex gap-3">
         <button @click="editOrder()" class="flex-1 py-4 rounded-2xl font-bold text-red-500 bg-white border border-red-100 transition-all">ยกเลิก</button>
-        <button @click="payment()" class="flex-[2] py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all flex justify-center items-center gap-2">
-          ยืนยันออเดอร์
+        <button @click="payment()" :disabled="isPlacingOrder" 
+          class="flex-[2] py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          <span v-if="isPlacingOrder" class="loading loading-spinner loading-sm"></span>
+          {{ isPlacingOrder ? 'กำลังสั่งซื้อ...' : 'ยืนยันออเดอร์' }}
         </button>
       </div>
     </div>

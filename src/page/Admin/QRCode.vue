@@ -8,7 +8,7 @@ import { useQrcodeStore } from '@/stores/admin/qrcode'
 const qrStore = useQrcodeStore()
 
 onMounted(() => {
-  qrStore.fetchRooms()
+  qrStore.loadRooms()
 })
 
 </script>
@@ -50,7 +50,7 @@ onMounted(() => {
                   <td class="text-center">{{ room.roomNumber }}</td>
                   <td class="text-center">{{ formatTimestamp(room.createdAt) }}</td>
                   <td class="text-center border-none">
-                    <button @click="qrStore.printSpecificQR(room)"
+                    <button @click="qrStore.printRoomQR(room)"
                       class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">
                       Print QR
                     </button>
@@ -104,7 +104,7 @@ onMounted(() => {
                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">
                 Cancel
               </button>
-              <button @click="qrStore.saveRoom" :disabled="!qrStore.roomForm.roomNumber || !qrStore.roomForm.floor || !qrStore.roomForm.building"
+              <button @click="qrStore.addRoom" :disabled="!qrStore.roomForm.roomNumber || !qrStore.roomForm.floor || !qrStore.roomForm.building"
                 class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                 Save
               </button>

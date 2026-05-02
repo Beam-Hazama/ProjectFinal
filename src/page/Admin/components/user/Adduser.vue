@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { auth, db, storage } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -56,13 +56,23 @@ const fetchRestaurants = async () => {
 };
 
 const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-    if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value);
+    const file = event.target.files[0];
+    if (file) {
+        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreview.value);
+        }
+        selectedFile.value = file;
+        const previewUrl = URL.createObjectURL(file);
         imagePreview.value = previewUrl;
         userData.value.ImageUrl = previewUrl;
     }
 };
+
+onUnmounted(() => {
+    if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview.value);
+    }
+});
 
 const handleSave = async () => {
     const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status, Email, Age } = userData.value;

@@ -35,6 +35,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     menusLoading: true,
     unsubscribeOrders: null,
     unsubscribeMenus: null,
+    unsubscribeRestaurant: null,
 
     availableMenus: [],
     filteredTotalMenus: 0,
@@ -330,7 +331,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
       }
       this.filteredTotalMenus = filteredMenus.length;
-      this.processCategoriesCount(filteredMenus);
+      this.buildCategoryStats(filteredMenus);
 
       // Generate available categories for dropdown
       const catList = this.allMenus.map(m => m.Category).filter(c => c && c.trim() !== '');
@@ -343,16 +344,18 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         Restaurant: m.Restaurant
       }));
 
-      this.processRevenueByDay(validOrdersForChart);
-      this.processPeakHours(validOrdersForChart);
+      this.buildDailyRevenueChart(validOrdersForChart);
+      this.buildPeakHoursChart(validOrdersForChart);
     },
 
     
     clearListeners() {
       if (this.unsubscribeOrders) this.unsubscribeOrders();
       if (this.unsubscribeMenus) this.unsubscribeMenus();
+      if (this.unsubscribeRestaurant) this.unsubscribeRestaurant();
       this.unsubscribeOrders = null;
       this.unsubscribeMenus = null;
+      this.unsubscribeRestaurant = null;
     },
 
     
@@ -394,7 +397,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       });
 
       const restaurantQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
-      onSnapshot(restaurantQuery, (snapshot) => {
+      this.unsubscribeRestaurant = onSnapshot(restaurantQuery, (snapshot) => {
         if (!snapshot.empty) {
           const data = snapshot.docs[0].data();
           this.commissionRate = data.CommissionRate || 0;
@@ -403,7 +406,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     
-    processRevenueByDay(orders) {
+    buildDailyRevenueChart(orders) {
       const days = {};
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -439,7 +442,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     
-    processCategoriesCount(menus) {
+    buildCategoryStats(menus) {
       const counts = {};
       menus.forEach(m => {
         const cat = m.Category || 'อื่นๆ';
@@ -452,7 +455,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     
-    processPeakHours(orders) {
+    buildPeakHoursChart(orders) {
       const hourlyDistribution = Array(24).fill(0);
       orders.forEach(order => {
         if (order.CreatedAt) {

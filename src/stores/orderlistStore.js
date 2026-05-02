@@ -33,33 +33,34 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
   actions: {
     
-    _recalculateGlobalStatus(updatedMenu) {
-      const allFinished = updatedMenu.every(item => 
-        ['received', 'cancelled'].includes(item.itemStatus)
-      );
+    _deriveOrderStatus(updatedMenu) {
+      if (!updatedMenu || updatedMenu.length === 0) return 'pending';
 
-      if (allFinished) {
-        const anyReceived = updatedMenu.some(item => item.itemStatus === 'received');
-        return anyReceived ? 'completed' : 'cancelled';
+      const statuses = updatedMenu.map(item => item.itemStatus || 'waiting');
+      
+      // 1. If all items are cancelled, the entire order is cancelled
+      if (statuses.every(s => s === 'cancelled')) return 'cancelled';
+
+      // 2. Filter out cancelled items to determine the active status
+      const activeStatuses = statuses.filter(s => s !== 'cancelled');
+
+      // 3. Status Hierarchy (The "earliest" active status determines the global status)
+      // Hierarchy: waiting/pending > cooking > dispatched > received (completed)
+      
+      if (activeStatuses.some(s => ['waiting', 'pending'].includes(s))) {
+        return 'pending';
       }
-
-      const allDispatchedOrFinished = updatedMenu.every(item => 
-        ['dispatched', 'received', 'cancelled'].includes(item.itemStatus)
-      );
-
-      if (allDispatchedOrFinished) {
+      
+      if (activeStatuses.some(s => s === 'cooking')) {
+        return 'cooking';
+      }
+      
+      if (activeStatuses.some(s => s === 'dispatched')) {
         return 'dispatched';
       }
-
-      const anyActive = updatedMenu.some(item => 
-        ['cooking', 'pending', 'waiting', 'dispatched'].includes(item.itemStatus)
-      );
       
-      if (anyActive) {
-        const anyCooking = updatedMenu.some(item => 
-          ['cooking', 'dispatched'].includes(item.itemStatus)
-        );
-        return anyCooking ? 'cooking' : 'pending';
+      if (activeStatuses.every(s => s === 'received')) {
+        return 'completed';
       }
 
       return 'pending';
@@ -82,7 +83,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
             return item;
           });
 
-          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._deriveOrderStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -114,7 +115,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
             return item;
           });
 
-          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._deriveOrderStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -146,7 +147,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
             return item;
           });
 
-          const globalStatus = this._recalculateGlobalStatus(updatedMenu);
+          const globalStatus = this._deriveOrderStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -161,7 +162,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async rejectOrderGlobal(orderId) {
+    async cancelEntireOrder(orderId) {
       try {
         const orderRef = doc(db, 'Order', orderId);
 
@@ -208,29 +209,14 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       );
 
       this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {
-        const newOrders = orderSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
+        const newOrders = orderSnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter(order => (order.CreatedAt?.seconds || 0) >= twelveHoursAgo);
         this.list = newOrders;
-      });
-    },
-
-    
-    async addToOrderList(orderData) {
-      const { Menu, ...orderref } = orderData;
-
-      const cleanedMenu = Menu.map((item) => {
-        const { Status, Remainquantity, ImageUrl, ...filtered } = item;
-        return { ...filtered, itemStatus: "waiting" };
-      });
-
-      const finalOrder = { ...orderref, Menu: cleanedMenu };
-      
-      await addDoc(collection(db, "Order"), {
-        ...finalOrder,
-        statusOrder: "pending",
-        CreatedAt: serverTimestamp(),
       });
     },
 
@@ -251,7 +237,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async loadOrderinadmin() {
+    async loadAllOrders() {
       this.clearListener();
 
       this.unsubscribe = onSnapshot(collection(db, "Order"), (orderSnapshot) => {

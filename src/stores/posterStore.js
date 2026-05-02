@@ -95,7 +95,10 @@ export const usePosterStore = defineStore('poster', {
     },
 
     // UI Actions
-    handleFileUpload(file) {
+    onImageSelected(file) {
+      if (this.newPosterUrl && this.newPosterUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.newPosterUrl);
+      }
       this.selectedFile = file;
       if (this.selectedFile) {
         const previewUrl = URL.createObjectURL(this.selectedFile);
@@ -115,6 +118,9 @@ export const usePosterStore = defineStore('poster', {
     },
 
     closeModal() {
+      if (this.newPosterUrl && this.newPosterUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.newPosterUrl);
+      }
       this.showModal = false;
       this.isEditing = false;
       this.editingPosterId = null;

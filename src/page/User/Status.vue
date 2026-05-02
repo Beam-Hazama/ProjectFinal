@@ -12,7 +12,7 @@ const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
 onMounted(() => {
-    statusStore.init(building, floor, room);
+    statusStore.initUserSession(building, floor, room);
 });
 </script>
 
@@ -259,7 +259,7 @@ onMounted(() => {
               <template v-else>
                 <span class="text-sm font-black text-gray-800">฿{{ statusStore.formatPrice(item.Price * item.Quantity) }}</span>
               </template>
-              <button v-if="item.itemStatus === 'dispatched'" @click="statusStore.confirmReceived(order.id, item.cartItemId, i, router)"
+              <button v-if="item.itemStatus === 'dispatched'" @click="statusStore.markItemAsReceived(order.id, item.cartItemId, i, router)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันรับอาหาร
               </button>

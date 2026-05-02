@@ -397,8 +397,8 @@ export const useDashboardStore = defineStore('dashboardStore', {
       this.totalCommission = totalCommissionCalc;
       this.netPayouts = filteredRevenue - totalCommissionCalc;
 
-      this.processRevenueByDay(validOrdersForChart);
-      this.processPeakHours(validOrdersForChart);
+      this.buildDailyRevenueChart(validOrdersForChart);
+      this.buildPeakHoursChart(validOrdersForChart);
 
       let filteredMenus = this.allMenus;
       if (this.restaurantFilters.length > 0) {
@@ -408,7 +408,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
         filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
       }
       this.filteredTotalMenus = filteredMenus.length;
-      this.processCategoriesCount(filteredMenus);
+      this.buildCategoryStats(filteredMenus);
       this.availableMenus = filteredMenus.filter(m => m.Name).map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
       
       const catList = this.allMenus
@@ -503,7 +503,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
     },
 
     
-    processRevenueByDay(orders) {
+    buildDailyRevenueChart(orders) {
       const days = {};
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -549,7 +549,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
     },
 
     
-    processCategoriesCount(menus) {
+    buildCategoryStats(menus) {
       const counts = {};
       menus.forEach(m => {
         const cat = m.Category || 'อื่นๆ';
@@ -563,7 +563,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
     },
 
     
-    processPeakHours(orders) {
+    buildPeakHoursChart(orders) {
       const hourlyDistribution = Array(24).fill(0);
       orders.forEach(order => {
         if (order.CreatedAt) {

@@ -23,7 +23,7 @@ watch(() => categoryStore.list, (newList) => {
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-        categoryStore.handleFileUpload(file);
+        categoryStore.onImageSelected(file);
     }
 };
 
@@ -93,7 +93,7 @@ const onDragEnd = async () => {
                         <div class="flex justify-end gap-3 mt-4">
                             <button @click="categoryStore.closeModal"
                                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
-                            <button @click="categoryStore.handleAddCategory"
+                            <button @click="categoryStore.addCategory"
                                 :disabled="categoryStore.isSubmitting || !categoryStore.newCategoryName || !categoryStore.newCategoryImageUrl"
                                 class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                                 <span v-if="categoryStore.isSubmitting" class="loading loading-spinner loading-sm"></span>

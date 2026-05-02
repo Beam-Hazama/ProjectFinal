@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import draggable from 'vuedraggable';
 import { usePosterStore } from '@/stores/posterStore';
 import { useAccountStore } from '@/stores/auth/accountStore';
@@ -99,12 +99,22 @@ const handleSubmitPoster = async () => {
 };
 
 const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-    if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value);
+    const file = event.target.files[0];
+    if (file) {
+        if (newPosterUrl.value && newPosterUrl.value.startsWith('blob:')) {
+            URL.revokeObjectURL(newPosterUrl.value);
+        }
+        selectedFile.value = file;
+        const previewUrl = URL.createObjectURL(file);
         newPosterUrl.value = previewUrl;
     }
 };
+
+onUnmounted(() => {
+    if (newPosterUrl.value && newPosterUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(newPosterUrl.value);
+    }
+});
 
 const deletePoster = async (posterId) => {
     if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
@@ -144,6 +154,11 @@ const closeModal = () => {
     showModal.value = false;
     isEditing.value = false;
     editingPosterId.value = null;
+    
+    if (newPosterUrl.value && newPosterUrl.value.startsWith('blob:')) {
+        URL.revokeObjectURL(newPosterUrl.value);
+    }
+    
     newPosterUrl.value = '';
     hasSchedule.value = false;
     startTime.value = '';

@@ -18,7 +18,7 @@ const historyOrders = computed(() => {
 });
 
 onMounted(() => {
-    orderStore.loadOrderinadmin();
+    orderStore.loadAllOrders();
 });
 
 const openModal = (order) => {

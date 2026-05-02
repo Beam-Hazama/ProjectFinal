@@ -88,7 +88,7 @@ const loadAllData = async () => {
       await Promise.all([
         restaurantStore.loadListRestaurant(),
         menuStore.loadMenu(),
-        cartStore.loadcart(building, floor, room),
+        cartStore.loadCart(building, floor, room),
         posterStore.loadPosters(),
         categoryStore.loadCategories()
       ]);
@@ -124,7 +124,7 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
     isLoading.value = false;
 
     if (isValid) {
-      cartStore.loadcart(newB, newF, newR);
+      cartStore.loadCart(newB, newF, newR);
     }
   }
 });

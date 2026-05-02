@@ -12,7 +12,7 @@ const selectedOrder = ref(null);
 const showModal = ref(false);
 
 onMounted(async () => {
-    await orderStore.loadOrderinadmin();
+    await orderStore.loadAllOrders();
 });
 
 const historyOrders = computed(() => {
@@ -180,11 +180,11 @@ const getStatusColor = (status) => {
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
                                 <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
-                                        }}</span></span>
+                                }}</span></span>
                                 <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
-                                        }}</span></span>
+                                }}</span></span>
                                 <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
-                                        }}</span></span>
+                                }}</span></span>
                             </span>
                             <span v-else>
                                 Room: {{ selectedOrder.roomId }}
@@ -239,7 +239,7 @@ const getStatusColor = (status) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.displayTotal?.toLocaleString()
-                            }} ฿</span>
+                                }} ฿</span>
                         </div>
                     </div>
                 </div>

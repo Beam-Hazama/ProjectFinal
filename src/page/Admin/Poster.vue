@@ -35,7 +35,7 @@ const formatScheduleDate = (dateString) => {
 const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-        posterStore.handleFileUpload(file);
+        posterStore.onImageSelected(file);
     }
 };
 

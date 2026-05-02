@@ -21,12 +21,12 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
     isModalOpen: false,
     selectedRoom: null,
     roomForm: { roomNumber: '', floor: '', building: '' },
-    baseUrl: 'https://192.168.1.40:5173'
+    baseUrl: import.meta.env.VITE_QR_BASE_URL || window.location.origin
   }),
 
   actions: {
     
-    fetchRooms() {
+    loadRooms() {
       const roomCol = collection(db, 'QRCodes');
       const q = query(roomCol, orderBy('createdAt', 'desc'));
 
@@ -44,7 +44,7 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
       this.isModalOpen = true;
     },
 
-    async saveRoom() {
+    async addRoom() {
       if (!this.roomForm.roomNumber || !this.roomForm.building || !this.roomForm.floor) {
         alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง');
         return;
@@ -71,7 +71,7 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
       }
     },
 
-    async printSpecificQR(room) {
+    async printRoomQR(room) {
       this.selectedRoom = room;
       await nextTick();
       window.print();

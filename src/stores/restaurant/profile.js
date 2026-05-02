@@ -130,14 +130,20 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     };
 
     const cancelEdit = () => {
+        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreview.value);
+        }
         selectedFile.value = null;
         fetchRestaurantByName();
         isEditing.value = false;
     };
 
-    const handleFileUpload = (event) => {
+    const onImageSelected = (event) => {
         const file = event.target.files[0];
         if (file) {
+            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview.value);
+            }
             selectedFile.value = file;
             const previewUrl = URL.createObjectURL(file);
             imagePreview.value = previewUrl;
@@ -157,6 +163,6 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         fetchRestaurantByName,
         saveProfile,
         cancelEdit,
-        handleFileUpload
+        onImageSelected
     };
 });

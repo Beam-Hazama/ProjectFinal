@@ -1,11 +1,12 @@
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import ConfirmOrder from './components/cart/ConfirmOrder.vue';
 
 const cartStore = useCartStore();
 const route = useRoute();
+const confirmModal = ref(null);
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
@@ -16,16 +17,17 @@ const displayLocation = computed(() => {
 });
 
 onMounted(() => {
-  cartStore.loadcart(building, floor, room);
+  cartStore.loadCart(building, floor, room);
 });
 
 const showConfirmModal = () => {
   if (cartStore.item.length > 0) {
-    const modal = document.getElementById('my_modal_1');
-    if (modal) {
-      modal.showModal();
-    }
+    confirmModal.value?.showModal();
   }
+};
+
+const closeConfirmModal = () => {
+  confirmModal.value?.close();
 };
 
 </script>
@@ -153,13 +155,13 @@ const showConfirmModal = () => {
     <div class="bg-white/90 backdrop-blur-lg shadow-xl border border-white/60 rounded-2xl p-5 space-y-3">
       <div class="flex justify-between text-gray-600">
         <span>ค่าอาหาร</span>
-        <span>{{ cartStore.summaryPrice.toLocaleString() }} บาท</span>
+        <span>{{ cartStore.totalPrice.toLocaleString() }} บาท</span>
       </div>
       <hr class="border-dashed border-gray-300 my-2" />
       <div class="flex justify-between items-end">
         <span class="text-gray-500 mb-1 font-bold">ยอดรวมสุทธิ</span>
         <span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
-          {{ cartStore.summaryPrice.toLocaleString() }}<span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
+          {{ cartStore.totalPrice.toLocaleString() }}<span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
         </span>
       </div>
     </div>
@@ -171,7 +173,7 @@ const showConfirmModal = () => {
         <div class="flex justify-between items-center px-6 py-4 bg-transparent rounded-xl border border-white/20">
           <div class="flex flex-col">
             <span class="text-xs text-blue-100 font-bold uppercase tracking-wider">ชำระเงิน</span>
-            <span class="text-xl font-black">{{ cartStore.summaryPrice.toLocaleString() }}<span
+            <span class="text-xl font-black">{{ cartStore.totalPrice.toLocaleString() }}<span
                 class="text-sm font-bold ml-1">บาท</span></span>
           </div>
           <div
@@ -186,8 +188,13 @@ const showConfirmModal = () => {
       </div>
     </div>
 
-    <dialog id="my_modal_1" class="modal">
-      <confirm-order :building="building" :floor="floor" :room="room"></confirm-order>
+    <dialog ref="confirmModal" class="modal">
+      <confirm-order 
+        :building="building" 
+        :floor="floor" 
+        :room="room"
+        @close-modal="closeConfirmModal"
+      ></confirm-order>
     </dialog>
   </div>
 </template>

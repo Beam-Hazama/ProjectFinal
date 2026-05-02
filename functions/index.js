@@ -40,7 +40,7 @@ exports.sendOrderPushNotification = onDocumentUpdated("Order/{orderId}", async (
   let messagesToSend = [];
 
   afterMenu.forEach(newItem => {
-    const oldItem = beforeMenu.find(i => i.id === newItem.id);
+    const oldItem = beforeMenu.find(i => i.cartItemId === newItem.cartItemId);
     if (oldItem && oldItem.itemStatus !== newItem.itemStatus && statusMap[newItem.itemStatus]) {
       messagesToSend.push({
         title: `ออเดอร์ #${afterData.OrderNumber} อัปเดต!`,

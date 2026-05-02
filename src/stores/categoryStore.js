@@ -80,7 +80,10 @@ export const useCategoryStore = defineStore('category', {
     },
 
     // UI Actions
-    handleFileUpload(file) {
+    onImageSelected(file) {
+      if (this.newCategoryImageUrl && this.newCategoryImageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.newCategoryImageUrl);
+      }
       this.selectedFile = file;
       if (this.selectedFile) {
         const previewUrl = URL.createObjectURL(this.selectedFile);
@@ -89,6 +92,9 @@ export const useCategoryStore = defineStore('category', {
     },
 
     closeModal() {
+      if (this.newCategoryImageUrl && this.newCategoryImageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.newCategoryImageUrl);
+      }
       this.showModal = false;
       this.newCategoryName = '';
       this.newCategoryImageUrl = '';
@@ -96,7 +102,7 @@ export const useCategoryStore = defineStore('category', {
       this.isSubmitting = false;
     },
 
-    async handleAddCategory() {
+    async addCategory() {
       if (!this.newCategoryName.trim()) {
         alert('Please enter a category name');
         return;

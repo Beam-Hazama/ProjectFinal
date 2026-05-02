@@ -31,7 +31,10 @@ export const useEditMenuStore = defineStore('editMenu', () => {
                MenuData.Status !== '';
     });
 
-    const init = async (id) => {
+    const initForm = async (id) => {
+        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreview.value);
+        }
         await accountStore.checkAuthState();
         const menuSnap = await getDoc(doc(db, 'Menu', id));
 
@@ -119,10 +122,14 @@ export const useEditMenuStore = defineStore('editMenu', () => {
         }
     };
 
-    const handleFileUpload = (event) => {
-        selectedFile.value = event.target.files[0];
-        if (selectedFile.value) {
-            const previewUrl = URL.createObjectURL(selectedFile.value);
+    const onImageSelected = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview.value);
+            }
+            selectedFile.value = file;
+            const previewUrl = URL.createObjectURL(file);
             imagePreview.value = previewUrl;
             MenuData.ImageUrl = previewUrl;
         }
@@ -155,9 +162,9 @@ export const useEditMenuStore = defineStore('editMenu', () => {
         isFormValid,
         selectedFile,
         imagePreview,
-        init,
+        initForm,
         editMenu,
-        handleFileUpload,
+        onImageSelected,
         addOptionGroup,
         removeOptionGroup,
         addChoice,

@@ -34,11 +34,15 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     });
 
     const roomOrders = computed(() => {
+        const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
         return orderListStore.list.filter(order => {
             const isOwner = order.building === building.value &&
                 order.floor === floor.value &&
                 order.room === room.value;
             if (!isOwner) return false;
+
+            // Filter by time
+            if ((order.CreatedAt?.seconds || 0) < twelveHoursAgo) return false;
 
             const hasActiveItems = (order.Menu || []).some(item =>
                 !['received', 'cancelled'].includes(item.itemStatus)
@@ -53,7 +57,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
     };
 
-    const confirmReceived = async (orderId, itemId, itemIndex, router) => {
+    const markItemAsReceived = async (orderId, itemId, itemIndex, router) => {
         await orderListStore.updateSingleItemStatus(orderId, itemId, itemIndex, 'received');
 
         let stillHasActive = false;
@@ -80,7 +84,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             item.itemStatus !== 'cancelled'
         );
 
-        cartStore.loadcart(building.value, floor.value, room.value);
+        cartStore.loadCart(building.value, floor.value, room.value);
 
         let addedCount = 0;
         let unavailableNames = [];
@@ -146,7 +150,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
     };
 
-    const fetchFCMTokenAndSave = async () => {
+    const registerPushToken = async () => {
         if (!IS_NOTIFICATION_ENABLED) return;
         let activeMessaging = defaultMessaging;
         if (!activeMessaging) {
@@ -200,7 +204,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             const permission = await Notification.requestPermission();
             notificationPermission.value = permission;
             if (permission === 'granted') {
-                await fetchFCMTokenAndSave();
+                await registerPushToken();
                 alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะเตือนเมื่อร้านอัปเดตออเดอร์');
             } else {
                 alert('การแจ้งเตือนถูกปฏิเสธ หากต้องการเปิดให้ไปตั้งค่าในเบราว์เซอร์');
@@ -211,7 +215,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
     };
 
-    const init = (b, f, r) => {
+    const initUserSession = (b, f, r) => {
         setLocation(b, f, r);
         orderListStore.loadOrderUser(b, f, r);
         menuStore.loadMenu();
@@ -219,7 +223,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         if (IS_NOTIFICATION_ENABLED) {
             setTimeout(() => {
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    fetchFCMTokenAndSave();
+                    registerPushToken();
 
                     const activeMessaging = defaultMessaging || getMessaging(app);
                     onMessage(activeMessaging, (payload) => {
@@ -243,12 +247,12 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         roomOrders,
         formatPrice,
         getMenuName,
-        confirmReceived,
+        markItemAsReceived,
         reorder,
         getOrderProgress,
         getItemCountByStage,
-        fetchFCMTokenAndSave,
+        registerPushToken,
         requestNotificationPermission,
-        init
+        initUserSession
     };
 });

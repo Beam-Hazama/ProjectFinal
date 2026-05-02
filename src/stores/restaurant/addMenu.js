@@ -31,7 +31,7 @@ export const useAddMenuStore = defineStore('addMenu', () => {
                MenuData.Status !== '';
     });
 
-    const init = async () => {
+    const initForm = async () => {
         await accountStore.checkAuthState();
         MenuData.Restaurant = accountStore.user?.Restaurant || '';
         MenuData.Name = '';
@@ -42,6 +42,9 @@ export const useAddMenuStore = defineStore('addMenu', () => {
         MenuData.Category = '';
         MenuData.Status = '';
         MenuData.OptionGroups = [];
+        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+            URL.revokeObjectURL(imagePreview.value);
+        }
         selectedFile.value = null;
         imagePreview.value = '';
     };
@@ -121,10 +124,14 @@ export const useAddMenuStore = defineStore('addMenu', () => {
         }
     };
 
-    const handleFileUpload = (event) => {
-        selectedFile.value = event.target.files[0];
-        if (selectedFile.value) {
-            const previewUrl = URL.createObjectURL(selectedFile.value);
+    const onImageSelected = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview.value);
+            }
+            selectedFile.value = file;
+            const previewUrl = URL.createObjectURL(file);
             imagePreview.value = previewUrl;
             MenuData.ImageUrl = previewUrl;
         }
@@ -157,9 +164,9 @@ export const useAddMenuStore = defineStore('addMenu', () => {
         isFormValid,
         selectedFile,
         imagePreview,
-        init,
+        initForm,
         addMenu,
-        handleFileUpload,
+        onImageSelected,
         addOptionGroup,
         removeOptionGroup,
         addChoice,

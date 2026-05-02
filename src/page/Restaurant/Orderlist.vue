@@ -14,7 +14,7 @@ const loading = ref(true);
 const selections = ref({});
 
 onMounted(async () => {
-    await orderStore.loadOrderinadmin();
+    await orderStore.loadAllOrders();
     loading.value = false;
 });
 
@@ -30,10 +30,10 @@ const restaurantOrders = computed(() => {
             ...item,
             uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
         }));
-        
+
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
-        
+
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'dispatched');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
@@ -143,7 +143,7 @@ const saveChanges = async (order) => {
 
         if (itemUpdates.length > 0) {
             await orderStore.updateMultipleItemsStatus(order.id, itemUpdates);
-            
+
             for (const menuId of menusToClose) {
                 try {
                     await menuStore.menuUpdate(menuId, { Status: 'close' });
@@ -211,7 +211,7 @@ const getRowStatusColor = (status) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6 font-sans">
-            
+
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Order List</h1>
@@ -233,7 +233,7 @@ const getRowStatusColor = (status) => {
                 <p class="text-slate-400 mt-1">ยังไม่มีรายการสั่งซื้อสำหรับร้านของคุณในขณะนี้</p>
             </div>
 
-            
+
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div v-for="order in restaurantOrders" :key="order.id"
                     class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col">
@@ -245,7 +245,8 @@ const getRowStatusColor = (status) => {
                                 #{{ order.OrderNumber }}
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Building / Floor / Room</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Building /
+                                    Floor / Room</span>
                                 <span v-if="order.building && order.room" class="font-bold text-slate-700 text-sm">
                                     {{ order.building }} / {{ order.floor }} / {{ order.room }}
                                 </span>
@@ -300,7 +301,7 @@ const getRowStatusColor = (status) => {
                                         }">{{ item.Name }}</span>
                                         <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                             item.Quantity
-                                        }}</span>
+                                            }}</span>
                                     </div>
                                     <p v-if="item.note"
                                         class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">

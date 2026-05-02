@@ -18,14 +18,14 @@ const editStore = useEditMenuStore();
 onMounted(() => {
     Restaurant.loadListRestaurant();
     categoryStore.loadCategories();
-    editStore.init(route.params.id);
+    editStore.initForm(route.params.id);
 });
 
 const MenuData = computed(() => editStore.MenuData);
 const imagePreview = computed(() => editStore.imagePreview);
 
 const checkAddMenu = () => editStore.editMenu(route.params.id, router, route);
-const handleFileUpload = (e) => editStore.handleFileUpload(e);
+const handleFileUpload = (e) => editStore.onImageSelected(e);
 const addOptionGroup = () => editStore.addOptionGroup();
 const removeOptionGroup = (i) => editStore.removeOptionGroup(i);
 const addChoice = (g) => editStore.addChoice(g);

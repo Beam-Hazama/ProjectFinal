@@ -20,10 +20,12 @@ const displayLocation = computed(() => {
 });
 
 const userOrders = computed(() => {
+    const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
     return orderListStore.list
         .filter(order => order.building === building && 
                          order.floor === floor && 
-                         order.room === room)
+                         order.room === room &&
+                         (order.CreatedAt?.seconds || 0) >= twelveHoursAgo)
         .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0));
 });
 

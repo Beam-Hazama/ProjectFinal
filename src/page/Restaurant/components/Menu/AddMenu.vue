@@ -16,14 +16,14 @@ const addStore = useAddMenuStore();
 onMounted(() => {
     Restaurant.loadListRestaurant();
     categoryStore.loadCategories();
-    addStore.init();
+    addStore.initForm();
 });
 
 const MenuData = computed(() => addStore.MenuData);
 const imagePreview = computed(() => addStore.imagePreview);
 
 const checkAddMenu = () => addStore.addMenu(router, route);
-const handleFileUpload = (e) => addStore.handleFileUpload(e);
+const handleFileUpload = (e) => addStore.onImageSelected(e);
 const addOptionGroup = () => addStore.addOptionGroup();
 const removeOptionGroup = (i) => addStore.removeOptionGroup(i);
 const addChoice = (g) => addStore.addChoice(g);

@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, watch } from 'vue';
+import { reactive, ref, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -93,12 +93,22 @@ const checkSaveRestaurant = async (data) => {
 };
 
 const handleFileUpload = (event) => {
-  selectedFile.value = event.target.files[0];
-  if (selectedFile.value) {
-    const previewUrl = URL.createObjectURL(selectedFile.value);
+  const file = event.target.files[0];
+  if (file) {
+    if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview.value);
+    }
+    selectedFile.value = file;
+    const previewUrl = URL.createObjectURL(file);
     imagePreview.value = previewUrl;
   }
 };
+
+onUnmounted(() => {
+  if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+    URL.revokeObjectURL(imagePreview.value);
+  }
+});
 
 const goBack = () => {
   router.go(-1);
