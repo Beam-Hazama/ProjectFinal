@@ -240,7 +240,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
       const orderListVisible = query(
         collection(db, "Order"),
-        where("statusOrder", "==", "pending")
+        where("statusOrder", "in", ["pending", "cooking", "dispatched"])
       );
       this.unsubscribe = onSnapshot(orderListVisible, (orderSnapshot) => {
         this.list = orderSnapshot.docs.map((doc) => ({

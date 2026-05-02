@@ -110,7 +110,16 @@ export const useCartStore = defineStore("cart", {
       try {
         const orderRef = doc(collection(db, 'Order'));
         const orderData = {
-          OrderNumber: orderRef.id.substring(0, 7).toUpperCase(),
+          OrderNumber: (() => {
+            const now = new Date();
+            const date = now.getFullYear().toString().slice(-2) + 
+                         (now.getMonth() + 1).toString().padStart(2, '0') + 
+                         now.getDate().toString().padStart(2, '0');
+            const time = now.getHours().toString().padStart(2, '0') + 
+                         now.getMinutes().toString().padStart(2, '0');
+            const random = Math.floor(1000 + Math.random() * 9000).toString();
+            return date + time + random;
+          })(),
           building: this.building,
           floor: this.floor,
           room: this.room,

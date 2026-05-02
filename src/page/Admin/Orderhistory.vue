@@ -12,7 +12,9 @@ const showModal = ref(false);
 const historyOrders = computed(() => {
     if (!orderStore.sortedOrders) return [];
 
-    return orderStore.sortedOrders.filter(order => order.statusOrder && order.statusOrder !== 'pending');
+    return orderStore.sortedOrders.filter(order => 
+        ['completed', 'cancelled', 'returned'].includes(order.statusOrder)
+    );
 });
 
 onMounted(() => {
