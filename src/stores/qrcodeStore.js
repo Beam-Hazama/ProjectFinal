@@ -14,7 +14,7 @@ import {
   where
 } from 'firebase/firestore';
 
-export const useQRCodeStore = defineStore('qrcode', {
+export const useQrcodeStore = defineStore('qrcodeStore', {
 
   state: () => ({
     rooms: []

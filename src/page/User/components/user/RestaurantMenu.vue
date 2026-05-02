@@ -5,7 +5,7 @@ import { db } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
-import { useQRCodeStore } from '@/stores/qrcode';
+import { useQrcodeStore } from '@/stores/qrcodeStore';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import MenuList from '@/page/component/blockmenu.vue';
@@ -14,7 +14,7 @@ const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
-const qrStore = useQRCodeStore();
+const qrStore = useQrcodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 

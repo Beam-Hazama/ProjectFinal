@@ -1,6 +1,7 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, ref, computed } from 'vue';
-import { useOrderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
@@ -29,15 +30,18 @@ const historyOrders = computed(() => {
         if (myItems.length > 0) {
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const hasReturned = myItems.some(i => i.itemStatus === 'returned');
+            
+            const allReceivedOrCancelled = myItems.every(i => 
+                i.itemStatus === 'received' || i.itemStatus === 'cancelled'
+            );
+
             const isFinished = myItems.every(i =>
-                i.itemStatus === 'dispatched' ||
-                i.itemStatus === 'received' ||
-                i.itemStatus === 'cancelled' ||
-                i.itemStatus === 'returned'
+                ['dispatched', 'received', 'cancelled', 'returned'].includes(i.itemStatus)
             );
 
             if (allCancelled) localStatus = 'cancelled';
             else if (hasReturned) localStatus = 'returned';
+            else if (allReceivedOrCancelled) localStatus = 'completed';
             else if (isFinished) localStatus = 'dispatched';
             else localStatus = 'cooking';
         }
@@ -50,8 +54,10 @@ const historyOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        (order.statusOrder === 'returned' ||
+        (order.statusOrder === 'completed' ||
+            order.statusOrder === 'returned' ||
             order.statusOrder === 'cancelled' ||
+            order.localStatus === 'completed' ||
             order.localStatus === 'dispatched' ||
             order.localStatus === 'cancelled' ||
             order.localStatus === 'returned')
@@ -70,7 +76,7 @@ const getStatusColor = (status) => {
     switch (status) {
         case 'pending': return 'badge-info text-white';
         case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched':
+        case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         case 'returned': return 'badge-error text-white bg-orange-500';
@@ -78,15 +84,8 @@ const getStatusColor = (status) => {
     }
 };
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleString('th-TH');
-    } catch (e) {
-        return '-';
-    }
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 </script>
 
 <template>

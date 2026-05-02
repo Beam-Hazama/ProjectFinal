@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { useOrderlistStore } from './OrderList';
+import { useOrderlistStore } from './orderlistStore';
 import { useMenuStore } from './menuStore';
 
 export const useAccountStore = defineStore('user-account', {
@@ -10,6 +10,8 @@ export const useAccountStore = defineStore('user-account', {
     isLoggedIn: false,
     role: null,
     user: null,
+    isLoading: false,
+    errorMessage: '',
   }),
 
   actions: {
@@ -70,6 +72,26 @@ export const useAccountStore = defineStore('user-account', {
       }
     },
 
+    async processLogin(username, password, router) {
+      if (this.isLoading) return;
+      try {
+        this.isLoading = true;
+        this.errorMessage = '';
+        const role = await this.login(username, password);
+
+        if (role === 'admin') {
+          router.push({ name: 'Admin' });
+        } else {
+          router.replace({ name: 'Restaurants' });
+        }
+      } catch (error) {
+        console.error('Login Error:', error.message);
+        this.errorMessage = error.message;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     
     async logout() {
       const orderStore = useOrderlistStore();
@@ -83,6 +105,10 @@ export const useAccountStore = defineStore('user-account', {
       this.role = null;
 
       sessionStorage.removeItem('user-session');
+    },
+
+    forgotPassword() {
+      return 'หากลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ';
     },
   },
 });

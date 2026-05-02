@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
@@ -59,21 +60,8 @@ const deleteMenu = async (id, name) => {
     }
 };
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    let date;
-
-    if (timestamp && typeof timestamp.toDate === 'function') {
-        date = timestamp.toDate();
-    } else if (timestamp && typeof timestamp.seconds === 'number') {
-        date = new Date(timestamp.seconds * 1000);
-    } else {
-        date = new Date(timestamp);
-    }
-
-    if (isNaN(date.getTime())) return '-';
-    return date.toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 </script>
 
 <template>

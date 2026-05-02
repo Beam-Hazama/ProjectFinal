@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, reactive, ref, watch, onUnmounted } from 'vue';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from '@/firebase';
@@ -41,11 +42,8 @@ const daysOfWeek = [
     { label: 'ส.', value: 'Saturday' }
 ];
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const fetchRestaurantByName = async () => {
     if (!accountStore.isLoggedIn) {
@@ -234,7 +232,6 @@ onUnmounted(() => {
                       คลิกเพื่อเปลี่ยนรูปภาพ
                       <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" :disabled="!isEditing" />
                   </label>
-                  <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
               </div>
 
             </div>

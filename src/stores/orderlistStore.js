@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
-export const useOrderlistStore = defineStore("orderlist", {
+export const useOrderlistStore = defineStore("orderlistStore", {
 
   state: () => ({
     list: [],
@@ -34,22 +34,35 @@ export const useOrderlistStore = defineStore("orderlist", {
   actions: {
     
     _recalculateGlobalStatus(updatedMenu) {
-      const allItemsFinished = updatedMenu.every(item =>
-        ['received', 'dispatched', 'cancelled', 'returned'].includes(item.itemStatus)
+      const allFinished = updatedMenu.every(item => 
+        ['received', 'cancelled'].includes(item.itemStatus)
       );
 
-      if (allItemsFinished) {
-        const anySuccessful = updatedMenu.some(item => ['received', 'dispatched'].includes(item.itemStatus));
-        if (anySuccessful) return 'completed';
-        
-        const allCancelled = updatedMenu.every(item => item.itemStatus === 'cancelled');
-        if (allCancelled) return 'cancelled';
-        
-        return 'returned';
-      } else {
-        const anyCooking = updatedMenu.some(item => item.itemStatus === 'cooking' || item.itemStatus === 'dispatched');
+      if (allFinished) {
+        const anyReceived = updatedMenu.some(item => item.itemStatus === 'received');
+        return anyReceived ? 'completed' : 'cancelled';
+      }
+
+      const allDispatchedOrFinished = updatedMenu.every(item => 
+        ['dispatched', 'received', 'cancelled'].includes(item.itemStatus)
+      );
+
+      if (allDispatchedOrFinished) {
+        return 'dispatched';
+      }
+
+      const anyActive = updatedMenu.some(item => 
+        ['cooking', 'pending', 'waiting', 'dispatched'].includes(item.itemStatus)
+      );
+      
+      if (anyActive) {
+        const anyCooking = updatedMenu.some(item => 
+          ['cooking', 'dispatched'].includes(item.itemStatus)
+        );
         return anyCooking ? 'cooking' : 'pending';
       }
+
+      return 'pending';
     },
 
     
@@ -63,7 +76,7 @@ export const useOrderlistStore = defineStore("orderlist", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            if (item.Restaurant === restaurantName) {
+            if (item.Restaurant === restaurantName && item.itemStatus !== 'cancelled') {
               return { ...item, itemStatus: newStatus };
             }
             return item;
@@ -84,7 +97,7 @@ export const useOrderlistStore = defineStore("orderlist", {
     },
 
     
-    async updateSingleItemStatus(orderId, itemId, newStatus) {
+    async updateSingleItemStatus(orderId, itemId, itemIndex, newStatus) {
       try {
         const orderRef = doc(db, 'Order', orderId);
 
@@ -93,8 +106,9 @@ export const useOrderlistStore = defineStore("orderlist", {
           if (!orderSnap.exists()) return;
 
           const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map(item => {
-            if (item.cartItemId === itemId) {
+          const updatedMenu = orderData.Menu.map((item, index) => {
+            const isMatch = itemId ? item.cartItemId === itemId : index === itemIndex;
+            if (isMatch) {
               return { ...item, itemStatus: newStatus };
             }
             return item;
@@ -124,8 +138,8 @@ export const useOrderlistStore = defineStore("orderlist", {
           if (!orderSnap.exists()) return;
 
           const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map(item => {
-            const update = updates.find(u => u.itemId === item.cartItemId);
+          const updatedMenu = orderData.Menu.map((item, index) => {
+            const update = updates.find(u => u.itemId ? u.itemId === item.cartItemId : u.itemIndex === index);
             if (update) {
               return { ...item, itemStatus: update.newStatus };
             }
@@ -158,12 +172,12 @@ export const useOrderlistStore = defineStore("orderlist", {
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => ({
             ...item,
-            itemStatus: (item.itemStatus === 'cancelled') ? 'cancelled' : 'returned'
+            itemStatus: 'cancelled'
           }));
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: 'returned',
+            statusOrder: 'cancelled',
             UpdatedAt: serverTimestamp()
           });
         });

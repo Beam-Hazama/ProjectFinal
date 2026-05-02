@@ -1,7 +1,8 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useOrderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useMenuStore } from '@/stores/menuStore';
 
 const route = useRoute();
@@ -54,21 +55,8 @@ onMounted(async () => {
     menuStore.loadMenu();
 });
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    try {
-        const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000 || timestamp);
-        return date.toLocaleString('th-TH', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        }) + ' น.';
-    } catch (e) {
-        return 'ไม่ทราบวันที่';
-    }
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const getMenuName = (id) => {
     const menu = menuStore.list.find(m => m.id === id);

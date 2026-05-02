@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -32,13 +33,8 @@ watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    if (typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toLocaleString('th-TH');
-    }
-    return new Date(timestamp).toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const formatScheduleDate = (dateString) => {
     if (!dateString) return '-';

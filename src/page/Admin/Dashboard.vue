@@ -1,11 +1,11 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
-import { useDashboardStore } from '@/stores/dashboard';
+import { useDashboardStore } from '@/stores/dashboardStore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
-import DashboardFilters from './components/DashboardFilters.vue';
-import DashboardSummaryStats from './components/DashboardSummaryStats.vue';
-import DashboardChartsSection from './components/DashboardChartsSection.vue';
-import DashboardDataTables from './components/DashboardDataTables.vue';
+import DashboardFilters from './components/dashboard/DashboardFilters.vue';
+import DashboardSummaryStats from './components/dashboard/DashboardSummaryStats.vue';
+import DashboardChartsSection from './components/dashboard/DashboardChartsSection.vue';
+import DashboardDataTables from './components/dashboard/DashboardDataTables.vue';
 
 const dashboardStore = useDashboardStore();
 

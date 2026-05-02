@@ -1,23 +1,13 @@
-import { reactive, ref, watch, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, addDoc, collection, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { defineStore } from 'pinia';
+import { computed, reactive, ref } from 'vue';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
-import { useMenuStore } from '@/stores/menuStore';
-import { useRestaurant } from '@/stores/Restaurant';
-import { useCategoryStore } from '@/stores/categoryStore';
 import { useAccountStore } from '@/stores/accountStore';
 
-export function useMenuManagement() {
-    const route = useRoute();
-    const router = useRouter();
-    const MenuStore = useMenuStore();
-    const Restaurant = useRestaurant();
-    const categoryStore = useCategoryStore();
+export const useEditMenuStore = defineStore('editMenu', () => {
     const accountStore = useAccountStore();
     
-    const menuId = route.params.id;
-    const mode = ref('');
     const selectedFile = ref(null);
     const imagePreview = ref('');
 
@@ -33,34 +23,52 @@ export function useMenuManagement() {
         OptionGroups: [],
     });
 
-    onMounted(async () => {
-        await accountStore.checkAuthState();
-        if (route.params.id) {
-            mode.value = 'Update Menu';
-            const menuSnap = await getDoc(doc(db, 'Menu', route.params.id));
-
-            if (menuSnap.exists()) {
-                const res = menuSnap.data();
-                Object.assign(MenuData, {
-                    ...res,
-                    OptionGroups: res.OptionGroups || []
-                });
-
-                imagePreview.value = res.ImageUrl || '';
-            }
-        } else {
-            mode.value = 'Add Menu';
-            MenuData.Restaurant = accountStore.user?.Restaurant;
-        }
-
-        Restaurant.loadListRestaurant();
-        categoryStore.loadCategories();
+    const isFormValid = computed(() => {
+        return MenuData.Name.trim() !== '' && 
+               MenuData.Price !== '' && 
+               Number(MenuData.Price) > 0 &&
+               MenuData.Category !== '' && 
+               MenuData.Status !== '';
     });
 
-    const checkAddMenu = async (data) => {
+    const init = async (id) => {
+        await accountStore.checkAuthState();
+        const menuSnap = await getDoc(doc(db, 'Menu', id));
+
+        if (menuSnap.exists()) {
+            const res = menuSnap.data();
+            Object.assign(MenuData, {
+                ...res,
+                OptionGroups: res.OptionGroups || []
+            });
+            imagePreview.value = res.ImageUrl || '';
+        }
+    };
+
+    const validateMenu = () => {
+        if (!MenuData.Name.trim()) {
+            alert('กรุณากรอกชื่อเมนูอาหาร');
+            return false;
+        }
+        if (!MenuData.Price || Number(MenuData.Price) <= 0) {
+            alert('กรุณากรอกราคาที่ถูกต้อง');
+            return false;
+        }
+        if (!MenuData.Category) {
+            alert('กรุณาเลือกหมวดหมู่อาหาร');
+            return false;
+        }
+        if (!MenuData.Status) {
+            alert('กรุณาเลือกสถานะการขาย');
+            return false;
+        }
+        return true;
+    };
+
+    const editMenu = async (id, router, route) => {
+        if (!validateMenu()) return;
         try {
-            let MenuId;
-            let ImageUrl = data.ImageUrl;
+            let ImageUrl = MenuData.ImageUrl;
 
             if (selectedFile.value) {
                 try {
@@ -75,7 +83,7 @@ export function useMenuManagement() {
                 }
             }
 
-            const cleanOptionGroups = (data.OptionGroups || []).map(group => {
+            const cleanOptionGroups = (MenuData.OptionGroups || []).map(group => {
                 return {
                     name: group.name.trim(),
                     isRequired: group.isRequired !== false,
@@ -87,28 +95,19 @@ export function useMenuManagement() {
             }).filter(group => group.name !== '' && group.choices.length > 0);
 
             const saveData = {
-                Name: data.Name,
+                Name: MenuData.Name,
                 ImageUrl: ImageUrl,
-                Price: Number(data.Price),
-                Restaurant: data.Restaurant,
-                Description: data.Description,
-                Category: data.Category,
-                Status: data.Status,
-                PromoPrice: data.PromoPrice ? Number(data.PromoPrice) : null,
+                Price: Number(MenuData.Price),
+                Restaurant: MenuData.Restaurant,
+                Description: MenuData.Description,
+                Category: MenuData.Category,
+                Status: MenuData.Status,
+                PromoPrice: MenuData.PromoPrice ? Number(MenuData.PromoPrice) : null,
                 OptionGroups: cleanOptionGroups,
                 UpdatedAt: serverTimestamp()
             };
 
-            if (mode.value === 'Add Menu') {
-                const docRef = await addDoc(collection(db, 'Menu'), {
-                    ...saveData,
-                    CreatedAt: serverTimestamp()
-                });
-                MenuId = docRef.id;
-            } else if (mode.value === 'Update Menu') {
-                MenuId = route.params.id;
-                await updateDoc(doc(db, 'Menu', MenuId), saveData);
-            }
+            await updateDoc(doc(db, 'Menu', id), saveData);
 
             if (['Restaurant Add Menu', 'Restaurant Edit Menu'].includes(route.name)) {
                 router.push({ name: 'Restaurants Menulist' });
@@ -151,34 +150,17 @@ export function useMenuManagement() {
         MenuData.OptionGroups[groupIndex].choices.splice(choiceIndex, 1);
     };
 
-    const formatTimestamp = (timestamp) => {
-        if (!timestamp) return '-';
-        if (timestamp && typeof timestamp.toDate === 'function') {
-            return timestamp.toDate().toLocaleString('th-TH');
-        }
-        if (timestamp && timestamp.seconds) {
-            return new Date(timestamp.seconds * 1000).toLocaleString('th-TH');
-        }
-        return new Date(timestamp).toLocaleString('th-TH');
-    };
-
-    const goBack = () => {
-        router.go(-1);
-    };
-
     return {
         MenuData,
-        mode,
+        isFormValid,
+        selectedFile,
         imagePreview,
-        Restaurant,
-        categoryStore,
-        checkAddMenu,
+        init,
+        editMenu,
         handleFileUpload,
         addOptionGroup,
         removeOptionGroup,
         addChoice,
-        removeChoice,
-        formatTimestamp,
-        goBack
+        removeChoice
     };
-}
+});

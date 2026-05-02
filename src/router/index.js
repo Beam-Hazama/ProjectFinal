@@ -15,17 +15,18 @@ import Adminpostermanage from "@/page/Admin/Poster.vue";
 import AdminCategory from "@/page/Admin/Category.vue";
 import AdminCommission from "@/page/Admin/Commission.vue";
 
-import Menudetail from "@/page/Admin/Menudetail.vue";
-import Restaurantdetail from "@/page/Admin/Restaurantdetail.vue";
-import Addrestaurant from "@/page/Admin/Addrestaurant.vue";
-import Userdetail from "@/page/Admin/Userdetail.vue";
-import Adduser from "@/page/Admin/Adduser.vue";
+import Menudetail from "@/page/Admin/components/menu/Menudetail.vue";
+import Restaurantdetail from "@/page/Admin/components/restaurant/Restaurantdetail.vue";
+import Addrestaurant from "@/page/Admin/components/restaurant/Addrestaurant.vue";
+import Userdetail from "@/page/Admin/components/user/Userdetail.vue";
+import Adduser from "@/page/Admin/components/user/Adduser.vue";
 
 import Restaurants from "@/page/Restaurant/restaurant.vue";
 import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
 import Restaurantmenulist from "@/page/Restaurant/Menulist.vue";
 import Restaurantprofile from "@/page/Restaurant/Profile.vue";
-import RestaurantManagemenu from "@/page/Restaurant/Managemenu.vue";
+import RestaurantAddMenu from "@/page/Restaurant/components/Menu/AddMenu.vue";
+import RestaurantEditMenu from "@/page/Restaurant/components/Menu/EditMenu.vue";
 import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
 import RestaurantPoster from "@/page/Restaurant/Poster.vue";
 
@@ -35,11 +36,11 @@ import User from "@/page/User/User.vue";
 import Bill from "@/page/User/bill.vue";
 import Cart from "@/page/User/Cart.vue";
 import Status from "@/page/User/Status.vue";
-import Search from "@/page/User/Search.vue";
-import Category from "@/page/User/Category.vue";
-import AllCategories from "@/page/User/AllCategories.vue";
-import AllPromotions from "@/page/User/AllPromotions.vue";
-import UserRestaurantMenu from "@/page/User/RestaurantMenu.vue";
+import Search from "@/page/User/components/user/Search.vue";
+import Category from "@/page/User/components/user/Category.vue";
+import AllCategories from "@/page/User/components/user/AllCategories.vue";
+import AllPromotions from "@/page/User/components/user/AllPromotions.vue";
+import UserRestaurantMenu from "@/page/User/components/user/RestaurantMenu.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -243,13 +244,13 @@ const router = createRouter({
     {
       path: '/Restaurant/AddMenu',
       name: 'Restaurant Add Menu',
-      component: RestaurantManagemenu,
+      component: RestaurantAddMenu,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
       path: '/Restaurant/EditMenu/:id',
       name: 'Restaurant Edit Menu',
-      component: RestaurantManagemenu,
+      component: RestaurantEditMenu,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
 

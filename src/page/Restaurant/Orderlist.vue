@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
-import { useOrderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/accountStore';
+import { useMenuStore } from '@/stores/menuStore';
 import LayoutRestaurant from './restaurant.vue';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
+const menuStore = useMenuStore();
 
 const loading = ref(true);
 const selections = ref({});
@@ -35,20 +37,17 @@ const restaurantOrders = computed(() => {
         if (myItems.length > 0) {
             const allServed = myItems.every(i => i.itemStatus === 'dispatched');
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
-            const allReturned = myItems.every(i => i.itemStatus === 'returned');
 
             const isFinished = myItems.every(i =>
                 i.itemStatus === 'dispatched' ||
                 i.itemStatus === 'received' ||
-                i.itemStatus === 'cancelled' ||
-                i.itemStatus === 'returned'
+                i.itemStatus === 'cancelled'
             );
 
             const anyCooking = myItems.some(i => i.itemStatus === 'cooking');
             const anyServed = myItems.some(i => i.itemStatus === 'dispatched');
 
             if (allCancelled) localStatus = 'cancelled';
-            else if (allReturned) localStatus = 'returned';
             else if (isFinished) localStatus = 'dispatched';
             else if (anyCooking || anyServed) localStatus = 'cooking';
             else localStatus = 'pending';
@@ -62,11 +61,9 @@ const restaurantOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        order.statusOrder !== 'returned' &&
         order.statusOrder !== 'cancelled' &&
         order.localStatus !== 'dispatched' &&
-        order.localStatus !== 'cancelled' &&
-        order.localStatus !== 'returned'
+        order.localStatus !== 'cancelled'
     );
 });
 
@@ -108,8 +105,6 @@ const saveChanges = async (order) => {
         const orderSelections = selections.value[order.id];
         if (!orderSelections || Object.keys(orderSelections).length === 0) return;
 
-        if (!confirm(`Are you sure you want to update ${Object.keys(orderSelections).length} items?`)) return;
-
         const myRestaurant = accountStore.user?.Restaurant;
         if (!myRestaurant) return;
 
@@ -117,9 +112,12 @@ const saveChanges = async (order) => {
         if (!latestOrder) return;
 
         const itemUpdates = [];
+        const menusToClose = new Set();
         let dIdx = 0;
 
+        let menuIndex = 0;
         for (const item of latestOrder.Menu || []) {
+            const currentItemIndex = menuIndex++;
             if (item.Restaurant !== myRestaurant) continue;
 
             const itemKey = item.cartItemId || (item.id + '-' + dIdx++);
@@ -129,21 +127,30 @@ const saveChanges = async (order) => {
             let newStatus = item.itemStatus;
             if (action === 'advance') {
                 if (!item.itemStatus || item.itemStatus === 'waiting') {
-                    const hasCancelAction = Object.values(orderSelections).includes('cancel');
-                    newStatus = hasCancelAction ? 'returned' : 'cooking';
+                    newStatus = 'cooking';
                 }
             } else if (action === 'cancel') {
                 newStatus = 'cancelled';
+                if (item.id) {
+                    menusToClose.add(item.id);
+                }
             }
 
             if (newStatus !== item.itemStatus) {
-                itemUpdates.push({ itemId: item.cartItemId, newStatus });
+                itemUpdates.push({ itemId: item.cartItemId, itemIndex: currentItemIndex, newStatus });
             }
         }
 
         if (itemUpdates.length > 0) {
             await orderStore.updateMultipleItemsStatus(order.id, itemUpdates);
-            await orderStore.loadOrderinadmin();
+            
+            for (const menuId of menusToClose) {
+                try {
+                    await menuStore.menuUpdate(menuId, { Status: 'close' });
+                } catch (err) {
+                    console.error("Error closing menu item automatically:", err);
+                }
+            }
         }
 
         selections.value[order.id] = {};
@@ -158,14 +165,11 @@ const deliverOrder = async (order) => {
         return;
     }
 
-    if (!confirm('ยืนยันการจัดส่งออเดอร์ (Deliver)?')) return;
-
     try {
         const myRestaurant = accountStore.user?.Restaurant;
         if (!myRestaurant) return;
 
         await orderStore.updateOrderStatus(order.id, 'dispatched', myRestaurant);
-        await orderStore.loadOrderinadmin();
     } catch (error) {
         alert("Error processing order: " + error.message);
     }
@@ -182,11 +186,24 @@ const areOtherRestaurantsReady = (order) => {
     return !anyWaiting;
 };
 
+const formatTime = (timestamp) => {
+    if (!timestamp) return '-';
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleTimeString('th-TH', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return '-';
+    }
+};
+
 const getStatusColor = (status) => {
     switch (status) {
         case 'pending': return 'badge-info text-white';
         case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'badge-success text-white';
+        case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'cancelled': return 'badge-error text-white';
         default: return 'badge-ghost';
     }
@@ -197,9 +214,8 @@ const getRowStatusColor = (status) => {
         case 'waiting': return 'badge-ghost text-slate-400';
         case 'pending': return 'badge-info text-white';
         case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'badge-success text-white';
+        case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'cancelled': return 'badge-error text-white';
-        case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
 };
@@ -252,10 +268,7 @@ const getRowStatusColor = (status) => {
                         <div class="text-right">
                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time</div>
                             <span class="text-xs font-semibold text-slate-600">
-                                {{ order.CreatedAt?.toDate().toLocaleTimeString('th-TH', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) }}
+                                {{ formatTime(order.CreatedAt) }}
                             </span>
                         </div>
                     </div>
@@ -312,26 +325,6 @@ const getRowStatusColor = (status) => {
                                             class="badge badge-xs font-semibold px-2 py-2">
                                             {{ (item.itemStatus || 'waiting').toUpperCase() }}
                                         </div>
-                                        <span v-if="getSelectionType(order.id, item.uniqueKey) === 'advance'"
-                                            class="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
-                                                fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Will Update
-                                        </span>
-                                        <span v-if="getSelectionType(order.id, item.uniqueKey) === 'cancel'"
-                                            class="text-[10px] font-bold text-red-500 flex items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20"
-                                                fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Will Cancel
-                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -347,9 +340,9 @@ const getRowStatusColor = (status) => {
 
                         <div class="flex gap-2 items-center justify-end">
                             <button v-if="hasWaitingItems(order)" @click="saveChanges(order)"
-                                class="btn btn-sm w-full bg-gradient-to-r from-slate-700 to-slate-800 border-none text-white shadow-lg disabled:bg-slate-200"
+                                class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-lg disabled:bg-slate-200 transition-all duration-300"
                                 :disabled="!areAllItemsSelected(order)">
-                                Save
+                                บันทึก
                             </button>
                             <div v-else class="w-full">
                                 <button v-if="!areOtherRestaurantsReady(order)" disabled
@@ -363,7 +356,7 @@ const getRowStatusColor = (status) => {
                                 </button>
                                 <button v-else @click="deliverOrder(order)"
                                     class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300">
-                                    Deliver Order
+                                    จัดส่งออเดอร์
                                 </button>
                             </div>
                         </div>

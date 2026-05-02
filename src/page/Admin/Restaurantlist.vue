@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, deleteDoc } from 'firebase/firestore';
@@ -25,11 +26,8 @@ onUnmounted(() => {
   restaurantStore.clearListener();
 });
 
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const formatOpenDays = (days) => {
   if (!days || !days.length) return '-';
@@ -117,8 +115,10 @@ const deleteRestaurant = async (id, name) => {
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img v-if="restaurant.ImageUrl" :src="restaurant.ImageUrl" :alt="restaurant.Name" class="object-cover" />
-                        <div v-else class="flex items-center justify-center h-full text-[10px] text-slate-400">No Image</div>
+                        <img v-if="restaurant.ImageUrl" :src="restaurant.ImageUrl" :alt="restaurant.Name"
+                          class="object-cover" />
+                        <div v-else class="flex items-center justify-center h-full text-[10px] text-slate-400">No Image
+                        </div>
                       </div>
                     </div>
                     <div>
@@ -133,7 +133,8 @@ const deleteRestaurant = async (id, name) => {
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
+                  <div v-else
+                    class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
                     <span class="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>
                     Closed
                   </div>

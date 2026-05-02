@@ -2,7 +2,7 @@
 import { onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
-import ConfirmOrder from './ConfirmOrder.vue';
+import ConfirmOrder from './components/cart/ConfirmOrder.vue';
 
 const cartStore = useCartStore();
 const route = useRoute();

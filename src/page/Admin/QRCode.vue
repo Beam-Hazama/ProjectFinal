@@ -1,10 +1,11 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { ref, computed, nextTick, onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
 import AdminLayout from './Admin.vue'
-import { useQRCodeStore } from '@/stores/qrcode'
+import { useQrcodeStore } from '@/stores/qrcodeStore'
 
-const qrStore = useQRCodeStore()
+const qrStore = useQrcodeStore()
 const baseUrl = 'https://192.168.1.45:5173'
 
 const isModalOpen = ref(false)
@@ -22,15 +23,8 @@ const openAddModal = () => {
   isModalOpen.value = true
 }
 
-const formatTimestamp = (date) => {
-  if (!date) return 'กำลังโหลด...'
-  const d = date.toDate ? date.toDate() : new Date(date)
-  return d.toLocaleDateString('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const saveRoom = async () => {
   if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {

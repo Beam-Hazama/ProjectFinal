@@ -1,22 +1,39 @@
 <script setup>
+import { computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
-import { useMenuManagement } from '@/composables/useMenuManagement';
+import { useEditMenuStore } from '@/stores/editMenuStore';
+import { useRestaurant } from '@/stores/Restaurant';
+import { useCategoryStore } from '@/stores/categoryStore';
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 
-const {
-    MenuData,
-    mode,
-    imagePreview,
-    Restaurant,
-    categoryStore,
-    checkAddMenu,
-    handleFileUpload,
-    addOptionGroup,
-    removeOptionGroup,
-    addChoice,
-    removeChoice,
-    formatTimestamp,
-    goBack
-} = useMenuManagement();
+const route = useRoute();
+const router = useRouter();
+const Restaurant = useRestaurant();
+const categoryStore = useCategoryStore();
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
+
+const editStore = useEditMenuStore();
+
+onMounted(() => {
+    Restaurant.loadListRestaurant();
+    categoryStore.loadCategories();
+    editStore.init(route.params.id);
+});
+
+const MenuData = computed(() => editStore.MenuData);
+const imagePreview = computed(() => editStore.imagePreview);
+
+const checkAddMenu = () => editStore.editMenu(route.params.id, router, route);
+const handleFileUpload = (e) => editStore.handleFileUpload(e);
+const addOptionGroup = () => editStore.addOptionGroup();
+const removeOptionGroup = (i) => editStore.removeOptionGroup(i);
+const addChoice = (g) => editStore.addChoice(g);
+const removeChoice = (g, c) => editStore.removeChoice(g, c);
+const goBack = () => router.go(-1);
+
+const isFormValid = computed(() => editStore.isFormValid);
 </script>
 
 <template>
@@ -25,19 +42,16 @@ const {
             <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-700">
-                        {{ mode === 'Add Menu' ? 'Add New Menu' : 'Edit Menu' }}
+                        Edit Menu
                     </h1>
                 </div>
 
                 <div class="flex gap-3">
-                    <button @click="goBack" class="btn btn-ghost text-slate-500 hover:bg-slate-200">ยกเลิก</button>
+                    <button @click="goBack" class="btn bg-red-500 hover:bg-red-600 border-none text-white w-32 rounded-xl transition-all duration-300 font-bold shadow-md shadow-red-100">Cancel</button>
                     <button @click="checkAddMenu(MenuData)"
-                        class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-200 rounded-lg transition-all duration-300 px-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                            stroke="currentColor" class="w-5 h-5 mr-1">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                        บันทึกข้อมูล
+                        class="btn border-none w-32 rounded-xl transition-all duration-300 font-bold"
+                        :class="isFormValid ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-100' : 'bg-slate-200 hover:bg-slate-300 text-slate-500'">
+                        Save
                     </button>
                 </div>
             </div>
@@ -89,8 +103,7 @@ const {
                         <!-- Basic Info Section -->
                         <div class="space-y-8">
                             <div>
-                                <div v-if="mode === 'Update Menu'"
-                                    class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4">
                                     <div class="flex flex-col">
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">วันที่สร้าง</span>
                                         <span class="text-sm font-semibold text-slate-700">{{ formatTimestamp(MenuData.CreatedAt) }}</span>
@@ -152,7 +165,7 @@ const {
 
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร</span>
+                                            <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร <span class="text-red-500">*</span></span>
                                         </label>
                                         <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Category">
@@ -163,7 +176,7 @@ const {
 
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">สถานะการขาย</span>
+                                            <span class="label-text font-medium text-slate-600">สถานะการขาย <span class="text-red-500">*</span></span>
                                         </label>
                                         <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Status">
@@ -255,7 +268,7 @@ const {
                                                             <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
                                                         </div>
                                                     </div>
-                                                    <button @click="removeChoice(gIndex, choiceIndex)"
+                                                    <button @click="removeChoice(gIndex, cIndex)"
                                                         class="btn btn-square btn-ghost btn-sm h-10 w-10 text-slate-400 hover:text-red-500 hover:bg-red-50">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                                                             stroke="currentColor" class="w-4 h-4">

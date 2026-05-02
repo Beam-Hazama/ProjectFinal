@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
-import { useQRCodeStore } from '@/stores/qrcode';
+import { useQrcodeStore } from '@/stores/qrcodeStore';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useRestaurant } from '@/stores/Restaurant';
@@ -12,12 +12,13 @@ import RestaurantList from '@/page/component/RestaurantList.vue';
 import MenuList from '@/page/component/blockmenu.vue';
 import BottomNavigation from '@/page/User/BottomNavigation.vue';
 import MenuOrderModal from '@/page/component/modalmenu.vue';
+import Poster from '@/page/User/components/user/Poster.vue';
 
 const route = useRoute();
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
-const qrStore = useQRCodeStore();
+const qrStore = useQrcodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
@@ -36,8 +37,7 @@ const selectedRestaurantCategories = ref([]);
 const showFilterSheet = ref(false);
 const isFilterPromoOnly = ref(false);
 
-const currentSlide = ref(0);
-let carouselTimeout = null;
+
 
 const displayLocation = computed(() => {
   return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
@@ -91,7 +91,6 @@ const loadAllData = async () => {
         posterStore.loadPosters(),
         categoryStore.loadCategories()
       ]);
-      setTimeout(startCarousel, 500);
     }
   } catch (error) {
     console.error("Error loading user data:", error);
@@ -103,7 +102,6 @@ const loadAllData = async () => {
 };
 
 onUnmounted(() => {
-  stopCarousel();
 
   restaurantStore.clearListener();
   menuStore.clearListener();
@@ -115,11 +113,7 @@ watch(() => categoryStore.list, (newList) => {
   localCategories.value = [...(newList || [])];
 }, { deep: true, immediate: true });
 
-watch(() => posterStore.activePosters, (newVal) => {
-  if (newVal && newVal.length > 0 && !carouselTimeout) {
-    startCarousel();
-  }
-}, { deep: true });
+
 
 watch(() => [route.params.building, route.params.floor, route.params.room], async ([newB, newF, newR]) => {
   if (newB && newF && newR) {
@@ -134,41 +128,7 @@ watch(() => [route.params.building, route.params.floor, route.params.room], asyn
   }
 });
 
-const startCarousel = () => {
-  stopCarousel();
-  if (posterStore.activePosters?.length > 1) {
-    const currentPoster = posterStore.activePosters[currentSlide.value];
-    const durationMs = (currentPoster?.displayDuration || 5) * 1000;
 
-    carouselTimeout = setTimeout(() => {
-      nextSlide();
-    }, durationMs);
-  }
-};
-
-const stopCarousel = () => {
-  if (carouselTimeout) {
-    clearTimeout(carouselTimeout);
-    carouselTimeout = null;
-  }
-};
-
-const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % posterStore.activePosters.length;
-  startCarousel();
-};
-
-const prevSlide = () => {
-  currentSlide.value = currentSlide.value === 0
-    ? posterStore.activePosters.length - 1
-    : currentSlide.value - 1;
-  startCarousel();
-};
-
-const goToSlide = (index) => {
-  currentSlide.value = index;
-  startCarousel();
-};
 
 const openMenuModal = (menu) => {
   selectedMenu.value = menu;
@@ -307,37 +267,7 @@ const applyFilters = () => {
     </div>
 
 
-    <div class="px-4 mt-4">
-      <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
-        @mouseenter="stopCarousel" @mouseleave="startCarousel">
-
-
-        <div class="flex transition-transform duration-500 ease-out h-36"
-          :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-          <div v-for="poster in posterStore.activePosters" :key="poster.id"
-            class="w-full flex-shrink-0 h-full relative group">
-            <img :src="poster.ImageUrl" class="object-cover w-full h-full" alt="Poster" />
-          </div>
-        </div>
-
-
-        <div v-if="posterStore.activePosters.length > 1"
-          class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity">
-          <button @click="prevSlide"
-            class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❮</button>
-          <button @click="nextSlide"
-            class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
-        </div>
-
-
-        <div v-if="posterStore.activePosters.length > 1"
-          class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
-          <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index" @click="goToSlide(index)"
-            :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', currentSlide === index ? 'bg-white w-3' : 'bg-white/50 hover:bg-white/80']">
-          </button>
-        </div>
-      </div>
-    </div>
+    <Poster />
 
 
     <div class="mt-4 pb-2">

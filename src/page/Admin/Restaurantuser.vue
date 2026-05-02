@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { ref, onMounted } from 'vue';
 import { db } from '@/firebase';
 import {
@@ -49,11 +50,8 @@ const fetchRestaurants = async () => {
     }
 };
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const toggleUserStatus = async (user) => {
     const currentStatus = user.Status || 'active';

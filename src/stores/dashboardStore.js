@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { collection, onSnapshot, query, getDocs, where } from 'firebase/firestore';
 import { db } from '@/firebase';
 
-export const useDashboardStore = defineStore('dashboard', {
+export const useDashboardStore = defineStore('dashboardStore', {
 
   state: () => ({
 

@@ -8,36 +8,17 @@ const router = useRouter();
 
 const username = ref('');
 const password = ref('');
-const errorMessage = ref('');
 const showPassword = ref(false);
-const isLoading = ref(false);
 
-const login = async () => {
-  if (isLoading.value) return;
-  try {
-    isLoading.value = true;
-    errorMessage.value = '';
-    const role = await accountStore.login(username.value, password.value);
-
-    if (role === 'admin') {
-      router.push({ name: 'Admin' });
-    } else {
-      router.replace({ name: 'Restaurants' });
-    }
-  } catch (error) {
-    console.error('Login Error:', error.message);
-    errorMessage.value = error.message;
-  } finally {
-    isLoading.value = false;
-  }
+const login = () => {
+  accountStore.processLogin(username.value, password.value, router);
 };
 
 const handleForgotPassword = () => {
-  errorMessage.value = 'หากลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ';
+  accountStore.errorMessage = accountStore.forgotPassword();
 };
 
 onMounted(async () => {
-
   await accountStore.checkAuthState();
 });
 </script>
@@ -45,30 +26,20 @@ onMounted(async () => {
 <template>
   <div
     class="flex items-center justify-center min-h-screen relative bg-cover bg-center bg-no-repeat overflow-hidden bg-[url('https://travel.mthai.com/app/uploads/2017/06/first-google-result-image-capital-city-141-593907b7d8916__880.jpg')]">
-    
     <div class="absolute inset-0 backdrop-blur-sm bg-black/20"></div>
-
-    
     <div
       class="relative flex flex-col m-6 bg-white shadow-2xl rounded-2xl md:flex-row overflow-hidden transform transition duration-500 hover:scale-[1.02] hover:shadow-[0px_0px_35px_rgba(59,130,246,0.3)]">
-
-      
       <div class="flex flex-col justify-center p-8 md:p-10 w-full md:w-[450px]">
-        
         <h1 class="text-5xl font-bold text-blue-600 relative w-fit mb-8">
           Login
           <span
             class="absolute left-0 right-0 h-[4px] rounded-full -bottom-4 bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-500"></span>
         </h1>
-
         <p class="text-gray-400 mb-8 mt-2">Please enter your Username & Password</p>
-
-        
-        <p v-if="errorMessage" class="text-red-500 text-sm mb-4 font-medium animate-pulse flex items-center gap-2">
-          <span>⚠️</span> {{ errorMessage }}
+        <p v-if="accountStore.errorMessage"
+          class="text-red-500 text-sm mb-4 font-medium animate-pulse flex items-center gap-2">
+          <span>⚠️</span> {{ accountStore.errorMessage }}
         </p>
-
-        
         <div class="mb-4">
           <label class="text-blue-500 text-sm block mb-1.5 font-bold uppercase tracking-wide">Username</label>
           <div
@@ -77,8 +48,6 @@ onMounted(async () => {
               class="w-full bg-transparent outline-none placeholder:text-blue-200 text-slate-700">
           </div>
         </div>
-
-        
         <div class="mb-7">
           <label class="text-blue-500 text-sm block mb-1.5 font-bold uppercase tracking-wide">Password</label>
           <div
@@ -99,7 +68,7 @@ onMounted(async () => {
               </svg>
             </button>
           </div>
-          
+
           <div class="flex justify-end mt-1">
             <button type="button" @click="handleForgotPassword"
               class="text-[11px] text-blue-500 hover:text-blue-700 font-bold transition duration-200">
@@ -108,17 +77,16 @@ onMounted(async () => {
           </div>
         </div>
 
-        
-        <button
-          :disabled="isLoading"
+
+        <button :disabled="accountStore.isLoading"
           class="w-full p-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition duration-300 shadow-lg shadow-blue-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           @click="login">
-          <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
-          {{ isLoading ? 'Logging in...' : 'Login' }}
+          <span v-if="accountStore.isLoading" class="loading loading-spinner loading-sm"></span>
+          {{ accountStore.isLoading ? 'Logging in...' : 'Login' }}
         </button>
       </div>
 
-      
+
       <div class="relative hidden md:block w-[400px]">
         <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/43/64/77/3ei4enw-open-daily-from.jpg"
           class="absolute inset-0 w-full h-full object-cover" alt="Login Background">
@@ -127,4 +95,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-

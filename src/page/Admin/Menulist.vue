@@ -1,4 +1,5 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -15,14 +16,8 @@ onUnmounted(() => {
   menuStore.clearListener();
 });
 
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-';
-
-  if (typeof timestamp.toDate === 'function') {
-    return timestamp.toDate().toLocaleString('th-TH');
-  }
-  return new Date(timestamp).toLocaleString('th-TH');
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 </script>
 
 <template>

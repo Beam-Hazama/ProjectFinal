@@ -1,7 +1,8 @@
 <script setup>
+import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
 import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
-import { useOrderlistStore } from '@/stores/OrderList';
+import { useOrderlistStore } from '@/stores/orderlistStore';
 
 const orderStore = useOrderlistStore();
 
@@ -27,7 +28,7 @@ const getStatusColor = (status) => {
     switch (status) {
         case 'pending': return 'badge-info text-white';
         case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched':
+        case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
         case 'returned': return 'badge-error text-white bg-orange-500';
@@ -35,15 +36,8 @@ const getStatusColor = (status) => {
     }
 };
 
-const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '-';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleString('th-TH');
-    } catch (e) {
-        return '-';
-    }
-};
+const formatTimestampStore = useFormatTimestampStore();
+const formatTimestamp = formatTimestampStore.formatTimestamp;
 </script>
 
 <template>

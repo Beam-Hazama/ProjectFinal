@@ -3,10 +3,10 @@ import { onMounted, onUnmounted, watch } from 'vue';
 import { useRestaurantDashboardStore } from '@/stores/restaurantDashboard';
 import { useAccountStore } from '@/stores/accountStore';
 import RestaurantLayout from '@/page/Restaurant/restaurant.vue';
-import DashboardFilters from './components/DashboardFilters.vue';
-import DashboardSummaryStats from './components/DashboardSummaryStats.vue';
-import DashboardChartsSection from './components/DashboardChartsSection.vue';
-import DashboardDataTables from './components/DashboardDataTables.vue';
+import DashboardFilters from './components/Dashboard/DashboardFilters.vue';
+import DashboardSummaryStats from './components/Dashboard/DashboardSummaryStats.vue';
+import DashboardChartsSection from './components/Dashboard/DashboardChartsSection.vue';
+import DashboardDataTables from './components/Dashboard/DashboardDataTables.vue';
 
 const dashboardStore = useRestaurantDashboardStore();
 const accountStore = useAccountStore();

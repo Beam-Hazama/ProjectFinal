@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
-import { useDashboardStore } from '@/stores/dashboard';
+import { useDashboardStore } from '@/stores/dashboardStore';
 import { useCommissionStore } from '@/stores/commissionStore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
@@ -26,26 +26,40 @@ onUnmounted(() => {
 const restaurantData = computed(() => {
   if (!dashboardStore.availableRestaurants) return [];
 
-  const revenueMap = {};
+  // 1. Filter orders based on time once
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
+  let startTime = new Date(0);
 
-  dashboardStore.allOrders.forEach(order => {
+  if (dashboardStore.timeFilter === 'today') {
+    startTime = new Date();
+    startTime.setHours(0, 0, 0, 0);
+  } else if (dashboardStore.timeFilter === '7days') {
+    startTime = new Date();
+    startTime.setHours(0, 0, 0, 0);
+    startTime.setDate(startTime.getDate() - 6);
+  } else if (dashboardStore.timeFilter === 'thisMonth') {
+    startTime = new Date();
+    startTime.setDate(1);
+    startTime.setHours(0, 0, 0, 0);
+  } else if (dashboardStore.timeFilter === 'custom' && dashboardStore.customStartDate && dashboardStore.customEndDate) {
+    startTime = new Date(dashboardStore.customStartDate);
+    startTime.setHours(0, 0, 0, 0);
+    now.setTime(new Date(dashboardStore.customEndDate).getTime());
+    now.setHours(23, 59, 59, 999);
+  }
 
+  const filteredOrders = dashboardStore.allOrders.filter(order => {
+    const createdAt = order.CreatedAt;
+    if (!createdAt) return false;
+    const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+    return orderDate >= startTime && orderDate <= now;
   });
 
-
-  const map = {};
-  dashboardStore.allOrders.forEach(order => {
-
-    if (order.statusOrder === 'cancelled' || order.statusOrder === 'returned') return;
-
-  });
-
-
+  // 2. Map revenue by restaurant
   return dashboardStore.availableRestaurants.map(restName => {
-
     let revenue = 0;
-    dashboardStore.allOrders.forEach(order => {
-
+    filteredOrders.forEach(order => {
       if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
         if (order.Menu && Array.isArray(order.Menu)) {
           order.Menu.forEach(item => {
@@ -92,7 +106,6 @@ const saveAll = async () => {
   try {
     await commissionStore.saveRates(localRates.value);
     isEditing.value = false;
-    alert('Rates saved successfully');
   } catch (e) {
     alert('Error saving rates: ' + e.message);
   }
