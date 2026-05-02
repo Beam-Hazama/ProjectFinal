@@ -5,10 +5,11 @@ import { db } from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
-import { useQrcodeStore } from '@/stores/qrcodeStore';
+import { useQrcodeStore } from '@/stores/admin/qrcode';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import MenuList from '@/page/component/blockmenu.vue';
+import { formatOpenDays } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();
@@ -238,29 +239,6 @@ const initIntersectionObserver = () => {
     document.querySelectorAll('[id^="category-"]').forEach((section) => {
         observer.observe(section);
     });
-};
-
-const formatOpenDays = (daysArray) => {
-    if (!daysArray || daysArray.length === 0) return 'ไม่ได้ระบุ';
-    if (daysArray.length === 7) return 'ทุกวัน';
-
-    const dayMap = {
-        'Monday': 'จ.',
-        'Tuesday': 'อ.',
-        'Wednesday': 'พ.',
-        'Thursday': 'พฤ.',
-        'Friday': 'ศ.',
-        'Saturday': 'ส.',
-        'Sunday': 'อา.'
-    };
-
-    const sortedDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
-    const sortedSelected = daysArray.sort((a, b) => {
-        return sortedDays.indexOf(a) - sortedDays.indexOf(b);
-    });
-
-    return sortedSelected.map(day => dayMap[day]).join(', ');
 };
 </script>
 
@@ -557,4 +535,3 @@ const formatOpenDays = (daysArray) => {
     border-radius: 10px;
 }
 </style>
-

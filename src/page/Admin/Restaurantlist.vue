@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp, formatOpenDays } from '@/utils/format';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, deleteDoc } from 'firebase/firestore';
@@ -26,22 +26,9 @@ onUnmounted(() => {
   restaurantStore.clearListener();
 });
 
+
 // Removed formatTimestampStore usage
 
-const formatOpenDays = (days) => {
-  if (!days || !days.length) return '-';
-  if (days.length === 7) return 'ทุกวัน';
-  const shortDays = {
-    'Sunday': 'อา.',
-    'Monday': 'จ.',
-    'Tuesday': 'อ.',
-    'Wednesday': 'พ.',
-    'Thursday': 'พฤ.',
-    'Friday': 'ศ.',
-    'Saturday': 'ส.'
-  };
-  return days.map(d => shortDays[d] || d).join(', ');
-};
 
 const getAutoStatus = (restaurant) => {
   if (restaurant.ManualStatus === 'manual') return restaurant.Status;

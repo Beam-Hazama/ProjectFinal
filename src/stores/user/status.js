@@ -7,6 +7,7 @@ import { app, db, messaging as defaultMessaging } from '@/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { showBrowserNotification } from '@/utils/notification';
+import { formatPrice } from '@/utils/format';
 
 export const useUserStatusStore = defineStore('userStatus', () => {
     const orderListStore = useOrderlistStore();
@@ -46,10 +47,6 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             return hasActiveItems;
         });
     });
-
-    const formatPrice = (value) => {
-        return new Intl.NumberFormat('th-TH').format(value);
-    };
 
     const getMenuName = (id) => {
         const menu = menuStore.list.find(m => m.id === id);

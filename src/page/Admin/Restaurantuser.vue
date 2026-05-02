@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { ref, onMounted } from 'vue';
 import { db } from '@/firebase';
 import {

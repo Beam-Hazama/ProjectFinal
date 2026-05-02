@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useOrderlistStore } from '@/stores/orderlistStore';

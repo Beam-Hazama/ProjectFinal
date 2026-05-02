@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { onMounted, ref, watch, onUnmounted } from 'vue';
 import { useAccountStore } from '@/stores/auth/accountStore';
 import { useProfileStore } from '@/stores/restaurant/profile';

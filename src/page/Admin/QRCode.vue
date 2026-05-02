@@ -1,59 +1,16 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { ref, computed, nextTick, onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
 import AdminLayout from './Admin.vue'
-import { useQrcodeStore } from '@/stores/qrcodeStore'
+import { useQrcodeStore } from '@/stores/admin/qrcode'
 
 const qrStore = useQrcodeStore()
-const baseUrl = 'https://192.168.1.40:5173'
-
-const isModalOpen = ref(false)
-const selectedRoom = ref(null)
-const roomForm = ref({ roomNumber: '', floor: '', building: '' })
-
-const rooms = computed(() => qrStore.rooms)
 
 onMounted(() => {
   qrStore.fetchRooms()
 })
 
-const openAddModal = () => {
-  roomForm.value = { roomNumber: '', floor: '', building: '' }
-  isModalOpen.value = true
-}
-
-// Removed formatTimestampStore usage
-
-const saveRoom = async () => {
-  if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {
-    alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง')
-    return
-  }
-
-  try {
-    await qrStore.addRoom({ ...roomForm.value })
-    isModalOpen.value = false
-  } catch (error) {
-    console.error("Save error:", error)
-  }
-}
-
-const deleteRoom = async (roomId) => {
-  if (confirm('ยืนยันการลบข้อมูลห้องนี้หรือไม่?')) {
-    try {
-      await qrStore.deleteRoom(roomId)
-    } catch (error) {
-      console.error("Delete error:", error)
-    }
-  }
-}
-
-const printSpecificQR = async (room) => {
-  selectedRoom.value = room
-  await nextTick()
-  window.print()
-}
 </script>
 
 <template>
@@ -62,7 +19,7 @@ const printSpecificQR = async (room) => {
       <div class="no-print">
         <div class="flex justify-between items-start mb-6">
           <div class="text-3xl font-bold text-slate-700">QR Code</div>
-          <button @click="openAddModal"
+          <button @click="qrStore.openAddModal"
             class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
               stroke="currentColor" class="w-5 h-5">
@@ -87,19 +44,19 @@ const printSpecificQR = async (room) => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="room in rooms" :key="room.id" class="hover:bg-slate-50 border-none">
+                <tr v-for="room in qrStore.rooms" :key="room.id" class="hover:bg-slate-50 border-none">
                   <td class="text-center">{{ room.building }}</td>
                   <td class="text-center">{{ room.floor }}</td>
                   <td class="text-center">{{ room.roomNumber }}</td>
                   <td class="text-center">{{ formatTimestamp(room.createdAt) }}</td>
                   <td class="text-center border-none">
-                    <button @click="printSpecificQR(room)"
+                    <button @click="qrStore.printSpecificQR(room)"
                       class="btn btn-sm btn-info btn-outline hover:text-white transition-colors">
                       Print QR
                     </button>
                   </td>
                   <td class="text-center border-none">
-                    <button @click="deleteRoom(room.id)" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
+                    <button @click="qrStore.deleteRoom(room.id)" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -115,7 +72,7 @@ const printSpecificQR = async (room) => {
         </div>
 
         
-        <dialog :open="isModalOpen" class="modal bg-black/50">
+        <dialog :open="qrStore.isModalOpen" class="modal bg-black/50">
           <div class="modal-box shadow-2xl">
             <h3 class="font-bold text-lg mb-4 text-slate-700">Add New Room QR Code</h3>
             
@@ -123,19 +80,19 @@ const printSpecificQR = async (room) => {
               <div class="grid grid-cols-3 gap-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text">Building</span></label>
-                  <input v-model="roomForm.building" type="text"
+                  <input v-model="qrStore.roomForm.building" type="text"
 
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text">Floor</span></label>
-                  <input v-model="roomForm.floor" type="text"
+                  <input v-model="qrStore.roomForm.floor" type="text"
 
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
                 <div class="form-control">
                   <label class="label"><span class="label-text">Room Number</span></label>
-                  <input v-model="roomForm.roomNumber" type="text"
+                  <input v-model="qrStore.roomForm.roomNumber" type="text"
 
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
@@ -143,11 +100,11 @@ const printSpecificQR = async (room) => {
             </div>
 
             <div class="modal-action flex mt-8 justify-end gap-3">
-              <button @click="isModalOpen = false"
+              <button @click="qrStore.isModalOpen = false"
                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">
                 Cancel
               </button>
-              <button @click="saveRoom" :disabled="!roomForm.roomNumber || !roomForm.floor || !roomForm.building"
+              <button @click="qrStore.saveRoom" :disabled="!qrStore.roomForm.roomNumber || !qrStore.roomForm.floor || !qrStore.roomForm.building"
                 class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                 Save
               </button>
@@ -156,15 +113,15 @@ const printSpecificQR = async (room) => {
         </dialog>
       </div>
 
-      <div v-if="selectedRoom" class="print-container">
+      <div v-if="qrStore.selectedRoom" class="print-container">
         <div class="qr-print-card">
           <div class="qr-border">
             <qrcode-vue
-              :value="`${baseUrl}/user/${selectedRoom.building}/${selectedRoom.floor}/${selectedRoom.roomNumber}`"
+              :value="`${qrStore.baseUrl}/user/${qrStore.selectedRoom.building}/${qrStore.selectedRoom.floor}/${qrStore.selectedRoom.roomNumber}`"
               :size="420" level="H" render-as="svg" />
           </div>
-          <h1 class="room-title">ห้อง {{ selectedRoom.roomNumber }}</h1>
-          <p class="room-sub">ชั้น {{ selectedRoom.floor }} ตึก {{ selectedRoom.building }}</p>
+          <h1 class="room-title">ห้อง {{ qrStore.selectedRoom.roomNumber }}</h1>
+          <p class="room-sub">ชั้น {{ qrStore.selectedRoom.floor }} ตึก {{ qrStore.selectedRoom.building }}</p>
           <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>
         </div>
       </div>

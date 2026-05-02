@@ -2,10 +2,10 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
-import { useEditMenuStore } from '@/stores/editMenuStore';
+import { useEditMenuStore } from '@/stores/restaurant/editMenu';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();

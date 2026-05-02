@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
-import { useAddMenuStore } from '@/stores/addMenuStore';
+import { useAddMenuStore } from '@/stores/restaurant/addMenu';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
 

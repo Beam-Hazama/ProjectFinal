@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
-import { useQrcodeStore } from '@/stores/qrcodeStore';
+import { useQrcodeStore } from '@/stores/admin/qrcode';
 import { usePosterStore } from '@/stores/posterStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useRestaurant } from '@/stores/Restaurant';

@@ -2,43 +2,10 @@
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/auth/accountStore';
-import { app, db, messaging as defaultMessaging } from '@/firebase';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { showBrowserNotification } from '@/utils/notification';
 
 const route = useRoute();
 const router = useRouter();
 const accountStore = useAccountStore();
-
-const fetchRestaurantToken = async () => {
-    let activeMessaging = defaultMessaging;
-    if (!activeMessaging) {
-        try {
-            activeMessaging = getMessaging(app);
-        } catch (e) {
-            console.warn('FCM not supported');
-            return;
-        }
-    }
-
-    try {
-        const currentToken = await getToken(activeMessaging, {
-            vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU'
-        });
-
-        if (currentToken && accountStore.user?.uid) {
-
-            const restRef = doc(db, 'Restaurant', accountStore.user.uid);
-            await updateDoc(restRef, {
-                deviceTokens: arrayUnion(currentToken)
-            });
-            console.log("Restaurant token saved.");
-        }
-    } catch (err) {
-        console.error('Error fetching restaurant token:', err);
-    }
-};
 
 const menus = [
     {
@@ -78,20 +45,6 @@ onMounted(async () => {
     if (!accountStore.isLoggedIn) {
         router.push({ name: 'Login' });
         return;
-    }
-
-    if (("Notification" in window) && Notification.permission !== 'denied') {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            await fetchRestaurantToken();
-
-            const activeMessaging = defaultMessaging || getMessaging(app);
-            onMessage(activeMessaging, (payload) => {
-                if (payload.notification) {
-                    showBrowserNotification(payload.notification.title, payload.notification.body);
-                }
-            });
-        }
     }
 });
 

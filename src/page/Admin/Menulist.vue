@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 

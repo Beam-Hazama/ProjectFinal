@@ -16,7 +16,6 @@ onMounted(async () => {
 });
 
 const loadData = async () => {
-    await accountStore.checkAuthState();
     if (accountStore.user?.Restaurant) {
         dashboardStore.loadDashboardData(accountStore.user.Restaurant);
     }

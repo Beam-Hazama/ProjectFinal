@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
@@ -22,7 +22,6 @@ watch(() => accountStore.user, (newUser) => {
 });
 
 const loadData = async () => {
-    await accountStore.checkAuthState();
     const restaurantName = accountStore.user?.Restaurant;
     if (!restaurantName) {
         console.warn("No restaurant found in account");

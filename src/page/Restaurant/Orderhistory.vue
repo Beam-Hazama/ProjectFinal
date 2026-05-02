@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { onMounted, ref, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/auth/accountStore';
@@ -12,7 +12,6 @@ const selectedOrder = ref(null);
 const showModal = ref(false);
 
 onMounted(async () => {
-    await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
 });
 

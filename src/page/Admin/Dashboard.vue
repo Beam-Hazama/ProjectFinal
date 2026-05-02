@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
-import { useDashboardStore } from '@/stores/dashboardStore';
+import { useDashboardStore } from '@/stores/admin/dashboard';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import DashboardFilters from './components/dashboard/DashboardFilters.vue';
 import DashboardSummaryStats from './components/dashboard/DashboardSummaryStats.vue';

@@ -1,5 +1,5 @@
 <script setup>
-import { formatTimestamp } from '@/utils/formatTimestamp';
+import { formatTimestamp } from '@/utils/format';
 import { ref, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { usePosterStore } from '@/stores/posterStore';

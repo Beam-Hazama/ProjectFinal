@@ -4,6 +4,7 @@ import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/auth/accountStore';
 import { useMenuStore } from '@/stores/menuStore';
 import LayoutRestaurant from './restaurant.vue';
+import { formatTime, formatPrice } from '@/utils/format';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -13,7 +14,6 @@ const loading = ref(true);
 const selections = ref({});
 
 onMounted(async () => {
-    await accountStore.checkAuthState();
     await orderStore.loadOrderinadmin();
     loading.value = false;
 });
@@ -186,19 +186,6 @@ const areOtherRestaurantsReady = (order) => {
     return !anyWaiting;
 };
 
-const formatTime = (timestamp) => {
-    if (!timestamp) return '-';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleTimeString('th-TH', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        return '-';
-    }
-};
-
 const getStatusColor = (status) => {
     switch (status) {
         case 'pending': return 'badge-info text-white';
@@ -333,8 +320,7 @@ const getRowStatusColor = (status) => {
                     <div class="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-xs font-bold text-slate-400 uppercase">Total</span>
-                            <span class="font-bold text-lg text-indigo-600">{{ order.displayTotal.toLocaleString()
-                            }}
+                            <span class="font-bold text-lg text-indigo-600">{{ formatPrice(order.displayTotal) }}
                                 ฿</span>
                         </div>
 
