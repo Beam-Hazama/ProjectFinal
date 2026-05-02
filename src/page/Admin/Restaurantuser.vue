@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { ref, onMounted } from 'vue';
 import { db } from '@/firebase';
 import {
@@ -50,8 +50,7 @@ const fetchRestaurants = async () => {
     }
 };
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const toggleUserStatus = async (user) => {
     const currentStatus = user.Status || 'active';

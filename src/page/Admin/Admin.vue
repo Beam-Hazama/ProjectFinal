@@ -1,6 +1,6 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 import { onMounted } from 'vue';
 
 const route = useRoute();

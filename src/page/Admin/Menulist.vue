@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -16,8 +16,7 @@ onUnmounted(() => {
   menuStore.clearListener();
 });
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useRestaurantDashboardStore } from '@/stores/restaurantDashboard';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 import RestaurantLayout from '@/page/Restaurant/restaurant.vue';
 import DashboardFilters from './components/Dashboard/DashboardFilters.vue';
 import DashboardSummaryStats from './components/Dashboard/DashboardSummaryStats.vue';

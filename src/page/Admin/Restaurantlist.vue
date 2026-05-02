@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, deleteDoc } from 'firebase/firestore';
@@ -26,8 +26,7 @@ onUnmounted(() => {
   restaurantStore.clearListener();
 });
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const formatOpenDays = (days) => {
   if (!days || !days.length) return '-';

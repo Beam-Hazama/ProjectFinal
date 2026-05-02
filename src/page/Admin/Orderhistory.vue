@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
@@ -36,8 +36,7 @@ const getStatusColor = (status) => {
     }
 };
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 </script>
 
 <template>

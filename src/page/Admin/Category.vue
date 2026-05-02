@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -28,8 +28,7 @@ watch(() => categoryStore.list, (newList) => {
     localCategories.value = [...newList];
 }, { deep: true, immediate: true });
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const handleAddCategory = async () => {
     if (!newCategoryName.value.trim()) {

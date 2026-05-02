@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 import { useMenuStore } from '@/stores/menuStore';
 import LayoutRestaurant from './restaurant.vue';
 

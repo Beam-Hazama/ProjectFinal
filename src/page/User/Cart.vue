@@ -28,11 +28,6 @@ const showConfirmModal = () => {
   }
 };
 
-const removeItem = (index) => {
-  if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
-    cartStore.removeItemInCart(index);
-  }
-};
 </script>
 
 <template>

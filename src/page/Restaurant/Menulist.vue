@@ -1,11 +1,11 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { onMounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useMenuStore } from '@/stores/menuStore';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 
 const MenuStore = useMenuStore();
@@ -60,8 +60,7 @@ const deleteMenu = async (id, name) => {
     }
 };
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 </script>
 
 <template>

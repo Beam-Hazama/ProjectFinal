@@ -1,9 +1,9 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { ref, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { usePosterStore } from '@/stores/posterStore';
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
 import { storage } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -152,8 +152,7 @@ const closeModal = () => {
     selectedFile.value = null;
 };
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const formatScheduleDate = (dateString) => {
     if (!dateString) return '-';

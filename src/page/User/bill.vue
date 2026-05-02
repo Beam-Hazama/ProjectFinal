@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useOrderlistStore } from '@/stores/orderlistStore';
@@ -54,9 +54,6 @@ onMounted(async () => {
     }
     menuStore.loadMenu();
 });
-
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
 
 const getMenuName = (id) => {
     const menu = menuStore.list.find(m => m.id === id);

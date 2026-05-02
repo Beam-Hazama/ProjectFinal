@@ -1,12 +1,12 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { ref, computed, nextTick, onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
 import AdminLayout from './Admin.vue'
 import { useQrcodeStore } from '@/stores/qrcodeStore'
 
 const qrStore = useQrcodeStore()
-const baseUrl = 'https://192.168.1.45:5173'
+const baseUrl = 'https://192.168.1.40:5173'
 
 const isModalOpen = ref(false)
 const selectedRoom = ref(null)
@@ -23,8 +23,7 @@ const openAddModal = () => {
   isModalOpen.value = true
 }
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const saveRoom = async () => {
   if (!roomForm.value.roomNumber || !roomForm.value.building || !roomForm.value.floor) {

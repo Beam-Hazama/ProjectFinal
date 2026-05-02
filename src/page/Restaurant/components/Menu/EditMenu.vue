@@ -5,14 +5,13 @@ import LayoutAdmin from '@/page/Restaurant/restaurant.vue';
 import { useEditMenuStore } from '@/stores/editMenuStore';
 import { useRestaurant } from '@/stores/Restaurant';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 
 const route = useRoute();
 const router = useRouter();
 const Restaurant = useRestaurant();
 const categoryStore = useCategoryStore();
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const editStore = useEditMenuStore();
 

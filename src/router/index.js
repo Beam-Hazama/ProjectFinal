@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, } from "vue-router";
-import { useAccountStore } from '@/stores/accountStore';
+import { useAccountStore } from '@/stores/auth/accountStore';
 
 import Login from "@/page/Login/Login.vue";
 

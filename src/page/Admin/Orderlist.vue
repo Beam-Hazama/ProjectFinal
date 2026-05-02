@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatTimestampStore } from '@/stores/formatTimestampStore';
+import { formatTimestamp } from '@/utils/formatTimestamp';
 import { onMounted, onUnmounted, ref } from 'vue';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
@@ -17,8 +17,7 @@ onUnmounted(() => {
   orderStore.clearListener();
 });
 
-const formatTimestampStore = useFormatTimestampStore();
-const formatTimestamp = formatTimestampStore.formatTimestamp;
+// Removed formatTimestampStore usage
 
 const openModal = (order) => {
   selectedOrder.value = order;

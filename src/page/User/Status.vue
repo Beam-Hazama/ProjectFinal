@@ -1,243 +1,25 @@
 <script setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useOrderlistStore } from '@/stores/orderlistStore';
-import { useCartStore } from '@/stores/cartStore';
-import { useMenuStore } from '@/stores/menuStore';
-import { app, db, messaging as defaultMessaging } from '@/firebase';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { showBrowserNotification } from '@/utils/notification';
-
-const IS_NOTIFICATION_ENABLED = true;
+import { useUserStatusStore } from '@/stores/user/status';
 
 const route = useRoute();
 const router = useRouter();
-const orderListStore = useOrderlistStore();
-const cartStore = useCartStore();
-const menuStore = useMenuStore();
+const statusStore = useUserStatusStore();
 
 const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
-const roomId = `${building}-${floor}-${room}`;
-
-const notificationPermission = ref(
-  ('Notification' in window) ? Notification.permission : 'unsupported'
-);
-
-const displayLocation = computed(() => {
-  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
-});
-
-const roomOrders = computed(() => {
-  return orderListStore.list.filter(order => {
-    const isOwner = order.building === building &&
-      order.floor === floor &&
-      order.room === room;
-    if (!isOwner) return false;
-
-    const hasActiveItems = (order.Menu || []).some(item =>
-      !['received', 'cancelled'].includes(item.itemStatus)
-    );
-
-    return hasActiveItems;
-  });
-});
 
 onMounted(() => {
-  if (building && floor && room) {
-    orderListStore.loadOrderUser(building, floor, room);
-  }
-  menuStore.loadMenu();
-
-  setTimeout(() => {
-    if (IS_NOTIFICATION_ENABLED && 'Notification' in window && Notification.permission === 'granted') {
-      fetchFCMTokenAndSave();
-
-      const activeMessaging = defaultMessaging || getMessaging(app);
-      onMessage(activeMessaging, (payload) => {
-        console.log('Message received. ', payload);
-        if (payload.notification) {
-          showBrowserNotification(payload.notification.title, payload.notification.body);
-        }
-      });
-    }
-  }, 3000);
+    statusStore.init(building, floor, room);
 });
-
-const formatPrice = (value) => {
-  return new Intl.NumberFormat('th-TH').format(value);
-};
-
-const getMenuName = (id) => {
-  const menu = menuStore.list.find(m => m.id === id);
-  return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
-};
-
-const confirmReceived = async (orderId, itemId, itemIndex) => {
-  await orderListStore.updateSingleItemStatus(orderId, itemId, itemIndex, 'received');
-
-  let stillHasActive = false;
-  for (const order of roomOrders.value) {
-    for (let i = 0; i < (order.Menu || []).length; i++) {
-      const item = order.Menu[i];
-      const isClickedItem = (order.id === orderId) && (itemId ? item.cartItemId === itemId : i === itemIndex);
-
-      if (!isClickedItem && !['received', 'cancelled'].includes(item.itemStatus)) {
-        stillHasActive = true;
-        break;
-      }
-    }
-    if (stillHasActive) break;
-  }
-
-  if (!stillHasActive) {
-    router.push(`/user/bill/${building}/${floor}/${room}`);
-  }
-};
-
-const reorder = async (order) => {
-  const validItems = (order.Menu || []).filter(item =>
-    item.itemStatus !== 'cancelled'
-  );
-
-  cartStore.loadcart(building, floor, room);
-
-  let addedCount = 0;
-  let unavailableNames = [];
-
-  for (const item of validItems) {
-    const menuId = item.menuId || item.id;
-    try {
-      const menuRef = doc(db, 'Menu', menuId);
-      const menuSnap = await getDoc(menuRef);
-
-      if (menuSnap.exists()) {
-        const menuData = menuSnap.data();
-        if (menuData.Status === 'open') {
-          cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
-          addedCount++;
-        } else {
-          unavailableNames.push(item.Name);
-        }
-      } else {
-        unavailableNames.push(item.Name);
-      }
-    } catch (err) {
-      console.error("Error checking menu availability:", err);
-      unavailableNames.push(item.Name);
-    }
-  }
-
-  if (unavailableNames.length > 0) {
-    alert(`เมนูต่อไปนี้หมดหรือถูกปิดการขายชั่วคราว ไม่สามารถสั่งได้ในขณะนี้`);
-  }
-
-  if (addedCount > 0) {
-    router.push(`/user/cart/${building}/${floor}/${room}`);
-  }
-};
-
-const getOrderProgress = (order) => {
-  const items = order.Menu || [];
-  if (items.length === 0) return 0;
-
-  const anyReceived = items.some(i => i.itemStatus === 'received');
-  const allFinished = items.every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus));
-
-  if (anyReceived || allFinished) return 3;
-
-  const anyDispatched = items.some(i => i.itemStatus === 'dispatched');
-  if (anyDispatched) return 2;
-
-  const anyCooking = items.some(i => ['pending', 'cooking'].includes(i.itemStatus));
-  if (anyCooking) return 1;
-
-  return 0;
-};
-
-const getItemCountByStage = (order, stage) => {
-  const items = order.Menu || [];
-  switch (stage) {
-    case 0: return items.filter(i => !i.itemStatus || i.itemStatus === 'waiting').length;
-    case 1: return items.filter(i => ['pending', 'cooking'].includes(i.itemStatus)).length;
-    case 2: return items.filter(i => i.itemStatus === 'dispatched').length;
-    case 3: return items.filter(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus)).length;
-    default: return 0;
-  }
-};
-
-const fetchFCMTokenAndSave = async () => {
-  if (!IS_NOTIFICATION_ENABLED) return;
-  let activeMessaging = defaultMessaging;
-  if (!activeMessaging) {
-    try {
-      activeMessaging = getMessaging(app);
-    } catch (e) {
-      console.log('FCM not supported');
-      return;
-    }
-  }
-
-  try {
-    const currentToken = await getToken(activeMessaging, {
-      vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU'
-    });
-
-    if (currentToken && roomOrders.value.length > 0) {
-      for (const order of roomOrders.value) {
-        const orderRef = doc(db, 'Order', order.id);
-        await updateDoc(orderRef, {
-          deviceTokens: arrayUnion(currentToken)
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Auto fetch token error:', err);
-  }
-};
-
-const requestNotificationPermission = async () => {
-  if (!IS_NOTIFICATION_ENABLED) {
-    alert('ระบบแจ้งเตือนถูกปิดการใช้งานชั่วคราวครับ');
-    return;
-  }
-  if (!('Notification' in window)) {
-    alert('ระบบแจ้งเตือนไม่ทำงาน: เบราว์เซอร์ไม่มีฟังก์ชัน Notification (อาจจะไม่ได้เป็น https)');
-    return;
-  }
-
-  let activeMessaging = defaultMessaging;
-  if (!activeMessaging) {
-    try {
-      activeMessaging = getMessaging(app);
-    } catch (e) {
-      alert('ระบบ Web Push ไม่ทำงาน: ' + e.message);
-      return;
-    }
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    notificationPermission.value = permission;
-    if (permission === 'granted') {
-      await fetchFCMTokenAndSave();
-      alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะเตือนเมื่อร้านอัปเดตออเดอร์');
-    } else {
-      alert('การแจ้งเตือนถูกปฏิเสธ หากต้องการเปิดให้ไปตั้งค่าในเบราว์เซอร์');
-    }
-  } catch (err) {
-    alert('เกิดข้อผิดพลาดในการขอสิทธิ์: ' + err.message);
-    console.error('Permission request error:', err);
-  }
-};
 </script>
 
 <template>
   <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
 
-
+    <!-- Header -->
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
@@ -257,7 +39,7 @@ const requestNotificationPermission = async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {{ displayLocation }}
+            {{ statusStore.displayLocation }}
           </p>
         </div>
       </div>
@@ -271,8 +53,8 @@ const requestNotificationPermission = async () => {
       </router-link>
     </div>
 
-
-    <div v-if="IS_NOTIFICATION_ENABLED && notificationPermission !== 'granted'"
+    <!-- Notification Alert -->
+    <div v-if="statusStore.IS_NOTIFICATION_ENABLED && statusStore.notificationPermission !== 'granted'"
       class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
       <div class="flex items-center gap-2">
         <span class="text-xl">🔔</span>
@@ -281,15 +63,15 @@ const requestNotificationPermission = async () => {
           <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
         </div>
       </div>
-      <button @click="requestNotificationPermission"
+      <button @click="statusStore.requestNotificationPermission"
         class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
         เปิดเลย
       </button>
     </div>
 
-
+    <!-- Orders List -->
     <div class="space-y-6">
-      <div v-if="roomOrders.length === 0"
+      <div v-if="statusStore.roomOrders.length === 0"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-10 flex flex-col items-center justify-center text-gray-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-30 mb-2" fill="none" viewBox="0 0 24 24"
           stroke="currentColor">
@@ -301,9 +83,9 @@ const requestNotificationPermission = async () => {
           class="mt-4 text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm">ไปที่เมนูอาหาร</router-link>
       </div>
 
-      <div v-for="(order, index) in roomOrders" :key="index"
+      <div v-for="(order, index) in statusStore.roomOrders" :key="index"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl overflow-hidden">
-
+        <!-- Order Card Header -->
         <div class="p-4 border-b border-blue-100 flex justify-between items-center bg-blue-50/50">
           <div class="flex flex-col">
             <span class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Order Number</span>
@@ -322,23 +104,23 @@ const requestNotificationPermission = async () => {
           </div>
         </div>
 
-
+        <!-- Progress Stepper (Visible if not all items finished/received) -->
         <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
-
+            <!-- Background Progress Line -->
             <div class="absolute left-4 right-4 top-4 h-[2px]">
               <div class="w-full h-full bg-gray-100"></div>
               <div class="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-700 ease-out"
-                :style="{ width: `${(getOrderProgress(order) / 3) * 100}%` }"></div>
+                :style="{ width: `${(statusStore.getOrderProgress(order) / 3) * 100}%` }"></div>
             </div>
 
-
+            <!-- Stage 0: Waiting -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
-                  getOrderProgress(order) >= 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                  statusStore.getOrderProgress(order) >= 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -347,21 +129,21 @@ const requestNotificationPermission = async () => {
                     <path d="M9 21V9" />
                   </svg>
                 </div>
-                <div v-if="getItemCountByStage(order, 0) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
-                  getOrderProgress(order) >= 0 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
-                  {{ getItemCountByStage(order, 0) }}
+                <div v-if="statusStore.getItemCountByStage(order, 0) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  statusStore.getOrderProgress(order) >= 0 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ statusStore.getItemCountByStage(order, 0) }}
                 </div>
               </div>
               <span
-                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
+                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
             </div>
 
-
+            <!-- Stage 1: Cooking -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
-                  getOrderProgress(order) >= 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                  statusStore.getOrderProgress(order) >= 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -371,21 +153,21 @@ const requestNotificationPermission = async () => {
                     <path d="M13 7v4" />
                   </svg>
                 </div>
-                <div v-if="getItemCountByStage(order, 1) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
-                  getOrderProgress(order) >= 1 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
-                  {{ getItemCountByStage(order, 1) }}
+                <div v-if="statusStore.getItemCountByStage(order, 1) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  statusStore.getOrderProgress(order) >= 1 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ statusStore.getItemCountByStage(order, 1) }}
                 </div>
               </div>
               <span
-                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
+                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
             </div>
 
-
+            <!-- Stage 2: Dispatched -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
-                  getOrderProgress(order) >= 2 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                  statusStore.getOrderProgress(order) >= 2 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -394,21 +176,21 @@ const requestNotificationPermission = async () => {
                     <circle cx="17.5" cy="17.5" r="2.5" />
                   </svg>
                 </div>
-                <div v-if="getItemCountByStage(order, 2) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
-                  getOrderProgress(order) >= 2 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
-                  {{ getItemCountByStage(order, 2) }}
+                <div v-if="statusStore.getItemCountByStage(order, 2) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  statusStore.getOrderProgress(order) >= 2 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ statusStore.getItemCountByStage(order, 2) }}
                 </div>
               </div>
               <span
-                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
+                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
             </div>
 
-
+            <!-- Stage 3: Finished -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
-                  getOrderProgress(order) >= 3 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                  statusStore.getOrderProgress(order) >= 3 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -416,18 +198,18 @@ const requestNotificationPermission = async () => {
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                 </div>
-                <div v-if="getItemCountByStage(order, 3) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
-                  getOrderProgress(order) >= 3 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
-                  {{ getItemCountByStage(order, 3) }}
+                <div v-if="statusStore.getItemCountByStage(order, 3) > 0" :class="['absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center font-black text-[9px] shadow-sm transition-all duration-300',
+                  statusStore.getOrderProgress(order) >= 3 ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500']">
+                  {{ statusStore.getItemCountByStage(order, 3) }}
                 </div>
               </div>
               <span
-                :class="['text-[8px] font-bold whitespace-nowrap', getOrderProgress(order) >= 3 ? 'text-blue-600' : 'text-gray-400']">เสร็จสิ้น</span>
+                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 3 ? 'text-blue-600' : 'text-gray-400']">เสร็จสิ้น</span>
             </div>
           </div>
         </div>
 
-
+        <!-- Order Items -->
         <div class="p-4 space-y-4">
           <div v-for="(item, i) in order.Menu" :key="i"
             class="group flex justify-between items-center p-2 rounded-xl hover:bg-white/50 transition-colors">
@@ -436,7 +218,7 @@ const requestNotificationPermission = async () => {
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
                 }}</span>
                 <div class="flex flex-col">
-                  <span class="text-sm font-bold text-gray-700">{{ item.Name || getMenuName(item.id || item.menuId)
+                  <span class="text-sm font-bold text-gray-700">{{ item.Name || statusStore.getMenuName(item.id || item.menuId)
                     }}</span>
                   <span v-if="item.Restaurant" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{{
                     item.Restaurant }}</span>
@@ -471,13 +253,13 @@ const requestNotificationPermission = async () => {
             <div class="text-right flex flex-col items-end gap-1">
               <template v-if="item.itemStatus === 'cancelled'">
                 <span class="text-sm font-black text-gray-800">฿0</span>
-                <span class="text-[10px] text-gray-400 line-through">฿{{ formatPrice(item.Price * item.Quantity)
+                <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)
                   }}</span>
               </template>
               <template v-else>
-                <span class="text-sm font-black text-gray-800">฿{{ formatPrice(item.Price * item.Quantity) }}</span>
+                <span class="text-sm font-black text-gray-800">฿{{ statusStore.formatPrice(item.Price * item.Quantity) }}</span>
               </template>
-              <button v-if="item.itemStatus === 'dispatched'" @click="confirmReceived(order.id, item.cartItemId, i)"
+              <button v-if="item.itemStatus === 'dispatched'" @click="statusStore.confirmReceived(order.id, item.cartItemId, i, router)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันรับอาหาร
               </button>
@@ -485,11 +267,11 @@ const requestNotificationPermission = async () => {
           </div>
         </div>
 
-
+        <!-- Total Price for the Order Card -->
         <div class="p-4 bg-white/60 border-t border-white flex justify-between items-center">
           <span class="text-xs font-bold text-gray-400 uppercase">ยอดรวมรายการนี้</span>
           <span class="text-lg font-black text-blue-600">
-            ฿{{formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.itemStatus === 'cancelled' ? 0 :
+            ฿{{statusStore.formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.itemStatus === 'cancelled' ? 0 :
               (item.Price *
             item.Quantity)), 0)) }}
           </span>
