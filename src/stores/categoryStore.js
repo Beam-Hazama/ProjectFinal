@@ -10,13 +10,21 @@ import {
   where, 
   writeBatch 
 } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { storage, db } from '@/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export const useCategoryStore = defineStore('category', {
 
   state: () => ({
     list: [],
     unsubscribe: null,
+    
+    // UI State for Admin Category Management
+    showModal: false,
+    newCategoryName: '',
+    newCategoryImageUrl: '',
+    selectedFile: null,
+    isSubmitting: false,
   }),
 
   actions: {
@@ -71,21 +79,78 @@ export const useCategoryStore = defineStore('category', {
       });
     },
 
-    
-    async addCategory(categoryData) {
-      await addDoc(collection(db, 'categories'), {
-        ...categoryData,
-        order: this.list.length,
-        createdAt: serverTimestamp()
-      });
+    // UI Actions
+    handleFileUpload(file) {
+      this.selectedFile = file;
+      if (this.selectedFile) {
+        const previewUrl = URL.createObjectURL(this.selectedFile);
+        this.newCategoryImageUrl = previewUrl;
+      }
     },
 
-    
-    async deleteCategory(categoryId) {
-      await deleteDoc(doc(db, 'categories', categoryId));
+    closeModal() {
+      this.showModal = false;
+      this.newCategoryName = '';
+      this.newCategoryImageUrl = '';
+      this.selectedFile = null;
+      this.isSubmitting = false;
     },
 
-    
+    async handleAddCategory() {
+      if (!this.newCategoryName.trim()) {
+        alert('Please enter a category name');
+        return;
+      }
+      
+      try {
+        this.isSubmitting = true;
+        let ImageUrl = '';
+
+        if (this.selectedFile) {
+          try {
+            const fileName = `categories/${Date.now()}_${this.selectedFile.name}`;
+            const fileRef = storageRef(storage, fileName);
+            const snapshot = await uploadBytes(fileRef, this.selectedFile);
+            ImageUrl = await getDownloadURL(snapshot.ref);
+          } catch (uploadError) {
+            console.error('Error uploading category image:', uploadError);
+            alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+            this.isSubmitting = false;
+            return;
+          }
+        }
+
+        if (!ImageUrl) {
+          alert('Please enter an image URL or upload a file');
+          this.isSubmitting = false;
+          return;
+        }
+
+        await addDoc(collection(db, 'categories'), {
+          name: this.newCategoryName.trim(),
+          ImageUrl: ImageUrl,
+          order: this.list.length,
+          createdAt: serverTimestamp()
+        });
+        
+        this.closeModal();
+      } catch (error) {
+        alert('Error adding category: ' + error.message);
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    async deleteCategory(categoryId, categoryName) {
+      if (confirm(`Are you sure you want to delete category "${categoryName}"? This cannot be undone.`)) {
+        try {
+          await deleteDoc(doc(db, 'categories', categoryId));
+        } catch (error) {
+          alert('Error deleting category: ' + error.message);
+        }
+      }
+    },
+
     async updateCategoryOrder(orderedIds) {
       const batch = writeBatch(db);
       orderedIds.forEach((id, index) => {
@@ -96,4 +161,3 @@ export const useCategoryStore = defineStore('category', {
     }
   },
 });
-

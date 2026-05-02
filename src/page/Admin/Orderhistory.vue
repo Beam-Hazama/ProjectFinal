@@ -83,9 +83,10 @@ const getStatusColor = (status) => {
                                         {{ order.statusOrder?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
-                                <td class="text-center text-sm">{{ formatTimestamp(order.CreatedAt) }}</td>
+                                <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}
+                                </td>
                                 <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString()
-                                    }} ฿</td>
+                                }} ฿</td>
                                 <td class="text-center">
                                     <button @click="openModal(order)"
                                         class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
@@ -130,11 +131,11 @@ const getStatusColor = (status) => {
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
                                 <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
-                                }}</span></span>
-                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
-                                }}</span></span>
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
                                         }}</span></span>
+                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
+                                        }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
+                                }}</span></span>
                             </span>
                             <span v-else>
                                 Room: {{ selectedOrder.roomId }}
@@ -189,7 +190,7 @@ const getStatusColor = (status) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.TotalPrice?.toLocaleString()
-                                }} ฿</span>
+                            }} ฿</span>
                         </div>
                     </div>
                 </div>
@@ -201,4 +202,3 @@ const getStatusColor = (status) => {
         </div>
     </LayoutAdmin>
 </template>
-

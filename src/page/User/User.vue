@@ -54,6 +54,7 @@ const filteredMenus = computed(() => {
 const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
     if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
+    if (item.Status && item.Status !== 'open') return false;
     return !isShopClosed(item.Restaurant);
   });
 });

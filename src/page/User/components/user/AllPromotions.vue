@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useRestaurant } from '@/stores/Restaurant';
@@ -14,7 +14,10 @@ const building = route.params.building || '-';
 const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
+const isLoading = ref(true);
+
 function isShopClosed(restaurantName) {
+    if (restaurantStore.list.length === 0) return false; // Default to open while loading to prevent flash of empty
     const shop = restaurantStore.list.find(r => r.Name === restaurantName);
     if (!shop) return true;
     if (shop.Status === 'close') return true;
@@ -48,17 +51,26 @@ function isShopClosed(restaurantName) {
 
 const promotionMenus = computed(() => {
     return (menuStore.list || []).filter(item => {
-        if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
-        return !isShopClosed(item.Restaurant);
+        const hasPromo = item.PromoPrice && Number(item.PromoPrice) > 0;
+        const isMenuOpen = item.Status === 'open';
+        return hasPromo && isMenuOpen && !isShopClosed(item.Restaurant);
     });
 });
 
-onMounted(() => {
-    if (menuStore.list.length === 0) {
-        menuStore.loadMenu();
-    }
-    if (restaurantStore.list.length === 0) {
-        restaurantStore.loadListRestaurant();
+onMounted(async () => {
+    isLoading.value = true;
+    try {
+        await Promise.all([
+            menuStore.loadMenu(),
+            restaurantStore.loadListRestaurant()
+        ]);
+        // Give it a small delay to ensure listeners are active and data is flowing
+        setTimeout(() => {
+            isLoading.value = false;
+        }, 500);
+    } catch (error) {
+        console.error("Error loading promotions data:", error);
+        isLoading.value = false;
     }
 });
 
@@ -82,7 +94,12 @@ const goBack = () => {
 
 
         <div class="flex-1 px-4 pt-6">
-            <div v-if="promotionMenus.length === 0"
+            <div v-if="isLoading" class="flex flex-col items-center justify-center pt-20 text-gray-400">
+                <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
+                <p class="text-sm font-medium animate-pulse">กำลังโหลดโปรโมชั่น...</p>
+            </div>
+
+            <div v-else-if="promotionMenus.length === 0"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <span class="text-4xl opacity-50 mb-2">🏷️</span>
                 <p class="text-[13px] font-medium">ยังไม่มีรายการโปรโมชั่นในขณะนี้</p>

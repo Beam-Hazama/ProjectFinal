@@ -4,17 +4,9 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { useCategoryStore } from '@/stores/categoryStore';
-import { storage } from '@/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const categoryStore = useCategoryStore();
-
 const localCategories = ref([]);
-const newCategoryName = ref('');
-const newCategoryImageUrl = ref('');
-const isSubmitting = ref(false);
-const showModal = ref(false);
-const selectedFile = ref(null);
 
 onMounted(() => {
     categoryStore.loadCategories();
@@ -28,72 +20,10 @@ watch(() => categoryStore.list, (newList) => {
     localCategories.value = [...newList];
 }, { deep: true, immediate: true });
 
-// Removed formatTimestampStore usage
-
-const handleAddCategory = async () => {
-    if (!newCategoryName.value.trim()) {
-        alert('Please enter a category name');
-        return;
-    }
-    
-    try {
-        isSubmitting.value = true;
-        let ImageUrl = '';
-
-        if (selectedFile.value) {
-            try {
-                const fileName = `categories/${Date.now()}_${selectedFile.value.name}`;
-                const fileRef = storageRef(storage, fileName);
-                const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                ImageUrl = await getDownloadURL(snapshot.ref);
-            } catch (uploadError) {
-                console.error('Error uploading category image:', uploadError);
-                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
-                isSubmitting.value = false;
-                return;
-            }
-        }
-
-        if (!ImageUrl) {
-            alert('Please enter an image URL or upload a file');
-            isSubmitting.value = false;
-            return;
-        }
-
-        await categoryStore.addCategory({
-            name: newCategoryName.value.trim(),
-            ImageUrl: ImageUrl
-        });
-        closeModal();
-    } catch (error) {
-        alert('Error adding category: ' + error.message);
-    } finally {
-        isSubmitting.value = false;
-    }
-};
-
 const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-    if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value);
-        newCategoryImageUrl.value = previewUrl;
-    }
-};
-
-const closeModal = () => {
-    showModal.value = false;
-    newCategoryName.value = '';
-    newCategoryImageUrl.value = '';
-    selectedFile.value = null;
-};
-
-const deleteCategory = async (categoryId, categoryName) => {
-    if (confirm(`Are you sure you want to delete category "${categoryName}"? This cannot be undone.`)) {
-        try {
-            await categoryStore.deleteCategory(categoryId);
-        } catch (error) {
-            alert('Error deleting category: ' + error.message);
-        }
+    const file = event.target.files[0];
+    if (file) {
+        categoryStore.handleFileUpload(file);
     }
 };
 
@@ -108,7 +38,7 @@ const onDragEnd = async () => {
         <div class="p-6">
             <div class="flex justify-between items-start mb-6">
                 <div class="text-3xl font-bold text-slate-700">Category</div>
-                <button @click="showModal = true"
+                <button @click="categoryStore.showModal = true"
                     class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                         stroke="currentColor" class="w-5 h-5">
@@ -118,12 +48,11 @@ const onDragEnd = async () => {
                 </button>
             </div>
 
-            <div v-if="showModal"
+            <div v-if="categoryStore.showModal"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
                     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <h2 class="text-lg font-bold text-slate-800">Add New Category</h2>
-
                     </div>
 
                     <div class="p-6">
@@ -132,7 +61,7 @@ const onDragEnd = async () => {
                                 <label class="label pt-0">
                                     <span class="label-text font-medium text-slate-600">Category Name</span>
                                 </label>
-                                <input type="text" v-model="newCategoryName"
+                                <input type="text" v-model="categoryStore.newCategoryName"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
                             
@@ -151,9 +80,9 @@ const onDragEnd = async () => {
                             </div>
                         </div>
 
-                        <div v-if="newCategoryImageUrl"
+                        <div v-if="categoryStore.newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
-                            <img :src="newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
+                            <img :src="categoryStore.newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
                                 alt="Preview" />
                             <div
                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
@@ -162,12 +91,12 @@ const onDragEnd = async () => {
                         </div>
 
                         <div class="flex justify-end gap-3 mt-4">
-                            <button @click="closeModal"
+                            <button @click="categoryStore.closeModal"
                                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
-                            <button @click="handleAddCategory"
-                                :disabled="isSubmitting || !newCategoryName || !newCategoryImageUrl"
+                            <button @click="categoryStore.handleAddCategory"
+                                :disabled="categoryStore.isSubmitting || !categoryStore.newCategoryName || !categoryStore.newCategoryImageUrl"
                                 class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
-                                <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+                                <span v-if="categoryStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
                                 <span v-else>Save</span>
                             </button>
                         </div>
@@ -230,7 +159,7 @@ const onDragEnd = async () => {
                                     </td>
 
                                     <td class="text-center">
-                                        <button @click="deleteCategory(category.id, category.name)"
+                                        <button @click="categoryStore.deleteCategory(category.id, category.name)"
                                             class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 class="h-4 w-4 mr-1 pointer-events-none" fill="none" viewBox="0 0 24 24"
@@ -250,4 +179,3 @@ const onDragEnd = async () => {
         </div>
     </LayoutAdmin>
 </template>
-

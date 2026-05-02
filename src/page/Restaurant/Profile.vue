@@ -146,7 +146,7 @@ onUnmounted(() => {
                     <button type="button" @click="profileStore.RestaurantData.Status = 'auto'" :disabled="!profileStore.isEditing"
                       class="btn flex-1 min-w-[120px] transition-all duration-300"
                       :class="profileStore.RestaurantData.Status === 'auto' || !profileStore.RestaurantData.Status ? '!bg-blue-500 hover:!bg-blue-600 !text-white border-none shadow-md shadow-blue-200 disabled:opacity-70' : 'bg-white border-blue-500 text-blue-600 hover:bg-blue-50 disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400'">
-                      อัตโนมัติ (ตามเวลา)
+                      อัตโนมัติ
                     </button>
                   </div>
                   <div class="text-[10px] text-slate-400 mt-2">

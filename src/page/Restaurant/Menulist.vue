@@ -119,18 +119,18 @@ const deleteMenu = async (id, name) => {
 
                 <td class="text-center">
                   <button @click="switchStatus(menu)"
-                    class="badge gap-1 text-[10px] text-white font-bold border-none mx-auto cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-sm"
+                    class="badge gap-1 text-[10px] text-white font-bold border-none mx-auto cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-sm whitespace-nowrap"
                     :class="menu.Status === 'open' ? 'badge-success' : 'badge-error'">
                     <span class="w-1.5 h-1.5 rounded-full bg-white" :class="{ 'animate-pulse': menu.Status === 'open' }"></span>
                     {{ menu.Status === 'open' ? 'Open Now' : 'Closed' }}
                   </button>
                 </td>
 
-                <td class="text-center text-xs">
+                <td class="text-center text-xs whitespace-nowrap">
                   {{ formatTimestamp(menu.CreatedAt || menu.createdAt) }}
                 </td>
 
-                <td class="text-center text-xs">
+                <td class="text-center text-xs whitespace-nowrap">
                   {{ formatTimestamp(menu.UpdatedAt || menu.updatedAt) }}
                 </td>
 

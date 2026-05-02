@@ -16,7 +16,7 @@ onUnmounted(() => {
   menuStore.clearListener();
 });
 
-// Removed formatTimestampStore usage
+
 </script>
 
 <template>
@@ -92,10 +92,10 @@ onUnmounted(() => {
                 </td>
 
                 
-                <td class="text-center text-xs">
+                <td class="text-center text-xs whitespace-nowrap">
                   {{ formatTimestamp(menu.CreatedAt) }}
                 </td>
-                <td class="text-center text-xs">
+                <td class="text-center text-xs whitespace-nowrap">
                   {{ formatTimestamp(menu.UpdatedAt) }}
                 </td>
 

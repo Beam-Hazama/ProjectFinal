@@ -138,8 +138,8 @@ const deleteRestaurant = async (id, name) => {
                   {{ formatOpenDays(restaurant.OpenDays) }}
                 </td>
 
-                <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.CreatedAt) }}</td>
-                <td class="text-center text-xs font-medium">{{ formatTimestamp(restaurant.UpdatedAt) }}</td>
+                <td class="text-center text-xs font-medium whitespace-nowrap">{{ formatTimestamp(restaurant.CreatedAt) }}</td>
+                <td class="text-center text-xs font-medium whitespace-nowrap">{{ formatTimestamp(restaurant.UpdatedAt) }}</td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">

@@ -4,22 +4,9 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 import { usePosterStore } from '@/stores/posterStore';
-import { storage } from '@/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const posterStore = usePosterStore();
-
 const localPosters = ref([]);
-const newPosterUrl = ref('');
-const isSubmitting = ref(false);
-const showModal = ref(false);
-const isEditing = ref(false);
-const editingPosterId = ref(null);
-const selectedFile = ref(null);
-const hasSchedule = ref(false);
-const startTime = ref('');
-const endTime = ref('');
-const displayDuration = ref(5);
 
 onMounted(() => {
     posterStore.loadPosters();
@@ -33,8 +20,6 @@ watch(() => posterStore.list, (newList) => {
     localPosters.value = [...newList];
 }, { deep: true, immediate: true });
 
-// Removed formatTimestampStore usage
-
 const formatScheduleDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -47,114 +32,10 @@ const formatScheduleDate = (dateString) => {
     });
 };
 
-const openEditModal = (poster) => {
-    isEditing.value = true;
-    editingPosterId.value = poster.id;
-    newPosterUrl.value = poster.ImageUrl;
-    displayDuration.value = poster.displayDuration || 5;
-    hasSchedule.value = !!poster.hasSchedule;
-    startTime.value = poster.startTime || '';
-    endTime.value = poster.endTime || '';
-    showModal.value = true;
-};
-
-const closeModal = () => {
-    showModal.value = false;
-    isEditing.value = false;
-    editingPosterId.value = null;
-    newPosterUrl.value = '';
-    hasSchedule.value = false;
-    startTime.value = '';
-    endTime.value = '';
-    displayDuration.value = 5;
-    selectedFile.value = null;
-};
-
-const handleAddPoster = async () => {
-    try {
-        isSubmitting.value = true;
-        let ImageUrl = newPosterUrl.value || '';
-
-        if (selectedFile.value) {
-            try {
-                const fileName = `posters/admin_${Date.now()}`;
-                const fileRef = storageRef(storage, fileName);
-                const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                ImageUrl = await getDownloadURL(snapshot.ref);
-            } catch (uploadError) {
-                console.error('Error uploading poster image:', uploadError);
-                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
-                isSubmitting.value = false;
-                return;
-            }
-        }
-
-        if (!ImageUrl) {
-            alert('Please select a poster image file');
-            isSubmitting.value = false;
-            return;
-        }
-
-        if (hasSchedule.value && (!startTime.value || !endTime.value)) {
-            alert('Please select both start and end times for the schedule.');
-            isSubmitting.value = false;
-            return;
-        }
-
-        const posterData = {
-            ImageUrl: ImageUrl,
-            hasSchedule: hasSchedule.value,
-            displayDuration: displayDuration.value || 5
-        };
-
-        if (hasSchedule.value) {
-            posterData.startTime = startTime.value;
-            posterData.endTime = endTime.value;
-        } else {
-            posterData.startTime = null;
-            posterData.endTime = null;
-        }
-
-        if (isEditing.value && editingPosterId.value) {
-            await posterStore.updatePoster(editingPosterId.value, {
-                ...posterData,
-                updatedAt: new Date()
-            });
-        } else {
-            await posterStore.addPoster(posterData);
-        }
-
-        closeModal();
-    } catch (error) {
-        alert('Error saving poster: ' + error.message);
-    } finally {
-        isSubmitting.value = false;
-    }
-};
-
 const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-    if (selectedFile.value) {
-        const previewUrl = URL.createObjectURL(selectedFile.value);
-        newPosterUrl.value = previewUrl;
-    }
-};
-
-const toggleStatus = async (poster) => {
-    try {
-        await posterStore.toggleActive(poster.id, poster.isActive);
-    } catch (error) {
-        alert('Error updating status: ' + error.message);
-    }
-};
-
-const deletePoster = async (posterId) => {
-    if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
-        try {
-            await posterStore.deletePoster(posterId);
-        } catch (error) {
-            alert('Error deleting poster: ' + error.message);
-        }
+    const file = event.target.files[0];
+    if (file) {
+        posterStore.handleFileUpload(file);
     }
 };
 
@@ -169,7 +50,7 @@ const onDragEnd = async () => {
         <div class="p-6">
             <div class="flex justify-between items-start mb-6">
                 <div class="text-3xl font-bold text-slate-700">Poster</div>
-                <button @click="showModal = true"
+                <button @click="posterStore.showModal = true"
                     class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                         stroke="currentColor" class="w-5 h-5">
@@ -179,11 +60,11 @@ const onDragEnd = async () => {
                 </button>
             </div>
 
-            <dialog :open="showModal" class="modal bg-black/50 overflow-hidden" @click.self="closeModal">
+            <dialog :open="posterStore.showModal" class="modal bg-black/50 overflow-hidden" @click.self="posterStore.closeModal">
                 <div class="modal-box shadow-2xl max-w-lg p-0 overflow-hidden bg-white flex flex-col max-h-[90vh]">
                     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                        <h3 class="font-bold text-lg text-slate-800">{{ isEditing ? 'Edit Poster' : 'Add New Poster' }}</h3>
-                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
+                        <h3 class="font-bold text-lg text-slate-800">{{ posterStore.isEditing ? 'Edit Poster' : 'Add New Poster' }}</h3>
+                        <button @click="posterStore.closeModal" class="text-slate-400 hover:text-red-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -209,30 +90,30 @@ const onDragEnd = async () => {
                                 <label class="label pt-0 pb-1">
                                     <span class="label-text font-bold text-slate-700">ระยะเวลาแสดงผล (วินาที)</span>
                                 </label>
-                                <input type="number" min="1" v-model="displayDuration"
+                                <input type="number" min="1" v-model="posterStore.displayDuration"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800 h-12 rounded-xl" />
                             </div>
 
                             <div class="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                                 <label class="cursor-pointer flex items-center gap-2 w-fit mb-3">
-                                    <input type="checkbox" v-model="hasSchedule" class="checkbox checkbox-sm checkbox-primary" />
+                                    <input type="checkbox" v-model="posterStore.hasSchedule" class="checkbox checkbox-sm checkbox-primary" />
                                     <span class="label-text font-bold text-slate-700">Schedule Time</span>
                                 </label>
 
-                                <div v-if="hasSchedule" class="flex flex-col md:flex-row gap-4 animate-fade-in">
+                                <div v-if="posterStore.hasSchedule" class="flex flex-col md:flex-row gap-4 animate-fade-in">
                                     <div class="flex-1">
                                         <label class="label pt-0"><span class="label-text font-medium text-slate-600">Start Time</span></label>
-                                        <input type="datetime-local" v-model="startTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
+                                        <input type="datetime-local" v-model="posterStore.startTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                     <div class="flex-1">
                                         <label class="label pt-0"><span class="label-text font-medium text-slate-600">End Time</span></label>
-                                        <input type="datetime-local" v-model="endTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
+                                        <input type="datetime-local" v-model="posterStore.endTime" class="input input-bordered w-full bg-white transition-colors text-slate-800" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div v-if="newPosterUrl" class="border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-48">
-                                <img :src="newPosterUrl" class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
+                            <div v-if="posterStore.newPosterUrl" class="border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-48">
+                                <img :src="posterStore.newPosterUrl" class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
                                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                     <span class="text-white font-medium text-sm">Preview</span>
                                 </div>
@@ -241,9 +122,9 @@ const onDragEnd = async () => {
                     </div>
 
                     <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
-                        <button @click="closeModal" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
-                        <button @click="handleAddPoster" :disabled="isSubmitting || !newPosterUrl" class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
-                            <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+                        <button @click="posterStore.closeModal" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
+                        <button @click="posterStore.savePoster" :disabled="posterStore.isSubmitting || !posterStore.newPosterUrl" class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
+                            <span v-if="posterStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
                             <span v-else>Save</span>
                         </button>
                     </div>
@@ -268,7 +149,7 @@ const onDragEnd = async () => {
 
                         <tbody class="text-slate-600" v-if="localPosters.length === 0">
                             <tr>
-                                <td colspan="7" class="text-center py-10 text-slate-400">
+                                <td colspan="8" class="text-center py-10 text-slate-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-30"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -304,7 +185,7 @@ const onDragEnd = async () => {
                                             <label
                                                 class="cursor-pointer relative inline-flex items-center group w-max mx-auto">
                                                 <input type="checkbox" :checked="poster.isActive"
-                                                    @change="toggleStatus(poster)" class="sr-only peer">
+                                                    @change="posterStore.toggleActive(poster.id, poster.isActive)" class="sr-only peer">
                                                 <div
                                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                                 </div>
@@ -355,7 +236,7 @@ const onDragEnd = async () => {
 
                                     <td class="text-center">
                                         <div class="flex justify-center gap-1">
-                                            <button @click="openEditModal(poster)"
+                                            <button @click="posterStore.openEditModal(poster)"
                                                 class="btn btn-sm btn-ghost text-blue-600 hover:bg-blue-50">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -365,7 +246,7 @@ const onDragEnd = async () => {
                                                 </svg>
                                                 Edit
                                             </button>
-                                            <button @click="deletePoster(poster.id)"
+                                            <button @click="posterStore.deletePoster(poster.id)"
                                                 class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">

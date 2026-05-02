@@ -29,8 +29,8 @@ const historyOrders = computed(() => {
         if (myItems.length > 0) {
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const hasReturned = myItems.some(i => i.itemStatus === 'returned');
-            
-            const allReceivedOrCancelled = myItems.every(i => 
+
+            const allReceivedOrCancelled = myItems.every(i =>
                 i.itemStatus === 'received' || i.itemStatus === 'cancelled'
             );
 
@@ -89,12 +89,12 @@ const getStatusColor = (status) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6">
-            
+
             <div class="flex justify-between items-start mb-7">
                 <div class="text-3xl font-bold text-slate-700">Order History</div>
             </div>
 
-            
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
@@ -130,8 +130,10 @@ const getStatusColor = (status) => {
                                         {{ order.localStatus?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
-                                <td class="text-center text-sm">{{ formatTimestamp(order.CreatedAt) }}</td>
-                                <td class="text-center font-bold text-emerald-600">{{ order.displayTotal?.toLocaleString() }} ฿</td>
+                                <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}
+                                </td>
+                                <td class="text-center font-bold text-emerald-600">{{
+                                    order.displayTotal?.toLocaleString() }} ฿</td>
                                 <td class="text-center">
                                     <button @click="openModal(order)"
                                         class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
@@ -154,7 +156,8 @@ const getStatusColor = (status) => {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <p class="text-slate-400 font-medium italic">ไม่มีประวัติรายการสั่งซื้อที่เสร็จสิ้น</p>
+                                        <p class="text-slate-400 font-medium italic">
+                                            ไม่มีประวัติรายการสั่งซื้อที่เสร็จสิ้น</p>
                                     </div>
                                 </td>
                             </tr>
@@ -163,7 +166,7 @@ const getStatusColor = (status) => {
                 </div>
             </div>
 
-            
+
             <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
                 <div class="modal-box relative">
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
@@ -176,9 +179,12 @@ const getStatusColor = (status) => {
                         <div
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
-                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building }}</span></span>
-                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor }}</span></span>
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
+                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
+                                        }}</span></span>
+                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
+                                        }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
+                                        }}</span></span>
                             </span>
                             <span v-else>
                                 Room: {{ selectedOrder.roomId }}
@@ -233,7 +239,7 @@ const getStatusColor = (status) => {
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{
                                 selectedOrder.displayTotal?.toLocaleString()
-                                }} ฿</span>
+                            }} ฿</span>
                         </div>
                     </div>
                 </div>
@@ -245,4 +251,3 @@ const getStatusColor = (status) => {
         </div>
     </LayoutRestaurant>
 </template>
-
