@@ -104,7 +104,6 @@ export const useCategoryStore = defineStore('category', {
 
     async addCategory() {
       if (!this.newCategoryName.trim()) {
-        alert('Please enter a category name');
         return;
       }
       
@@ -120,14 +119,12 @@ export const useCategoryStore = defineStore('category', {
             ImageUrl = await getDownloadURL(snapshot.ref);
           } catch (uploadError) {
             console.error('Error uploading category image:', uploadError);
-            alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
             this.isSubmitting = false;
             return;
           }
         }
 
         if (!ImageUrl) {
-          alert('Please enter an image URL or upload a file');
           this.isSubmitting = false;
           return;
         }
@@ -141,19 +138,17 @@ export const useCategoryStore = defineStore('category', {
         
         this.closeModal();
       } catch (error) {
-        alert('Error adding category: ' + error.message);
+        console.error('Error adding category:', error);
       } finally {
         this.isSubmitting = false;
       }
     },
 
-    async deleteCategory(categoryId, categoryName) {
-      if (confirm(`Are you sure you want to delete category "${categoryName}"? This cannot be undone.`)) {
-        try {
-          await deleteDoc(doc(db, 'categories', categoryId));
-        } catch (error) {
-          alert('Error deleting category: ' + error.message);
-        }
+    async deleteCategory(categoryId) {
+      try {
+        await deleteDoc(doc(db, 'categories', categoryId));
+      } catch (error) {
+        console.error('Error deleting category:', error);
       }
     },
 

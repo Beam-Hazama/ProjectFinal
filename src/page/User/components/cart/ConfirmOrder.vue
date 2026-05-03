@@ -97,7 +97,7 @@ const getMenuName = (id) => {
         <button @click="payment()" :disabled="isPlacingOrder" 
           class="flex-[2] py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
           <span v-if="isPlacingOrder" class="loading loading-spinner loading-sm"></span>
-          {{ isPlacingOrder ? 'กำลังสั่งซื้อ...' : 'ยืนยันออเดอร์' }}
+          <span v-else>ยืนยันออเดอร์</span>
         </button>
       </div>
     </div>

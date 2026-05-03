@@ -244,7 +244,12 @@ const initIntersectionObserver = () => {
 
 <template>
     
-    <div v-if="!isValidLocation"
+    <div v-if="isLoading" class="min-h-screen flex flex-col items-center justify-center bg-white">
+        <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
+        <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดเมนู...</p>
+    </div>
+
+    <div v-else-if="!isValidLocation"
         class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
         <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

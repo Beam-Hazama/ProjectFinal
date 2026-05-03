@@ -28,12 +28,12 @@ const goBack = () => {
 };
 
 onMounted(async () => {
-  if (route.params.name) {
-    const q = query(collection(db, 'Menu'), where('Name', '==', route.params.name));
-    const querySnapshot = await getDocs(q);
+  if (route.params.id) {
+    const menuRef = doc(db, 'Menu', route.params.id);
+    const menuSnap = await getDoc(menuRef);
 
-    if (!querySnapshot.empty) {
-      const res = querySnapshot.docs[0].data();
+    if (menuSnap.exists()) {
+      const res = menuSnap.data();
       Object.assign(menuData, res);
       imagePreview.value = res.ImageUrl;
     }

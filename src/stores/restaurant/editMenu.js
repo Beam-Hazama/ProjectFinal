@@ -10,6 +10,7 @@ export const useEditMenuStore = defineStore('editMenu', () => {
     
     const selectedFile = ref(null);
     const imagePreview = ref('');
+    const isLoading = ref(false);
 
     const MenuData = reactive({
         Name: '',
@@ -50,19 +51,15 @@ export const useEditMenuStore = defineStore('editMenu', () => {
 
     const validateMenu = () => {
         if (!MenuData.Name.trim()) {
-            alert('กรุณากรอกชื่อเมนูอาหาร');
             return false;
         }
         if (!MenuData.Price || Number(MenuData.Price) <= 0) {
-            alert('กรุณากรอกราคาที่ถูกต้อง');
             return false;
         }
         if (!MenuData.Category) {
-            alert('กรุณาเลือกหมวดหมู่อาหาร');
             return false;
         }
         if (!MenuData.Status) {
-            alert('กรุณาเลือกสถานะการขาย');
             return false;
         }
         return true;
@@ -70,6 +67,7 @@ export const useEditMenuStore = defineStore('editMenu', () => {
 
     const editMenu = async (id, router, route) => {
         if (!validateMenu()) return;
+        isLoading.value = true;
         try {
             let ImageUrl = MenuData.ImageUrl;
 
@@ -81,7 +79,6 @@ export const useEditMenuStore = defineStore('editMenu', () => {
                     ImageUrl = await getDownloadURL(snapshot.ref);
                 } catch (uploadError) {
                     console.error('Error uploading image:', uploadError);
-                    alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
                     return;
                 }
             }
@@ -119,6 +116,8 @@ export const useEditMenuStore = defineStore('editMenu', () => {
             }
         } catch (error) {
             console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
+        } finally {
+            isLoading.value = false;
         }
     };
 
@@ -162,6 +161,7 @@ export const useEditMenuStore = defineStore('editMenu', () => {
         isFormValid,
         selectedFile,
         imagePreview,
+        isLoading,
         initForm,
         editMenu,
         onImageSelected,

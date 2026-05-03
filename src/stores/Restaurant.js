@@ -18,7 +18,8 @@ export const useRestaurant = defineStore('Restaurant', {
     restaurantName: '',
     menus: [],
     restaurant: null,
-    unsubscribe: null
+    unsubscribe: null,
+    isLoading: false
   }),
 
   actions: {
@@ -60,12 +61,17 @@ export const useRestaurant = defineStore('Restaurant', {
     
     async loadListRestaurant() {
       this.clearListener();
+      this.isLoading = true;
       const RestaurantCol = collection(db, 'Restaurant');
       this.unsubscribe = onSnapshot(RestaurantCol, (snapshot) => {
         this.list = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        this.isLoading = false;
+      }, (error) => {
+        console.error("Error loading restaurants:", error);
+        this.isLoading = false;
       });
     },
 

@@ -43,19 +43,15 @@ const switchStatus = async (menu) => {
         });
     } catch (error) {
         console.error("Error updating status:", error);
-        alert("ไม่สามารถเปลี่ยนสถานะได้");
     }
 };
 
-const deleteMenu = async (id, name) => {
-    if (confirm(`คุณต้องการลบเมนู "${name}" ใช่หรือไม่?`)) {
-        try {
-            const menuRef = doc(db, 'Menu', id);
-            await deleteDoc(menuRef);
-        } catch (error) {
-            console.error("Error deleting menu:", error);
-            alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-        }
+const deleteMenu = async (id) => {
+    try {
+        const menuRef = doc(db, 'Menu', id);
+        await deleteDoc(menuRef);
+    } catch (error) {
+        console.error("Error deleting menu:", error);
     }
 };
 
@@ -81,7 +77,13 @@ const deleteMenu = async (id, name) => {
       </div>
 
       
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <!-- Loading State -->
+      <div v-if="MenuStore.isLoading" class="flex flex-col items-center justify-center py-20">
+        <span class="loading loading-spinner loading-lg text-emerald-500 mb-4"></span>
+        <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลเมนู...</p>
+      </div>
+
+      <div v-else class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
@@ -103,7 +105,7 @@ const deleteMenu = async (id, name) => {
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover" />
+                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" />
                       </div>
                     </div>
                     <div>
@@ -146,7 +148,7 @@ const deleteMenu = async (id, name) => {
                       Edit
                     </RouterLink>
 
-                    <button @click="deleteMenu(menu.id, menu.Name)"
+                    <button @click="deleteMenu(menu.id)"
                       class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">

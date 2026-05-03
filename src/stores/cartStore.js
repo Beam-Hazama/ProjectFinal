@@ -109,6 +109,8 @@ export const useCartStore = defineStore("cart", {
     async placeOrder() {
       try {
         const orderRef = doc(collection(db, 'Order'));
+        const cartItems = [...this.item]; // Snapshot of items
+        
         const orderData = {
           OrderNumber: (() => {
             const now = new Date();
@@ -123,7 +125,7 @@ export const useCartStore = defineStore("cart", {
           building: this.building,
           floor: this.floor,
           room: this.room,
-          Menu: this.item.map(i => ({
+          Menu: cartItems.map(i => ({
             ...i,
             cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
             id: i.menuId || i.id,
@@ -131,7 +133,8 @@ export const useCartStore = defineStore("cart", {
           })),
           TotalPrice: this.totalPrice,
           statusOrder: 'pending',
-          CreatedAt: serverTimestamp()
+          CreatedAt: serverTimestamp(),
+          RestaurantsInOrder: [...new Set(cartItems.map(i => i.Restaurant || 'Unknown'))]
         };
 
         await setDoc(orderRef, orderData);
@@ -139,7 +142,7 @@ export const useCartStore = defineStore("cart", {
         return true;
       } catch (error) {
         console.error("Order placement error:", error);
-        alert("สั่งซื้อไม่สำเร็จ");
+        alert("สั่งซื้อไม่สำเร็จ: " + error.message);
         throw error;
       }
     },

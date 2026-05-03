@@ -56,19 +56,15 @@ const toggleUserStatus = async (user) => {
     const currentStatus = user.Status || 'active';
     const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
 
-    if (confirm(`คุณต้องการเปลี่ยนสถานะของ "${user.Firstname}" เป็น ${newStatus.toUpperCase()} ใช่หรือไม่?`)) {
-        try {
-            const userRef = doc(db, 'User', user.id);
-            await updateDoc(userRef, {
-                Status: newStatus,
-                updatedAt: serverTimestamp()
-            });
-            alert("อัปเดตสถานะสำเร็จ");
-            await fetchUsers();
-        } catch (error) {
-            console.error("Error updating status:", error);
-            alert("ไม่สามารถอัปเดตสถานะได้: " + error.message);
-        }
+    try {
+        const userRef = doc(db, 'User', user.id);
+        await updateDoc(userRef, {
+            Status: newStatus,
+            updatedAt: serverTimestamp()
+        });
+        await fetchUsers();
+    } catch (error) {
+        console.error("Error updating status:", error);
     }
 };
 
@@ -77,16 +73,12 @@ const getRestaurantImage = (restaurantName) => {
     return found ? found.ImageUrl : '';
 };
 
-const deleteUser = async (id, name) => {
-    if (confirm(`คุณต้องการลบผู้ใช้งาน "${name}" ใช่หรือไม่?`)) {
-        try {
-            await deleteDoc(doc(db, 'User', id));
-            alert("ลบผู้ใช้งานสำเร็จ");
-            await fetchUsers();
-        } catch (error) {
-            console.error("Error deleting user:", error);
-            alert("ไม่สามารถลบข้อมูลได้: " + error.message);
-        }
+const deleteUser = async (id) => {
+    try {
+        await deleteDoc(doc(db, 'User', id));
+        await fetchUsers();
+    } catch (error) {
+        console.error("Error deleting user:", error);
     }
 };
 </script>
@@ -222,7 +214,7 @@ const deleteUser = async (id, name) => {
                             </svg>
                         </button>
 
-                        <button @click="deleteUser(user.id, user.Firstname)"
+                        <button @click="deleteUser(user.id)"
                             class="flex-1 btn btn-sm bg-red-50 hover:bg-red-500 hover:text-white text-red-500 border-none rounded-xl transition-all duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">

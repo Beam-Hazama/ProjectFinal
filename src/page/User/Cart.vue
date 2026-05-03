@@ -93,7 +93,7 @@ const closeConfirmModal = () => {
           <div class="flex gap-4">
             
             <div class="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
-              <img :src="cart.ImageUrl || 'https://via.placeholder.com/150'" class="w-full h-full object-cover" />
+              <img :src="cart.ImageUrl || 'https://placehold.co/150'" class="w-full h-full object-cover" />
             </div>
 
             

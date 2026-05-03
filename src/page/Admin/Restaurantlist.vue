@@ -51,15 +51,12 @@ const getAutoStatus = (restaurant) => {
   }
 };
 
-const deleteRestaurant = async (id, name) => {
-  if (confirm(`คุณต้องการลบร้านอาหาร "${name}" ใช่หรือไม่?`)) {
-    try {
-      await deleteDoc(doc(db, 'Restaurant', id));
-      await restaurantStore.loadListRestaurant();
-    } catch (error) {
-      console.error("Error deleting restaurant:", error);
-      alert("ลบไม่สำเร็จ: " + error.message);
-    }
+const deleteRestaurant = async (id) => {
+  try {
+    await deleteDoc(doc(db, 'Restaurant', id));
+    await restaurantStore.loadListRestaurant();
+  } catch (error) {
+    console.error("Error deleting restaurant:", error);
   }
 };
 </script>
@@ -79,7 +76,13 @@ const deleteRestaurant = async (id, name) => {
         </RouterLink>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <!-- Loading State -->
+      <div v-if="restaurantStore.isLoading" class="flex flex-col items-center justify-center py-20">
+        <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
+        <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลร้านอาหาร...</p>
+      </div>
+
+      <div v-else class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
@@ -153,7 +156,7 @@ const deleteRestaurant = async (id, name) => {
                       </svg>
                       Details
                     </RouterLink>
-                    <button @click="deleteRestaurant(restaurant.id, restaurant.Name)"
+                    <button @click="deleteRestaurant(restaurant.id)"
                       class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">

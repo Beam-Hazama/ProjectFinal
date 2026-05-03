@@ -28,7 +28,13 @@ onUnmounted(() => {
       </div>
 
       
-      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <!-- Loading State -->
+      <div v-if="menuStore.isLoading" class="flex flex-col items-center justify-center py-20">
+        <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
+        <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลเมนู...</p>
+      </div>
+
+      <div v-else class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
             
@@ -55,7 +61,7 @@ onUnmounted(() => {
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover"
+                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover"
                           :alt="menu.Name" />
                       </div>
                     </div>
@@ -102,7 +108,7 @@ onUnmounted(() => {
                 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">
-                    <RouterLink :to="{ name: 'Admin menu detail', params: { name: menu.Name } }"
+                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }"
                       class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">

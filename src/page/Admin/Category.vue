@@ -159,7 +159,7 @@ const onDragEnd = async () => {
                                     </td>
 
                                     <td class="text-center">
-                                        <button @click="categoryStore.deleteCategory(category.id, category.name)"
+                                        <button @click="categoryStore.deleteCategory(category.id)"
                                             class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 class="h-4 w-4 mr-1 pointer-events-none" fill="none" viewBox="0 0 24 24"

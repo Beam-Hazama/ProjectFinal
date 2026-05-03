@@ -82,7 +82,7 @@ onMounted(async () => {
           class="w-full p-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 transition duration-300 shadow-lg shadow-blue-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           @click="login">
           <span v-if="accountStore.isLoading" class="loading loading-spinner loading-sm"></span>
-          {{ accountStore.isLoading ? 'Logging in...' : 'Login' }}
+          <span v-else>Login</span>
         </button>
       </div>
 

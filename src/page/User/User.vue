@@ -305,7 +305,7 @@ const applyFilters = () => {
         <div v-for="menu in promotionMenus" :key="menu.id" @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
-            <img :src="menu.ImageUrl || 'https://via.placeholder.com/150'" class="object-cover w-full h-full"
+            <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover w-full h-full"
               alt="Menu Image" />
           </div>
           <div class="p-2.5">

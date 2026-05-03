@@ -23,6 +23,7 @@ onMounted(() => {
 
 const MenuData = computed(() => editStore.MenuData);
 const imagePreview = computed(() => editStore.imagePreview);
+const isLoading = computed(() => editStore.isLoading);
 
 const checkAddMenu = () => editStore.editMenu(route.params.id, router, route);
 const handleFileUpload = (e) => editStore.onImageSelected(e);
@@ -49,8 +50,15 @@ const isFormValid = computed(() => editStore.isFormValid);
                     <button @click="goBack" class="btn bg-red-500 hover:bg-red-600 border-none text-white w-32 rounded-xl transition-all duration-300 font-bold shadow-md shadow-red-100">Cancel</button>
                     <button @click="checkAddMenu(MenuData)"
                         class="btn border-none w-32 rounded-xl transition-all duration-300 font-bold"
-                        :class="isFormValid ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-100' : 'bg-slate-200 hover:bg-slate-300 text-slate-500'">
-                        Save
+                        :class="[
+                            isFormValid && !isLoading 
+                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-100' 
+                                : 'bg-slate-200 hover:bg-slate-300 text-slate-500',
+                            isLoading ? 'cursor-not-allowed opacity-80' : ''
+                        ]"
+                        :disabled="!isFormValid || isLoading">
+                        <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
+                        <span v-else>Save</span>
                     </button>
                 </div>
             </div>

@@ -161,7 +161,7 @@ const router = createRouter({
     },
 
     {
-      path: '/Admin/Menulist/Menudetail/:name',
+      path: '/Admin/Menulist/Menudetail/:id',
       name: 'Admin menu detail',
       component: Menudetail,
       meta: { requiresAuth: true, role: 'admin' },
