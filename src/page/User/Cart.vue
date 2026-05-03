@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
+import { formatPrice } from '@/utils/format';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import ConfirmOrder from './components/cart/ConfirmOrder.vue';
@@ -88,7 +89,7 @@ const closeConfirmModal = () => {
       </div>
 
       <TransitionGroup name="list" tag="div" class="divide-y divide-slate-100">
-        <div v-for="(cart, index) in cartStore.item" :key="index"
+        <div v-for="(cart, index) in cartStore.item" :key="cart.cartItemId"
           class="group relative py-6 first:pt-0 last:pb-0 transition-all duration-300">
           <div class="flex gap-4">
             
@@ -110,11 +111,11 @@ const closeConfirmModal = () => {
                   </div>
                   <div class="flex flex-col items-end flex-shrink-0">
                     <div class="text-slate-900 font-bold whitespace-nowrap">
-                      ฿{{ (cart.Price * cart.Quantity).toLocaleString() }}
+                      ฿{{ formatPrice(cart.Price * cart.Quantity) }}
                     </div>
                     <div v-if="cart.basePrice && cart.basePrice > cart.Price"
                       class="text-xs text-slate-400 line-through mt-0.5">
-                      ฿{{ (cart.basePrice * cart.Quantity).toLocaleString() }}
+                      ฿{{ formatPrice(cart.basePrice * cart.Quantity) }}
                     </div>
                   </div>
                 </div>
@@ -155,13 +156,13 @@ const closeConfirmModal = () => {
     <div class="bg-white/90 backdrop-blur-lg shadow-xl border border-white/60 rounded-2xl p-5 space-y-3">
       <div class="flex justify-between text-gray-600">
         <span>ค่าอาหาร</span>
-        <span>{{ cartStore.totalPrice.toLocaleString() }} บาท</span>
+        <span>{{ formatPrice(cartStore.totalPrice) }} บาท</span>
       </div>
       <hr class="border-dashed border-gray-300 my-2" />
       <div class="flex justify-between items-end">
         <span class="text-gray-500 mb-1 font-bold">ยอดรวมสุทธิ</span>
         <span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
-          {{ cartStore.totalPrice.toLocaleString() }}<span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
+          {{ formatPrice(cartStore.totalPrice) }}<span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
         </span>
       </div>
     </div>
@@ -173,7 +174,7 @@ const closeConfirmModal = () => {
         <div class="flex justify-between items-center px-6 py-4 bg-transparent rounded-xl border border-white/20">
           <div class="flex flex-col">
             <span class="text-xs text-blue-100 font-bold uppercase tracking-wider">ชำระเงิน</span>
-            <span class="text-xl font-black">{{ cartStore.totalPrice.toLocaleString() }}<span
+            <span class="text-xl font-black">{{ formatPrice(cartStore.totalPrice) }}<span
                 class="text-sm font-bold ml-1">บาท</span></span>
           </div>
           <div

@@ -221,14 +221,24 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async loadOrder() {
+    async loadOrder(restaurantName = null) {
       this.clearListener();
 
-      const orderListVisible = query(
-        collection(db, "Order"),
-        where("statusOrder", "in", ["pending", "cooking", "dispatched"])
-      );
-      this.unsubscribe = onSnapshot(orderListVisible, (orderSnapshot) => {
+      let orderQuery;
+      if (restaurantName) {
+        orderQuery = query(
+          collection(db, "Order"),
+          where("statusOrder", "in", ["pending", "cooking", "dispatched"]),
+          where("RestaurantsInOrder", "array-contains", restaurantName)
+        );
+      } else {
+        orderQuery = query(
+          collection(db, "Order"),
+          where("statusOrder", "in", ["pending", "cooking", "dispatched"])
+        );
+      }
+
+      this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {
         this.list = orderSnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
@@ -237,10 +247,20 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async loadAllOrders() {
+    async loadAllOrders(restaurantName = null) {
       this.clearListener();
 
-      this.unsubscribe = onSnapshot(collection(db, "Order"), (orderSnapshot) => {
+      let orderQuery;
+      if (restaurantName) {
+        orderQuery = query(
+          collection(db, "Order"),
+          where("RestaurantsInOrder", "array-contains", restaurantName)
+        );
+      } else {
+        orderQuery = collection(db, "Order");
+      }
+
+      this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {
         this.list = orderSnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,

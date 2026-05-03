@@ -1,7 +1,9 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import MenuOrderModal from './modalmenu.vue';
 import { useRestaurant } from '@/stores/Restaurant';
+import { isShopClosed as checkShopClosed } from '@/utils/restaurantHelper';
+import { formatPrice } from '@/utils/format';
 
 const props = defineProps({
   selectionRole: Array,
@@ -26,10 +28,9 @@ onMounted(() => {
   RestaurantStore.loadListRestaurant();
   timer = setInterval(() => {
     now.value = new Date();
-  }, 1000);
+  }, 60000);
 });
 
-import { onUnmounted } from 'vue';
 onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
@@ -38,8 +39,11 @@ const sortedMenus = computed(() => {
   if (!props.selectionRole) return [];
 
   return [...props.selectionRole].sort((a, b) => {
-    const aAvailable = a.Status === 'open' && !isShopClosed(a.Restaurant);
-    const bAvailable = b.Status === 'open' && !isShopClosed(b.Restaurant);
+    const aShop = RestaurantStore.list.find(r => r.Name === a.Restaurant);
+    const bShop = RestaurantStore.list.find(r => r.Name === b.Restaurant);
+    
+    const aAvailable = a.Status === 'open' && !checkShopClosed(aShop, now.value);
+    const bAvailable = b.Status === 'open' && !checkShopClosed(bShop, now.value);
 
     if (aAvailable && !bAvailable) return -1;
     if (!aAvailable && bAvailable) return 1;
@@ -49,33 +53,7 @@ const sortedMenus = computed(() => {
 
 const isShopClosed = (restaurantName) => {
   const shop = RestaurantStore.list.find(r => r.Name === restaurantName);
-  if (!shop) return true;
-  if (shop.Status === 'close') return true;
-  if (shop.Status === 'open') return false;
-
-  if (!shop.OpenTime || !shop.CloseTime) return true;
-
-  try {
-    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-    const currentDayName = now.value.toLocaleString('en-US', { weekday: 'long' });
-
-    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
-      return true;
-    }
-
-    const [openH, openM] = shop.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
-    const openMin = openH * 60 + openM;
-    const closeMin = closeH * 60 + closeM;
-
-    if (closeMin > openMin) {
-      return !(currentTime >= openMin && currentTime < closeMin);
-    } else {
-      return !(currentTime >= openMin || currentTime < closeMin);
-    }
-  } catch (e) {
-    return true;
-  }
+  return checkShopClosed(shop, now.value);
 };
 
 const openModal = (menu) => {
@@ -116,16 +94,16 @@ const openModal = (menu) => {
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
           <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.Name }}</h3>
-          
+
           <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex items-center gap-2">
               <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[15px] text-red-500">
-                ฿{{ menu.PromoPrice }}
+                ฿{{ formatPrice(menu.PromoPrice) }}
               </p>
               <p class="font-bold text-[14px] text-gray-800"
                 :class="{ 'line-through text-gray-400 text-[12px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
-                ฿{{ menu.Price }}
+                ฿{{ formatPrice(menu.Price) }}
               </p>
             </div>
           </div>
@@ -167,11 +145,11 @@ const openModal = (menu) => {
           <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex flex-wrap items-center gap-1.5">
               <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[14px] text-red-500">
-                ฿{{ menu.PromoPrice }}
+                ฿{{ formatPrice(menu.PromoPrice) }}
               </p>
               <p class="font-bold text-[13px] text-gray-800"
                 :class="{ 'line-through text-gray-400 text-[11px] font-normal': menu.PromoPrice && Number(menu.PromoPrice) > 0 }">
-                ฿{{ menu.Price }}
+                ฿{{ formatPrice(menu.Price) }}
               </p>
             </div>
           </div>

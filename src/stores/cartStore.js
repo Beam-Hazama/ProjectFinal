@@ -40,7 +40,12 @@ export const useCartStore = defineStore("cart", {
       
       if (previousCart) {
         try {
-          this.item = JSON.parse(previousCart);
+          const parsed = JSON.parse(previousCart);
+          // Ensure all items have a cartItemId for stable keys
+          this.item = parsed.map(i => ({
+            ...i,
+            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`
+          }));
         } catch (e) {
           console.error("Cart parse error:", e);
           this.item = [];

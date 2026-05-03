@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { onMounted, watch } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -19,6 +19,10 @@ watch(() => accountStore.user, (newUser) => {
     if (newUser?.Restaurant) {
         loadData();
     }
+});
+
+onUnmounted(() => {
+    MenuStore.clearListener();
 });
 
 const loadData = async () => {

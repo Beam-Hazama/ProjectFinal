@@ -139,8 +139,8 @@ const goBack = () => router.go(-1);
                                         </span>
                                     </label>
                                     <div
-                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
-                                        ••••••••
+                                        class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-mono">
+                                        {{ userData.Password || '-' }}
                                     </div>
                                 </div>
 

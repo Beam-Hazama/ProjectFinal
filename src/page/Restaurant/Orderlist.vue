@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, onUnmounted, computed, ref } from 'vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/auth/accountStore';
 import { useMenuStore } from '@/stores/menuStore';
@@ -14,8 +14,16 @@ const loading = ref(true);
 const selections = ref({});
 
 onMounted(async () => {
-    await orderStore.loadAllOrders();
+    if (accountStore.user && accountStore.user.Restaurant) {
+        await orderStore.loadAllOrders(accountStore.user.Restaurant);
+    } else {
+        await orderStore.loadAllOrders();
+    }
     loading.value = false;
+});
+
+onUnmounted(() => {
+    orderStore.clearListener();
 });
 
 const restaurantOrders = computed(() => {

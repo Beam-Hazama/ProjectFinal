@@ -1,5 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
+
+import { formatPrice } from '@/utils/format';
 import { useRoute } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
@@ -55,14 +57,16 @@ const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
     if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
     if (item.Status && item.Status !== 'open') return false;
-    return !isShopClosed(item.Restaurant);
+    const shop = restaurantStore.list.find(r => r.Name === item.Restaurant);
+    return !checkShopClosed(shop);
   });
 });
 
 const activeCategories = computed(() => {
   return localCategories.value.filter(cat => {
     return (menuStore.list || []).some(item => {
-      if (isShopClosed(item.Restaurant)) return false;
+      const shop = restaurantStore.list.find(r => r.Name === item.Restaurant);
+      if (checkShopClosed(shop)) return false;
       const matchesCategory = (item.Category && item.Category === cat.name) ||
         (item.role && (Array.isArray(item.role) ? item.role.includes(cat.name) : item.role === cat.name)) ||
         (item.Name && item.Name.includes(cat.name));
@@ -138,34 +142,7 @@ const openMenuModal = (menu) => {
 
 function isShopClosed(restaurantName) {
   const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-  if (!shop) return true;
-  if (shop.Status === 'close') return true;
-  if (shop.Status === 'open') return false;
-
-  if (!shop.OpenTime || !shop.CloseTime) return true;
-
-  try {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
-
-    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
-      return true;
-    }
-
-    const [openH, openM] = shop.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
-    const openMin = openH * 60 + openM;
-    const closeMin = closeH * 60 + closeM;
-
-    if (closeMin > openMin) {
-      return !(currentTime >= openMin && currentTime < closeMin);
-    } else {
-      return !(currentTime >= openMin || currentTime < closeMin);
-    }
-  } catch (e) {
-    return true;
-  }
+  return checkShopClosed(shop);
 };
 
 const resetFilters = () => {
@@ -315,10 +292,8 @@ const applyFilters = () => {
                 <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">
-                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ menu.PromoPrice.toLocaleString()
-                }}</span>
-                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ menu.Price.toLocaleString()
-                }}</span>
+                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ formatPrice(menu.PromoPrice) }}</span>
+                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ formatPrice(menu.Price) }}</span>
               </div>
             </div>
           </div>

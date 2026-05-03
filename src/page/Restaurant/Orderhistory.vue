@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useAccountStore } from '@/stores/auth/accountStore';
 import LayoutRestaurant from '@/page/Restaurant/restaurant.vue';
@@ -12,7 +12,15 @@ const selectedOrder = ref(null);
 const showModal = ref(false);
 
 onMounted(async () => {
-    await orderStore.loadAllOrders();
+    if (accountStore.user && accountStore.user.Restaurant) {
+        await orderStore.loadAllOrders(accountStore.user.Restaurant);
+    } else {
+        await orderStore.loadAllOrders();
+    }
+});
+
+onUnmounted(() => {
+    orderStore.clearListener();
 });
 
 const historyOrders = computed(() => {

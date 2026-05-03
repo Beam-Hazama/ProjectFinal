@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted } from 'vue';
+import { formatFullDateTime } from '@/utils/format';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStatusStore } from '@/stores/user/status';
 
@@ -93,13 +94,7 @@ onMounted(() => {
           </div>
           <div class="text-right" v-if="order.CreatedAt">
             <span class="text-[11px] font-bold text-gray-400">
-              {{ order.CreatedAt?.toDate ? order.CreatedAt.toDate().toLocaleString('th-TH', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              }) : '' }} น.
+              {{ formatFullDateTime(order.CreatedAt) }} น.
             </span>
           </div>
         </div>
