@@ -2,7 +2,7 @@
 import { formatTimestamp } from '@/utils/format';
 import { ref, computed, nextTick, onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
-import AdminLayout from './Admin.vue'
+import AdminLayout from './AdminLayout.vue'
 import { useQrcodeStore } from '@/stores/admin/qrcode'
 
 const qrStore = useQrcodeStore()

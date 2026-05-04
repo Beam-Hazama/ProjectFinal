@@ -34,7 +34,7 @@ defineProps({
           <div>
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">ยอดขายรวม</p>
             <div class="flex items-baseline gap-1">
-              <span class="text-3xl font-black text-slate-800">฿{{ dashboardStore.totalRevenue.toLocaleString() }}</span>
+              <span class="text-3xl font-black text-slate-800">฿{{ (dashboardStore.totalRevenue || 0).toLocaleString() }}</span>
             </div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
@@ -49,7 +49,7 @@ defineProps({
           <div>
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">รายได้ค่าธรรมเนียมรวม</p>
             <div class="flex items-baseline gap-1">
-              <span class="text-3xl font-black text-rose-600">฿{{ dashboardStore.totalCommission.toLocaleString() }}</span>
+              <span class="text-3xl font-black text-rose-600">฿{{ (dashboardStore.totalCommission || 0).toLocaleString() }}</span>
             </div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 shadow-sm shrink-0">
@@ -63,7 +63,7 @@ defineProps({
         <div class="relative z-10 flex justify-between items-start">
           <div>
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">ออเดอร์ทั้งหมด</p>
-            <h3 class="text-3xl font-black text-slate-800">{{ dashboardStore.totalOrders.toLocaleString() }}</h3>
+            <h3 class="text-3xl font-black text-slate-800">{{ (dashboardStore.totalOrders || 0).toLocaleString() }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
@@ -76,7 +76,7 @@ defineProps({
         <div class="relative z-10 flex justify-between items-start">
           <div>
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">เมนูอาหาร</p>
-            <h3 class="text-3xl font-black text-slate-800">{{ dashboardStore.filteredTotalMenus.toLocaleString() }}</h3>
+            <h3 class="text-3xl font-black text-slate-800">{{ (dashboardStore.totalMenus || 0).toLocaleString() }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5l-3 3m0 0l-3-3m3 3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -89,7 +89,7 @@ defineProps({
         <div class="relative z-10 flex justify-between items-start">
           <div>
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">จำนวนร้านอาหาร</p>
-            <h3 class="text-3xl font-black text-slate-800">{{ dashboardStore.totalRestaurants.toLocaleString() }}</h3>
+            <h3 class="text-3xl font-black text-slate-800">{{ (dashboardStore.totalRestaurants || 0).toLocaleString() }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shadow-sm shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75z" /></svg>

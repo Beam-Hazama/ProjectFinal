@@ -6,7 +6,7 @@ const Login = () => import("@/views/auth/Login.vue");
 const Admin = () => import("@/views/admin/AdminLayout.vue");
 const Admindashboard = () => import("@/views/admin/Dashboard.vue");
 const Adminmenulist = () => import("@/views/admin/MenuList.vue");
-const Adminorderlist = () => import("@/views/admin/OrderList.vue");
+
 const Adminorderhistory = () => import("@/views/admin/OrderHistory.vue");
 const AdminQRCode = () => import("@/views/admin/QRCode.vue");
 const Adminrestaurantlist = () => import("@/views/admin/RestaurantList.vue");
@@ -114,12 +114,7 @@ const router = createRouter({
       component: Adminmenulist,
       meta: { requiresAuth: true, role: 'admin' },
     },
-    {
-      path: '/Admin/Orderlist',
-      name: 'Order List',
-      component: Adminorderlist,
-      meta: { requiresAuth: true, role: 'admin' },
-    },
+
     {
       path: '/Admin/Orderhistory',
       name: 'Order History',

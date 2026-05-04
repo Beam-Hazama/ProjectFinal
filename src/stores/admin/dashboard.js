@@ -203,7 +203,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.totalCommission = commission;
       this.netPayouts = revenue - commission;
       this.totalOrders = filteredOrders.length;
-      this.orderStatuses = statusCounts;
+      this.orderStatuses = statusCounts || { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
 
       // จัดอันดับ
       this.topRestaurants = Object.entries(restRevenue).map(([name, revenue]) => ({ name, revenue })).sort((a,b) => b.revenue - a.revenue).slice(0, 5);
@@ -228,6 +228,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const menusQuery = query(collection(db, "Menu"));
       this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
         this.allMenus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.totalMenus = this.allMenus.length;
         this.menusLoading = false;
         this.applyFilters();
       });
@@ -235,6 +236,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const restaurantsQuery = query(collection(db, "Restaurant"));
       this.unsubscribeRestaurants = onSnapshot(restaurantsQuery, (snapshot) => {
         this.allRestaurants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.totalRestaurants = this.allRestaurants.length;
         this.availableRestaurants = this.allRestaurants.map(r => r.Name);
         this.restaurantsLoading = false;
         this.applyFilters();
