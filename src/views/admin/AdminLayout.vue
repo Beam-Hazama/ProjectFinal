@@ -19,7 +19,6 @@ const ICONS = {
   restaurant: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m19.28 0H17.5m-10.5 0V9.95l-7.1 5.2a.75.75 0 01-1.1-1.02l3.2-2.35a.75.75 0 011.1 1.02l-2.4 1.75V21M3 21h18M12 2.25l-8.4 6.15a.75.75 0 00-.3 1.02l.8 1.1a.75.75 0 001.02.3l6.88-5.04a.75.75 0 01.9 0l6.88 5.04a.75.75 0 001.02-.3l.8-1.1a.75.75 0 00-.3-1.02L12 2.25z" /></svg>`,
   user: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" /></svg>`,
   qr: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75zM16.5 19.5h.75v.75h-.75v-.75zM19.5 16.5h.75v.75h-.75v-.75z" /></svg>`,
-
   category: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>`,
   commission: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
 };
@@ -31,7 +30,6 @@ const menus = [
   { name: 'Restaurant List', routeName: 'Restaurant List', icon: ICONS.restaurant },
   { name: 'Restaurant User', routeName: 'Restaurant User', icon: ICONS.user },
   { name: 'QR Code', routeName: 'QR Code', icon: ICONS.qr },
-
   { name: 'Category', routeName: 'Admin Category', icon: ICONS.category },
   { name: 'Commission', routeName: 'Commission', icon: ICONS.commission },
 ];
@@ -43,56 +41,36 @@ const logout = async () => {
 </script>
 
 <template>
-  <div
-    class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
-    <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
-
-    
-    <div class="drawer-content flex flex-col relative">
-      
+  <div class="drawer lg:drawer-open font-sans bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />    
+    <div class="drawer-content flex flex-col relative">      
       <header class="w-full lg:hidden p-4 flex items-center justify-between bg-white shadow-sm z-30 sticky top-0">
         <label for="my-drawer-2" class="btn btn-square btn-ghost btn-sm text-slate-500">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-            class="inline-block w-6 h-6 stroke-current">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </label>
         <div class="avatar w-8 h-8">
           <div class="rounded-full bg-slate-200">
-            <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'"
-              alt="Admin Profile" />
+            <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'" alt="Admin Profile" />
           </div>
         </div>
-      </header>
-
-      
-      <main class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">
-
-        
+      </header>      
+      <main class="w-full p-6 md:p-10 z-10 min-h-[calc(100vh-64px)] lg:min-h-screen overflow-y-auto">        
         <slot></slot>
-      </main>
-
-      
-      <div
-        class="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none translate-x-1/3 -translate-y-1/3 z-0">
+      </main>      
+      <div class="fixed top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none translate-x-1/3 -translate-y-1/3 z-0">
       </div>
-      <div
-        class="fixed bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none -translate-x-1/3 translate-y-1/3 z-0">
+      <div class="fixed bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none -translate-x-1/3 translate-y-1/3 z-0">
       </div>
-    </div>
-
-    
+    </div>    
     <div class="drawer-side z-40">
       <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
-
-      <aside class="w-72 min-h-full bg-white shadow-xl flex flex-col border-r border-slate-100">
-        
+      <aside class="w-72 min-h-full bg-white shadow-xl flex flex-col border-r border-slate-100">        
         <div class="h-20 flex items-center px-6 border-b border-slate-100 shrink-0">
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                stroke="currentColor" class="w-6 h-6">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
               </svg>
@@ -103,9 +81,7 @@ const logout = async () => {
               <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Management</p>
             </div>
           </div>
-        </div>
-
-        
+        </div>        
         <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
           <router-link v-for="menu in menus" :key="menu.name" :to="{ name: menu.routeName }" :class="[
             'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
@@ -113,20 +89,16 @@ const logout = async () => {
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 translate-x-1'
               : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
           ]">
-            <span v-html="menu.icon"
-              :class="route.name === menu.routeName ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'"></span>
+            <span v-html="menu.icon":class="route.name === menu.routeName ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'"></span>
             {{ menu.name }}
             <span v-if="route.name === menu.routeName" class="ml-auto w-2 h-2 rounded-full bg-white/40"></span>
           </router-link>
-        </nav>
-
-        
+        </nav>        
         <footer class="p-4 border-t border-slate-100 bg-slate-50/50">
           <div class="flex items-center gap-3 mb-4 px-2">
             <div class="avatar online">
               <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
-                <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'"
-                  alt="User Profile" />
+                <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'" alt="User Profile" />
               </div>
             </div>
             <div class="overflow-hidden">
@@ -136,12 +108,9 @@ const logout = async () => {
               <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.Username }}</p>
             </div>
           </div>
-
           <button @click="logout" class="btn btn-outline btn-error btn-sm w-full gap-2 rounded-lg font-bold">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-              stroke="currentColor" class="w-4 h-4">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
             </svg>
             Sign Out
           </button>

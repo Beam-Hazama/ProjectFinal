@@ -41,10 +41,8 @@ const isActive = (name) => {
 };
 </script>
 
-<template>
-    
-    <div
-        class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-[55] pb-safe">
+<template>    
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-[55] pb-safe">
         <div class="flex justify-around items-center h-16">
             <RouterLink v-for="item in menuItems" :key="item.name" :to="item.path"
                 class="relative flex flex-col items-center justify-center w-full h-full transition-colors duration-200 group"
@@ -57,7 +55,6 @@ const isActive = (name) => {
                     </span>
                 </div>
                 <span class="text-[10px] font-medium mt-0.5">{{ item.label }}</span>
-
                 <span v-if="isActive(item.name)" class="absolute top-0 w-8 h-0.5 bg-blue-600 rounded-b-full"></span>
             </RouterLink>
         </div>

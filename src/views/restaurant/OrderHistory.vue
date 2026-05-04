@@ -26,33 +26,26 @@ onUnmounted(() => {
 const historyOrders = computed(() => {
     if (!accountStore.user || !accountStore.user.Restaurant) return [];
     const myRestaurant = accountStore.user.Restaurant;
-
     if (!orderStore.sortedOrders) return [];
-
     return orderStore.sortedOrders.map(order => {
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
             const hasReturned = myItems.some(i => i.itemStatus === 'returned');
-
             const allReceivedOrCancelled = myItems.every(i =>
                 i.itemStatus === 'received' || i.itemStatus === 'cancelled'
             );
-
             const isFinished = myItems.every(i =>
                 ['dispatched', 'received', 'cancelled', 'returned'].includes(i.itemStatus)
             );
-
             if (allCancelled) localStatus = 'cancelled';
             else if (hasReturned) localStatus = 'returned';
             else if (allReceivedOrCancelled) localStatus = 'completed';
             else if (isFinished) localStatus = 'dispatched';
             else localStatus = 'cooking';
         }
-
         return {
             ...order,
             displayItems: myItems,
@@ -90,19 +83,15 @@ const getStatusColor = (status) => {
         default: return 'badge-ghost text-slate-500';
     }
 };
-
 // Removed formatTimestampStore usage
 </script>
 
 <template>
     <LayoutRestaurant>
         <div class="p-6">
-
             <div class="flex justify-between items-start mb-7">
                 <div class="text-3xl font-bold text-slate-700">Order History</div>
             </div>
-
-
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
@@ -130,19 +119,17 @@ const getStatusColor = (status) => {
                                         {{ order.localStatus?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
-                                <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}
+                                <td class="text-center text-sm whitespace-nowrap">
+                                    {{ formatTimestamp(order.CreatedAt) }}
                                 </td>
-                                <td class="text-center font-bold text-emerald-600">{{
-                                    order.displayTotal?.toLocaleString() }} ฿</td>
+                                <td class="text-center font-bold text-emerald-600">
+                                    {{ order.displayTotal?.toLocaleString() }} ฿</td>
                                 <td class="text-center">
-                                    <button @click="openModal(order)"
-                                        class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                    <button @click="openModal(order)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                         </svg>
                                         Details
                                     </button>
@@ -151,13 +138,10 @@ const getStatusColor = (status) => {
                             <tr v-if="historyOrders.length === 0">
                                 <td colspan="8" class="text-center py-12">
                                     <div class="flex flex-col items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-3"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <p class="text-slate-400 font-medium italic">
-                                            ไม่มีประวัติรายการสั่งซื้อที่เสร็จสิ้น</p>
+                                        <p class="text-slate-400 font-medium italic">ไม่มีประวัติรายการสั่งซื้อที่เสร็จสิ้น</p>
                                     </div>
                                 </td>
                             </tr>
@@ -165,29 +149,22 @@ const getStatusColor = (status) => {
                     </table>
                 </div>
             </div>
-
-
             <div class="modal modal-bottom sm:modal-middle" :class="{ 'modal-open': showModal }">
                 <div class="modal-box relative">
                     <button @click="showModal = false" class="btn btn-sm btn-circle absolute right-2 top-2">✕</button>
-
                     <h3 class="font-bold text-lg mb-4 text-indigo-600">
                         Order Details #{{ selectedOrder?.OrderNumber }}
                     </h3>
-
                     <div v-if="selectedOrder" class="space-y-4">
-                        <div
-                            class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.room" class="flex gap-2">
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
-                                }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
                             </span>
                             <span v-else>
                                 Room: {{ selectedOrder.roomId }}
                             </span>
                             <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>
-
                         <div class="overflow-x-auto">
                             <table class="table w-full table-compact">
                                 <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
@@ -199,13 +176,11 @@ const getStatusColor = (status) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in selectedOrder.displayItems" :key="index"
-                                        class="border-b border-slate-100 last:border-none">
+                                    <tr v-for="(item, index) in selectedOrder.displayItems" :key="index" class="border-b border-slate-100 last:border-none">
                                         <td>
                                             <div class="font-bold text-slate-700">{{ item.Name }}</div>
                                             <div class="text-xs text-slate-400">{{ item.Restaurant }}</div>
-                                            <div v-if="item.note" class="text-xs text-orange-500 italic mt-0.5">Note: {{
-                                                item.note }}</div>
+                                            <div v-if="item.note" class="text-xs text-orange-500 italic mt-0.5">Note: {{ item.note }}</div>
                                         </td>
                                         <td class="text-center font-medium">{{ item.quantity || item.Quantity || 1 }}
                                         </td>
@@ -218,24 +193,22 @@ const getStatusColor = (status) => {
                                                 'badge-error text-white bg-red-500': item.itemStatus === 'cancelled',
                                                 'badge-error text-white bg-orange-500': item.itemStatus === 'returned'
                                             }">
-                                                {{ (item.itemStatus === 'pending') ? 'cooking' : (item.itemStatus ||
-                                                    'pending') }}
+                                                {{ (item.itemStatus === 'pending') ? 'cooking' : (item.itemStatus || 'pending') }}
                                             </span>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-
                         <div class="flex justify-between items-end border-t border-slate-200 pt-4 mt-4">
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-500">Total Amount</span>
-                                <span class="badge" :class="getStatusColor(selectedOrder?.localStatus)">{{
-                                    selectedOrder?.localStatus?.toUpperCase() || '-' }}</span>
+                                <span class="badge" :class="getStatusColor(selectedOrder?.localStatus)">
+                                    {{ selectedOrder?.localStatus?.toUpperCase() || '-' }}</span>
                             </div>
-                            <span class="text-2xl font-bold text-emerald-600">{{
-                                selectedOrder.displayTotal?.toLocaleString()
-                                }} ฿</span>
+                            <span class="text-2xl font-bold text-emerald-600">
+                                {{selectedOrder.displayTotal?.toLocaleString()}} ฿
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -243,7 +216,6 @@ const getStatusColor = (status) => {
                     <button @click="showModal = false">close</button>
                 </form>
             </div>
-
         </div>
     </LayoutRestaurant>
 </template>

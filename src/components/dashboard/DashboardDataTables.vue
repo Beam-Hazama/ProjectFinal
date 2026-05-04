@@ -40,7 +40,6 @@ defineProps({
         </table>
       </div>
     </div>
-
     <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100" :class="{'lg:col-span-2': !dashboardStore.topRestaurants}">
       <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>

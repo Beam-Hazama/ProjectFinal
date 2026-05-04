@@ -24,7 +24,6 @@ defineProps({
         <span class="text-2xl font-black text-rose-600">{{ (dashboardStore.orderStatuses.cancelled || 0) + (dashboardStore.orderStatuses.returned || 0) }}</span>
       </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="dashboardStore.totalRestaurants !== undefined ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 leading-none to-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
@@ -40,7 +39,6 @@ defineProps({
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-50 to-pink-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
@@ -57,7 +55,6 @@ defineProps({
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-sky-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
@@ -70,7 +67,6 @@ defineProps({
           </div>
         </div>
       </div>
-
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-50 to-amber-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
@@ -83,7 +79,6 @@ defineProps({
           </div>
         </div>
       </div>
-
       <div v-if="dashboardStore.totalRestaurants !== undefined" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-pink-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">

@@ -39,13 +39,11 @@ watch(
     <RestaurantLayout>
         <div class="p-6">
             <DashboardFilters :dashboardStore="dashboardStore" />
-
             <!-- Loading State -->
             <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
                 <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
                 <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลสถิติ...</p>
             </div>
-
             <!-- Error State -->
             <div v-else-if="dashboardStore.isError" class="flex flex-col items-center justify-center py-20 text-center">
                 <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6">
@@ -59,7 +57,6 @@ watch(
                     ลองใหม่อีกครั้ง
                 </button>
             </div>
-
             <!-- Content -->
             <div v-else class="space-y-6">
                 <DashboardSummaryStats :dashboardStore="dashboardStore" />

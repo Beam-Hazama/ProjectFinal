@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+
 import { formatPrice } from '@/utils/format';
 import { checkShopClosed } from '@/utils/shopStatus';
 import { useMenuStore } from '@/stores/shared/menu';
@@ -83,10 +84,8 @@ const loadAllData = async () => {
     isLoading.value = true;
     isError.value = false;
     errorMessage.value = '';
-
     const isValid = await qrStore.validateRoom(room.value);
     isValidLocation.value = isValid;
-
     if (isValid) {
       await Promise.all([
         restaurantStore.loadListRestaurant(),
@@ -114,8 +113,7 @@ onUnmounted(() => {
 watch(() => route.params.room, async (newR) => {
   if (newR) {
     cartStore.setRoom(newR);
-  }
-  
+  }  
   if (!room.value || room.value === '-' || room.value === 'undefined') {
     const savedRoom = localStorage.getItem('lastRoom');
     if (savedRoom && savedRoom !== 'undefined') {
@@ -123,7 +121,6 @@ watch(() => route.params.room, async (newR) => {
       return;
     }
   }
-
   if (room.value !== '-' && room.value !== 'undefined') {
     isLoading.value = true;
     const isValid = await qrStore.validateRoom(room.value);
@@ -165,141 +162,104 @@ const applyFilters = () => {
   showFilterSheet.value = false;
 };
 </script>
-
 <template>
-
-  <div v-if="isLoading"
-    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+  <div v-if="isLoading" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
     <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูล</p>
   </div>
-
-  <div v-else-if="isError"
-    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
+  <div v-else-if="isError" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24"
-        stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
     <h2 class="text-xl font-bold text-slate-800 mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</h2>
     <p class="text-slate-500 mb-6">{{ errorMessage }}</p>
-    <button @click="loadAllData"
-      class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
+    <button @click="loadAllData" class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
       ลองใหม่อีกครั้ง
     </button>
   </div>
-
-  <div v-else-if="!isValidLocation"
-    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
+  <div v-else-if="!isValidLocation" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 text-center">
     <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-        class="w-12 h-12 text-red-500">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-red-500">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
       </svg>
     </div>
     <h2 class="text-2xl font-bold text-gray-800 mb-2">ไม่พบห้องนี้ในระบบ</h2>
     <p class="text-gray-500">กรุณาสแกน QR Code ใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ</p>
   </div>
-
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
     <div class="px-5 pt-6 pb-2">
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="text-[9px] uppercase font-black tracking-widest text-blue-500/60 leading-none mb-0.5">Your
-            Location</span>
+          <span class="text-[9px] uppercase font-black tracking-widest text-blue-500/60 leading-none mb-0.5">Your Location</span>
           <span class="text-[15px] font-black text-slate-800 leading-tight">{{ displayLocation }}</span>
         </div>
       </div>
     </div>
-
-
     <div class="px-4 py-3">
       <div class="relative">
-        <svg xmlns="http://www.w3.org/2000/svg"
-          class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-600" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <div @click="router.push(`/user/search/${room}`)"
-          class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
+        <div @click="router.push(`/user/search/${room}`)" class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
       </div>
     </div>
-
     <!-- Banner Slider Section -->
     <div class="px-4 py-2 mt-2">
-      <div class="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-lg shadow-blue-100/50 group"
-           @mouseenter="stopCarousel" @mouseleave="startCarousel">
-        
+      <div class="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-lg shadow-blue-100/50 group" @mouseenter="stopCarousel" @mouseleave="startCarousel">        
         <!-- Slides -->
-        <div class="flex transition-transform duration-700 ease-in-out h-full w-full"
-             :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+        <div class="flex transition-transform duration-700 ease-in-out h-full w-full" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="(img, index) in banners" :key="index" class="w-full flex-shrink-0 h-full relative">
             <img :src="img" class="w-full h-full object-cover" alt="Banner" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>
         </div>
-
         <!-- Dots -->
         <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
-          <button v-for="(_, index) in banners" :key="'dot-' + index"
-                  @click="currentSlide = index"
-                  :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', 
-                           currentSlide === index ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80']">
+          <button v-for="(_, index) in banners" :key="'dot-' + index" @click="currentSlide = index"
+            :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', 
+            currentSlide === index ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80']">
           </button>
         </div>
       </div>
     </div>
-
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
-        <button @click="router.push(`/user/all-categories/${room}`)"
-          class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
+        <button @click="router.push(`/user/all-categories/${room}`)" class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
         <div v-for="cat in activeCategories" :key="cat.id" @click="router.push(`/user/category/${cat.Name}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
-          <div
-            class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
+          <div class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
             <img :src="cat.ImageUrl" :alt="cat.Name" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
           </div>
-          <span
-            class="mt-2.5 text-[13px] font-bold text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
+          <span class="mt-2.5 text-[13px] font-bold text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
             {{ cat.Name }}
           </span>
         </div>
       </div>
     </div>
-
-
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="router.push(`/user/all-promotions/${room}`)"
-          class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
+        <button @click="router.push(`/user/all-promotions/${room}`)" class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
         <div v-for="menu in promotionMenus" :key="menu.id" @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
-            <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover w-full h-full"
-              alt="Menu Image" />
+            <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover w-full h-full" alt="Menu Image" />
           </div>
           <div class="p-2.5">
             <div class="flex justify-between items-start">
@@ -318,64 +278,40 @@ const applyFilters = () => {
         </div>
       </div>
     </div>
-
-
     <div id="restaurant-section">
       <div class="px-5 mb-4 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">ร้านอาหาร</h3>
-
-        <div
-          class="flex items-center gap-1.5 text-[12px] font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors"
-          @click="showFilterSheet = true">
+        <div class="flex items-center gap-1.5 text-[12px] font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" @click="showFilterSheet = true">
           <span>ตัวกรอง</span>
         </div>
       </div>
-
-
       <Teleport to="body">
         <div v-if="showFilterSheet" class="fixed inset-0 z-[100] flex items-end justify-center">
-
-          <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
-            @click="showFilterSheet = false">
+          <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300" @click="showFilterSheet = false">
           </div>
-
-
-          <div
-            class="relative w-full max-w-lg bg-white rounded-t-[32px] shadow-2xl transition-transform duration-300 transform translate-y-0 flex flex-col max-h-[90vh]"
+          <div class="relative w-full max-w-lg bg-white rounded-t-[32px] shadow-2xl transition-transform duration-300 transform translate-y-0 flex flex-col max-h-[90vh]"
             :class="showFilterSheet ? 'translate-y-0' : 'translate-y-full'">
-
-
             <div class="px-6 py-4 flex justify-between items-center border-b border-gray-50">
               <h2 class="text-xl font-bold text-gray-800">ตัวกรอง</h2>
               <button @click="showFilterSheet = false" class="p-2 text-gray-400 hover:text-gray-600 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-
-
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-6 pb-32">
-
-
               <div class="space-y-6 mb-8">
-                <div class="flex justify-between items-center group cursor-pointer"
-                  @click="isFilterPromoOnly = !isFilterPromoOnly">
+                <div class="flex justify-between items-center group cursor-pointer" @click="isFilterPromoOnly = !isFilterPromoOnly">
                   <div class="flex flex-col">
                     <span class="text-base font-bold text-gray-800">โปรโมชั่น</span>
                     <span class="text-sm text-gray-500 font-medium mt-0.5">ค้นหาร้านที่มีส่วนลดพิเศษ</span>
                   </div>
-                  <input type="checkbox" v-model="isFilterPromoOnly"
-                    class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
+                  <input type="checkbox" v-model="isFilterPromoOnly" class="checkbox checkbox-primary rounded-md w-6 h-6 border-2" />
                 </div>
               </div>
-
-
               <div class="mb-8">
                 <h3 class="text-base font-bold text-gray-800 mb-4">ประเภทอาหาร</h3>
                 <div class="flex flex-wrap gap-2">
-
                   <button @click="toggleCategory('')" :class="[
                     'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
                     selectedRestaurantCategories.length === 0
@@ -384,8 +320,6 @@ const applyFilters = () => {
                   ]">
                     ทั้งหมด
                   </button>
-
-
                   <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.Name)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
@@ -398,23 +332,17 @@ const applyFilters = () => {
                 </div>
               </div>
             </div>
-
-
-            <div
-              class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
-              <button @click="resetFilters"
-                class="flex-1 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-[15px] active:scale-95 transition-all hover:bg-gray-200">
+            <div class="absolute bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-md border-t border-gray-50 flex gap-4">
+              <button @click="resetFilters" class="flex-1 py-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-[15px] active:scale-95 transition-all hover:bg-gray-200">
                 ล้างค่า
               </button>
-              <button @click="applyFilters"
-                class="flex-[1.5] py-4 rounded-xl bg-blue-600 text-white font-bold text-[15px] active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-200">
+              <button @click="applyFilters" class="flex-[1.5] py-4 rounded-xl bg-blue-600 text-white font-bold text-[15px] active:scale-95 transition-all hover:bg-blue-700 shadow-lg shadow-blue-200">
                 ค้นหา
               </button>
             </div>
           </div>
         </div>
       </Teleport>
-
       <div class="px-4">
         <div class="animate-fade-in">
           <RestaurantList :room="room" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
@@ -422,8 +350,6 @@ const applyFilters = () => {
         </div>
       </div>
     </div>
-
-
     <BottomNavigation :room="room" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>
@@ -433,23 +359,17 @@ const applyFilters = () => {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
-
   scrollbar-width: none;
-
 }
-
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out forwards;
 }
-
 @keyframes fadeIn {
   0% {
     opacity: 0;
   }
-
   100% {
     opacity: 1;
   }

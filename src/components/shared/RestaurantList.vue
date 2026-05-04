@@ -94,49 +94,30 @@ const getRestaurantCategories = (restaurantName) => {
             :class="checkShopClosed(shop, now) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
             :disabled="checkShopClosed(shop, now)"
             @click="!checkShopClosed(shop, now) && goToRestaurantMenu(shop.Name)">
-
-            <figure
-                class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
-
-                <img v-if="shop.ImageUrl" :src="shop.ImageUrl" class="object-cover w-full h-full"
-                    :class="{ 'grayscale': checkShopClosed(shop, now) }" />
+            <figure class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
+                <img v-if="shop.ImageUrl" :src="shop.ImageUrl" class="object-cover w-full h-full" :class="{ 'grayscale': checkShopClosed(shop, now) }" />
                 <div v-else class="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
-
-                <div v-if="checkShopClosed(shop, now)"
-                    class="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span
-                        class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
+                <div v-if="checkShopClosed(shop, now)" class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
                 </div>
             </figure>
-
             <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
-                <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ shop.Name }}
-                </h3>
-
-                <p v-if="getRestaurantCategories(shop.Name)"
-                    class="text-[11px] text-gray-500 font-medium truncate mb-1 opacity-80">
+                <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ shop.Name }} </h3>
+                <p v-if="getRestaurantCategories(shop.Name)" class="text-[11px] text-gray-500 font-medium truncate mb-1 opacity-80">
                     {{ getRestaurantCategories(shop.Name) }}
                 </p>
-
                 <div v-if="shop.Distance" class="flex items-center gap-1 text-[11px] text-gray-500 mb-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-red-400" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span>{{ shop.Distance }} กม.</span>
                 </div>
-
             </div>
-
         </button>
     </section>
 </template>

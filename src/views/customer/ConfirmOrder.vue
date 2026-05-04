@@ -17,7 +17,6 @@ const isPlacingOrder = ref(false);
 
 const payment = async () => {
   if (isPlacingOrder.value) return;
-
   try {
     isPlacingOrder.value = true;
     const success = await cartStore.placeOrder();
@@ -51,8 +50,7 @@ const getMenuName = (id) => {
 </script>
 
 <template>
-  <div class="modal-box p-0 w-11/12 max-w-md bg-white rounded-[2rem] shadow-xl overflow-hidden font-sans border border-slate-100 relative">
-    
+  <div class="modal-box p-0 w-11/12 max-w-md bg-white rounded-[2rem] shadow-xl overflow-hidden font-sans border border-slate-100 relative">    
     <div class="px-8 pt-7 pb-4 bg-white/80 backdrop-blur-sm z-10 relative">
       <h2 class="text-xs font-bold text-blue-400 tracking-widest uppercase mb-1">ยืนยันออเดอร์</h2>
       <h1 class="text-3xl font-extrabold text-blue-600">Confirm Order</h1>
@@ -75,9 +73,7 @@ const getMenuName = (id) => {
           </div>
         </div>
       </div>
-    </div>
-
-    
+    </div>    
     <div class="pb-6 px-6 bg-slate-50 mt-4 rounded-t-[2.5rem] relative z-20">
       <hr class="border-dashed border-gray-300 my-4" />
       <div class="flex justify-between items-end mb-6 px-2">
@@ -87,11 +83,9 @@ const getMenuName = (id) => {
           <span class="text-sm text-slate-500 font-bold ml-1">บาท</span>
         </div>
       </div>
-
       <div class="flex gap-3">
         <button @click="editOrder()" class="flex-1 py-4 rounded-2xl font-bold text-red-500 bg-white border border-red-100 transition-all">ยกเลิก</button>
-        <button @click="payment()" :disabled="isPlacingOrder" 
-          class="flex-[2] py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+        <button @click="payment()" :disabled="isPlacingOrder" class="flex-[2] py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
           <span v-if="isPlacingOrder" class="loading loading-spinner loading-sm"></span>
           <span v-else>ยืนยันออเดอร์</span>
         </button>

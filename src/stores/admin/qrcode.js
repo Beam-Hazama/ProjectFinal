@@ -1,16 +1,6 @@
 import { defineStore } from 'pinia';
 import { db } from '@/firebase';
-import {
-  collection,
-  addDoc,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  serverTimestamp,
-  query,
-  orderBy,
-  getDocs,
-  where
+import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, getDocs, where
 } from 'firebase/firestore';
 import { nextTick } from 'vue';
 
@@ -46,19 +36,15 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
         }));
       });
     },
-
-    
     openAddModal() {
       this.roomForm = { Roomnumber: '' };
       this.isModalOpen = true;
     },
-
     async addRoom() {
       if (!this.roomForm.Roomnumber) {
         alert('กรุณากรอกเลขห้อง');
         return;
       }
-
       try {
         await addDoc(collection(db, 'Qrcode'), {
           ...this.roomForm,
@@ -69,7 +55,6 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
         console.error("Save error:", error);
       }
     },
-
     async deleteRoom(roomId) {
       try {
         await deleteDoc(doc(db, 'Qrcode', roomId));
@@ -77,14 +62,11 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
         console.error("Delete error:", error);
       }
     },
-
     async printRoomQR(room) {
       this.selectedRoom = room;
       await nextTick();
       window.print();
     },
-
-    
     async validateRoom(roomNumber) {
       const roomCol = collection(db, 'Qrcode');
       const q = query(

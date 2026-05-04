@@ -1,13 +1,14 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import { formatFullDateTime } from '@/utils/format';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
+
 import { useUserStatusStore } from '@/stores/customer/orderStatus';
 import { useCartStore } from '@/stores/customer/cart';
 import { isStandalone, enableCustomerNotification } from '@/utils/notification';
+
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
-const route = useRoute();
 const router = useRouter();
 const statusStore = useUserStatusStore();
 const cartStore = useCartStore();
@@ -25,12 +26,9 @@ const handleRequestPermission = async () => {
     showIOSGuide.value = true;
     return;
   }
-
   // ดึง orderId ปัจจุบันทั้งหมดของห้องนี้
-  const orderIds = statusStore.roomOrders.map(o => o.id);
-  
-  const result = await enableCustomerNotification(orderIds);
-  
+  const orderIds = statusStore.roomOrders.map(o => o.id);  
+  const result = await enableCustomerNotification(orderIds);  
   if (result.ok) {
     notificationPermission.value = 'granted';
     alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ');
@@ -48,36 +46,27 @@ onMounted(() => {
 
 <template>
   <div class="w-full min-h-screen p-4 space-y-5 bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
-
-    <!-- Header -->
     <div class="flex justify-between items-start mb-2">
       <div class="flex items-center gap-2">
         <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <div>
-          <h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Order Status</h1>
+        <div><h1 class="text-3xl font-black tracking-tight text-blue-600 drop-shadow-md uppercase">Order Status</h1>
           <p class="text-xs text-blue-500 font-bold mx-0.5 mb-1 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             {{ statusStore.displayLocation }}
           </p>
         </div>
       </div>
     </div>
-
     <!-- Notification Alert -->
-    <div v-if="notificationPermission !== 'granted'"
-      class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex flex-col gap-2 shadow-sm">
+    <div v-if="notificationPermission !== 'granted'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex flex-col gap-2 shadow-sm">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="text-xl">🔔</span>
@@ -86,12 +75,10 @@ onMounted(() => {
             <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
           </div>
         </div>
-        <button @click="handleRequestPermission"
-          class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
+        <button @click="handleRequestPermission" class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
           เปิดเลย
         </button>
       </div>
-
       <!-- iOS PWA Guide -->
       <div v-if="showIOSGuide" class="mt-2 p-3 bg-white/60 rounded-lg border border-yellow-100 text-xs text-yellow-800">
         <p class="font-bold mb-1 flex items-center gap-1">
@@ -108,21 +95,17 @@ onMounted(() => {
         </ol>
       </div>
     </div>
-
     <!-- Orders List -->
     <div class="space-y-6">
       <div v-if="statusStore.roomOrders.length === 0"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl p-10 flex flex-col items-center justify-center text-gray-400">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-30 mb-2" fill="none" viewBox="0 0 24 24"
-          stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-30 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
         <p class="font-medium">ยังไม่มีรายการสั่งซื้อ</p>
-        <router-link :to="`/user/${room}`"
-          class="mt-4 text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm">ไปที่เมนูอาหาร</router-link>
+        <router-link :to="`/user/${room}`" class="mt-4 text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm">ไปที่เมนูอาหาร</router-link>
       </div>
-
       <div v-for="(order, index) in statusStore.roomOrders" :key="index"
         class="bg-white/80 backdrop-blur-md shadow-xl border border-white/50 rounded-2xl overflow-hidden">
         <!-- Order Card Header -->
@@ -137,7 +120,6 @@ onMounted(() => {
             </span>
           </div>
         </div>
-
         <!-- Progress Stepper (Visible if not all items finished/received) -->
         <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
@@ -148,7 +130,6 @@ onMounted(() => {
               <div class="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-700 ease-out"
                 :style="{ width: `${(statusStore.getOrderProgress(order) / 3) * 100}%` }"></div>
             </div>
-
             <!-- Stage 0: Waiting -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
@@ -156,8 +137,7 @@ onMounted(() => {
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
                   statusStore.getOrderProgress(order) >= 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <path d="M3 9h18" />
                     <path d="M9 21V9" />
@@ -168,10 +148,8 @@ onMounted(() => {
                   {{ statusStore.getItemCountByStage(order, 0) }}
                 </div>
               </div>
-              <span
-                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
+              <span :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 0 ? 'text-blue-600' : 'text-gray-400']">รอรับออเดอร์</span>
             </div>
-
             <!-- Stage 1: Cooking -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
@@ -179,8 +157,7 @@ onMounted(() => {
                   'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 mb-1.5',
                   statusStore.getOrderProgress(order) >= 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
                 ]">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 11c0 3.3 2.7 6 6 6h2c3.3 0 6-2.7 6-6H3Z" />
                     <path d="M17 11h4" />
                     <path d="M9 7v4" />
@@ -192,10 +169,8 @@ onMounted(() => {
                   {{ statusStore.getItemCountByStage(order, 1) }}
                 </div>
               </div>
-              <span
-                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
+              <span :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 1 ? 'text-blue-600' : 'text-gray-400']">กำลังทำอาหาร</span>
             </div>
-
             <!-- Stage 2: Dispatched -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
@@ -215,10 +190,8 @@ onMounted(() => {
                   {{ statusStore.getItemCountByStage(order, 2) }}
                 </div>
               </div>
-              <span
-                :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
+              <span :class="['text-[8px] font-bold whitespace-nowrap', statusStore.getOrderProgress(order) >= 2 ? 'text-blue-600' : 'text-gray-400']">กำลังจัดส่ง</span>
             </div>
-
             <!-- Stage 3: Finished -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
@@ -242,7 +215,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
         <!-- Order Items -->
         <div class="p-4 space-y-4">
           <div v-for="(item, i) in order.Menu" :key="i"
@@ -259,7 +231,6 @@ onMounted(() => {
                   <span v-if="item.note" class="text-xs text-gray-500 mt-0.5">โน้ต: {{ item.note }}</span>
                 </div>
               </div>
-
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
@@ -287,8 +258,7 @@ onMounted(() => {
             <div class="text-right flex flex-col items-end gap-1">
               <template v-if="item.itemStatus === 'cancelled'">
                 <span class="text-sm font-black text-gray-800">฿0</span>
-                <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)
-                  }}</span>
+                <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)}}</span>
               </template>
               <template v-else>
                 <span class="text-sm font-black text-gray-800">฿{{ statusStore.formatPrice(item.Price * item.Quantity) }}</span>
@@ -300,7 +270,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
         <!-- Total Price for the Order Card -->
         <div class="p-4 bg-white/60 border-t border-white flex justify-between items-center">
           <span class="text-xs font-bold text-gray-400 uppercase">ยอดรวมรายการนี้</span>
@@ -320,36 +289,30 @@ onMounted(() => {
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
 @keyframes pulse {
   0% {
     transform: scale(1);
     opacity: 1;
   }
-
   50% {
     transform: scale(1.05);
     opacity: 0.8;
   }
-
   100% {
     transform: scale(1);
     opacity: 1;
   }
 }
-
 .animate-pulse {
   animation: pulse 2s infinite;
 }

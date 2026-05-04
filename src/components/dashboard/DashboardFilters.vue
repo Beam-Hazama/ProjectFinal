@@ -29,7 +29,6 @@ defineProps({
           </li>
         </ul>
       </div>
-
       <div v-if="dashboardStore.timeFilter === 'custom'" class="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
         <input type="date" class="input input-bordered input-sm bg-white border-slate-200 text-slate-600 focus:outline-none focus:border-indigo-500 w-full lg:w-max"
           :value="dashboardStore.customStartDate" @input="dashboardStore.setCustomDates($event.target.value, dashboardStore.customEndDate)" />
@@ -37,9 +36,7 @@ defineProps({
         <input type="date" class="input input-bordered input-sm bg-white border-slate-200 text-slate-600 focus:outline-none focus:border-indigo-500 w-full lg:w-max"
           :value="dashboardStore.customEndDate" @input="dashboardStore.setCustomDates(dashboardStore.customStartDate, $event.target.value)" />
       </div>
-
       <div class="w-px h-5 bg-slate-200 hidden lg:block mx-1"></div>
-
       <div v-if="dashboardStore.restaurantFilters" class="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
         <div class="dropdown w-full lg:w-auto">
           <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[160px] h-[32px] min-h-[32px] px-3">
@@ -60,7 +57,6 @@ defineProps({
           </ul>
         </div>
       </div>
-
       <div v-if="dashboardStore.availableCategories && dashboardStore.availableCategories.length > 0" class="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
         <div class="dropdown w-full lg:w-auto">
           <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[140px] h-[32px] min-h-[32px] px-3">
@@ -81,7 +77,6 @@ defineProps({
           </ul>
         </div>
       </div>
-
       <div v-if="dashboardStore.availableMenus && dashboardStore.availableMenus.length > 0" class="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
         <div class="dropdown w-full lg:w-auto">
           <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[140px] h-[32px] min-h-[32px] px-3">
@@ -102,7 +97,6 @@ defineProps({
           </ul>
         </div>
       </div>
-
       <button v-if="dashboardStore.hasActiveFilters" @click="dashboardStore.clearAllFilters ? dashboardStore.clearAllFilters() : dashboardStore.clearRestaurantFilters()" class="btn btn-sm bg-rose-50 text-rose-500 border-none font-medium hover:bg-rose-100 h-[32px] min-h-[32px] px-4 shadow-sm ml-1">ล้างทั้งหมด</button>
     </div>
   </div>
