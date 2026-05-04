@@ -8,8 +8,8 @@ import {
   query,
   where
 } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db , auth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAccountStore } from '@/stores/auth/accountStore';
 
 export const useRestaurant = defineStore('Restaurant', {
 
@@ -25,10 +25,11 @@ export const useRestaurant = defineStore('Restaurant', {
   actions: {
     
     async loadRestaurant() {
-      const uid = auth.currentUser?.uid;
+      const accountStore = useAccountStore();
+      const uid = accountStore.user?.uid;
       if (!uid) return;
 
-      const snap = await getDoc(doc(db, 'Restaurant', uid));
+      const snap = await getDoc(doc(db, 'User', uid));
       if (!snap.exists()) throw new Error('ไม่พบข้อมูลร้าน');
 
       this.restaurant = snap.data();
@@ -36,25 +37,21 @@ export const useRestaurant = defineStore('Restaurant', {
 
     
     async loadMenusByRestaurant() {
-      return new Promise((resolve, reject) => {
-        onAuthStateChanged(auth, async (user) => {
-          if (!user) return reject('ยังไม่ได้ login');
+      return new Promise(async (resolve, reject) => {
+        const accountStore = useAccountStore();
+        if (!accountStore.user) return reject('ยังไม่ได้ login');
 
-          const userSnap = await getDoc(doc(db, 'User', user.uid));
-          if (!userSnap.exists()) return reject('ไม่พบข้อมูลร้าน');
+        this.restaurantName = accountStore.user.Restaurant;
 
-          this.restaurantName = userSnap.data().Restaurant;
+        const q = query(
+          collection(db, 'Menu'),
+          where('Restaurant', '==', this.restaurantName)
+        );
 
-          const q = query(
-            collection(db, 'Menu'),
-            where('Restaurant', '==', this.restaurantName)
-          );
+        const snap = await getDocs(q);
+        this.menus = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-          const snap = await getDocs(q);
-          this.menus = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-          resolve(true);
-        });
+        resolve(true);
       });
     },
 

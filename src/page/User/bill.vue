@@ -1,26 +1,28 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useMenuStore } from '@/stores/menuStore';
+import { useCartStore } from '@/stores/cartStore';
+import BottomNavigation from '@/page/User/BottomNavigation.vue';
 
 const route = useRoute();
 const router = useRouter();
 const orderListStore = useOrderlistStore();
 const menuStore = useMenuStore();
 
-const room = route.params.room || '-';
-const roomId = room;
+const cartStore = useCartStore();
+const room = computed(() => cartStore.room);
 
 const displayLocation = computed(() => {
-    return `ห้อง ${room}`;
+    return `ห้อง ${room.value}`;
 });
 
 const userOrders = computed(() => {
     const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
     return orderListStore.list
-        .filter(order => order.room === room &&
+        .filter(order => order.room === room.value &&
                          (order.CreatedAt?.seconds || 0) >= twelveHoursAgo)
         .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0));
 });
@@ -47,8 +49,8 @@ const totalAmount = computed(() => {
 });
 
 onMounted(async () => {
-    if (room) {
-        await orderListStore.loadOrderUser(room);
+    if (room.value && room.value !== '-') {
+        await orderListStore.loadOrderUser(room.value);
     }
     menuStore.loadMenu();
 });
@@ -86,14 +88,6 @@ const getMenuName = (id) => {
                     </p>
                 </div>
             </div>
-            <router-link :to="`/user/${room}`"
-                class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50">
-                <span class="text-sm font-bold">ย้อนกลับ</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                    class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-            </router-link>
         </div>
 
         
@@ -174,6 +168,7 @@ const getMenuName = (id) => {
                 </div>
             </div>
         </div>
+        <BottomNavigation />
     </div>
 </template>
 

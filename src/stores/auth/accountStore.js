@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { db, auth } from '@/firebase';
+import { db } from '@/firebase';
 import { useOrderlistStore } from '../orderlistStore';
 import { useMenuStore } from '../menuStore';
 
@@ -19,78 +18,73 @@ export const useAccountStore = defineStore('user-account', {
   actions: {
     
     async checkAuthState() {
-      // If we already checked and are logged in, don't re-check unless needed
       if (this.isAuthChecked && this.isLoggedIn && this.user) {
         return true;
       }
 
-      return new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-          unsubscribe();
-          if (firebaseUser) {
-            try {
-              const userDocRef = doc(db, 'User', firebaseUser.uid);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                this.user = { uid: firebaseUser.uid, ...userData };
-                this.role = userData.Role;
-                this.isLoggedIn = true;
-                this.isAuthChecked = true;
-                resolve(true);
-                return;
-              }
-            } catch (e) {
-              console.error("Auth state verify error:", e);
+      const savedUid = sessionStorage.getItem('userId');
+      if (savedUid) {
+        try {
+          const userDocRef = doc(db, 'User', savedUid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            if (userData.Status !== 'blocked') {
+              this.user = { uid: savedUid, ...userData };
+              this.role = userData.Role;
+              this.isLoggedIn = true;
+              this.isAuthChecked = true;
+              return true;
             }
           }
-          
-          // Clear local state if no user found, but don't call this.logout() 
-          // because it triggers signOut(auth) which might affect other tabs
-          this.user = null;
-          this.isLoggedIn = false;
-          this.role = null;
-          this.isAuthChecked = true;
-          resolve(false);
-        });
-      });
+        } catch (e) {
+          console.error("Auth state verify error:", e);
+        }
+      }
+      
+      this.user = null;
+      this.isLoggedIn = false;
+      this.role = null;
+      this.isAuthChecked = true;
+      sessionStorage.removeItem('userId');
+      return false;
     },
 
     
     async login(username, password) {
       try {
-        // 1. Authenticate with Firebase Auth first to get permission to read the User doc
-        const email = `${username.toLowerCase().trim()}@system.local`;
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
+        const usersRef = collection(db, 'User');
+        const q = query(usersRef, where('Username', '==', username.trim()));
+        const querySnapshot = await getDocs(q);
 
-        // 2. Fetch the user document by UID (authorized by request.auth.uid == userId rule)
-        const userDocRef = doc(db, 'User', uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (!userDocSnap.exists()) {
-          await signOut(auth);
+        if (querySnapshot.empty) {
           throw new Error('ไม่พบข้อมูลผู้ใช้งานในระบบ');
         }
 
-        const userData = userDocSnap.data();
+        let matchedUser = null;
+        querySnapshot.forEach((doc) => {
+          if (doc.data().Password === password) {
+            matchedUser = { uid: doc.id, ...doc.data() };
+          }
+        });
 
-        if (userData.Status === 'blocked') {
-          await signOut(auth);
+        if (!matchedUser) {
+           throw new Error('Username หรือ Password ไม่ถูกต้อง');
+        }
+
+        if (matchedUser.Status === 'blocked') {
           throw new Error('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
         }
 
-        const userInfo = { uid: uid, ...userData };
-        this.user = userInfo;
+        this.user = matchedUser;
         this.isLoggedIn = true;
-        this.role = userData.Role;
+        this.role = matchedUser.Role;
+        
+        sessionStorage.setItem('userId', matchedUser.uid);
 
         return this.role;
       } catch (error) {
-        console.error("Store Login Error:", error.code, error.message);
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-          throw new Error('Username หรือ Password ไม่ถูกต้อง');
-        }
+        console.error("Store Login Error:", error.message);
         throw error;
       }
     },
@@ -123,12 +117,8 @@ export const useAccountStore = defineStore('user-account', {
       orderStore.clearListener();
       menuStore.clearListener();
 
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.error("SignOut error:", e);
-      }
-
+      sessionStorage.removeItem('userId');
+      
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;

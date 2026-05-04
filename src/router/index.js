@@ -1,50 +1,53 @@
 import { createRouter, createWebHistory, } from "vue-router";
 import { useAccountStore } from '@/stores/auth/accountStore';
 
-import Login from "@/page/Login/Login.vue";
+const Login = () => import("@/page/Login/Login.vue");
 
-import Admin from "@/page/Admin/Admin.vue";
-import Admindashboard from "@/page/Admin/Dashboard.vue";
-import Adminmenulist from "@/page/Admin/MenuList.vue";
-import Adminorderlist from "@/page/Admin/OrderList.vue";
-import Adminorderhistory from "@/page/Admin/OrderHistory.vue";
-import AdminQRCode from "@/page/Admin/QRCode.vue";
-import Adminrestaurantlist from "@/page/Admin/RestaurantList.vue";
-import Adminrestaurantuser from "@/page/Admin/RestaurantUser.vue";
-import Adminpostermanage from "@/page/Admin/Poster.vue";
-import AdminCategory from "@/page/Admin/Category.vue";
-import AdminCommission from "@/page/Admin/Commission.vue";
+const Admin = () => import("@/page/Admin/Admin.vue");
+const Admindashboard = () => import("@/page/Admin/Dashboard.vue");
+const Adminmenulist = () => import("@/page/Admin/MenuList.vue");
+const Adminorderlist = () => import("@/page/Admin/OrderList.vue");
+const Adminorderhistory = () => import("@/page/Admin/OrderHistory.vue");
+const AdminQRCode = () => import("@/page/Admin/QRCode.vue");
+const Adminrestaurantlist = () => import("@/page/Admin/RestaurantList.vue");
+const Adminrestaurantuser = () => import("@/page/Admin/RestaurantUser.vue");
+const Adminpostermanage = () => import("@/page/Admin/Poster.vue");
+const AdminCategory = () => import("@/page/Admin/Category.vue");
+const AdminCommission = () => import("@/page/Admin/Commission.vue");
 
-import Menudetail from "@/page/Admin/components/menu/MenuDetail.vue";
-import Restaurantdetail from "@/page/Admin/components/restaurant/RestaurantDetail.vue";
-import Addrestaurant from "@/page/Admin/components/restaurant/AddRestaurant.vue";
-import Userdetail from "@/page/Admin/components/user/Userdetail.vue";
-import Adduser from "@/page/Admin/components/user/Adduser.vue";
+const Menudetail = () => import("@/page/Admin/components/menu/MenuDetail.vue");
+const Restaurantdetail = () => import("@/page/Admin/components/restaurant/RestaurantDetail.vue");
+const Addrestaurant = () => import("@/page/Admin/components/restaurant/AddRestaurant.vue");
+const Userdetail = () => import("@/page/Admin/components/user/Userdetail.vue");
+const Adduser = () => import("@/page/Admin/components/user/Adduser.vue");
 
-import Restaurants from "@/page/Restaurant/Restaurant.vue";
-import Restaurantorderlist from "@/page/Restaurant/OrderList.vue";
-import Restaurantmenulist from "@/page/Restaurant/MenuList.vue";
-import Restaurantprofile from "@/page/Restaurant/Profile.vue";
-import RestaurantAddMenu from "@/page/Restaurant/components/Menu/AddMenu.vue";
-import RestaurantEditMenu from "@/page/Restaurant/components/Menu/EditMenu.vue";
-import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
-import RestaurantPoster from "@/page/Restaurant/Poster.vue";
+const Restaurants = () => import("@/page/Restaurant/Restaurant.vue");
+const Restaurantorderlist = () => import("@/page/Restaurant/OrderList.vue");
+const Restaurantmenulist = () => import("@/page/Restaurant/MenuList.vue");
+const Restaurantprofile = () => import("@/page/Restaurant/Profile.vue");
+const RestaurantAddMenu = () => import("@/page/Restaurant/components/Menu/AddMenu.vue");
+const RestaurantEditMenu = () => import("@/page/Restaurant/components/Menu/EditMenu.vue");
+const RestaurantDashboard = () => import("@/page/Restaurant/Dashboard.vue");
+const RestaurantPoster = () => import("@/page/Restaurant/Poster.vue");
+const RestaurantOrderHistory = () => import("@/page/Restaurant/OrderHistory.vue");
 
-import RestaurantOrderHistory from "@/page/Restaurant/OrderHistory.vue";
-
-import User from "@/page/User/User.vue";
-import Bill from "@/page/User/Bill.vue";
-import Cart from "@/page/User/Cart.vue";
-import Status from "@/page/User/Status.vue";
-import Search from "@/page/User/components/user/Search.vue";
-import Category from "@/page/User/components/user/Category.vue";
-import AllCategories from "@/page/User/components/user/AllCategories.vue";
-import AllPromotions from "@/page/User/components/user/AllPromotions.vue";
-import UserRestaurantMenu from "@/page/User/components/user/RestaurantMenu.vue";
+const User = () => import("@/page/User/User.vue");
+const Bill = () => import("@/page/User/Bill.vue");
+const Cart = () => import("@/page/User/Cart.vue");
+const Status = () => import("@/page/User/Status.vue");
+const Search = () => import("@/page/User/components/user/Search.vue");
+const Category = () => import("@/page/User/components/user/Category.vue");
+const AllCategories = () => import("@/page/User/components/user/AllCategories.vue");
+const AllPromotions = () => import("@/page/User/components/user/AllPromotions.vue");
+const UserRestaurantMenu = () => import("@/page/User/components/user/RestaurantMenu.vue");
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      redirect: '/Login',
+    },
     // User routes are public to allow customers to scan QR codes and place orders without logging in.
     {
       path: '/User',

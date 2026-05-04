@@ -4,19 +4,20 @@ import { formatPrice } from '@/utils/format';
 import { useRoute } from 'vue-router';
 import { useCartStore } from '@/stores/cartStore';
 import ConfirmOrder from './components/cart/ConfirmOrder.vue';
+import BottomNavigation from '@/page/User/BottomNavigation.vue';
 
 const cartStore = useCartStore();
 const route = useRoute();
 const confirmModal = ref(null);
 
-const room = route.params.room ;
+const room = computed(() => cartStore.room);
 
 const displayLocation = computed(() => {
-  return `ห้อง ${room}`;
+  return `ห้อง ${room.value}`;
 });
 
 onMounted(() => {
-  cartStore.loadCart(room);
+  cartStore.loadCart(room.value);
 });
 
 const showConfirmModal = () => {
@@ -33,7 +34,7 @@ const closeConfirmModal = () => {
 
 <template>
   <div
-    class="w-full min-h-screen p-4 pb-32 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
+    class="w-full min-h-screen p-4 pb-56 space-y-5 bg-center bg-no-repeat animate-bg bg-gradient-to-br from-blue-50 to-purple-50 font-sans">
     
     
     <div class="flex justify-between items-start mb-2">
@@ -59,14 +60,6 @@ const closeConfirmModal = () => {
           </p>
         </div>
       </div>
-      <button @click="$router.back()"
-        class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50 cursor-pointer">
-        <span class="text-sm font-bold">ย้อนกลับ</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-      </button>
     </div>
 
     
@@ -165,7 +158,7 @@ const closeConfirmModal = () => {
       </div>
     </div>
 
-    <div class="fixed bottom-6 left-0 w-full px-4 z-50">
+    <div class="fixed bottom-20 left-0 w-full px-4 z-50">
       <div @click="showConfirmModal"
         class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-1 rounded-2xl shadow-xl shadow-blue-500/40 transform hover:-translate-y-1 active:scale-95 transition-all duration-300 cursor-pointer group"
         :class="{ 'grayscale opacity-50 cursor-not-allowed': cartStore.item.length === 0 }">
@@ -189,10 +182,12 @@ const closeConfirmModal = () => {
 
     <dialog ref="confirmModal" class="modal">
       <confirm-order 
-        :room="room"
+        :room="room.value"
         @close-modal="closeConfirmModal"
       ></confirm-order>
     </dialog>
+
+    <BottomNavigation />
   </div>
 </template>
 

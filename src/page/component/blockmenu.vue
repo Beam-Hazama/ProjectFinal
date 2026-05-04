@@ -42,7 +42,7 @@ const sortedMenus = computed(() => {
   return [...props.selectionRole].sort((a, b) => {
     const aShop = RestaurantStore.list.find(r => r.Name === a.Restaurant);
     const bShop = RestaurantStore.list.find(r => r.Name === b.Restaurant);
-    
+
     const aAvailable = a.Status === 'open' && !checkShopClosed(aShop, now.value);
     const bAvailable = b.Status === 'open' && !checkShopClosed(bShop, now.value);
 

@@ -1,74 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
+    // Helper functions
     function isAdmin() {
-      return isSignedIn() && 
-             exists(/databases/$(database)/documents/User/$(request.auth.uid)) &&
-             (get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'admin' || 
-              get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'admin');
+      return request.auth != null && get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'admin';
     }
-
     function isRestaurant() {
-      return isSignedIn() && 
-             exists(/databases/$(database)/documents/User/$(request.auth.uid)) &&
-             (get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'restaurant' || 
-              get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'restaurant');
+      return request.auth != null && get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'restaurant';
     }
-
     function userRestaurantName() {
-      return exists(/databases/$(database)/documents/User/$(request.auth.uid)) ? 
-             get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Restaurant : null;
+      return get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Restaurant;
     }
 
-    match /User/{userId} {
-      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+    match /Order/{id} {
+      allow read, create: if true;
+      allow update: if true;
+      allow delete: if false;
     }
 
     match /Restaurant/{id} {
       allow read: if true;
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || 
-                       (isRestaurant() && resource.data.Name == userRestaurantName());
+      allow update: if isAdmin() 
+                    || (isRestaurant() && resource.data.Name == userRestaurantName());
     }
 
-    match /Menu/{id} {
-      allow read: if true;
-      allow create: if isAdmin() || 
-                       (isRestaurant() && request.resource.data.Restaurant == userRestaurantName());
-      allow update, delete: if isAdmin() || 
-                          (isRestaurant() && resource.data.Restaurant == userRestaurantName());
-    }
-
-    match /Poster/{id} {
-      allow read: if true;
-      allow create: if isAdmin() || 
-                       (isRestaurant() && request.resource.data.Restaurant == userRestaurantName());
-      allow update, delete: if isAdmin() || 
-                          (isRestaurant() && resource.data.Restaurant == userRestaurantName());
-    }
-
-    match /Category/{id} { allow read: if true; allow write: if isAdmin(); }
-
-    match /Commission/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /QRCodes/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /Qrcode/{id} { allow read: if true; allow write: if isAdmin(); }
-
-    match /Order/{id} {
-      allow read, create, update: if true;
-      allow delete: if false;
-    }
-
-    match /Metadata/Counters {
-      allow read: if true;
-      allow create: if true;
-      allow update: if request.resource.data.lastOrderNumber == resource.data.lastOrderNumber + 1;
+    // Default rules for other collections
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

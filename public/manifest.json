@@ -1,0 +1,8 @@
+{
+  "name": "Restaurant Web App",
+  "short_name": "Restaurant",
+  "description": "Restaurant ordering and status tracking app",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6"
+}

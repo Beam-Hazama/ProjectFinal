@@ -71,6 +71,7 @@ exports.sendOrderPushNotification = onDocumentUpdated("Order/{orderId}", async (
   return null;
 });
 
+/*
 // Notify Restaurant when a NEW order arrives
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 
@@ -113,3 +114,4 @@ exports.notifyRestaurantOnNewOrder = onDocumentCreated("Order/{orderId}", async 
 
   return null;
 });
+*/

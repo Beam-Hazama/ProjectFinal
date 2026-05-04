@@ -13,6 +13,9 @@ app.use(createPinia())
 app.use(router)
 app.component('apexchart', ApexChart)
 
+import { registerServiceWorker } from '@/utils/notification';
+registerServiceWorker();
+
 app.mount('#app')
 
 

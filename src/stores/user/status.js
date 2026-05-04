@@ -3,10 +3,8 @@ import { ref, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/orderlistStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
-import { app, db, messaging as defaultMessaging } from '@/firebase';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { showBrowserNotification } from '@/utils/notification';
+import { db } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { formatPrice } from '@/utils/format';
 
 export const useUserStatusStore = defineStore('userStatus', () => {
@@ -14,10 +12,6 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     const cartStore = useCartStore();
     const menuStore = useMenuStore();
 
-    const IS_NOTIFICATION_ENABLED = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    const notificationPermission = ref(
-        ('Notification' in window) ? Notification.permission : 'unsupported'
-    );
 
     const room = ref('');
 
@@ -145,102 +139,15 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
     };
 
-    const registerPushToken = async () => {
-        if (!IS_NOTIFICATION_ENABLED) return;
-        let activeMessaging = defaultMessaging;
-        if (!activeMessaging) {
-            try {
-                activeMessaging = getMessaging(app);
-            } catch (e) {
-                console.log('FCM not supported');
-                return;
-            }
-        }
-
-        try {
-            const currentToken = await getToken(activeMessaging, {
-                vapidKey: 'BEMBQXbqVMk-b5ofr7Cpw9fCfQpbWY5K83C6KorO9DIA4XHJMApg-O-6_mcmhVvVvoCZajUBDQjQRJd4IOFhjgU'
-            });
-
-            if (currentToken && roomOrders.value.length > 0) {
-                for (const order of roomOrders.value) {
-                    const orderRef = doc(db, 'Order', order.id);
-                    await updateDoc(orderRef, {
-                        deviceTokens: arrayUnion(currentToken)
-                    });
-                }
-            }
-        } catch (err) {
-            // Silence messaging errors on localhost as they are expected due to SSL/ServiceWorker requirements
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn('Notification system is disabled on localhost (requires HTTPS).');
-            } else {
-                console.error('Auto fetch token error:', err);
-            }
-        }
-    };
-
-    const requestNotificationPermission = async () => {
-        if (!IS_NOTIFICATION_ENABLED) {
-            alert('ระบบแจ้งเตือนถูกปิดการใช้งานชั่วคราวครับ');
-            return;
-        }
-        if (!('Notification' in window)) {
-            alert('ระบบแจ้งเตือนไม่ทำงาน: เบราว์เซอร์ไม่มีฟังก์ชัน Notification (อาจจะไม่ได้เป็น https)');
-            return;
-        }
-
-        let activeMessaging = defaultMessaging;
-        if (!activeMessaging) {
-            try {
-                activeMessaging = getMessaging(app);
-            } catch (e) {
-                alert('ระบบ Web Push ไม่ทำงาน: ' + e.message);
-                return;
-            }
-        }
-
-        try {
-            const permission = await Notification.requestPermission();
-            notificationPermission.value = permission;
-            if (permission === 'granted') {
-                await registerPushToken();
-                alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะเตือนเมื่อร้านอัปเดตออเดอร์');
-            } else {
-                alert('การแจ้งเตือนถูกปฏิเสธ หากต้องการเปิดให้ไปตั้งค่าในเบราว์เซอร์');
-            }
-        } catch (err) {
-            alert('เกิดข้อผิดพลาดในการขอสิทธิ์: ' + err.message);
-            console.error('Permission request error:', err);
-        }
-    };
 
     const initUserSession = (r) => {
         setLocation(r);
         orderListStore.loadOrderUser(r);
         menuStore.loadMenu();
-
-        if (IS_NOTIFICATION_ENABLED) {
-            setTimeout(() => {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    registerPushToken();
-
-                    const activeMessaging = defaultMessaging || getMessaging(app);
-                    onMessage(activeMessaging, (payload) => {
-                        console.log('Message received. ', payload);
-                        if (payload.notification) {
-                            showBrowserNotification(payload.notification.title, payload.notification.body);
-                        }
-                    });
-                }
-            }, 3000);
-        }
     };
 
     return {
         room,
-        IS_NOTIFICATION_ENABLED,
-        notificationPermission,
         displayLocation,
         roomOrders,
         formatPrice,
@@ -249,8 +156,6 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         reorder,
         getOrderProgress,
         getItemCountByStage,
-        registerPushToken,
-        requestNotificationPermission,
         initUserSession
     };
 });

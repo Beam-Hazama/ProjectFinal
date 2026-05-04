@@ -1,7 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore'
-import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
-import "firebase/storage";
+import { getFirestore } from 'firebase/firestore';
 import { getStorage } from "firebase/storage";
 import { getMessaging, isSupported } from "firebase/messaging";
 
@@ -17,38 +15,29 @@ export const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
-
-// Set persistence to session to allow multiple logins in different tabs
-setPersistence(auth, browserSessionPersistence).catch((err) => {
-  console.error("Auth persistence error:", err);
-});
 
 let storage;
 try {
   storage = getStorage(app);
 } catch (err) {
-  console.error("Firebase Storage initialization failed:", err);
+  console.error("Firebase Storage init failed:", err);
 }
 
+// FCM (Cloud Messaging) — ใช้สำหรับ background push
 let messaging = null;
-if (typeof window !== "undefined") {
-  isSupported().then((supported) => {
+const messagingPromise = (async () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const supported = await isSupported();
     if (supported) {
-      try {
-        messaging = getMessaging(app);
-      } catch (err) {
-        console.error("Messaging initialization failed:", err);
-      }
+      messaging = getMessaging(app);
+      return messaging;
     }
-  });
-}
+  } catch (err) {
+    console.error("Messaging init failed:", err);
+  }
+  return null;
+})();
 
-export {
-  app,
-  db,
-  auth,
-  storage,
-  messaging
-}
+export { app, db, storage, messaging, messagingPromise };

@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 
 import { formatPrice } from '@/utils/format';
 import { checkShopClosed } from '@/utils/restaurantHelper';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
 import { useQrcodeStore } from '@/stores/admin/qrcode';
@@ -18,6 +18,7 @@ import MenuOrderModal from '@/page/component/modalmenu.vue';
 import Poster from '@/page/User/components/user/Poster.vue';
 
 const route = useRoute();
+const router = useRouter(); // เพิ่ม router
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
@@ -25,7 +26,8 @@ const qrStore = useQrcodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
-const room = route.params.room || '-';
+// Sync room with store
+const room = computed(() => cartStore.room);
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
@@ -42,7 +44,7 @@ let timer;
 
 
 const displayLocation = computed(() => {
-  return `ห้อง ${room}`;
+  return `ห้อง ${room.value}`;
 });
 
 
@@ -61,6 +63,9 @@ const activeCategories = computed(() => {
 });
 
 onMounted(async () => {
+  if (route.params.room) {
+    cartStore.setRoom(route.params.room);
+  }
   await loadAllData();
   timer = setInterval(() => {
     now.value = new Date();
@@ -73,14 +78,14 @@ const loadAllData = async () => {
     isError.value = false;
     errorMessage.value = '';
 
-    const isValid = await qrStore.validateRoom(room);
+    const isValid = await qrStore.validateRoom(room.value);
     isValidLocation.value = isValid;
 
     if (isValid) {
       await Promise.all([
         restaurantStore.loadListRestaurant(),
         menuStore.loadMenu(),
-        cartStore.loadCart(room),
+        cartStore.loadCart(room.value),
         posterStore.fetchPosters(),
         categoryStore.fetchCategories()
       ]);
@@ -106,16 +111,30 @@ onUnmounted(() => {
 
 watch(() => route.params.room, async (newR) => {
   if (newR) {
+    cartStore.setRoom(newR);
+  }
+  
+  if (!room.value || room.value === '-') {
+    const savedRoom = localStorage.getItem('lastRoom');
+    if (savedRoom) {
+      router.replace(`/user/${savedRoom}`);
+      return;
+    }
+  }
+
+  if (room.value !== '-') {
     isLoading.value = true;
-    const isValid = await qrStore.validateRoom(newR);
+    const isValid = await qrStore.validateRoom(room.value);
     isValidLocation.value = isValid;
     isLoading.value = false;
 
     if (isValid) {
-      cartStore.loadCart(newR);
+      cartStore.loadCart(room.value);
     }
+  } else {
+    isValidLocation.value = false;
   }
-});
+}, { immediate: true });
 
 
 
@@ -215,7 +234,7 @@ const applyFilters = () => {
           <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        <div @click="$router.push(`/user/search/${room}`)"
+        <div @click="$router.push(`/user/search/${room.value}`)"
           class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
@@ -229,11 +248,11 @@ const applyFilters = () => {
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
-        <button @click="$router.push(`/user/all-categories/${room}`)"
+        <button @click="$router.push(`/user/all-categories/${room.value}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in activeCategories" :key="cat.id" @click="$router.push(`/user/category/${cat.Name}/${room}`)"
+        <div v-for="cat in activeCategories" :key="cat.id" @click="$router.push(`/user/category/${cat.Name}/${room.value}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
@@ -252,7 +271,7 @@ const applyFilters = () => {
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="$router.push(`/user/all-promotions/${room}`)"
+        <button @click="$router.push(`/user/all-promotions/${room.value}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
@@ -378,14 +397,14 @@ const applyFilters = () => {
 
       <div class="px-4">
         <div class="animate-fade-in">
-          <RestaurantList :room="room" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
+          <RestaurantList :room="room.value" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
         </div>
       </div>
     </div>
 
 
-    <BottomNavigation :room="room" />
+    <BottomNavigation :room="room.value" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>
 </template>

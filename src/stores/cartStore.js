@@ -6,7 +6,7 @@ export const useCartStore = defineStore("cart", {
 
   state: () => ({
     item: [],
-    room: null,
+    room: localStorage.getItem('lastRoom') || '-',
   }),
 
   getters: {
@@ -27,6 +27,12 @@ export const useCartStore = defineStore("cart", {
   },
 
   actions: {
+    setRoom(roomNumber) {
+      if (roomNumber && roomNumber !== '-') {
+        this.room = roomNumber;
+        localStorage.setItem('lastRoom', roomNumber);
+      }
+    },
     
     loadCart(room) {
       this.room = room;
@@ -50,26 +56,7 @@ export const useCartStore = defineStore("cart", {
         this.item = [];
       }
 
-      // Multi-tab synchronization
-      if (!this._isSyncing) {
-        window.addEventListener('storage', (event) => {
-          const currentKey = `cart-data-${this.room}`;
-          if (event.key === currentKey) {
-            // Re-load from storage when it changes in another tab
-            const latest = localStorage.getItem(currentKey);
-            if (latest) {
-              try {
-                this.item = JSON.parse(latest);
-              } catch (e) {
-                this.item = [];
-              }
-            } else {
-              this.item = [];
-            }
-          }
-        });
-        this._isSyncing = true;
-      }
+
     },
 
     

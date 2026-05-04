@@ -1,17 +1,48 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { formatFullDateTime } from '@/utils/format';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStatusStore } from '@/stores/user/status';
+import { useCartStore } from '@/stores/cartStore';
+import { isStandalone, enableCustomerNotification } from '@/utils/notification';
+import BottomNavigation from '@/page/User/BottomNavigation.vue';
 
 const route = useRoute();
 const router = useRouter();
 const statusStore = useUserStatusStore();
+const cartStore = useCartStore();
+const room = computed(() => cartStore.room);
 
-const room = route.params.room || '-';
+const notificationPermission = ref(
+  ('Notification' in window) ? Notification.permission : 'unsupported'
+);
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const showIOSGuide = ref(false);
+
+const handleRequestPermission = async () => {
+  // iOS ต้อง install เป็น PWA ก่อน
+  if (isIOS && !isStandalone()) {
+    showIOSGuide.value = true;
+    return;
+  }
+
+  // ดึง orderId ปัจจุบันทั้งหมดของห้องนี้
+  const orderIds = statusStore.roomOrders.map(o => o.id);
+  
+  const result = await enableCustomerNotification(orderIds);
+  
+  if (result.ok) {
+    notificationPermission.value = 'granted';
+    alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ');
+  } else if (result.reason === 'permission_denied') {
+    alert('คุณปฏิเสธการแจ้งเตือน หากต้องการเปิด ไปที่การตั้งค่าเบราว์เซอร์');
+  } else {
+    alert('ไม่สามารถเปิดแจ้งเตือนได้ กรุณาลองใหม่');
+  }
+};
 
 onMounted(() => {
-    statusStore.initUserSession(room);
+  statusStore.initUserSession(room.value);
 });
 </script>
 
@@ -42,30 +73,40 @@ onMounted(() => {
           </p>
         </div>
       </div>
-      <router-link :to="`/user/${room}`"
-        class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50 flex-shrink-0">
-        <span class="text-sm font-bold whitespace-nowrap">ย้อนกลับ</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-          class="w-5 h-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-        </svg>
-      </router-link>
     </div>
 
     <!-- Notification Alert -->
-    <div v-if="statusStore.IS_NOTIFICATION_ENABLED && statusStore.notificationPermission !== 'granted'"
-      class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex justify-between items-center shadow-sm">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">🔔</span>
-        <div class="flex flex-col">
-          <span class="text-sm font-bold text-yellow-800">เปิดรับการแจ้งเตือน</span>
-          <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
+    <div v-if="notificationPermission !== 'granted'"
+      class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex flex-col gap-2 shadow-sm">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔔</span>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-yellow-800">เปิดรับการแจ้งเตือน</span>
+            <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
+          </div>
         </div>
+        <button @click="handleRequestPermission"
+          class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
+          เปิดเลย
+        </button>
       </div>
-      <button @click="statusStore.requestNotificationPermission"
-        class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
-        เปิดเลย
-      </button>
+
+      <!-- iOS PWA Guide -->
+      <div v-if="showIOSGuide" class="mt-2 p-3 bg-white/60 rounded-lg border border-yellow-100 text-xs text-yellow-800">
+        <p class="font-bold mb-1 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          สำหรับผู้ใช้ iOS (iPhone/iPad)
+        </p>
+        <p>คุณต้องติดตั้งแอปนี้ลงบนหน้าจอก่อนถึงจะรับการแจ้งเตือนได้:</p>
+        <ol class="list-decimal pl-5 mt-1 space-y-1">
+          <li>แตะที่ปุ่ม <span class="inline-flex items-center justify-center p-1 bg-gray-100 rounded text-blue-500 border"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span> Share ด้านล่างของ Safari</li>
+          <li>เลือก <strong>"Add to Home Screen"</strong> (เพิ่มไปยังหน้าจอโฮม)</li>
+          <li>เปิดแอปจากหน้าจอโฮมเพื่อเปิดรับการแจ้งเตือน</li>
+        </ol>
+      </div>
     </div>
 
     <!-- Orders List -->
@@ -271,7 +312,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
+    <BottomNavigation />
   </div>
 </template>
 

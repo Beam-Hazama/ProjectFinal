@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut } from 'firebase/auth';
-import { firebaseConfig, auth, db, storage } from '@/firebase';
+import { db, storage } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, getDocs, doc, query, where, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
 
 const route = useRoute();
@@ -102,17 +100,18 @@ const handleSave = async () => {
             }
         }
 
-        const fakeEmail = `${Username.toLowerCase().trim()}@system.local`;
-        
-        // Use a secondary app to create user so it doesn't log out the Admin
-        const tempApp = initializeApp(firebaseConfig, `TempApp_${Date.now()}`);
-        const tempAuth = getAuth(tempApp);
+            // Validate if username already exists first
+            const usersRef = collection(db, 'User');
+            const q = query(usersRef, where('Username', '==', Username.trim()));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                alert("Username นี้ถูกใช้งานไปแล้ว");
+                isLoading.value = false;
+                return;
+            }
 
-        try {
-            const userCredential = await createUserWithEmailAndPassword(tempAuth, fakeEmail, Password);
-            const uid = userCredential.user.uid;
-
-            await setDoc(doc(db, 'User', uid), {
+            await addDoc(collection(db, 'User'), {
                 Firstname,
                 Lastname,
                 Username: Username.trim(),
@@ -130,18 +129,9 @@ const handleSave = async () => {
             });
 
             router.push('/Admin/Restaurantuser');
-        } finally {
-            // Always clean up secondary app
-            await secondarySignOut(tempAuth).catch(() => {});
-            await deleteApp(tempApp).catch(() => {});
-        }
     } catch (error) {
         console.error("Error Detail:", error);
-        if (error.code === 'auth/email-already-in-use') {
-            alert("Username นี้ถูกใช้งานไปแล้ว");
-        } else {
-            alert("เกิดข้อผิดพลาด: " + error.message);
-        }
+        alert("เกิดข้อผิดพลาด: " + error.message);
     } finally {
         isLoading.value = false;
     }
