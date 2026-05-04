@@ -18,114 +18,93 @@ export const useAccountStore = defineStore('user-account', {
   actions: {
     
     async checkAuthState() {
-      if (this.isAuthChecked && this.isLoggedIn && this.user) {
-        return true;
+      const savedUid = sessionStorage.getItem('userId');
+      if (!savedUid) return this.logout();
+
+      try {
+        const userDocSnap = await getDoc(doc(db, 'User', savedUid));
+        if (userDocSnap.exists() && userDocSnap.data().Status !== 'blocked') {
+          const userData = userDocSnap.data();
+          this.user = { uid: savedUid, ...userData };
+          this.role = userData.Role;
+          this.isLoggedIn = true;
+          this.isAuthChecked = true;
+          return true;
+        }
+      } catch (e) {
+        console.error("Auth verify error:", e);
       }
 
-      const savedUid = sessionStorage.getItem('userId');
-      if (savedUid) {
-        try {
-          const userDocRef = doc(db, 'User', savedUid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            if (userData.Status !== 'blocked') {
-              this.user = { uid: savedUid, ...userData };
-              this.role = userData.Role;
-              this.isLoggedIn = true;
-              this.isAuthChecked = true;
-              return true;
-            }
-          }
-        } catch (e) {
-          console.error("Auth state verify error:", e);
-        }
-      }
-      
-      this.user = null;
-      this.isLoggedIn = false;
-      this.role = null;
-      this.isAuthChecked = true;
-      sessionStorage.removeItem('userId');
-      return false;
+      return this.logout();
     },
 
-    
-    async login(username, password) {
+    async login(username, password, router) {
+      if (this.isLoading) return;
+      
+      this.isLoading = true;
+      this.errorMessage = '';
+
       try {
-        const usersRef = collection(db, 'User');
-        const q = query(usersRef, where('Username', '==', username.trim()));
+        const q = query(collection(db, 'User'), where('Username', '==', username.trim()));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
           throw new Error('ไม่พบข้อมูลผู้ใช้งานในระบบ');
         }
 
-        let matchedUser = null;
-        querySnapshot.forEach((doc) => {
-          if (doc.data().Password === password) {
-            matchedUser = { uid: doc.id, ...doc.data() };
-          }
-        });
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
 
-        if (!matchedUser) {
-           throw new Error('Username หรือ Password ไม่ถูกต้อง');
+        if (userData.Password !== password) {
+          throw new Error('Username หรือ Password ไม่ถูกต้อง');
         }
 
-        if (matchedUser.Status === 'blocked') {
-          throw new Error('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+        if (userData.Status === 'blocked') {
+          throw new Error('บัญชีของคุณถูกระงับการใช้งาน');
         }
 
-        this.user = matchedUser;
+        // Set State
+        this.user = { uid: userDoc.id, ...userData };
         this.isLoggedIn = true;
-        this.role = matchedUser.Role;
+        this.role = userData.Role;
+        this.isAuthChecked = true;
         
-        sessionStorage.setItem('userId', matchedUser.uid);
+        sessionStorage.setItem('userId', userDoc.id);
+
+        // Handle Routing
+        if (router) {
+          const routeName = this.role === 'admin' ? 'Admin' : 'Restaurants';
+          router.replace({ name: routeName });
+        }
 
         return this.role;
       } catch (error) {
-        console.error("Store Login Error:", error.message);
-        throw error;
-      }
-    },
-
-    async processLogin(username, password, router) {
-      if (this.isLoading) return;
-      try {
-        this.isLoading = true;
-        this.errorMessage = '';
-        const role = await this.login(username, password);
-
-        if (role === 'admin') {
-          router.replace({ name: 'Admin' });
-        } else {
-          router.replace({ name: 'Restaurants' });
-        }
-      } catch (error) {
-        console.error('Login Error:', error.message);
         this.errorMessage = error.message;
+        throw error;
       } finally {
         this.isLoading = false;
       }
     },
 
-    
     async logout() {
-      const orderStore = useOrderlistStore();
-      const menuStore = useMenuStore();
+      // Clear Listeners
+      useOrderlistStore().clearListener();
+      useMenuStore().clearListener();
 
-      orderStore.clearListener();
-      menuStore.clearListener();
-
+      // Clear Session
       sessionStorage.removeItem('userId');
       
+      // Reset State
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;
+      this.isAuthChecked = true;
+      
+      return false;
     },
 
     forgotPassword() {
-      return 'หากลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ';
+      this.errorMessage = 'หากลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ';
     },
   },
 });

@@ -27,7 +27,6 @@ const ICONS = {
 const menus = [
   { name: 'Dashboard', routeName: 'Dashboard', icon: ICONS.dashboard },
   { name: 'Menu List', routeName: 'Menu List', icon: ICONS.menu },
-
   { name: 'Order History', routeName: 'Order History', icon: ICONS.history },
   { name: 'Restaurant List', routeName: 'Restaurant List', icon: ICONS.restaurant },
   { name: 'Restaurant User', routeName: 'Restaurant User', icon: ICONS.user },

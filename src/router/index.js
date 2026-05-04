@@ -48,7 +48,7 @@ const router = createRouter({
       path: '/',
       redirect: '/Login',
     },
-    // User routes are public to allow customers to scan QR codes and place orders without logging in.
+    
     {
       path: '/User',
       name: 'UserDefault',

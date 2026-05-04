@@ -43,7 +43,7 @@ export const useCartStore = defineStore("cart", {
       if (previousCart) {
         try {
           const parsed = JSON.parse(previousCart);
-          // Ensure all items have a cartItemId for stable keys
+          
           this.item = parsed.map(i => ({
             ...i,
             cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`
@@ -126,41 +126,29 @@ export const useCartStore = defineStore("cart", {
         const totalPrice = this.totalPrice;
         const restaurants = [...new Set(cartItems.map(i => i.Restaurant || 'Unknown'))];
 
-        await runTransaction(db, async (transaction) => {
-          // 1. Get/Update Counter for Sequential Order Number
-          const counterRef = doc(db, 'Metadata', 'Counters');
-          const counterSnap = await transaction.get(counterRef);
-          
-          let nextNumber = 1;
-          if (counterSnap.exists()) {
-            nextNumber = (counterSnap.data().lastOrderNumber || 0) + 1;
-          }
-          
-          const finalOrderNumber = nextNumber.toString().padStart(6, '0');
-          
-          // 2. Prepare Order Document
-          const orderRef = doc(collection(db, 'Order'));
-          const orderData = {
-            OrderNumber: finalOrderNumber,
-            room: room,
-            Menu: cartItems.map(i => ({
-              ...i,
-              cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
-              id: i.menuId || i.id,
-              itemStatus: 'waiting'
-            })),
-            TotalPrice: totalPrice,
-            statusOrder: 'pending',
-            CreatedAt: serverTimestamp(),
-            RestaurantsInOrder: restaurants
-          };
+        // 1. Prepare Order Document & ID
+        const orderRef = doc(collection(db, 'Order'));
+        const finalOrderNumber = orderRef.id.slice(0, 8).toUpperCase();
 
-          // 3. Perform Writes in Transaction
-          transaction.set(orderRef, orderData);
-          transaction.set(counterRef, { lastOrderNumber: nextNumber }, { merge: true });
-        });
+        const orderData = {
+          OrderNumber: finalOrderNumber,
+          room: room,
+          Menu: cartItems.map(i => ({
+            ...i,
+            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
+            id: i.menuId || i.id,
+            itemStatus: 'waiting'
+          })),
+          TotalPrice: totalPrice,
+          statusOrder: 'pending',
+          CreatedAt: serverTimestamp(),
+          RestaurantsInOrder: restaurants
+        };
 
-        // Clear cart after successful transaction
+        // 2. Save Document to Firestore
+        await setDoc(orderRef, orderData);
+
+        // Clear cart after successful save
         this.clearCart();
         return true;
       } catch (error) {

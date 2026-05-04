@@ -2,7 +2,7 @@
 import { onMounted, ref, computed } from 'vue';
 import { formatFullDateTime } from '@/utils/format';
 import { useRoute, useRouter } from 'vue-router';
-import { useUserStatusStore } from '@/stores/user/status';
+import { useUserStatusStore } from '@/stores/customer/orderStatus';
 import { useCartStore } from '@/stores/customer/cart';
 import { isStandalone, enableCustomerNotification } from '@/utils/notification';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';

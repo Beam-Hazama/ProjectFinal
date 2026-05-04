@@ -10,9 +10,7 @@ const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
-
-const room = route.params.room || '-';
-
+const room = route.params.room;
 const searchQuery = ref('');
 
 const vFocus = {

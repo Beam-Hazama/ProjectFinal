@@ -5,7 +5,7 @@ import { useCategoryStore } from '@/stores/shared/category';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { useCartStore } from '@/stores/customer/cart';
-import { checkShopClosed } from '@/utils/shopStatus';
+
 
 const route = useRoute();
 const router = useRouter();
@@ -18,10 +18,6 @@ const room = route.params.room || '-';
 const now = ref(new Date());
 let timer;
 
-function isShopClosed(restaurantName) {
-    const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-    return checkShopClosed(shop, now.value);
-}
 
 const activeCategories = computed(() => {
     // Return all categories directly to ensure they appear

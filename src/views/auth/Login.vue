@@ -11,11 +11,11 @@ const password = ref('');
 const showPassword = ref(false);
 
 const login = () => {
-  accountStore.processLogin(username.value, password.value, router);
+  accountStore.login(username.value, password.value, router);
 };
 
 const handleForgotPassword = () => {
-  accountStore.errorMessage = accountStore.forgotPassword();
+  accountStore.forgotPassword();
 };
 
 onMounted(async () => {
