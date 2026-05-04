@@ -5,153 +5,43 @@ import { db } from '@/firebase';
 export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
   state: () => ({
-
     allOrders: [],
     allMenus: [],
-
     timeFilter: 'thisMonth',
     customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
     customEndDate: new Date().toISOString().split('T')[0],
-    
     menuCategoryFilters: [],
     menuFilters: [],
-
     currentRestaurant: null,
-
     totalOrders: 0,
     totalRevenue: 0,
     totalMenus: 0,
     commissionRate: 0,
-
     orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
     topMenuItems: [],
     recentOrders: [],
-
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
-
     ordersLoading: true,
     menusLoading: true,
     unsubscribeOrders: null,
     unsubscribeMenus: null,
     unsubscribeRestaurant: null,
-
     availableMenus: [],
+    availableCategories: [],
     filteredTotalMenus: 0,
     isError: false,
     errorMessage: ''
   }),
 
   getters: {
-    
     isLoading: (state) => state.ordersLoading || state.menusLoading,
-
-    
-    salesChartSeries: (state) => {
-      const data = state.revenueByDay.map(day => day.revenue);
-      return [{ name: 'ยอดขาย (บาท)', data }];
-    },
-
-    
-    salesChartOptions: (state) => {
-      const categories = state.revenueByDay.map(day => day.date);
-      return {
-        chart: { id: 'revenue-bar-chart', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'inherit' },
-        xaxis: {
-          categories: categories,
-          labels: { style: { colors: '#64748b', fontSize: '12px' } }
-        },
-        yaxis: {
-          labels: {
-            formatter: (value) => `฿${value.toLocaleString()}`,
-            style: { colors: '#64748b', fontSize: '12px' }
-          }
-        },
-        dataLabels: { enabled: false },
-        plotOptions: { bar: { borderRadius: 6, columnWidth: '45%' } },
-        colors: ['#4f46e5'],
-        tooltip: { y: { formatter: (val) => "฿" + val.toLocaleString() } }
-      };
-    },
-
-    
-    categoryChartSeries: (state) => {
-      return state.categoriesCount.map(cat => cat.count);
-    },
-
-    
-    categoryChartOptions: (state) => {
-      const labels = state.categoriesCount.map(cat => cat.name);
-      return {
-        chart: { id: 'category-donut-chart', fontFamily: 'inherit', zoom: { enabled: false } },
-        labels: labels,
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
-        legend: { position: 'bottom' },
-        dataLabels: { enabled: false },
-        plotOptions: {
-          pie: {
-            donut: {
-              size: '70%',
-              labels: {
-                show: true,
-                name: { show: true },
-                value: { show: true, formatter: (val) => val },
-                total: {
-                  show: true,
-                  showAlways: true,
-                  label: 'รวม',
-                  formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
-                }
-              }
-            }
-          }
-        }
-      };
-    },
-
-    
+    salesChartSeries: (state) => [{ name: 'ยอดขาย (บาท)', data: state.revenueByDay.map(d => d.revenue) }],
+    categoryChartSeries: (state) => state.categoriesCount.map(c => c.count),
+    peakHoursChartSeries: (state) => [{ name: 'จำนวนออเดอร์', data: state.ordersByHour.map(h => h.count) }],
     totalCommission: (state) => (state.totalRevenue * (state.commissionRate || 0)) / 100,
-    netRevenue: (state) => state.totalRevenue - ((state.totalRevenue * (state.commissionRate || 0)) / 100),
-
-    
-    peakHoursChartSeries: (state) => {
-      const data = state.ordersByHour.map(h => h.count);
-      return [{ name: 'จำนวนออเดอร์', data }];
-    },
-
-    
-    peakHoursChartOptions: (state) => {
-      const categories = state.ordersByHour.map(h => h.hour);
-      return {
-        chart: { id: 'peak-hours-chart', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'inherit', type: 'area' },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.4,
-            opacityTo: 0.05,
-            stops: [0, 90, 100]
-          }
-        },
-        xaxis: {
-          categories: categories,
-          labels: { style: { colors: '#64748b', fontSize: '10px' } },
-          tooltip: { enabled: false }
-        },
-        yaxis: {
-          labels: { style: { colors: '#64748b', fontSize: '12px' }, formatter: (val) => Math.floor(val) }
-        },
-        colors: ['#f59e0b'],
-        tooltip: { y: { formatter: (val) => val + " ออเดอร์" } }
-      };
-    },
-    
-    hasActiveFilters: (state) => {
-      return state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0;
-    }
+    hasActiveFilters: (state) => state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0
   },
 
   actions: {
@@ -159,137 +49,137 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.timeFilter = filter;
       this.applyFilters();
     },
+
     setCustomDates(start, end) {
       this.customStartDate = start;
       this.customEndDate = end;
-      if (this.timeFilter === 'custom') {
-        this.applyFilters();
-      }
+      if (this.timeFilter === 'custom') this.applyFilters();
     },
+
     toggleCategoryFilter(category) {
       const index = this.menuCategoryFilters.indexOf(category);
-      if (index > -1) {
-        this.menuCategoryFilters.splice(index, 1);
-      } else {
-        this.menuCategoryFilters.push(category);
-      }
-      this.menuFilters = [];
+      if (index > -1) this.menuCategoryFilters.splice(index, 1);
+      else this.menuCategoryFilters.push(category);
       this.applyFilters();
     },
+
     clearCategoryFilters() {
       this.menuCategoryFilters = [];
-      this.menuFilters = [];
       this.applyFilters();
     },
-    toggleMenuFilter(id) {
-      const index = this.menuFilters.indexOf(id);
-      if (index > -1) {
-        this.menuFilters.splice(index, 1);
-      } else {
-        this.menuFilters.push(id);
-      }
+
+    toggleMenuFilter(menuId) {
+      const index = this.menuFilters.indexOf(menuId);
+      if (index > -1) this.menuFilters.splice(index, 1);
+      else this.menuFilters.push(menuId);
       this.applyFilters();
     },
+
     clearMenuFilters() {
       this.menuFilters = [];
       this.applyFilters();
     },
+
     clearAllFilters() {
       this.menuCategoryFilters = [];
       this.menuFilters = [];
       this.applyFilters();
     },
 
-    
+    async loadDashboardData(restaurantName) {
+      this.clearListeners();
+      this.currentRestaurant = restaurantName;
+      
+      const resQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
+      this.unsubscribeRestaurant = onSnapshot(resQuery, (snapshot) => {
+        if (!snapshot.empty) {
+          const resData = snapshot.docs[0].data();
+          this.commissionRate = Number(resData.CommissionRate || 0);
+          this.applyFilters();
+        }
+      });
+
+      const ordersQuery = query(collection(db, 'Order'));
+      this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+        this.allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.ordersLoading = false;
+        this.applyFilters();
+      }, (error) => {
+        this.isError = true;
+        this.errorMessage = error.message;
+      });
+
+      const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
+      this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
+        this.allMenus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.totalMenus = this.allMenus.length;
+        this.menusLoading = false;
+        this.applyFilters();
+      });
+    },
+
+    clearListeners() {
+      if (this.unsubscribeOrders) this.unsubscribeOrders();
+      if (this.unsubscribeMenus) this.unsubscribeMenus();
+      if (this.unsubscribeRestaurant) this.unsubscribeRestaurant();
+    },
+
     applyFilters() {
-      if (!this.currentRestaurant) return;
-
-      let filteredRevenue = 0;
-      let filteredOrdersCount = 0;
-      let validOrdersForChart = [];
-      let recentOrdersArray = [];
-
-      const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
-      const menuMetricsMap = {};
-
-      let now = new Date();
-      now.setHours(23, 59, 59, 999);
-
+      const now = new Date();
       let startTime = new Date(0);
+
       if (this.timeFilter === 'today') {
-        startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
+        startTime = new Date(now.setHours(0, 0, 0, 0));
       } else if (this.timeFilter === '7days') {
-        startTime = new Date();
+        startTime = new Date(now.setDate(now.getDate() - 6));
         startTime.setHours(0, 0, 0, 0);
-        startTime.setDate(startTime.getDate() - 6);
       } else if (this.timeFilter === 'thisMonth') {
-        startTime = new Date();
-        startTime.setDate(1);
-        startTime.setHours(0, 0, 0, 0);
+        startTime = new Date(now.getFullYear(), now.getMonth(), 1);
       } else if (this.timeFilter === 'custom') {
         startTime = new Date(this.customStartDate);
         startTime.setHours(0, 0, 0, 0);
-        now = new Date(this.customEndDate);
-        now.setHours(23, 59, 59, 999);
       }
 
-      const categoryMap = {};
-      this.allMenus.forEach(m => {
-        categoryMap[m.id] = m.Category || 'ไม่ระบุหมวดหมู่';
+      const endTime = this.timeFilter === 'custom' 
+        ? new Date(new Date(this.customEndDate).setHours(23, 59, 59, 999))
+        : new Date();
+
+      const validOrders = this.allOrders.filter(order => {
+        if (!order.CreatedAt) return false;
+        const createdAt = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
+        const inTimeRange = createdAt >= startTime && createdAt <= endTime;
+        if (!inTimeRange) return false;
+        if (order.Menu) return order.Menu.some(item => item.Restaurant === this.currentRestaurant);
+        return false;
       });
 
-      this.allOrders.forEach(order => {
-        const createdAt = order.CreatedAt;
-        if (!createdAt) return;
+      const validOrdersForChart = this.allOrders.filter(order => {
+        if (!order.CreatedAt) return false;
+        if (order.Menu) return order.Menu.some(item => item.Restaurant === this.currentRestaurant);
+        return false;
+      });
 
-        const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
-        if (orderDate < startTime || orderDate > now) return;
+      let revenue = 0;
+      const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
+      const menuMetricsMap = {};
 
-        if (!order.Menu || order.Menu.length === 0) {
-          if (this.menuCategoryFilters.length > 0 || this.menuFilters.length > 0) {
-            return;
-          }
-          const cStatus = order.statusOrder || 'pending';
-          statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
-          recentOrdersArray.push(order);
-          return;
-        }
+      validOrders.forEach(order => {
+        let orderHasRestaurantItem = false;
+        let orderRevenue = 0;
 
-        const myItems = order.Menu.filter(item => {
-          if (item.Restaurant !== this.currentRestaurant) return false;
+        if (order.Menu) {
+          order.Menu.forEach(item => {
+            if (item.Restaurant === this.currentRestaurant) {
+              const isNotCancelled = item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned';
+              const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
+              const menuId = item.id || item.menuId;
+              const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
-          if (this.menuCategoryFilters.length > 0) {
-            const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
-            if (!this.menuCategoryFilters.includes(itemCategory)) return false;
-          }
+              if (isNotCancelled && isRightCategory && isRightMenu) {
+                const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
+                orderRevenue += itemRev;
+                orderHasRestaurantItem = true;
 
-          if (this.menuFilters.length > 0) {
-            const menuId = item.id || item.menuId;
-            if (!this.menuFilters.includes(menuId)) return false;
-          }
-
-          return true;
-        });
-
-        if (myItems.length > 0) {
-          const cStatus = order.statusOrder || 'pending';
-          statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
-          recentOrdersArray.push(order);
-
-          if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
-            const validRevenueItems = myItems.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
-
-            if (validRevenueItems.length > 0) {
-              filteredOrdersCount++;
-              let orderLocalTotal = 0;
-
-              validRevenueItems.forEach(item => {
-                const itemQty = Number(item.Quantity || 0);
-                const itemRevenue = Number(item.Price || 0) * itemQty;
-                orderLocalTotal += itemRevenue;
-
-                const menuId = item.id || item.menuId;
                 if (!menuMetricsMap[menuId]) {
                   menuMetricsMap[menuId] = {
                     name: item.Name || 'ไม่ระบุชื่อเมนู',
@@ -298,196 +188,99 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
                     image: item.ImageUrl
                   };
                 }
-                menuMetricsMap[menuId].qty += itemQty;
-                menuMetricsMap[menuId].revenue += itemRevenue;
-              });
-
-              filteredRevenue += orderLocalTotal;
-              validOrdersForChart.push({ ...order, localTotal: orderLocalTotal });
+                menuMetricsMap[menuId].qty += Number(item.Quantity || 1);
+                menuMetricsMap[menuId].revenue += itemRev;
+              }
             }
-          }
+          });
+        }
+
+        if (orderHasRestaurantItem) {
+          revenue += orderRevenue;
+          const status = order.statusOrder || 'pending';
+          if (statusCounts[status] !== undefined) statusCounts[status]++;
         }
       });
 
+      this.totalRevenue = revenue;
+      this.totalOrders = validOrders.filter(o => {
+        if (!o.Menu) return false;
+        return o.Menu.some(item => {
+           const isRightRest = item.Restaurant === this.currentRestaurant;
+           const isRightCat = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
+           const menuId = item.id || item.menuId;
+           const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
+           return isRightRest && isRightCat && isRightMenu && item.itemStatus !== 'cancelled';
+        });
+      }).length;
       this.orderStatuses = statusCounts;
-      this.recentOrders = recentOrdersArray
-        .sort((a, b) => {
-          const tA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
-          const tB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : new Date(b.CreatedAt).getTime();
-          return tB - tA;
-        })
-        .slice(0, 10);
+      this.topMenuItems = Object.values(menuMetricsMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
-      this.topMenuItems = Object.values(menuMetricsMap)
-        .sort((a, b) => b.qty - a.qty)
-        .slice(0, 5);
+      this.recentOrders = [...validOrders].sort((a, b) => {
+          const timeA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
+          const timeB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : new Date(b.CreatedAt).getTime();
+          return timeB - timeA;
+      }).slice(0, 10);
 
-      this.totalOrders = filteredOrdersCount;
-      this.totalRevenue = filteredRevenue;
-
-      // Filter menus for available dropdown options
       let filteredMenus = this.allMenus;
-      if (this.menuCategoryFilters.length > 0) {
-        filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
-      }
+      if (this.menuCategoryFilters.length > 0) filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
       this.filteredTotalMenus = filteredMenus.length;
       this.buildCategoryStats(filteredMenus);
 
-      // Generate available categories for dropdown
       const catList = this.allMenus.map(m => m.Category).filter(c => c && c.trim() !== '');
       this.availableCategories = [...new Set(catList)];
-      
-      // Update available menus based on filtered category
-      this.availableMenus = filteredMenus.map(m => ({
-        id: m.id,
-        Name: m.Name,
-        Restaurant: m.Restaurant
-      }));
+      this.availableMenus = filteredMenus.map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
 
       this.buildDailyRevenueChart(validOrdersForChart);
       this.buildPeakHoursChart(validOrdersForChart);
     },
 
-    
-    clearListeners() {
-      if (this.unsubscribeOrders) this.unsubscribeOrders();
-      if (this.unsubscribeMenus) this.unsubscribeMenus();
-      if (this.unsubscribeRestaurant) this.unsubscribeRestaurant();
-      this.unsubscribeOrders = null;
-      this.unsubscribeMenus = null;
-      this.unsubscribeRestaurant = null;
-    },
-
-    
-    async loadDashboardData(restaurantName) {
-      if (!restaurantName) return;
-      this.currentRestaurant = restaurantName;
-      this.clearListeners();
-
-      this.ordersLoading = true;
-      this.menusLoading = true;
-      this.isError = false;
-      this.errorMessage = '';
-
-      const ordersQuery = query(collection(db, 'Order'));
-      this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        this.allOrders = orders;
-        this.ordersLoading = false;
-        this.applyFilters();
-      }, (error) => {
-        console.error("Error fetching dashboard orders:", error);
-        this.ordersLoading = false;
-        this.isError = true;
-        this.errorMessage = "ไม่สามารถโหลดข้อมูลออเดอร์ได้";
-      });
-
-      const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
-      this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
-        const menus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        this.allMenus = menus;
-        this.totalMenus = menus.length;
-        this.menusLoading = false;
-        this.applyFilters();
-      }, (error) => {
-        console.error("Error fetching dashboard menus:", error);
-        this.menusLoading = false;
-        this.isError = true;
-        this.errorMessage = "ไม่สามารถโหลดข้อมูลเมนูได้";
-      });
-
-      const restaurantQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
-      this.unsubscribeRestaurant = onSnapshot(restaurantQuery, (snapshot) => {
-        if (!snapshot.empty) {
-          const data = snapshot.docs[0].data();
-          this.commissionRate = data.CommissionRate || 0;
-        }
-      });
-    },
-
-    
     buildDailyRevenueChart(orders) {
       const days = {};
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      let daysCount = 6;
-      if (this.timeFilter === 'today') daysCount = 0;
-      else if (this.timeFilter === 'thisMonth') daysCount = today.getDate() - 1;
-      else if (this.timeFilter === 'all') daysCount = 29;
-
-      for (let i = daysCount; i >= 0; i--) {
+      for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        const dateString = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-        days[dateString] = 0;
+        const label = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        days[label] = 0;
       }
 
       orders.forEach(order => {
-        if (order.localTotal > 0 && order.CreatedAt) {
-          const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-          orderDate.setHours(0, 0, 0, 0);
-
-          const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
-          if (days[dateString] !== undefined) {
-            days[dateString] += Number(order.localTotal);
+        if (!order.CreatedAt) return;
+        const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
+        const label = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        if (days[label] !== undefined) {
+          if (order.Menu) {
+            order.Menu.forEach(item => {
+              if (item.Restaurant === this.currentRestaurant && item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
+                days[label] += (Number(item.Price || 0) * Number(item.Quantity || 1));
+              }
+            });
           }
         }
       });
-
-      this.revenueByDay = Object.keys(days).map(key => ({
-        date: key,
-        revenue: days[key]
-      }));
+      this.revenueByDay = Object.entries(days).map(([date, revenue]) => ({ date, revenue }));
     },
 
-    
     buildCategoryStats(menus) {
       const counts = {};
-      menus.forEach(m => {
-        const cat = m.Category || 'อื่นๆ';
+      menus.forEach(menu => {
+        const cat = menu.Category || 'อื่นๆ';
         counts[cat] = (counts[cat] || 0) + 1;
       });
-      this.categoriesCount = Object.keys(counts).map(key => ({
-        name: key,
-        count: counts[key]
-      })).sort((a, b) => b.count - a.count);
+      this.categoriesCount = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
     },
 
-    
     buildPeakHoursChart(orders) {
-      const hourlyDistribution = Array(24).fill(0);
+      const hours = Array(24).fill(0);
       orders.forEach(order => {
-        if (order.CreatedAt) {
-
-          let orderDate;
-          if (order.CreatedAt.toDate) {
-            orderDate = order.CreatedAt.toDate();
-          } else if (order.CreatedAt.seconds) {
-            orderDate = new Date(order.CreatedAt.seconds * 1000);
-          } else {
-            orderDate = new Date(order.CreatedAt);
-          }
-
-          if (!isNaN(orderDate.getTime())) {
-            const hour = orderDate.getHours();
-            hourlyDistribution[hour]++;
-          }
-        }
+        if (!order.CreatedAt) return;
+        const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
+        hours[date.getHours()]++;
       });
-
-      const chartData = hourlyDistribution.map((count, hour) => ({
-        hour: `${hour.toString().padStart(2, '0')}:00`,
-        count: count
-      }));
-
-      chartData.push({
-        hour: "23:59",
-        count: 0
-      });
-
-      this.ordersByHour = chartData;
+      this.ordersByHour = hours.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
     }
   }
 });
-

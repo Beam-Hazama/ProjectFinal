@@ -6,8 +6,7 @@ defineProps({
 
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Top Restaurants -->
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <div v-if="dashboardStore.topRestaurants" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
       <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd" />
@@ -42,8 +41,7 @@ defineProps({
       </div>
     </div>
 
-    <!-- Top Menus -->
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100" :class="{'lg:col-span-2': !dashboardStore.topRestaurants}">
       <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-500" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
         5 อันดับเมนูยอดฮิต
@@ -53,13 +51,13 @@ defineProps({
           <thead>
             <tr class="text-slate-500">
               <th>เมนู</th>
-              <th>ร้านอาหาร</th>
+              <th v-if="dashboardStore.topRestaurants">ร้านอาหาร</th>
               <th class="text-right">จำนวน (จาน)</th>
               <th class="text-right">ยอดขาย</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="menu in dashboardStore.topMenuItems" :key="menu.name + menu.restaurant" class="hover:bg-slate-50 transition-colors">
+            <tr v-for="menu in dashboardStore.topMenuItems" :key="menu.name + (menu.restaurant || '')" class="hover:bg-slate-50 transition-colors">
               <td>
                 <div class="flex items-center gap-3">
                   <div class="avatar">
@@ -71,12 +69,12 @@ defineProps({
                   <div class="font-medium text-slate-700">{{ menu.name }}</div>
                 </div>
               </td>
-              <td class="text-xs text-slate-500">{{ menu.restaurant }}</td>
+              <td v-if="dashboardStore.topRestaurants" class="text-xs text-slate-500">{{ menu.restaurant }}</td>
               <td class="text-right font-bold text-blue-600">{{ menu.qty }}</td>
               <td class="text-right font-bold text-emerald-600">฿{{ menu.revenue.toLocaleString() }}</td>
             </tr>
             <tr v-if="dashboardStore.topMenuItems.length === 0">
-              <td colspan="4" class="text-center py-4 text-slate-400">ไม่มีข้อมูลการสั่งซื้อ</td>
+              <td :colspan="dashboardStore.topRestaurants ? 4 : 3" class="text-center py-4 text-slate-400">ไม่มีข้อมูลการสั่งซื้อ</td>
             </tr>
           </tbody>
         </table>

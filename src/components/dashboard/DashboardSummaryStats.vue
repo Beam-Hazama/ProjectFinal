@@ -6,7 +6,6 @@ defineProps({
 
 <template>
   <div class="space-y-6">
-    <!-- Status Grid -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-amber-50 rounded-xl p-4 border border-amber-100 flex flex-col items-center justify-center text-center">
         <span class="text-amber-500 text-xs font-bold mb-1 uppercase tracking-wider">รอดำเนินการ</span>
@@ -26,8 +25,7 @@ defineProps({
       </div>
     </div>
 
-    <!-- Revenue & Counts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="dashboardStore.totalRestaurants !== undefined ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 leading-none to-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
@@ -47,7 +45,9 @@ defineProps({
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-50 to-pink-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
           <div>
-            <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">รายได้ค่าธรรมเนียมรวม</p>
+            <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
+              {{ dashboardStore.totalRestaurants !== undefined ? 'รายได้ค่าธรรมเนียมรวม' : 'ค่าธรรมเนียมที่ต้องชำระ' }}
+            </p>
             <div class="flex items-baseline gap-1">
               <span class="text-3xl font-black text-rose-600">฿{{ (dashboardStore.totalCommission || 0).toLocaleString() }}</span>
             </div>
@@ -84,7 +84,7 @@ defineProps({
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+      <div v-if="dashboardStore.totalRestaurants !== undefined" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
         <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-pink-50 rounded-bl-full -mr-8 -mt-8 opacity-50 transition-transform group-hover:scale-110"></div>
         <div class="relative z-10 flex justify-between items-start">
           <div>

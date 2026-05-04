@@ -6,24 +6,6 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
-/**
- * Dashboard Store
- * ──────────────
- * รวมข้อมูลสถิติของระบบทั้งหมดเพื่อให้ admin ดูภาพรวมธุรกิจ
- * 
- * Flow:
- *   1. โหลด orders + restaurants + menus จาก Firestore (realtime)
- *   2. user เลือก filter (เช่น "เดือนนี้", "ร้าน A")
- *   3. applyFilters() คำนวณตัวเลขใหม่ตาม filter
- *   4. UI ดึงค่าจาก state ไปแสดงเป็น stats / chart / table
- * 
- * ใช้กับ:
- *   - Admin/Dashboard.vue (สถิติรายได้)
- *   - Admin/Commission.vue (ข้อมูล revenue ต่อร้าน)
- */
-
-// ─── Helper Functions สำหรับการคำนวณสถิติ ───
-
 function getStartTime(timeFilter, customStart) {
   const now = new Date();
   if (timeFilter === 'today') return new Date(now.setHours(0, 0, 0, 0));
@@ -40,20 +22,31 @@ function isOrderInTimeRange(order, start, end) {
   return orderDate >= start && orderDate <= end;
 }
 
-function calculateOrderRevenue(order, restaurantFilters = []) {
+function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = [], menuFilters = []) {
   if (order.statusOrder === 'cancelled' || order.statusOrder === 'returned') return 0;
   
-  // ถ้าไม่มีการระบุ Menu (Order เก่า) ใช้ localTotal ที่คำนวณมาแล้ว
   if (!order.Menu || order.Menu.length === 0) {
-    return restaurantFilters.length === 0 ? Number(order.localTotal || 0) : 0;
+    const isFiltered = restaurantFilters.length > 0 || categoryFilters.length > 0 || menuFilters.length > 0;
+    return isFiltered ? 0 : Number(order.localTotal || 0);
   }
 
-  // คำนวณยอดรวมจากรายการเมนูที่ผ่าน filter ร้านค้า และสถานะไม่ถูกยกเลิก
   return order.Menu
     .filter(item => {
       const isRightRestaurant = restaurantFilters.length === 0 || restaurantFilters.includes(item.Restaurant);
       const isNotCancelled = item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned';
-      return isRightRestaurant && isNotCancelled;
+      
+      let isRightCategory = true;
+      if (categoryFilters.length > 0) {
+        isRightCategory = categoryFilters.includes(item.Category);
+      }
+      
+      let isRightMenu = true;
+      if (menuFilters.length > 0) {
+        const menuId = item.id || item.menuId;
+        isRightMenu = menuFilters.includes(menuId);
+      }
+      
+      return isRightRestaurant && isNotCancelled && isRightCategory && isRightMenu;
     })
     .reduce((sum, item) => sum + (Number(item.Price || 0) * Number(item.Quantity || 1)), 0);
 }
@@ -68,6 +61,8 @@ export const useDashboardStore = defineStore("dashboardStore", {
     customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split("T")[0],
     customEndDate: new Date().toISOString().split("T")[0],
     restaurantFilters: [],
+    menuCategoryFilters: [],
+    menuFilters: [],
 
     totalOrders: 0,
     totalRevenue: 0,
@@ -86,6 +81,8 @@ export const useDashboardStore = defineStore("dashboardStore", {
     ordersByHour: [],
 
     availableRestaurants: [],
+    availableCategories: [],
+    availableMenus: [],
 
     ordersLoading: true,
     menusLoading: true,
@@ -103,9 +100,11 @@ export const useDashboardStore = defineStore("dashboardStore", {
     categoryChartSeries: (state) => state.categoriesCount.map((cat) => cat.count),
     peakHoursChartSeries: (state) => [{ name: "จำนวนออเดอร์", data: state.ordersByHour.map((h) => h.count) }],
     
-    hasActiveFilters: (state) => state.restaurantFilters.length > 0,
+    hasActiveFilters: (state) => 
+      state.restaurantFilters.length > 0 || 
+      state.menuCategoryFilters.length > 0 || 
+      state.menuFilters.length > 0,
 
-    // ข้อมูลรายได้แยกตามร้านค้า (สำหรับใช้ใน Commission)
     revenueByRestaurant: (state) => {
       const restMap = {};
       state.allRestaurants.forEach(r => restMap[r.Name] = 0);
@@ -147,6 +146,37 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.applyFilters();
     },
 
+    toggleCategoryFilter(category) {
+      const index = this.menuCategoryFilters.indexOf(category);
+      if (index > -1) this.menuCategoryFilters.splice(index, 1);
+      else this.menuCategoryFilters.push(category);
+      this.applyFilters();
+    },
+
+    clearCategoryFilters() {
+      this.menuCategoryFilters = [];
+      this.applyFilters();
+    },
+
+    toggleMenuFilter(id) {
+      const index = this.menuFilters.indexOf(id);
+      if (index > -1) this.menuFilters.splice(index, 1);
+      else this.menuFilters.push(id);
+      this.applyFilters();
+    },
+
+    clearMenuFilters() {
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+
+    clearAllFilters() {
+      this.restaurantFilters = [];
+      this.menuCategoryFilters = [];
+      this.menuFilters = [];
+      this.applyFilters();
+    },
+
     setCustomDates(start, end) {
       this.customStartDate = start;
       this.customEndDate = end;
@@ -157,12 +187,11 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const start = getStartTime(this.timeFilter, this.customStartDate);
       const end = this.timeFilter === "custom" ? new Date(this.customEndDate).setHours(23, 59, 59, 999) : new Date().setHours(23, 59, 59, 999);
 
-      // กรองออเดอร์ตามเวลาและร้านค้า
       const filteredOrders = this.allOrders.filter(o => isOrderInTimeRange(o, start, end));
       
-      // คำนวณสรุปยอด (Stats)
       let revenue = 0;
       let commission = 0;
+      let filteredOrdersCount = 0;
       const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
       const menuMetrics = {};
       const restRevenue = {};
@@ -171,24 +200,27 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.allRestaurants.forEach(r => restRateMap[r.Name] = Number(r.CommissionRate || 0));
 
       filteredOrders.forEach(order => {
-        const orderRev = calculateOrderRevenue(order, this.restaurantFilters);
-        if (orderRev > 0 || this.restaurantFilters.length === 0) {
+        const orderRev = calculateOrderRevenue(order, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
+        
+        if (orderRev > 0 || (this.restaurantFilters.length === 0 && this.menuCategoryFilters.length === 0 && this.menuFilters.length === 0)) {
           revenue += orderRev;
+          if (orderRev > 0) filteredOrdersCount++;
           
-          // คำนวณ Commission รายไอเทม
           if (order.Menu) {
             order.Menu.forEach(item => {
-              if (item.itemStatus !== 'cancelled' && (this.restaurantFilters.length === 0 || this.restaurantFilters.includes(item.Restaurant))) {
+              const isRightRest = this.restaurantFilters.length === 0 || this.restaurantFilters.includes(item.Restaurant);
+              const isRightCat = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
+              const menuId = item.id || item.menuId;
+              const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
+
+              if (item.itemStatus !== 'cancelled' && isRightRest && isRightCat && isRightMenu) {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
                 commission += (itemRev * (restRateMap[item.Restaurant] || 0)) / 100;
                 
-                // เก็บข้อมูลสำหรับ Top Menu
-                const menuId = item.id || item.menuId;
-                if (!menuMetrics[menuId]) menuMetrics[menuId] = { name: item.Name, qty: 0, revenue: 0 };
+                if (!menuMetrics[menuId]) menuMetrics[menuId] = { name: item.Name, qty: 0, revenue: 0, image: item.ImageUrl };
                 menuMetrics[menuId].qty += Number(item.Quantity || 1);
                 menuMetrics[menuId].revenue += itemRev;
 
-                // เก็บข้อมูลสำหรับ Top Restaurant
                 restRevenue[item.Restaurant] = (restRevenue[item.Restaurant] || 0) + itemRev;
               }
             });
@@ -202,15 +234,21 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.totalRevenue = revenue;
       this.totalCommission = commission;
       this.netPayouts = revenue - commission;
-      this.totalOrders = filteredOrders.length;
-      this.orderStatuses = statusCounts || { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
+      this.totalOrders = filteredOrdersCount;
+      this.orderStatuses = statusCounts;
 
-      // จัดอันดับ
       this.topRestaurants = Object.entries(restRevenue).map(([name, revenue]) => ({ name, revenue })).sort((a,b) => b.revenue - a.revenue).slice(0, 5);
       this.topMenuItems = Object.values(menuMetrics).sort((a,b) => b.qty - a.qty).slice(0, 5);
-      this.recentOrders = [...filteredOrders].sort((a,b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0)).slice(0, 10);
+      this.recentOrders = [...filteredOrders].sort((a,b) => (b.CreatedAt?.toMillis?.() || 0) - (a.CreatedAt?.toMillis?.() || 0)).slice(0, 10);
 
-      // สร้างข้อมูล Chart
+      const catList = this.allMenus.map(m => m.Category).filter(c => c && c.trim() !== '');
+      this.availableCategories = [...new Set(catList)];
+      
+      this.availableMenus = this.allMenus
+        .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.Restaurant))
+        .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
+        .map(m => ({ id: m.id, Name: m.Name }));
+
       this.buildDailyRevenueChart(filteredOrders);
       this.buildPeakHoursChart(filteredOrders);
       this.buildCategoryStats(this.allMenus);
@@ -259,7 +297,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
         days[`${d.getDate().toString().padStart(2,"0")}/${(d.getMonth()+1).toString().padStart(2,"0")}`] = 0;
       }
       orders.forEach(o => {
-        const rev = calculateOrderRevenue(o, this.restaurantFilters);
+        const rev = calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
         const date = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
         const key = `${date.getDate().toString().padStart(2,"0")}/${(date.getMonth()+1).toString().padStart(2,"0")}`;
         if (days[key] !== undefined) days[key] += rev;

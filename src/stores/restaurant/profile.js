@@ -11,7 +11,9 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     const loading = ref(true);
     const docId = ref(null);
     const imagePreview = ref('');
+    const backgroundPreview = ref('');
     const selectedFile = ref(null);
+    const selectedBgFile = ref(null);
     const isEditing = ref(false);
     const isSubmitting = ref(false);
 
@@ -21,6 +23,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         Distance: '',
         Address: '',
         ImageUrl: '',
+        BgUrl: '',
         OpenTime: '',
         CloseTime: '',
         OpenDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -46,7 +49,6 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
 
         const nameFromUser = accountStore.user?.Restaurant;
         if (!nameFromUser) {
-            console.warn("No restaurant found in user account");
             loading.value = false;
             return;
         }
@@ -67,49 +69,44 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
                 if (!RestaurantData.Status) RestaurantData.Status = 'auto';
 
                 imagePreview.value = RestaurantData.ImageUrl;
-            } else {
-                console.warn("Restaurant not found in database");
+                backgroundPreview.value = RestaurantData.BgUrl || '';
             }
         } catch (error) {
-            console.error("Error fetching restaurant:", error);
+            console.error(error);
         } finally {
             loading.value = false;
         }
     };
 
     const saveProfile = async () => {
-        if (!docId.value) {
-            alert("ไม่พบข้อมูลร้านอาหารในระบบ ไม่สามารถบันทึกได้");
-            return;
-        }
+        if (!docId.value) return;
         
         try {
             isSubmitting.value = true;
             let ImageUrl = RestaurantData.ImageUrl;
+            let BgUrl = RestaurantData.BgUrl;
 
             if (selectedFile.value) {
-                console.log("Uploading new profile image...");
-                try {
-                    const fileName = `restaurants/${docId.value}_${Date.now()}`;
-                    const fileRef = storageRef(storage, fileName);
-                    const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                    ImageUrl = await getDownloadURL(snapshot.ref);
-                    console.log("Upload successful, new URL:", ImageUrl);
-                } catch (uploadError) {
-                    console.error("Error uploading image:", uploadError);
-                    alert("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ: " + uploadError.message);
-                    isSubmitting.value = false;
-                    return;
-                }
+                const fileName = `restaurants/${docId.value}_profile_${Date.now()}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                ImageUrl = await getDownloadURL(snapshot.ref);
             }
 
-            console.log("Updating Firestore document:", docId.value);
+            if (selectedBgFile.value) {
+                const fileName = `restaurants/${docId.value}_cover_${Date.now()}`;
+                const fileRef = storageRef(storage, fileName);
+                const snapshot = await uploadBytes(fileRef, selectedBgFile.value);
+                BgUrl = await getDownloadURL(snapshot.ref);
+            }
+
             await updateDoc(doc(db, 'Restaurant', docId.value), {
                 Name: RestaurantData.Name,
                 Phone: RestaurantData.Phone,
                 Distance: RestaurantData.Distance,
                 Address: RestaurantData.Address,
                 ImageUrl: ImageUrl,
+                BgUrl: BgUrl,
                 OpenTime: RestaurantData.OpenTime,
                 CloseTime: RestaurantData.CloseTime,
                 OpenDays: RestaurantData.OpenDays,
@@ -119,10 +116,10 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
             
             isEditing.value = false;
             selectedFile.value = null;
+            selectedBgFile.value = null;
             await fetchRestaurantByName();
         } catch (error) {
-            console.error("Error saving profile:", error);
-            // Error handled by console.error above
+            console.error(error);
         } finally {
             isSubmitting.value = false;
         }
@@ -132,7 +129,11 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
             URL.revokeObjectURL(imagePreview.value);
         }
+        if (backgroundPreview.value && backgroundPreview.value.startsWith('blob:')) {
+            URL.revokeObjectURL(backgroundPreview.value);
+        }
         selectedFile.value = null;
+        selectedBgFile.value = null;
         fetchRestaurantByName();
         isEditing.value = false;
     };
@@ -144,9 +145,18 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
                 URL.revokeObjectURL(imagePreview.value);
             }
             selectedFile.value = file;
-            const previewUrl = URL.createObjectURL(file);
-            imagePreview.value = previewUrl;
-            console.log("File selected for upload:", file.name);
+            imagePreview.value = URL.createObjectURL(file);
+        }
+    };
+
+    const onCoverSelected = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (backgroundPreview.value && backgroundPreview.value.startsWith('blob:')) {
+                URL.revokeObjectURL(backgroundPreview.value);
+            }
+            selectedBgFile.value = file;
+            backgroundPreview.value = URL.createObjectURL(file);
         }
     };
 
@@ -156,12 +166,15 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         loading,
         docId,
         imagePreview,
+        backgroundPreview,
         selectedFile,
+        selectedBgFile,
         isEditing,
         isSubmitting,
         fetchRestaurantByName,
         saveProfile,
         cancelEdit,
-        onImageSelected
+        onImageSelected,
+        onCoverSelected
     };
 });

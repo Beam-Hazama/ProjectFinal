@@ -7,7 +7,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
 import { useQrcodeStore } from '@/stores/admin/qrcode';
-import { usePosterStore } from '@/stores/shared/poster';
+
 import { useCategoryStore } from '@/stores/shared/category';
 import { useRestaurant } from '@/stores/shared/restaurant';
 
@@ -15,7 +15,7 @@ import RestaurantList from '@/components/shared/RestaurantList.vue';
 import MenuList from '@/components/shared/BlockMenu.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 import MenuOrderModal from '@/components/shared/ModalMenu.vue';
-import Poster from '@/views/customer/Poster.vue';
+
 
 const route = useRoute();
 const router = useRouter(); // เพิ่ม router
@@ -23,7 +23,7 @@ const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
 const qrStore = useQrcodeStore();
-const posterStore = usePosterStore();
+
 const categoryStore = useCategoryStore();
 
 // Sync room with store
@@ -41,13 +41,29 @@ const isFilterPromoOnly = ref(false);
 const now = ref(new Date());
 let timer;
 
+const banners = [
+  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1543353071-10c8ba85a904?q=80&w=1000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1000&auto=format&fit=crop'
+];
 
+const currentSlide = ref(0);
+let carouselTimer = null;
+
+const startCarousel = () => {
+  stopCarousel();
+  carouselTimer = setInterval(() => {
+    currentSlide.value = (currentSlide.value + 1) % banners.length;
+  }, 5000);
+};
+
+const stopCarousel = () => {
+  if (carouselTimer) clearInterval(carouselTimer);
+};
 
 const displayLocation = computed(() => {
   return `ห้อง ${room.value}`;
 });
-
-
 
 const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
@@ -67,6 +83,7 @@ onMounted(async () => {
     cartStore.setRoom(route.params.room);
   }
   await loadAllData();
+  startCarousel();
   timer = setInterval(() => {
     now.value = new Date();
   }, 60000);
@@ -86,7 +103,6 @@ const loadAllData = async () => {
         restaurantStore.loadListRestaurant(),
         menuStore.loadMenu(),
         cartStore.loadCart(room.value),
-        posterStore.fetchPosters(),
         categoryStore.fetchCategories()
       ]);
     }
@@ -100,6 +116,7 @@ const loadAllData = async () => {
 };
 
 onUnmounted(() => {
+  stopCarousel();
   if (timer) clearInterval(timer);
   restaurantStore.clearListener();
   menuStore.clearListener();
@@ -114,15 +131,16 @@ watch(() => route.params.room, async (newR) => {
     cartStore.setRoom(newR);
   }
   
-  if (!room.value || room.value === '-') {
+  if (!room.value || room.value === '-' || room.value === 'undefined') {
     const savedRoom = localStorage.getItem('lastRoom');
-    if (savedRoom) {
+    if (savedRoom && savedRoom !== 'undefined') {
       router.replace(`/user/${savedRoom}`);
       return;
     }
   }
 
-  if (room.value !== '-') {
+
+  if (room.value !== '-' && room.value !== 'undefined') {
     isLoading.value = true;
     const isValid = await qrStore.validateRoom(room.value);
     isValidLocation.value = isValid;
@@ -234,25 +252,46 @@ const applyFilters = () => {
           <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        <div @click="$router.push(`/user/search/${room.value}`)"
+        <div @click="router.push(`/user/search/${room}`)"
           class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
       </div>
     </div>
 
+    <!-- Banner Slider Section -->
+    <div class="px-4 py-2 mt-2">
+      <div class="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-lg shadow-blue-100/50 group"
+           @mouseenter="stopCarousel" @mouseleave="startCarousel">
+        
+        <!-- Slides -->
+        <div class="flex transition-transform duration-700 ease-in-out h-full w-full"
+             :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+          <div v-for="(img, index) in banners" :key="index" class="w-full flex-shrink-0 h-full relative">
+            <img :src="img" class="w-full h-full object-cover" alt="Banner" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          </div>
+        </div>
 
-    <Poster />
-
+        <!-- Dots -->
+        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+          <button v-for="(_, index) in banners" :key="'dot-' + index"
+                  @click="currentSlide = index"
+                  :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', 
+                           currentSlide === index ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80']">
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
-        <button @click="$router.push(`/user/all-categories/${room.value}`)"
+        <button @click="router.push(`/user/all-categories/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in activeCategories" :key="cat.id" @click="$router.push(`/user/category/${cat.Name}/${room.value}`)"
+        <div v-for="cat in activeCategories" :key="cat.id" @click="router.push(`/user/category/${cat.Name}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
@@ -271,7 +310,7 @@ const applyFilters = () => {
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="$router.push(`/user/all-promotions/${room.value}`)"
+        <button @click="router.push(`/user/all-promotions/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
@@ -369,7 +408,7 @@ const applyFilters = () => {
                   <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.Name)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
-                      selectedRestaurantCategories.includes(cat.name)
+                      selectedRestaurantCategories.includes(cat.Name)
                         ? 'bg-blue-50 border-blue-500 text-blue-600 font-black'
                         : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
                     ]">
@@ -397,14 +436,14 @@ const applyFilters = () => {
 
       <div class="px-4">
         <div class="animate-fade-in">
-          <RestaurantList :room="room.value" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
+          <RestaurantList :room="room" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
         </div>
       </div>
     </div>
 
 
-    <BottomNavigation :room="room.value" />
+    <BottomNavigation :room="room" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>
 </template>

@@ -11,7 +11,7 @@ const Adminorderhistory = () => import("@/views/admin/OrderHistory.vue");
 const AdminQRCode = () => import("@/views/admin/QRCode.vue");
 const Adminrestaurantlist = () => import("@/views/admin/RestaurantList.vue");
 const Adminrestaurantuser = () => import("@/views/admin/RestaurantUser.vue");
-const Adminpostermanage = () => import("@/views/admin/Poster.vue");
+
 const AdminCategory = () => import("@/views/admin/Category.vue");
 const AdminCommission = () => import("@/views/admin/Commission.vue");
 
@@ -28,7 +28,7 @@ const Restaurantprofile = () => import("@/views/restaurant/Profile.vue");
 const RestaurantAddMenu = () => import("@/views/restaurant/AddMenu.vue");
 const RestaurantEditMenu = () => import("@/views/restaurant/EditMenu.vue");
 const RestaurantDashboard = () => import("@/views/restaurant/Dashboard.vue");
-const RestaurantPoster = () => import("@/views/restaurant/Poster.vue");
+
 const RestaurantOrderHistory = () => import("@/views/restaurant/OrderHistory.vue");
 
 const User = () => import("@/views/customer/Home.vue");
@@ -139,12 +139,7 @@ const router = createRouter({
       component: Adminrestaurantuser,
       meta: { requiresAuth: true, role: 'admin' },
     },
-    {
-      path: '/Admin/Poster',
-      name: 'Admin Poster',
-      component: Adminpostermanage,
-      meta: { requiresAuth: true, role: 'admin' },
-    },
+
     {
       path: '/Admin/Category',
       name: 'Admin Category',
@@ -226,12 +221,7 @@ const router = createRouter({
       component: Restaurantprofile,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
-    {
-      path: '/Restaurant/Poster',
-      name: 'Restaurants Poster',
-      component: RestaurantPoster,
-      meta: { requiresAuth: true, role: 'restaurant' },
-    },
+
 
     {
       path: '/Restaurant/Menulist',

@@ -6,7 +6,10 @@ export const useCartStore = defineStore("cart", {
 
   state: () => ({
     item: [],
-    room: localStorage.getItem('lastRoom') || '-',
+    room: (() => {
+      const saved = localStorage.getItem('lastRoom');
+      return (saved && saved !== 'undefined') ? saved : '-';
+    })(),
   }),
 
   getters: {
@@ -28,7 +31,7 @@ export const useCartStore = defineStore("cart", {
 
   actions: {
     setRoom(roomNumber) {
-      if (roomNumber && roomNumber !== '-') {
+      if (roomNumber && roomNumber !== '-' && roomNumber !== 'undefined') {
         this.room = roomNumber;
         localStorage.setItem('lastRoom', roomNumber);
       }

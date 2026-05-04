@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, computed, ref } from 'vue';
 import { useOrderlistStore } from '@/stores/shared/orderlist';
 import { useAccountStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/shared/menu';
-import LayoutRestaurant from './restaurant.vue';
+import LayoutRestaurant from './RestaurantLayout.vue';
 import { formatTime, formatPrice } from '@/utils/format';
 
 const orderStore = useOrderlistStore();

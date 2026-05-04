@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
 import { computed, reactive, ref } from 'vue';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
 
-export const useEditMenuStore = defineStore('editMenu', () => {
+export const useMenuFormStore = defineStore('menuForm', () => {
     const accountStore = useAccountStore();
     
     const selectedFile = ref(null);
@@ -33,58 +33,62 @@ export const useEditMenuStore = defineStore('editMenu', () => {
                (selectedFile.value !== null || MenuData.ImageUrl !== '');
     });
 
-    const initForm = async (id) => {
+    const initForm = async (id = null) => {
         if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
             URL.revokeObjectURL(imagePreview.value);
         }
         await accountStore.checkAuthState();
-        const menuSnap = await getDoc(doc(db, 'Menu', id));
-
-        if (menuSnap.exists()) {
-            const res = menuSnap.data();
+        
+        if (id) {
+            const menuSnap = await getDoc(doc(db, 'Menu', id));
+            if (menuSnap.exists()) {
+                const res = menuSnap.data();
+                Object.assign(MenuData, {
+                    ...res,
+                    OptionGroups: res.OptionGroups || []
+                });
+                imagePreview.value = res.ImageUrl || '';
+            }
+        } else {
             Object.assign(MenuData, {
-                ...res,
-                OptionGroups: res.OptionGroups || []
+                Name: '',
+                ImageUrl: '',
+                Price: '',
+                PromoPrice: null,
+                Restaurant: accountStore.user?.Restaurant || '',
+                Description: '',
+                Category: '',
+                Status: '',
+                OptionGroups: [],
             });
-            imagePreview.value = res.ImageUrl || '';
+            selectedFile.value = null;
+            imagePreview.value = '';
         }
     };
 
-    const validateMenu = () => {
-        if (!MenuData.Name.trim()) {
-            return false;
+    const onImageSelected = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreview.value);
+            }
+            selectedFile.value = file;
+            const previewUrl = URL.createObjectURL(file);
+            imagePreview.value = previewUrl;
+            MenuData.ImageUrl = previewUrl;
         }
-        if (!MenuData.Price || Number(MenuData.Price) <= 0) {
-            return false;
-        }
-        if (!MenuData.Category) {
-            return false;
-        }
-        if (!MenuData.Status) {
-            return false;
-        }
-        if (!selectedFile.value && !MenuData.ImageUrl) {
-            return false;
-        }
-        return true;
     };
 
-    const editMenu = async (id, router, route) => {
-        if (!validateMenu()) return;
+    const save = async (id = null, router, route) => {
         isLoading.value = true;
         try {
             let ImageUrl = MenuData.ImageUrl;
 
             if (selectedFile.value) {
-                try {
-                    const fileName = `${Date.now()}_${selectedFile.value.name}`;
-                    const fileRef = storageRef(storage, `menus/${fileName}`);
-                    const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                    ImageUrl = await getDownloadURL(snapshot.ref);
-                } catch (uploadError) {
-                    console.error('Error uploading image:', uploadError);
-                    return;
-                }
+                const fileName = `${Date.now()}_${selectedFile.value.name}`;
+                const fileRef = storageRef(storage, `menus/${fileName}`);
+                const snapshot = await uploadBytes(fileRef, selectedFile.value);
+                ImageUrl = await getDownloadURL(snapshot.ref);
             }
 
             const cleanOptionGroups = (MenuData.OptionGroups || []).map(group => {
@@ -108,10 +112,15 @@ export const useEditMenuStore = defineStore('editMenu', () => {
                 Status: MenuData.Status,
                 PromoPrice: MenuData.PromoPrice ? Number(MenuData.PromoPrice) : null,
                 OptionGroups: cleanOptionGroups,
-                UpdatedAt: serverTimestamp()
+                UpdatedAt: serverTimestamp(),
             };
 
-            await updateDoc(doc(db, 'Menu', id), saveData);
+            if (id) {
+                await updateDoc(doc(db, 'Menu', id), saveData);
+            } else {
+                saveData.CreatedAt = serverTimestamp();
+                await addDoc(collection(db, 'Menu'), saveData);
+            }
 
             if (['Restaurant Add Menu', 'Restaurant Edit Menu'].includes(route.name)) {
                 router.push({ name: 'Restaurants Menulist' });
@@ -119,22 +128,9 @@ export const useEditMenuStore = defineStore('editMenu', () => {
                 router.push({ name: 'Admin Menu List' });
             }
         } catch (error) {
-            console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
+            console.error(error);
         } finally {
             isLoading.value = false;
-        }
-    };
-
-    const onImageSelected = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePreview.value);
-            }
-            selectedFile.value = file;
-            const previewUrl = URL.createObjectURL(file);
-            imagePreview.value = previewUrl;
-            MenuData.ImageUrl = previewUrl;
         }
     };
 
@@ -167,7 +163,7 @@ export const useEditMenuStore = defineStore('editMenu', () => {
         imagePreview,
         isLoading,
         initForm,
-        editMenu,
+        save,
         onImageSelected,
         addOptionGroup,
         removeOptionGroup,

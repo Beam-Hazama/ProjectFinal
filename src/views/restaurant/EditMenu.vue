@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LayoutAdmin from '@/views/restaurant/RestaurantLayout.vue';
-import { useEditMenuStore } from '@/stores/restaurant/editMenu';
+import { useMenuFormStore } from '@/stores/restaurant/menuForm';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { useCategoryStore } from '@/stores/shared/category';
 import { formatTimestamp } from '@/utils/format';
@@ -11,29 +11,28 @@ const route = useRoute();
 const router = useRouter();
 const Restaurant = useRestaurant();
 const categoryStore = useCategoryStore();
-// Removed formatTimestampStore usage
 
-const editStore = useEditMenuStore();
+const formStore = useMenuFormStore();
 
 onMounted(() => {
     Restaurant.loadListRestaurant();
     categoryStore.loadCategories();
-    editStore.initForm(route.params.id);
+    formStore.initForm(route.params.id);
 });
 
-const MenuData = computed(() => editStore.MenuData);
-const imagePreview = computed(() => editStore.imagePreview);
-const isLoading = computed(() => editStore.isLoading);
+const MenuData = computed(() => formStore.MenuData);
+const imagePreview = computed(() => formStore.imagePreview);
+const isLoading = computed(() => formStore.isLoading);
 
-const checkAddMenu = () => editStore.editMenu(route.params.id, router, route);
-const handleFileUpload = (e) => editStore.onImageSelected(e);
-const addOptionGroup = () => editStore.addOptionGroup();
-const removeOptionGroup = (i) => editStore.removeOptionGroup(i);
-const addChoice = (g) => editStore.addChoice(g);
-const removeChoice = (g, c) => editStore.removeChoice(g, c);
+const checkAddMenu = () => formStore.save(route.params.id, router, route);
+const handleFileUpload = (e) => formStore.onImageSelected(e);
+const addOptionGroup = () => formStore.addOptionGroup();
+const removeOptionGroup = (i) => formStore.removeOptionGroup(i);
+const addChoice = (g) => formStore.addChoice(g);
+const removeChoice = (g, c) => formStore.removeChoice(g, c);
 const goBack = () => router.go(-1);
 
-const isFormValid = computed(() => editStore.isFormValid);
+const isFormValid = computed(() => formStore.isFormValid);
 
 const onlyNumber = (e) => {
     if (!/^\d$/.test(e.key)) {

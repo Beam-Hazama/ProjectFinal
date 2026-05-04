@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LayoutAdmin from '@/views/restaurant/RestaurantLayout.vue';
-import { useAddMenuStore } from '@/stores/restaurant/addMenu';
+import { useMenuFormStore } from '@/stores/restaurant/menuForm';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { useCategoryStore } from '@/stores/shared/category';
 
@@ -11,27 +11,27 @@ const router = useRouter();
 const Restaurant = useRestaurant();
 const categoryStore = useCategoryStore();
 
-const addStore = useAddMenuStore();
+const formStore = useMenuFormStore();
 
 onMounted(() => {
     Restaurant.loadListRestaurant();
     categoryStore.loadCategories();
-    addStore.initForm();
+    formStore.initForm();
 });
 
-const MenuData = computed(() => addStore.MenuData);
-const imagePreview = computed(() => addStore.imagePreview);
-const isLoading = computed(() => addStore.isLoading);
+const MenuData = computed(() => formStore.MenuData);
+const imagePreview = computed(() => formStore.imagePreview);
+const isLoading = computed(() => formStore.isLoading);
 
-const checkAddMenu = () => addStore.addMenu(router, route);
-const handleFileUpload = (e) => addStore.onImageSelected(e);
-const addOptionGroup = () => addStore.addOptionGroup();
-const removeOptionGroup = (i) => addStore.removeOptionGroup(i);
-const addChoice = (g) => addStore.addChoice(g);
-const removeChoice = (g, c) => addStore.removeChoice(g, c);
+const checkAddMenu = () => formStore.save(null, router, route);
+const handleFileUpload = (e) => formStore.onImageSelected(e);
+const addOptionGroup = () => formStore.addOptionGroup();
+const removeOptionGroup = (i) => formStore.removeOptionGroup(i);
+const addChoice = (g) => formStore.addChoice(g);
+const removeChoice = (g, c) => formStore.removeChoice(g, c);
 const goBack = () => router.go(-1);
 
-const isFormValid = computed(() => addStore.isFormValid);
+const isFormValid = computed(() => formStore.isFormValid);
 
 const onlyNumber = (e) => {
     if (!/^\d$/.test(e.key)) {

@@ -6,7 +6,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
 import { useQrcodeStore } from '@/stores/admin/qrcode';
-import { usePosterStore } from '@/stores/shared/poster';
+
 import { useCategoryStore } from '@/stores/shared/category';
 import MenuList from '@/components/shared/BlockMenu.vue';
 import { formatOpenDays } from '@/utils/format';
@@ -16,11 +16,11 @@ const router = useRouter();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
 const qrStore = useQrcodeStore();
-const posterStore = usePosterStore();
+
 const categoryStore = useCategoryStore();
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
-const room = route.params.room || '-';
+const room = (route.params.room && route.params.room !== 'undefined') ? route.params.room : '-';
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
@@ -31,11 +31,7 @@ const isSearchActive = ref(false);
 const searchInput = ref(null);
 const isCategoryModalOpen = ref(false);
 
-const currentSlide = ref(0);
-let carouselTimeout = null;
 
-const isManualScrolling = ref(false);
-let observer = null;
 
 const displayCategories = computed(() => {
     const categories = new Set();
@@ -95,63 +91,17 @@ onMounted(async () => {
     if (isValid) {
         await menuStore.loadMenu();
         cartStore.loadCart(room);
-        posterStore.loadPosters(restaurantName);
-        categoryStore.loadCategories(restaurantName);
         fetchRestaurantDetails();
-        startCarousel();
 
-        nextTick(() => {
-            initIntersectionObserver();
-        });
+
+
     }
 });
 
 onUnmounted(() => {
-    stopCarousel();
-    if (observer) observer.disconnect();
 });
 
-watch(() => posterStore.activePosters, (newVal) => {
-    if (newVal && newVal.length > 0 && !carouselTimeout) {
-        startCarousel();
-    }
-}, { deep: true });
 
-const startCarousel = () => {
-    stopCarousel();
-    if (posterStore.activePosters?.length > 1) {
-        const currentPoster = posterStore.activePosters[currentSlide.value];
-        const durationMs = (currentPoster?.displayDuration || 5) * 1000;
-
-        carouselTimeout = setTimeout(() => {
-            nextSlide();
-        }, durationMs);
-    }
-};
-
-const stopCarousel = () => {
-    if (carouselTimeout) {
-        clearTimeout(carouselTimeout);
-        carouselTimeout = null;
-    }
-};
-
-const nextSlide = () => {
-    currentSlide.value = (currentSlide.value + 1) % posterStore.activePosters.length;
-    startCarousel();
-};
-
-const prevSlide = () => {
-    currentSlide.value = currentSlide.value === 0
-        ? posterStore.activePosters.length - 1
-        : currentSlide.value - 1;
-    startCarousel();
-};
-
-const goToSlide = (index) => {
-    currentSlide.value = index;
-    startCarousel();
-};
 
 const toggleSearch = () => {
     isSearchActive.value = !isSearchActive.value;
@@ -185,7 +135,6 @@ const goBack = () => {
 };
 
 const scrollToCategory = (categoryName) => {
-    isManualScrolling.value = true;
     activeMenuTab.value = categoryName;
     isCategoryModalOpen.value = false;
 
@@ -205,39 +154,9 @@ const scrollToCategory = (categoryName) => {
             behavior: "smooth"
         });
     }
-
-    setTimeout(() => {
-        isManualScrolling.value = false;
-    }, 1000);
 };
 
-const initIntersectionObserver = () => {
-    const options = {
-        root: null,
-        rootMargin: '-65px 0px -70% 0px',
-        threshold: 0
-    };
 
-    observer = new IntersectionObserver((entries) => {
-        if (isManualScrolling.value) return;
-
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                const catName = entry.target.id.replace('category-', '');
-                activeMenuTab.value = catName;
-
-                const tabElement = document.getElementById(`tab-${catName}`);
-                if (tabElement) {
-                    tabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            }
-        });
-    }, options);
-
-    document.querySelectorAll('[id^="category-"]').forEach((section) => {
-        observer.observe(section);
-    });
-};
 </script>
 
 <template>
@@ -261,87 +180,54 @@ const initIntersectionObserver = () => {
     </div>
 
     <div v-else class="min-h-screen bg-gray-50 pb-24 font-sans relative">
-        
-        <div class="relative w-full h-[220px]"
-            :class="{ 'bg-blue-800': posterStore.activePosters.length === 0 && !currentRestaurant?.PosterUrl }">
-
-            <div v-if="posterStore.activePosters.length > 0" class="w-full h-full overflow-hidden relative"
-                @mouseenter="stopCarousel" @mouseleave="startCarousel">
-
-                
-                <div class="flex transition-transform duration-500 ease-out h-full w-full"
-                    :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-                    <div v-for="poster in posterStore.activePosters" :key="poster.id"
-                        class="w-full flex-shrink-0 h-full relative group">
-                        <img :src="poster.ImageUrl" class="object-cover w-full h-full" alt="Poster" />
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    </div>
-                </div>
-
-                
-                <div v-if="posterStore.activePosters.length > 1"
-                    class="absolute inset-0 flex items-center justify-between p-2 opacity-0 hover:opacity-100 transition-opacity z-10">
-                    <button @click="prevSlide"
-                        class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❮</button>
-                    <button @click="nextSlide"
-                        class="btn btn-circle btn-sm bg-black/30 border-none text-white backdrop-blur-sm">❯</button>
-                </div>
-
-                
-                <div v-if="posterStore.activePosters.length > 1"
-                    class="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-10">
-                    <button v-for="(_, index) in posterStore.activePosters" :key="'dot-' + index"
-                        @click="goToSlide(index)"
-                        :class="['w-1.5 h-1.5 rounded-full transition-all duration-300', currentSlide === index ? 'bg-white w-3' : 'bg-white/50 hover:bg-white/80']">
-                    </button>
-                </div>
-            </div>
-
+        <div class="relative w-full h-[220px] bg-slate-200 overflow-hidden">
+            <img v-if="currentRestaurant?.BgUrl || currentRestaurant?.PosterUrl" 
+                :src="currentRestaurant?.BgUrl || currentRestaurant?.PosterUrl"
+                class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700"></div>
             
-            <div v-else class="w-full h-full">
-                <img v-if="currentRestaurant?.PosterUrl" :src="currentRestaurant.PosterUrl"
-                    class="w-full h-full object-cover" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            </div>
-
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
             
-            <div class="absolute top-0 w-full px-4 pt-4 pb-2 flex justify-between items-center z-40">
+            <div class="absolute top-0 w-full px-4 pt-4 flex justify-between items-center z-40">
                 <button @click="goBack"
-                    class="btn btn-circle btn-sm bg-white/90 border-0 text-gray-800 shadow-sm hover:bg-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                    class="btn btn-circle btn-sm bg-black/20 backdrop-blur-md border-0 text-white shadow-sm hover:bg-black/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3"
                         stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                     </svg>
                 </button>
             </div>
+
+            <div class="absolute bottom-12 left-5 right-5 z-10">
+                <h1 class="font-black text-2xl text-white drop-shadow-md truncate">{{ restaurantName }}</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] text-white font-bold border border-white/30">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ currentRestaurant?.OpenTime }} - {{ currentRestaurant?.CloseTime }}
+                    </div>
+                </div>
+            </div>
         </div>
 
-        
-        <div class="relative z-10 px-2 -mt-10 mb-1">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                <div class="flex justify-between items-start">
-                    <h1 class="font-bold text-xl text-gray-800 truncate pr-2">{{ restaurantName }}</h1>
-                </div>
-                
-                <div v-if="currentRestaurant" class="mt-3 flex flex-col gap-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span class="text-[11px] font-bold">{{ formatOpenDays(currentRestaurant.OpenDays) }}</span>
-                        </div>
+        <div class="relative z-20 px-4 -mt-8">
+            <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-4 border border-slate-100">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-xs font-black">{{ formatOpenDays(currentRestaurant?.OpenDays) }}</span>
+                    </div>
 
-                        <div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span class="text-[11px] font-bold">{{ currentRestaurant.OpenTime }} - {{ currentRestaurant.CloseTime }}</span>
-                        </div>
+                    <div v-if="currentRestaurant?.Distance" class="flex items-center gap-1.5 bg-slate-50 text-slate-600 px-3 py-1.5 rounded-xl border border-slate-100">
+                        <span class="text-xs font-black">📍 {{ currentRestaurant.Distance }} กม.</span>
+                    </div>
 
-                        <div v-if="currentRestaurant.Distance" class="flex items-center gap-1 bg-gray-50 text-gray-600 px-2.5 py-1 rounded-md ml-auto">
-                            <span class="text-[11px] font-bold">📍 {{ currentRestaurant.Distance }} กม.</span>
-                        </div>
+                    <div class="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl border border-emerald-100 ml-auto">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-black">เปิดอยู่</span>
                     </div>
                 </div>
             </div>
