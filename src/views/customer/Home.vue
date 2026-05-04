@@ -1,34 +1,27 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
-
+import { useRoute, useRouter } from 'vue-router';
 import { formatPrice } from '@/utils/format';
 import { checkShopClosed } from '@/utils/shopStatus';
-import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
 import { useQrcodeStore } from '@/stores/admin/qrcode';
-
 import { useCategoryStore } from '@/stores/shared/category';
 import { useRestaurant } from '@/stores/shared/restaurant';
 
 import RestaurantList from '@/components/shared/RestaurantList.vue';
-import MenuList from '@/components/shared/BlockMenu.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 import MenuOrderModal from '@/components/shared/ModalMenu.vue';
 
-
 const route = useRoute();
-const router = useRouter(); // เพิ่ม router
+const router = useRouter();
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
 const cartStore = useCartStore();
 const qrStore = useQrcodeStore();
-
 const categoryStore = useCategoryStore();
 
-// Sync room with store
 const room = computed(() => cartStore.room);
-
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 const isError = ref(false);
@@ -61,9 +54,7 @@ const stopCarousel = () => {
   if (carouselTimer) clearInterval(carouselTimer);
 };
 
-const displayLocation = computed(() => {
-  return `ห้อง ${room.value}`;
-});
+const displayLocation = computed(() => `ห้อง ${room.value}`);
 
 const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
@@ -74,9 +65,7 @@ const promotionMenus = computed(() => {
   });
 });
 
-const activeCategories = computed(() => {
-  return categoryStore.list || [];
-});
+const activeCategories = computed(() => categoryStore.list || []);
 
 onMounted(async () => {
   if (route.params.room) {
@@ -122,10 +111,6 @@ onUnmounted(() => {
   menuStore.clearListener();
 });
 
-// Watch for category store changes is no longer needed as we use computed directly from store
-
-
-
 watch(() => route.params.room, async (newR) => {
   if (newR) {
     cartStore.setRoom(newR);
@@ -138,7 +123,6 @@ watch(() => route.params.room, async (newR) => {
       return;
     }
   }
-
 
   if (room.value !== '-' && room.value !== 'undefined') {
     isLoading.value = true;
@@ -154,13 +138,10 @@ watch(() => route.params.room, async (newR) => {
   }
 }, { immediate: true });
 
-
-
 const openMenuModal = (menu) => {
   selectedMenu.value = menu;
   showModal.value = true;
 };
-
 
 const resetFilters = () => {
   isFilterPromoOnly.value = false;
