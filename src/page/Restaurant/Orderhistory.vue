@@ -109,8 +109,6 @@ const getStatusColor = (status) => {
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
                                 <th class="py-4 pl-6">ORDER NUMBER</th>
-                                <th class="text-center">BUILDING</th>
-                                <th class="text-center">FLOOR</th>
                                 <th class="text-center">ROOM</th>
                                 <th class="text-center">STATUS</th>
                                 <th class="text-center">DATE</th>
@@ -123,12 +121,6 @@ const getStatusColor = (status) => {
                                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                 <td class="pl-6 font-bold text-indigo-600">
                                     #{{ order.OrderNumber }}
-                                </td>
-                                <td class="text-center font-medium text-slate-700">
-                                    {{ order.building || '-' }}
-                                </td>
-                                <td class="text-center font-medium text-slate-700">
-                                    {{ order.floor || '-' }}
                                 </td>
                                 <td class="text-center font-medium text-slate-700">
                                     <span class="font-bold">{{ order.room }}</span>
@@ -186,11 +178,7 @@ const getStatusColor = (status) => {
                     <div v-if="selectedOrder" class="space-y-4">
                         <div
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
-                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
-                                }}</span></span>
-                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
-                                }}</span></span>
+                            <span v-if="selectedOrder.room" class="flex gap-2">
                                 <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
                                 }}</span></span>
                             </span>

@@ -15,7 +15,12 @@ defineProps({
           ยอดขายตามช่วงเวลา
         </h2>
         <div class="h-72 w-full">
-          <apexchart type="bar" height="100%" :options="dashboardStore.salesChartOptions" :series="dashboardStore.salesChartSeries"></apexchart>
+          <apexchart v-if="dashboardStore.salesChartSeries[0]?.data?.length > 0" type="bar" height="100%"
+            :options="dashboardStore.salesChartOptions" :series="dashboardStore.salesChartSeries">
+          </apexchart>
+          <div v-else class="text-slate-400 text-sm flex items-center justify-center h-full">
+            ไม่มีข้อมูล
+          </div>
         </div>
       </div>
 
@@ -28,8 +33,9 @@ defineProps({
           หมวดหมู่เมนู
         </h2>
         <div class="h-72 w-full flex items-center justify-center">
-          <apexchart v-if="dashboardStore.categoryChartSeries.length > 0" type="donut" width="100%" :options="dashboardStore.categoryChartOptions" :series="dashboardStore.categoryChartSeries"></apexchart>
-          <div v-else class="text-slate-400 text-sm">ไม่มีข้อมูลหมวดหมู่</div>
+          <apexchart v-if="dashboardStore.categoryChartSeries?.length > 0" type="donut" width="100%"
+            :options="dashboardStore.categoryChartOptions" :series="dashboardStore.categoryChartSeries"></apexchart>
+          <div v-else class="text-slate-400 text-sm">ไม่มีข้อมูล</div>
         </div>
       </div>
     </div>
@@ -43,7 +49,11 @@ defineProps({
         วิเคราะห์ช่วงเวลาที่ออเดอร์เข้าสูงสุด (Peak Hours)
       </h2>
       <div class="h-72 w-full">
-        <apexchart type="area" height="100%" :options="dashboardStore.peakHoursChartOptions" :series="dashboardStore.peakHoursChartSeries"></apexchart>
+        <apexchart v-if="dashboardStore.peakHoursChartSeries[0]?.data?.length > 0" type="area" height="100%"
+          :options="dashboardStore.peakHoursChartOptions" :series="dashboardStore.peakHoursChartSeries"></apexchart>
+        <div v-else class="text-slate-400 text-sm flex items-center justify-center h-full">
+          ไม่มีข้อมูล
+        </div>
       </div>
     </div>
   </div>

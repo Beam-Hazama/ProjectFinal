@@ -19,7 +19,7 @@ export const useRestaurant = defineStore('Restaurant', {
     menus: [],
     restaurant: null,
     unsubscribe: null,
-    isLoading: false
+    isLoading: true
   }),
 
   actions: {
@@ -43,7 +43,7 @@ export const useRestaurant = defineStore('Restaurant', {
           const userSnap = await getDoc(doc(db, 'User', user.uid));
           if (!userSnap.exists()) return reject('ไม่พบข้อมูลร้าน');
 
-          this.restaurantName = userSnap.data().restaurant;
+          this.restaurantName = userSnap.data().Restaurant;
 
           const q = query(
             collection(db, 'Menu'),

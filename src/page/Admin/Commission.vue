@@ -195,12 +195,13 @@ const saveAll = async () => {
                 </td>
               </tr>
 
-              <tr v-if="commissionStore.restaurantData.length === 0">
+              <tr v-if="dashboardStore.isLoading || commissionStore.loading">
                 <td colspan="5" class="text-center py-20 text-slate-400">
                   <span class="loading loading-spinner loading-md mb-2"></span>
                   <p>Calculating commissions...</p>
                 </td>
               </tr>
+
             </tbody>
             <tfoot class="bg-slate-50/50">
               <tr>

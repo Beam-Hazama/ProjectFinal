@@ -1,11 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from 'firebase/firestore'
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
 import "firebase/storage";
 import { getStorage } from "firebase/storage";
 import { getMessaging, isSupported } from "firebase/messaging";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
@@ -19,6 +19,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Set persistence to session to allow multiple logins in different tabs
+setPersistence(auth, browserSessionPersistence).catch((err) => {
+  console.error("Auth persistence error:", err);
+});
 
 let storage;
 try {

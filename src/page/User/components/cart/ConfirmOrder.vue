@@ -5,8 +5,6 @@ import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
 
 const props = defineProps({
-  building: String,
-  floor: String,
   room: String
 });
 const router = useRouter();
@@ -30,8 +28,6 @@ const payment = async () => {
       router.push({ 
         name: 'Status', 
         params: { 
-          building: props.building, 
-          floor: props.floor, 
           room: props.room 
         } 
       });

@@ -32,6 +32,12 @@ const removeChoice = (g, c) => addStore.removeChoice(g, c);
 const goBack = () => router.go(-1);
 
 const isFormValid = computed(() => addStore.isFormValid);
+
+const onlyNumber = (e) => {
+    if (!/^\d$/.test(e.key)) {
+        e.preventDefault();
+    }
+};
 </script>
 
 <template>
@@ -112,18 +118,18 @@ const isFormValid = computed(() => addStore.isFormValid);
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span class="text-red-500">*</span></span>
+                                            <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร</span>
                                         </label>
                                         <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Name" />
                                     </div>
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">ราคาปกติ<span class="text-red-500">*</span></span>
+                                            <span class="label-text font-medium text-slate-600">ราคาปกติ</span>
                                         </label>
                                         <div class="relative">
                                             <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200"
-                                                v-model="MenuData.Price" />
+                                                v-model="MenuData.Price" @keypress="onlyNumber" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
@@ -133,7 +139,7 @@ const isFormValid = computed(() => addStore.isFormValid);
                                         </label>
                                         <div class="relative">
                                             <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700"
-                                                v-model="MenuData.PromoPrice" />
+                                                v-model="MenuData.PromoPrice" @keypress="onlyNumber" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
@@ -159,18 +165,18 @@ const isFormValid = computed(() => addStore.isFormValid);
 
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร <span class="text-red-500">*</span></span>
+                                            <span class="label-text font-medium text-slate-600">หมวดหมู่อาหาร</span>
                                         </label>
                                         <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Category">
                                             <option disabled value="">เลือกหมวดหมู่</option>
-                                            <option v-for="cat in categoryStore.list" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
+                                            <option v-for="cat in categoryStore.list" :key="cat.id" :value="cat.Name">{{ cat.Name }}</option>
                                         </select>
                                     </div>
 
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
-                                            <span class="label-text font-medium text-slate-600">สถานะการขาย <span class="text-red-500">*</span></span>
+                                            <span class="label-text font-medium text-slate-600">สถานะการขาย</span>
                                         </label>
                                         <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Status">
@@ -209,21 +215,19 @@ const isFormValid = computed(() => addStore.isFormValid);
                                         <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-4 pr-10 items-end">
                                             <div class="form-control">
                                                 <label class="label">
-                                                    <span class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก <span
-                                                        class="text-red-500">*</span></span>
+                                                    <span class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก</span>
                                                 </label>
                                                 <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                                                     v-model="group.name" />
                                             </div>
                                             <div class="form-control">
                                                 <label class="label">
-                                                    <span class="label-text font-medium text-slate-600">จำนวนที่เลือกได้ <span
-                                                        class="text-red-500">*</span></span>
+                                                    <span class="label-text font-medium text-slate-600">จำนวนที่เลือกได้</span>
                                                 </label>
                                                 <div class="relative">
                                                     <input type="number" min="1"
                                                         class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200"
-                                                        v-model="group.maxChoices" />
+                                                        v-model="group.maxChoices" @keypress="onlyNumber" />
                                                     <span class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
                                                 </div>
                                             </div>
@@ -258,7 +262,7 @@ const isFormValid = computed(() => addStore.isFormValid);
                                                     <div class="form-control w-32">
                                                         <div class="relative">
                                                             <input type="number" class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10"
-                                                                v-model="choice.price" />
+                                                                v-model="choice.price" @keypress="onlyNumber" />
                                                             <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
                                                         </div>
                                                     </div>

@@ -117,13 +117,12 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
                 UpdatedAt: serverTimestamp()
             });
             
-            alert('บันทึกข้อมูลโปรไฟล์สำเร็จ');
             isEditing.value = false;
             selectedFile.value = null;
             await fetchRestaurantByName();
         } catch (error) {
             console.error("Error saving profile:", error);
-            alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+            // Error handled by console.error above
         } finally {
             isSubmitting.value = false;
         }

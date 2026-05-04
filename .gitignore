@@ -28,3 +28,18 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# System and Temporary files
+.cache/
+.config/
+.local/
+.npm/
+.npm-global/
+.wget-hsts
+cors.json
+
+# Firebase and Build artifacts
+firebase-export/
+dist/
+node_modules/
+public/firebase-messaging-sw.js

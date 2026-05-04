@@ -2,8 +2,9 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import MenuOrderModal from './modalmenu.vue';
 import { useRestaurant } from '@/stores/Restaurant';
-import { isShopClosed as checkShopClosed } from '@/utils/restaurantHelper';
+
 import { formatPrice } from '@/utils/format';
+import { checkShopClosed } from '@/utils/restaurantHelper';
 
 const props = defineProps({
   selectionRole: Array,

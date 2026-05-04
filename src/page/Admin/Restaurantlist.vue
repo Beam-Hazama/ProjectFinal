@@ -85,22 +85,21 @@ const deleteRestaurant = async (id) => {
       <div v-else class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
-            <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
               <tr>
-                <th class="py-4 pl-6">RESTAURANT</th>
-                <th class="text-center">STATUS</th>
-                <th class="text-center">OPEN-CLOSE</th>
-                <th class="text-center">OPEN DAYS</th>
-                <th class="text-center">CREATED AT</th>
-                <th class="text-center">UPDATED AT</th>
-                <th class="text-center">ACTION</th>
+                <th class="py-4 pl-6 text-left">Restaurant</th>
+                <th class="py-4 text-center">Status</th>
+                <th class="py-4 text-center">Open-Close</th>
+                <th class="py-4 text-center">Open Days</th>
+                <th class="py-4 text-center">Created At</th>
+                <th class="py-4 text-center">Action</th>
               </tr>
             </thead>
 
             <tbody class="text-slate-600">
               <tr v-for="restaurant in restaurantStore.list" :key="restaurant.id"
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td class="pl-6">
+                <td class="py-4 pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
@@ -111,25 +110,25 @@ const deleteRestaurant = async (id) => {
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ restaurant.Name }}</div>
+                      <div class="font-bold text-indigo-600">{{ restaurant.Name }}</div>
                     </div>
                   </div>
                 </td>
 
-                <td class="text-center">
+                <td class="py-4 text-center">
                   <div v-if="getAutoStatus(restaurant) === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0"></span>
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>
                   <div v-else
-                    class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>
+                    class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                     Closed
                   </div>
                 </td>
 
-                <td class="text-center">
+                <td class="py-4 text-center">
                   <div v-if="restaurant.OpenTime && restaurant.CloseTime"
                     class="flex items-center justify-center gap-1 text-xs font-semibold text-slate-600">
                     {{ restaurant.OpenTime }} - {{ restaurant.CloseTime }}
@@ -137,12 +136,12 @@ const deleteRestaurant = async (id) => {
                   <div v-else class="text-xs text-slate-400 italic">ไม่ได้ระบุเวลา</div>
                 </td>
 
-                <td class="text-center text-xs font-medium text-slate-600">
+                <td class="py-4 text-center text-xs font-medium text-slate-600">
                   {{ formatOpenDays(restaurant.OpenDays) }}
                 </td>
 
-                <td class="text-center text-xs font-medium whitespace-nowrap">{{ formatTimestamp(restaurant.CreatedAt) }}</td>
-                <td class="text-center text-xs font-medium whitespace-nowrap">{{ formatTimestamp(restaurant.UpdatedAt) }}</td>
+                <td class="py-4 text-center text-xs font-medium whitespace-nowrap">{{ formatTimestamp(restaurant.CreatedAt)
+                  }}</td>
 
                 <td class="text-center">
                   <div class="flex justify-center items-center gap-2">

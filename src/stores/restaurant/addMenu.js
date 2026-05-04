@@ -29,7 +29,8 @@ export const useAddMenuStore = defineStore('addMenu', () => {
                MenuData.Price !== '' && 
                Number(MenuData.Price) > 0 &&
                MenuData.Category !== '' && 
-               MenuData.Status !== '';
+               MenuData.Status !== '' &&
+               (selectedFile.value !== null || MenuData.ImageUrl !== '');
     });
 
     const initForm = async () => {
@@ -61,6 +62,9 @@ export const useAddMenuStore = defineStore('addMenu', () => {
             return false;
         }
         if (!MenuData.Status) {
+            return false;
+        }
+        if (!selectedFile.value && !MenuData.ImageUrl) {
             return false;
         }
         return true;

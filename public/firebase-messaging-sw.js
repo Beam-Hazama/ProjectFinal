@@ -6,7 +6,7 @@ const firebaseConfig = {
   authDomain: "projectfinal-eb377.firebaseapp.com",
   databaseURL: "https://projectfinal-eb377-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "projectfinal-eb377",
-  storageBucket: "projectfinal-eb377.appspot.com",
+  storageBucket: "projectfinal-eb377.firebasestorage.app",
   messagingSenderId: "1068875487481",
   appId: "1:1068875487481:web:560bc0571688eb8ae4ea28"
 };

@@ -1,14 +1,17 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useRestaurant } from '@/stores/Restaurant';
+import { useCartStore } from '@/stores/cartStore';
 import MenuList from '@/page/component/blockmenu.vue';
+import { checkShopClosed } from '@/utils/restaurantHelper';
 
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
 const restaurantStore = useRestaurant();
+const cartStore = useCartStore();
 
 const safeDecode = (val, fallback) => {
     if (!val) return fallback;
@@ -19,41 +22,14 @@ const safeDecode = (val, fallback) => {
     }
 };
 
-const building = computed(() => safeDecode(route.params.building, '-'));
-const floor = computed(() => safeDecode(route.params.floor, '-'));
 const room = computed(() => safeDecode(route.params.room, '-'));
 const categoryId = computed(() => safeDecode(route.params.category, ''));
+const now = ref(new Date());
+let timer;
 
 function isShopClosed(restaurantName) {
     const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-    if (!shop) return true;
-    if (shop.Status === 'close') return true;
-    if (shop.Status === 'open') return false;
-
-    if (!shop.OpenTime || !shop.CloseTime) return true;
-
-    try {
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
-
-        if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
-            return true;
-        }
-
-        const [openH, openM] = shop.OpenTime.split(':').map(Number);
-        const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
-        const openMin = openH * 60 + openM;
-        const closeMin = closeH * 60 + closeM;
-
-        if (closeMin > openMin) {
-            return !(currentTime >= openMin && currentTime < closeMin);
-        } else {
-            return !(currentTime >= openMin || currentTime < closeMin);
-        }
-    } catch (e) {
-        return true;
-    }
+    return checkShopClosed(shop, now.value);
 }
 
 const filteredMenus = computed(() => {
@@ -75,10 +51,18 @@ onMounted(() => {
     if (restaurantStore.list.length === 0) {
         restaurantStore.loadListRestaurant();
     }
+    cartStore.loadCart(room.value);
+    timer = setInterval(() => {
+        now.value = new Date();
+    }, 60000);
+});
+
+onUnmounted(() => {
+    if (timer) clearInterval(timer);
 });
 
 const goBack = () => {
-    router.push(`/User/${building.value}/${floor.value}/${room.value}`);
+    router.push(`/user/${room.value}`);
 };
 </script>
 

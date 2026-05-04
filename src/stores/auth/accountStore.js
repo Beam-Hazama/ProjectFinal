@@ -9,6 +9,7 @@ export const useAccountStore = defineStore('user-account', {
 
   state: () => ({
     isLoggedIn: false,
+    isAuthChecked: false,
     role: null,
     user: null,
     isLoading: false,
@@ -18,6 +19,11 @@ export const useAccountStore = defineStore('user-account', {
   actions: {
     
     async checkAuthState() {
+      // If we already checked and are logged in, don't re-check unless needed
+      if (this.isAuthChecked && this.isLoggedIn && this.user) {
+        return true;
+      }
+
       return new Promise((resolve) => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           unsubscribe();
@@ -30,6 +36,7 @@ export const useAccountStore = defineStore('user-account', {
                 this.user = { uid: firebaseUser.uid, ...userData };
                 this.role = userData.Role;
                 this.isLoggedIn = true;
+                this.isAuthChecked = true;
                 resolve(true);
                 return;
               }
@@ -37,7 +44,13 @@ export const useAccountStore = defineStore('user-account', {
               console.error("Auth state verify error:", e);
             }
           }
-          this.logout();
+          
+          // Clear local state if no user found, but don't call this.logout() 
+          // because it triggers signOut(auth) which might affect other tabs
+          this.user = null;
+          this.isLoggedIn = false;
+          this.role = null;
+          this.isAuthChecked = true;
           resolve(false);
         });
       });
@@ -71,8 +84,6 @@ export const useAccountStore = defineStore('user-account', {
         this.user = userInfo;
         this.isLoggedIn = true;
         this.role = userData.Role;
-
-        sessionStorage.setItem('user-session', JSON.stringify(userInfo));
 
         return this.role;
       } catch (error) {
@@ -121,8 +132,6 @@ export const useAccountStore = defineStore('user-account', {
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;
-
-      sessionStorage.removeItem('user-session');
     },
 
     forgotPassword() {

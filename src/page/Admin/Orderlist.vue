@@ -40,23 +40,21 @@ const getStatusColor = (status) => {
 <template>
   <LayoutAdmin>
     <div class="p-6">
-      <div class="flex justify-between items-start mb-7">
+      <div class="flex justify-between items-center mb-7">
         <div class="text-3xl font-bold text-slate-700">Order List</div>
       </div>
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="table w-full">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
-              <tr>
-                <th class="py-4 pl-6">ORDER NUMBER</th>
-                <th class="text-center">BUILDING</th>
-                <th class="text-center">FLOOR</th>
-                <th class="text-center">ROOM</th>
-                <th class="text-center">STATUS</th>
-                <th class="text-center">DATE</th>
-                <th class="text-center">TOTAL PRICE</th>
-                <th class="text-center">ACTION</th>
-              </tr>
+                <tr>
+                  <th class="py-4 pl-6">ORDER NUMBER</th>
+                  <th class="text-center">ROOM</th>
+                  <th class="text-center">STATUS</th>
+                  <th class="text-center">DATE</th>
+                  <th class="text-center">TOTAL PRICE</th>
+                  <th class="text-center">ACTION</th>
+                </tr>
             </thead>
             <tbody class="text-slate-600">
               <tr v-for="orders in orderStore.sortedOrders" :key="orders.id"
@@ -65,12 +63,6 @@ const getStatusColor = (status) => {
                   #{{ orders.OrderNumber }}
                 </td>
 
-                <td class="text-center font-medium text-slate-700">
-                  {{ orders.building || '-' }}
-                </td>
-                <td class="text-center font-medium text-slate-700">
-                  {{ orders.floor || '-' }}
-                </td>
                 <td class="text-center font-medium text-slate-700">
                   <span v-if="orders.room" class="font-bold text-indigo-600">{{ orders.room }}</span>
                   <span v-else>{{ orders.roomId || '-' }}</span>
@@ -95,9 +87,6 @@ const getStatusColor = (status) => {
                   </button>
                 </td>
               </tr>
-              <tr v-if="orderStore.sortedOrders.length === 0">
-                <td colspan="6" class="text-center py-8 text-slate-400 italic">ไม่มีรายการสั่งซื้อ</td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -113,14 +102,7 @@ const getStatusColor = (status) => {
 
           <div v-if="selectedOrder" class="space-y-4">
             <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
-              <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
-                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building }}</span></span>
-                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor }}</span></span>
-                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
-              </span>
-              <span v-else>
-                Room: {{ selectedOrder.roomId }}
-              </span>
+              <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room || selectedOrder.roomId }}</span></span>
               <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
             </div>
 

@@ -68,24 +68,21 @@ const handleSubmitPoster = async () => {
 
         const posterData = {
             ImageUrl: ImageUrl,
-            RestaurantName: restaurantName,
-            hasSchedule: hasSchedule.value,
-            displayDuration: displayDuration.value || 5
+            Restaurant: restaurantName,
+            HasSchedule: hasSchedule.value,
+            DisplayDuration: displayDuration.value || 5
         };
 
         if (hasSchedule.value) {
-            posterData.startTime = startTime.value;
-            posterData.endTime = endTime.value;
+            posterData.StartTime = startTime.value;
+            posterData.EndTime = endTime.value;
         } else {
-            posterData.startTime = null;
-            posterData.endTime = null;
+            posterData.StartTime = null;
+            posterData.EndTime = null;
         }
 
         if (isEditing.value && editingPosterId.value) {
-            await posterStore.updatePoster(editingPosterId.value, {
-                ...posterData,
-                updatedAt: new Date()
-            });
+            await posterStore.updatePoster(editingPosterId.value, posterData);
         } else {
             await posterStore.addPoster(posterData);
         }
@@ -117,18 +114,16 @@ onUnmounted(() => {
 });
 
 const deletePoster = async (posterId) => {
-    if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
-        try {
-            await posterStore.deletePoster(posterId);
-        } catch (error) {
-            alert('Error deleting poster: ' + error.message);
-        }
+    try {
+        await posterStore.deletePoster(posterId);
+    } catch (error) {
+        console.error('Error deleting poster:', error);
     }
 };
 
 const togglePosterStatus = async (poster) => {
     try {
-        await posterStore.toggleActive(poster.id, poster.isActive);
+        await posterStore.toggleActive(poster.id, poster.IsActive);
     } catch (error) {
         alert('Error updating status: ' + error.message);
     }
@@ -136,17 +131,17 @@ const togglePosterStatus = async (poster) => {
 
 const onDragEnd = async () => {
     const orderedIds = localPosters.value.map(p => p.id);
-    await posterStore.updatePosterOrder(orderedIds);
+    await posterStore.updatePosterPosition(orderedIds);
 };
 
 const openEditModal = (poster) => {
     isEditing.value = true;
     editingPosterId.value = poster.id;
     newPosterUrl.value = poster.ImageUrl;
-    displayDuration.value = poster.displayDuration || 5;
-    hasSchedule.value = !!poster.hasSchedule;
-    startTime.value = poster.startTime || '';
-    endTime.value = poster.endTime || '';
+    displayDuration.value = poster.DisplayDuration || 5;
+    hasSchedule.value = !!poster.HasSchedule;
+    startTime.value = poster.StartTime || '';
+    endTime.value = poster.EndTime || '';
     showModal.value = true;
 };
 
@@ -325,25 +320,25 @@ const formatScheduleDate = (dateString) => {
                                     <td class="text-center">
                                         <div class="flex justify-center flex-col">
                                             <label class="cursor-pointer relative inline-flex items-center group w-max mx-auto">
-                                                <input type="checkbox" :checked="poster.isActive"
+                                                <input type="checkbox" :checked="poster.IsActive"
                                                     @change="togglePosterStatus(poster)" class="sr-only peer">
                                                 <div
                                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                                 </div>
                                                 <span class="ml-3 text-sm font-medium"
-                                                    :class="poster.isActive ? 'text-blue-600' : 'text-slate-400'">
-                                                    {{ poster.isActive ? 'Active' : 'Hidden' }}
+                                                    :class="poster.IsActive ? 'text-blue-600' : 'text-slate-400'">
+                                                    {{ poster.IsActive ? 'Active' : 'Hidden' }}
                                                 </span>
                                             </label>
                                         </div>
                                     </td>
 
                                     <td class="text-center text-xs font-medium text-slate-600">
-                                        {{ poster.displayDuration || 5 }} sec
+                                        {{ poster.DisplayDuration || 5 }} sec
                                     </td>
 
                                     <td class="text-center">
-                                        <div v-if="poster.hasSchedule"
+                                        <div v-if="poster.HasSchedule"
                                             class="p-2 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-slate-600 w-max mx-auto">
                                             <div class="font-bold text-blue-600 mb-1 flex items-center justify-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
@@ -356,9 +351,9 @@ const formatScheduleDate = (dateString) => {
                                             </div>
                                             <div class="space-y-0.5">
                                                 <div><span class="font-medium text-slate-500">From:</span> {{
-                                                    formatScheduleDate(poster.startTime) }}</div>
+                                                    formatScheduleDate(poster.StartTime) }}</div>
                                                 <div><span class="font-medium text-slate-500">To:</span> {{
-                                                    formatScheduleDate(poster.endTime) }}</div>
+                                                    formatScheduleDate(poster.EndTime) }}</div>
                                             </div>
                                         </div>
                                         <div v-else class="text-[11px] text-slate-400 font-medium">
@@ -367,11 +362,11 @@ const formatScheduleDate = (dateString) => {
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatTimestamp(poster.createdAt) }}
+                                        {{ formatTimestamp(poster.CreatedAt) }}
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatTimestamp(poster.updatedAt) }}
+                                        {{ formatTimestamp(poster.UpdatedAt) }}
                                     </td>
 
                                     <td class="text-center">

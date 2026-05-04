@@ -5,35 +5,35 @@ import Login from "@/page/Login/Login.vue";
 
 import Admin from "@/page/Admin/Admin.vue";
 import Admindashboard from "@/page/Admin/Dashboard.vue";
-import Adminmenulist from "@/page/Admin/Menulist.vue";
-import Adminorderlist from "@/page/Admin/Orderlist.vue";
-import Adminorderhistory from "@/page/Admin/Orderhistory.vue";
+import Adminmenulist from "@/page/Admin/MenuList.vue";
+import Adminorderlist from "@/page/Admin/OrderList.vue";
+import Adminorderhistory from "@/page/Admin/OrderHistory.vue";
 import AdminQRCode from "@/page/Admin/QRCode.vue";
-import Adminrestaurantlist from "@/page/Admin/Restaurantlist.vue";
-import Adminrestaurantuser from "@/page/Admin/Restaurantuser.vue";
+import Adminrestaurantlist from "@/page/Admin/RestaurantList.vue";
+import Adminrestaurantuser from "@/page/Admin/RestaurantUser.vue";
 import Adminpostermanage from "@/page/Admin/Poster.vue";
 import AdminCategory from "@/page/Admin/Category.vue";
 import AdminCommission from "@/page/Admin/Commission.vue";
 
-import Menudetail from "@/page/Admin/components/menu/Menudetail.vue";
-import Restaurantdetail from "@/page/Admin/components/restaurant/Restaurantdetail.vue";
-import Addrestaurant from "@/page/Admin/components/restaurant/Addrestaurant.vue";
+import Menudetail from "@/page/Admin/components/menu/MenuDetail.vue";
+import Restaurantdetail from "@/page/Admin/components/restaurant/RestaurantDetail.vue";
+import Addrestaurant from "@/page/Admin/components/restaurant/AddRestaurant.vue";
 import Userdetail from "@/page/Admin/components/user/Userdetail.vue";
 import Adduser from "@/page/Admin/components/user/Adduser.vue";
 
-import Restaurants from "@/page/Restaurant/restaurant.vue";
-import Restaurantorderlist from "@/page/Restaurant/Orderlist.vue";
-import Restaurantmenulist from "@/page/Restaurant/Menulist.vue";
+import Restaurants from "@/page/Restaurant/Restaurant.vue";
+import Restaurantorderlist from "@/page/Restaurant/OrderList.vue";
+import Restaurantmenulist from "@/page/Restaurant/MenuList.vue";
 import Restaurantprofile from "@/page/Restaurant/Profile.vue";
 import RestaurantAddMenu from "@/page/Restaurant/components/Menu/AddMenu.vue";
 import RestaurantEditMenu from "@/page/Restaurant/components/Menu/EditMenu.vue";
 import RestaurantDashboard from "@/page/Restaurant/Dashboard.vue";
 import RestaurantPoster from "@/page/Restaurant/Poster.vue";
 
-import RestaurantOrderHistory from "@/page/Restaurant/Orderhistory.vue";
+import RestaurantOrderHistory from "@/page/Restaurant/OrderHistory.vue";
 
 import User from "@/page/User/User.vue";
-import Bill from "@/page/User/bill.vue";
+import Bill from "@/page/User/Bill.vue";
 import Cart from "@/page/User/Cart.vue";
 import Status from "@/page/User/Status.vue";
 import Search from "@/page/User/components/user/Search.vue";
@@ -52,42 +52,42 @@ const router = createRouter({
       component: User,
     },
     {
-      path: '/user/bill/:building/:floor/:room',
+      path: '/user/bill/:room',
       name: 'user-bill',
       component: Bill,
     },
     {
-      path: '/user/restaurant/:restaurantName/:building/:floor/:room',
+      path: '/user/restaurant/:restaurantName/:room',
       name: 'UserRestaurantMenu',
       component: UserRestaurantMenu,
     },
     {
-      path: '/user/status/:building/:floor/:room',
+      path: '/user/status/:room',
       name: 'Status',
       component: Status,
     },
     {
-      path: '/user/cart/:building/:floor/:room',
+      path: '/user/cart/:room',
       name: 'Cart',
       component: Cart,
     },
     {
-      path: '/user/search/:building/:floor/:room',
+      path: '/user/search/:room',
       name: 'Search',
       component: Search,
     },
     {
-      path: '/user/category/:category/:building/:floor/:room',
+      path: '/user/category/:category/:room',
       name: 'Category',
       component: Category,
     },
     {
-      path: '/user/all-categories/:building/:floor/:room',
+      path: '/user/all-categories/:room',
       name: 'AllCategories',
       component: AllCategories,
     },
     {
-      path: '/user/all-promotions/:building/:floor/:room',
+      path: '/user/all-promotions/:room',
       name: 'AllPromotions',
       component: AllPromotions,
     },
@@ -255,12 +255,12 @@ const router = createRouter({
     },
 
     {
-      path: '/user/:building/:floor/:room',
+      path: '/user/:room',
       name: 'UserWithParams',
       component: User,
     },
     {
-      path: '/:building/:floor/:room',
+      path: '/:room',
       name: 'UserShortUrl',
       component: User,
     },
@@ -270,7 +270,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
 
-  if (!accountStore.isLoggedIn) {
+  if (!accountStore.isAuthChecked) {
     await accountStore.checkAuthState();
   }
 

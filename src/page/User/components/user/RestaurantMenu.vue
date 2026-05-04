@@ -20,8 +20,6 @@ const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
 const isValidLocation = ref(false);
@@ -50,7 +48,7 @@ const displayCategories = computed(() => {
     }
 
     categoryStore.list.forEach(c => {
-        if (c.name) categories.add(c.name);
+        if (c.Name) categories.add(c.Name);
     });
 
     allItems.forEach(item => {
@@ -90,13 +88,13 @@ const totalVisibleItems = computed(() => {
 });
 
 onMounted(async () => {
-    const isValid = await qrStore.validateRoom(building, floor, room);
+    const isValid = await qrStore.validateRoom(room);
     isValidLocation.value = isValid;
     isLoading.value = false;
 
     if (isValid) {
         await menuStore.loadMenu();
-        cartStore.loadCart(building, floor, room);
+        cartStore.loadCart(room);
         posterStore.loadPosters(restaurantName);
         categoryStore.loadCategories(restaurantName);
         fetchRestaurantDetails();
@@ -183,7 +181,7 @@ const fetchRestaurantDetails = async () => {
 }
 
 const goBack = () => {
-    router.push(`/user/${building}/${floor}/${room}`);
+    router.push(`/user/${room}`);
 };
 
 const scrollToCategory = (categoryName) => {
@@ -432,16 +430,25 @@ const initIntersectionObserver = () => {
             </template>
 
             
-            <div v-else class="flex flex-col items-center justify-center pt-20 text-gray-400">
+            <div v-else class="flex flex-col items-center justify-center pt-20 text-gray-400 px-6 text-center">
                 <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none"
+                    <svg v-if="searchQuery" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="1.5" stroke-linecap="round"
                             stroke-linejoin="round" />
                     </svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
                 </div>
-                <p class="text-[15px] font-bold text-gray-500">ไม่พบเมนูที่ตรงกับการค้นหา</p>
-                <p class="text-[13px]">ลองใช้คำค้นหาอื่น หรือตรวจดูตัวสะกดให้ถูกต้อง</p>
+                <template v-if="searchQuery">
+                    <p class="text-[15px] font-bold text-gray-500">ไม่พบเมนูที่ตรงกับการค้นหา</p>
+                    <p class="text-[13px]">ลองใช้คำค้นหาอื่น หรือตรวจดูตัวสะกดให้ถูกต้อง</p>
+                </template>
+                <template v-else>
+                    <p class="text-[15px] font-bold text-gray-500">ยังไม่มีเมนูในขณะนี้</p>
+                    <p class="text-[13px]">ร้านอาหารยังไม่ได้เพิ่มรายการเมนู กรุณากลับมาตรวจสอบอีกครั้งในภายหลัง</p>
+                </template>
                 <button v-if="searchQuery" @click="searchQuery = ''" class="mt-4 text-blue-600 font-bold text-sm">
                     แสดงเมนูทั้งหมด
                 </button>
@@ -450,7 +457,7 @@ const initIntersectionObserver = () => {
 
         
         <div class="fixed bottom-6 right-6 z-50 animate-fade-in group">
-            <button @click="router.push(`/user/cart/${building}/${floor}/${room}`)"
+            <button @click="router.push(`/user/cart/${room}`)"
                 class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 hover:scale-105 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-6 h-6">

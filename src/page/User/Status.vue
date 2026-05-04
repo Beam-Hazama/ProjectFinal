@@ -8,12 +8,10 @@ const route = useRoute();
 const router = useRouter();
 const statusStore = useUserStatusStore();
 
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
 onMounted(() => {
-    statusStore.initUserSession(building, floor, room);
+    statusStore.initUserSession(room);
 });
 </script>
 
@@ -44,7 +42,7 @@ onMounted(() => {
           </p>
         </div>
       </div>
-      <router-link :to="`/User/${building}/${floor}/${room}`"
+      <router-link :to="`/user/${room}`"
         class="group flex items-center gap-2 mt-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-xl shadow-sm text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 border border-white/50 flex-shrink-0">
         <span class="text-sm font-bold whitespace-nowrap">ย้อนกลับ</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
@@ -80,7 +78,7 @@ onMounted(() => {
             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
         <p class="font-medium">ยังไม่มีรายการสั่งซื้อ</p>
-        <router-link :to="`/User/${building}/${floor}/${room}`"
+        <router-link :to="`/user/${room}`"
           class="mt-4 text-blue-600 font-bold border-b-2 border-blue-600 pb-1 text-sm">ไปที่เมนูอาหาร</router-link>
       </div>
 

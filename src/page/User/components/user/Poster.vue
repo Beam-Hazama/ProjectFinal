@@ -10,7 +10,7 @@ const startCarousel = () => {
   stopCarousel();
   if (posterStore.activePosters?.length > 1) {
     const currentPoster = posterStore.activePosters[currentSlide.value];
-    const durationMs = (currentPoster?.displayDuration || 5) * 1000;
+    const durationMs = (currentPoster?.DisplayDuration || currentPoster?.displayDuration || 5) * 1000;
 
     carouselTimeout = setTimeout(() => {
       nextSlide();
@@ -60,7 +60,7 @@ watch(() => posterStore.activePosters, (newVal) => {
 </script>
 
 <template>
-  <div class="px-4 mt-4">
+  <div class="px-4 mt-2">
     <div v-if="posterStore.activePosters.length > 0" class="relative w-full rounded-xl shadow-sm overflow-hidden"
       @mouseenter="stopCarousel" @mouseleave="startCarousel">
 

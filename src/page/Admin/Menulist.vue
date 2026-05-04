@@ -38,16 +38,15 @@ onUnmounted(() => {
         <div class="overflow-x-auto">
           <table class="table w-full">
             
-            <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
               <tr>
-                <th class="py-4 pl-6">MENU</th>
-                <th class="text-center">RESTAURANT</th>
-                <th class="text-center">PRICE</th>
-                <th class="text-center">CATEGORY</th>
-                <th class="text-center">STATUS</th>
-                <th class="text-center">CREATED AT</th>
-                <th class="text-center">UPDATED AT</th>
-                <th class="text-center">ACTION</th>
+                <th class="py-4 pl-6 text-left">Menu</th>
+                <th class="py-4 text-center">Restaurant</th>
+                <th class="py-4 text-center">Price</th>
+                <th class="py-4 text-center">Category</th>
+                <th class="py-4 text-center">Status</th>
+                <th class="py-4 text-center">Created At</th>
+                <th class="py-4 text-center">Action</th>
               </tr>
             </thead>
 
@@ -57,7 +56,7 @@ onUnmounted(() => {
                 class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
 
                 
-                <td class="pl-6">
+                <td class="py-4 pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
@@ -66,50 +65,47 @@ onUnmounted(() => {
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ menu.Name }}</div>
+                      <div class="font-bold text-indigo-600">{{ menu.Name }}</div>
                     </div>
                   </div>
                 </td>
 
                 
-                <td class="text-center">
+                <td class="py-4 text-center">
                   <div class="font-medium">{{ menu.Restaurant }}</div>
                 </td>
 
                 
-                <td class="text-center font-medium">{{ menu.Price }} ฿</td>
+                <td class="py-4 text-center font-bold text-emerald-600">{{ menu.Price }} ฿</td>
 
                 
-                <td class="text-center">
+                <td class="py-4 text-center">
                   <div class="font-medium">{{ menu.Category }}</div>
                 </td>
 
                 
-                <td class="text-center">
+                <td class="py-4 text-center">
                   <div v-if="menu.Status === 'open'"
-                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0"></span>
+                    class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>
-                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap flex-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></span>
+                  <div v-else class="badge badge-error gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                     Closed
                   </div>
                 </td>
 
                 
-                <td class="text-center text-xs whitespace-nowrap">
+                <td class="py-4 text-center text-xs whitespace-nowrap">
                   {{ formatTimestamp(menu.CreatedAt) }}
-                </td>
-                <td class="text-center text-xs whitespace-nowrap">
-                  {{ formatTimestamp(menu.UpdatedAt) }}
                 </td>
 
                 
-                <td class="text-center">
-                  <div class="flex justify-center items-center gap-2">
+                <td class="py-4 text-center">
+                  <div class="flex justify-center items-center">
                     <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }"
-                      class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
+                      class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50 gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                         stroke="currentColor" class="w-4 h-4">
                         <path stroke-linecap="round" stroke-linejoin="round"

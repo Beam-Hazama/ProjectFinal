@@ -29,14 +29,14 @@ const handleFileUpload = (event) => {
 
 const onDragEnd = async () => {
     const orderedIds = localCategories.value.map(c => c.id);
-    await categoryStore.updateCategoryOrder(orderedIds);
+    await categoryStore.updateCategoryPosition(orderedIds);
 };
 </script>
 
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-start mb-6">
+            <div class="flex justify-between items-center mb-7">
                 <div class="text-3xl font-bold text-slate-700">Category</div>
                 <button @click="categoryStore.showModal = true"
                     class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
@@ -64,14 +64,17 @@ const onDragEnd = async () => {
                                 <input type="text" v-model="categoryStore.newCategoryName"
                                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
-                            
+
                             <div class="flex flex-col gap-4">
                                 <label class="text-sm font-bold text-slate-700">รูปภาพหมวดหมู่</label>
-                                
+
                                 <div class="w-full">
-                                    <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    <label
+                                        class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                         </svg>
                                         คลิกเพื่อเลือกไฟล์รูปภาพ
                                         <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
@@ -82,8 +85,8 @@ const onDragEnd = async () => {
 
                         <div v-if="categoryStore.newCategoryImageUrl"
                             class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
-                            <img :src="categoryStore.newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm"
-                                alt="Preview" />
+                            <img :src="categoryStore.newCategoryImageUrl"
+                                class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
                             <div
                                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                 <span class="text-white font-medium text-sm">Preview</span>
@@ -96,7 +99,8 @@ const onDragEnd = async () => {
                             <button @click="categoryStore.addCategory"
                                 :disabled="categoryStore.isSubmitting || !categoryStore.newCategoryName || !categoryStore.newCategoryImageUrl"
                                 class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
-                                <span v-if="categoryStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
+                                <span v-if="categoryStore.isSubmitting"
+                                    class="loading loading-spinner loading-sm"></span>
                                 <span v-else>Save</span>
                             </button>
                         </div>
@@ -107,33 +111,21 @@ const onDragEnd = async () => {
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
-                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                             <tr>
-                                <th class="w-12 text-center py-4 pl-6"></th>
-                                <th class="w-50">IMAGE</th>
-                                <th class="text-center">CATEGORY NAME</th>
-                                <th class="text-center">CREATED AT</th>
-                                <th class="text-center">ACTION</th>
+                                <th class="py-4 pl-6 w-12"></th>
+                                <th class="py-4">Image</th>
+                                <th class="py-4 text-center">Category Name</th>
+                                <th class="py-4 text-center">Created At</th>
+                                <th class="py-4 text-center">Action</th>
                             </tr>
                         </thead>
-
-                        <tbody class="text-slate-600" v-if="localCategories.length === 0">
-                            <tr>
-                                <td colspan="5" class="text-center py-10 text-slate-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-30"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    No categories found
-                                </td>
-                            </tr>
-                        </tbody>
-                        <draggable v-else v-model="localCategories" item-key="id" tag="tbody" class="text-slate-600"
+                        
+                        <draggable v-model="localCategories" item-key="id" tag="tbody" class="text-slate-600"
                             handle=".drag-handle" @end="onDragEnd">
                             <template #item="{ element: category }">
                                 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors bg-white">
-                                    <td class="pl-6 w-12 text-center align-middle">
+                                    <td class="pl-6 align-middle">
                                         <div
                                             class="drag-handle cursor-grab hover:text-blue-600 text-slate-400 p-2 opacity-50 hover:opacity-100 transition-opacity flex justify-center items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -143,26 +135,26 @@ const onDragEnd = async () => {
                                             </svg>
                                         </div>
                                     </td>
-                                    <td class="pl-2">
+                                    <td class="py-4">
                                         <div
                                             class="h-20 w-20 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                                             <img :src="category.ImageUrl"
                                                 class="w-full h-full object-cover pointer-events-none" />
                                         </div>
                                     </td>
-                                    <td class="text-center font-medium text-slate-800">
-                                        {{ category.name }}
+                                    <td class="py-4 text-center font-bold text-indigo-600">
+                                        {{ category.Name }}
                                     </td>
 
-                                    <td class="text-center text-xs">
-                                        {{ formatTimestamp(category.createdAt) }}
+                                    <td class="py-4 text-center text-sm">
+                                        {{ formatTimestamp(category.CreatedAt) }}
                                     </td>
 
-                                    <td class="text-center">
+                                    <td class="py-4 text-center">
                                         <button @click="categoryStore.deleteCategory(category.id)"
-                                            class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50">
+                                            class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50 gap-2">
                                             <svg xmlns="http://www.w3.org/2000/svg"
-                                                class="h-4 w-4 mr-1 pointer-events-none" fill="none" viewBox="0 0 24 24"
+                                                class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

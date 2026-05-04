@@ -1,18 +1,24 @@
-import { defineStore } from 'pinia';
-import { collection, onSnapshot, query, getDocs, where } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { defineStore } from "pinia";
+import {
+  collection,
+  onSnapshot,
+  query,
+  getDocs,
+  where,
+} from "firebase/firestore";
+import { db } from "@/firebase";
 
-export const useDashboardStore = defineStore('dashboardStore', {
-
+export const useDashboardStore = defineStore("dashboardStore", {
   state: () => ({
-
     allOrders: [],
     allMenus: [],
     allRestaurants: [],
 
-    timeFilter: 'thisMonth',
-    customStartDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
-    customEndDate: new Date().toISOString().split('T')[0],
+    timeFilter: "thisMonth",
+    customStartDate: new Date(new Date().setDate(new Date().getDate() - 7))
+      .toISOString()
+      .split("T")[0],
+    customEndDate: new Date().toISOString().split("T")[0],
     restaurantFilters: [],
     menuCategoryFilters: [],
     menuFilters: [],
@@ -49,64 +55,71 @@ export const useDashboardStore = defineStore('dashboardStore', {
   }),
 
   getters: {
-    
-    isLoading: (state) => state.ordersLoading || state.menusLoading || state.restaurantsLoading,
+    isLoading: (state) =>
+      state.ordersLoading || state.menusLoading || state.restaurantsLoading,
 
-    
     salesChartSeries: (state) => {
-      const data = state.revenueByDay.map(day => day.revenue);
-      return [{ name: 'ยอดขาย (บาท)', data }];
+      const data = state.revenueByDay.map((day) => day.revenue);
+      return [{ name: "ยอดขาย (บาท)", data }];
     },
 
-    
     salesChartOptions: (state) => {
-      const categories = state.revenueByDay.map(day => day.date);
+      const categories = state.revenueByDay.map((day) => day.date);
       return {
         chart: {
-          id: 'revenue-bar-chart',
+          id: "revenue-bar-chart",
           toolbar: { show: false },
           zoom: { enabled: false },
-          fontFamily: 'inherit',
+          fontFamily: "inherit",
         },
         xaxis: {
           categories: categories,
-          labels: { style: { colors: '#64748b', fontSize: '12px' } }
+          labels: { style: { colors: "#64748b", fontSize: "12px" } },
         },
         yaxis: {
           labels: {
             formatter: (value) => `฿${value.toLocaleString()}`,
-            style: { colors: '#64748b', fontSize: '12px' }
-          }
+            style: { colors: "#64748b", fontSize: "12px" },
+          },
         },
         dataLabels: { enabled: false },
         plotOptions: {
-          bar: { borderRadius: 6, columnWidth: '45%' }
+          bar: { borderRadius: 6, columnWidth: "45%" },
         },
-        colors: ['#4f46e5'],
+        colors: ["#4f46e5"],
         tooltip: {
-          y: { formatter: (val) => "฿" + val.toLocaleString() }
-        }
+          y: { formatter: (val) => "฿" + val.toLocaleString() },
+        },
       };
     },
 
-    
     categoryChartSeries: (state) => {
-      return state.categoriesCount.map(cat => cat.count);
+      return state.categoriesCount.map((cat) => cat.count);
     },
 
-    
     categoryChartOptions: (state) => {
-      const labels = state.categoriesCount.map(cat => cat.name);
+      const labels = state.categoriesCount.map((cat) => cat.name);
       return {
-        chart: { id: 'category-donut-chart', fontFamily: 'inherit', zoom: { enabled: false } },
+        chart: {
+          id: "category-donut-chart",
+          fontFamily: "inherit",
+          zoom: { enabled: false },
+        },
         labels: labels,
-        colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'],
-        legend: { position: 'bottom' },
+        colors: [
+          "#3b82f6",
+          "#8b5cf6",
+          "#ec4899",
+          "#f59e0b",
+          "#10b981",
+          "#6366f1",
+        ],
+        legend: { position: "bottom" },
         dataLabels: { enabled: false },
         plotOptions: {
           pie: {
             donut: {
-              size: '70%',
+              size: "70%",
               labels: {
                 show: true,
                 name: { show: true },
@@ -114,64 +127,69 @@ export const useDashboardStore = defineStore('dashboardStore', {
                 total: {
                   show: true,
                   showAlways: true,
-                  label: 'รวม',
-                  formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
-                }
-              }
-            }
-          }
-        }
+                  label: "รวม",
+                  formatter: (w) =>
+                    w.globals.seriesTotals.reduce((a, b) => a + b, 0),
+                },
+              },
+            },
+          },
+        },
       };
     },
 
-    
     peakHoursChartSeries: (state) => {
-      const data = state.ordersByHour.map(h => h.count);
-      return [{ name: 'จำนวนออเดอร์', data }];
+      const data = state.ordersByHour.map((h) => h.count);
+      return [{ name: "จำนวนออเดอร์", data }];
     },
 
-    
     peakHoursChartOptions: (state) => {
-      const categories = state.ordersByHour.map(h => h.hour);
+      const categories = state.ordersByHour.map((h) => h.hour);
       return {
         chart: {
-          id: 'peak-hours-chart',
+          id: "peak-hours-chart",
           toolbar: { show: false },
           zoom: { enabled: false },
-          fontFamily: 'inherit',
-          type: 'area'
+          fontFamily: "inherit",
+          type: "area",
         },
         dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
+        stroke: { curve: "smooth", width: 2 },
         fill: {
-          type: 'gradient',
+          type: "gradient",
           gradient: {
             shadeIntensity: 1,
             opacityFrom: 0.4,
             opacityTo: 0.05,
-            stops: [0, 90, 100]
-          }
+            stops: [0, 90, 100],
+          },
         },
         xaxis: {
           categories: categories,
-          labels: { style: { colors: '#64748b', fontSize: '10px' } },
-          tooltip: { enabled: false }
+          labels: { style: { colors: "#64748b", fontSize: "10px" } },
+          tooltip: { enabled: false },
         },
         yaxis: {
-          labels: { style: { colors: '#64748b', fontSize: '12px' }, formatter: (val) => Math.floor(val) }
+          labels: {
+            style: { colors: "#64748b", fontSize: "12px" },
+            formatter: (val) => Math.floor(val),
+          },
         },
-        colors: ['#f59e0b'],
-        tooltip: { y: { formatter: (val) => val + " ออเดอร์" } }
+        colors: ["#f59e0b"],
+        tooltip: { y: { formatter: (val) => val + " ออเดอร์" } },
       };
     },
-    
+
     hasActiveFilters: (state) => {
-      return state.restaurantFilters.length > 0 || state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0;
-    }
+      return (
+        state.restaurantFilters.length > 0 ||
+        state.menuCategoryFilters.length > 0 ||
+        state.menuFilters.length > 0
+      );
+    },
   },
 
   actions: {
-
     setTimeFilter(filter) {
       this.timeFilter = filter;
       this.applyFilters();
@@ -184,9 +202,18 @@ export const useDashboardStore = defineStore('dashboardStore', {
         this.restaurantFilters.push(name);
       }
       this.menuFilters = [];
-      if (this.restaurantFilters.length > 0 && this.menuCategoryFilters.length > 0) {
-        const validCategoriesForRests = new Set(this.allMenus.filter(m => this.restaurantFilters.includes(m.Restaurant)).map(m => m.Category));
-        this.menuCategoryFilters = this.menuCategoryFilters.filter(c => validCategoriesForRests.has(c));
+      if (
+        this.restaurantFilters.length > 0 &&
+        this.menuCategoryFilters.length > 0
+      ) {
+        const validCategoriesForRests = new Set(
+          this.allMenus
+            .filter((m) => this.restaurantFilters.includes(m.Restaurant))
+            .map((m) => m.Category),
+        );
+        this.menuCategoryFilters = this.menuCategoryFilters.filter((c) =>
+          validCategoriesForRests.has(c),
+        );
       }
       this.applyFilters();
     },
@@ -203,9 +230,18 @@ export const useDashboardStore = defineStore('dashboardStore', {
         this.menuCategoryFilters.push(category);
       }
       this.menuFilters = [];
-      if (this.menuCategoryFilters.length > 0 && this.restaurantFilters.length > 0) {
-        const validRestsForCats = new Set(this.allMenus.filter(m => this.menuCategoryFilters.includes(m.Category)).map(m => m.Restaurant));
-        this.restaurantFilters = this.restaurantFilters.filter(r => validRestsForCats.has(r));
+      if (
+        this.menuCategoryFilters.length > 0 &&
+        this.restaurantFilters.length > 0
+      ) {
+        const validRestsForCats = new Set(
+          this.allMenus
+            .filter((m) => this.menuCategoryFilters.includes(m.Category))
+            .map((m) => m.Restaurant),
+        );
+        this.restaurantFilters = this.restaurantFilters.filter((r) =>
+          validRestsForCats.has(r),
+        );
       }
       this.applyFilters();
     },
@@ -230,7 +266,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
     setCustomDates(start, end) {
       this.customStartDate = start;
       this.customEndDate = end;
-      if (this.timeFilter === 'custom') {
+      if (this.timeFilter === "custom") {
         this.applyFilters();
       }
     },
@@ -241,14 +277,18 @@ export const useDashboardStore = defineStore('dashboardStore', {
       this.applyFilters();
     },
 
-    
     applyFilters() {
       let filteredRevenue = 0;
       let filteredOrdersCount = 0;
       let validOrdersForChart = [];
       let recentOrdersArray = [];
 
-      const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
+      const statusCounts = {
+        pending: 0,
+        preparing: 0,
+        completed: 0,
+        cancelled: 0,
+      };
       const restRevenueMap = {};
       const menuMetricsMap = {};
 
@@ -258,18 +298,22 @@ export const useDashboardStore = defineStore('dashboardStore', {
       now.setHours(23, 59, 59, 999);
 
       let startTime = new Date(0);
-      if (this.timeFilter === 'today') {
+      if (this.timeFilter === "today") {
         startTime = new Date();
         startTime.setHours(0, 0, 0, 0);
-      } else if (this.timeFilter === '7days') {
+      } else if (this.timeFilter === "7days") {
         startTime = new Date();
         startTime.setHours(0, 0, 0, 0);
         startTime.setDate(startTime.getDate() - 6);
-      } else if (this.timeFilter === 'thisMonth') {
+      } else if (this.timeFilter === "thisMonth") {
         startTime = new Date();
         startTime.setDate(1);
         startTime.setHours(0, 0, 0, 0);
-      } else if (this.timeFilter === 'custom' && this.customStartDate && this.customEndDate) {
+      } else if (
+        this.timeFilter === "custom" &&
+        this.customStartDate &&
+        this.customEndDate
+      ) {
         startTime = new Date(this.customStartDate);
         startTime.setHours(0, 0, 0, 0);
         now.setTime(new Date(this.customEndDate).getTime());
@@ -278,7 +322,7 @@ export const useDashboardStore = defineStore('dashboardStore', {
 
       const categoryMap = {};
       const menusDict = {};
-      this.allMenus.forEach(m => {
+      this.allMenus.forEach((m) => {
         if (m.id) {
           categoryMap[m.id] = m.Category;
           menusDict[m.id] = m;
@@ -286,39 +330,57 @@ export const useDashboardStore = defineStore('dashboardStore', {
       });
 
       const restRateMap = {};
-      this.allRestaurants.forEach(r => {
+      this.allRestaurants.forEach((r) => {
         if (r.Name) restRateMap[r.Name] = Number(r.CommissionRate || 0);
       });
 
-      this.allOrders.forEach(order => {
+      this.allOrders.forEach((order) => {
         const createdAt = order.CreatedAt;
         if (!createdAt) return;
 
-        const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        const orderDate = createdAt.toDate
+          ? createdAt.toDate()
+          : new Date(createdAt);
         if (orderDate < startTime || orderDate > now) return;
 
         if (!order.Menu || order.Menu.length === 0) {
-          if (this.restaurantFilters.length > 0 || this.menuCategoryFilters.length > 0 || this.menuFilters.length > 0) {
+          if (
+            this.restaurantFilters.length > 0 ||
+            this.menuCategoryFilters.length > 0 ||
+            this.menuFilters.length > 0
+          ) {
             return;
           }
-          const cStatus = order.statusOrder || 'pending';
+          const cStatus = order.statusOrder || "pending";
           statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
           recentOrdersArray.push(order);
 
-          if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
+          if (
+            order.statusOrder !== "cancelled" &&
+            order.statusOrder !== "returned"
+          ) {
             filteredOrdersCount++;
             filteredRevenue += Number(order.localTotal || 0);
-            validOrdersForChart.push({ ...order, filteredLocalTotal: order.localTotal });
+            validOrdersForChart.push({
+              ...order,
+              filteredLocalTotal: order.localTotal,
+            });
           }
           return;
         }
 
-        const matchingItems = order.Menu.filter(item => {
-
-          if (this.restaurantFilters.length > 0 && !this.restaurantFilters.includes(item.Restaurant)) return false;
+        const matchingItems = order.Menu.filter((item) => {
+          if (
+            this.restaurantFilters.length > 0 &&
+            !this.restaurantFilters.includes(item.Restaurant)
+          )
+            return false;
 
           if (this.menuCategoryFilters.length > 0) {
-            const itemCategory = categoryMap[item.id] || categoryMap[item.menuId] || 'ไม่ระบุหมวดหมู่';
+            const itemCategory =
+              categoryMap[item.id] ||
+              categoryMap[item.menuId] ||
+              "ไม่ระบุหมวดหมู่";
             if (!this.menuCategoryFilters.includes(itemCategory)) return false;
           }
 
@@ -330,34 +392,41 @@ export const useDashboardStore = defineStore('dashboardStore', {
         });
 
         if (matchingItems.length > 0) {
-          const cStatus = order.statusOrder || 'pending';
+          const cStatus = order.statusOrder || "pending";
           statusCounts[cStatus] = (statusCounts[cStatus] || 0) + 1;
           recentOrdersArray.push(order);
 
-          if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
-            const validRevenueItems = matchingItems.filter(i => i.itemStatus !== 'cancelled' && i.itemStatus !== 'returned');
+          if (
+            order.statusOrder !== "cancelled" &&
+            order.statusOrder !== "returned"
+          ) {
+            const validRevenueItems = matchingItems.filter(
+              (i) =>
+                i.itemStatus !== "cancelled" && i.itemStatus !== "returned",
+            );
 
             if (validRevenueItems.length > 0) {
               filteredOrdersCount++;
               let orderLocalTotal = 0;
 
-              validRevenueItems.forEach(item => {
+              validRevenueItems.forEach((item) => {
                 const itemQty = Number(item.Quantity || 0);
                 const itemRevenue = Number(item.Price || 0) * itemQty;
                 orderLocalTotal += itemRevenue;
 
-                const restName = item.Restaurant || 'ไม่ระบุร้าน';
-                restRevenueMap[restName] = (restRevenueMap[restName] || 0) + itemRevenue;
+                const restName = item.Restaurant || "ไม่ระบุร้าน";
+                restRevenueMap[restName] =
+                  (restRevenueMap[restName] || 0) + itemRevenue;
 
                 const menuId = item.id || item.menuId;
                 if (!menuMetricsMap[menuId]) {
                   const refMenu = menusDict[menuId];
                   menuMetricsMap[menuId] = {
-                    name: item.Name || (refMenu?.Name) || 'ไม่ระบุชื่อเมนู',
+                    name: item.Name || refMenu?.Name || "ไม่ระบุชื่อเมนู",
                     restaurant: restName,
                     qty: 0,
                     revenue: 0,
-                    image: item.ImageUrl || (refMenu?.ImageUrl)
+                    image: item.ImageUrl || refMenu?.ImageUrl,
                   };
                 }
                 menuMetricsMap[menuId].qty += itemQty;
@@ -368,7 +437,10 @@ export const useDashboardStore = defineStore('dashboardStore', {
               });
 
               filteredRevenue += orderLocalTotal;
-              validOrdersForChart.push({ ...order, filteredLocalTotal: orderLocalTotal });
+              validOrdersForChart.push({
+                ...order,
+                filteredLocalTotal: orderLocalTotal,
+              });
             }
           }
         }
@@ -377,8 +449,12 @@ export const useDashboardStore = defineStore('dashboardStore', {
       this.orderStatuses = statusCounts;
       this.recentOrders = recentOrdersArray
         .sort((a, b) => {
-          const tA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
-          const tB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : new Date(b.CreatedAt).getTime();
+          const tA = a.CreatedAt?.toMillis
+            ? a.CreatedAt.toMillis()
+            : new Date(a.CreatedAt).getTime();
+          const tB = b.CreatedAt?.toMillis
+            ? b.CreatedAt.toMillis()
+            : new Date(b.CreatedAt).getTime();
           return tB - tA;
         })
         .slice(0, 10);
@@ -402,29 +478,46 @@ export const useDashboardStore = defineStore('dashboardStore', {
 
       let filteredMenus = this.allMenus;
       if (this.restaurantFilters.length > 0) {
-        filteredMenus = filteredMenus.filter(m => this.restaurantFilters.includes(m.Restaurant));
+        filteredMenus = filteredMenus.filter((m) =>
+          this.restaurantFilters.includes(m.Restaurant),
+        );
       }
       if (this.menuCategoryFilters.length > 0) {
-        filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
+        filteredMenus = filteredMenus.filter((m) =>
+          this.menuCategoryFilters.includes(m.Category),
+        );
       }
       this.filteredTotalMenus = filteredMenus.length;
       this.buildCategoryStats(filteredMenus);
-      this.availableMenus = filteredMenus.filter(m => m.Name).map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
-      
+      this.availableMenus = filteredMenus
+        .filter((m) => m.Name)
+        .map((m) => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
+
       const catList = this.allMenus
-        .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.Restaurant))
-        .map(m => m.Category)
-        .filter(c => c && c.trim() !== '');
+        .filter(
+          (m) =>
+            this.restaurantFilters.length === 0 ||
+            this.restaurantFilters.includes(m.Restaurant),
+        )
+        .map((m) => m.Category)
+        .filter((c) => c && c.trim() !== "");
       this.availableCategories = [...new Set(catList)];
-      
+
       const restList = this.allMenus
-        .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
-        .map(m => m.Restaurant)
-        .filter(r => r && r.trim() !== '');
-      this.availableRestaurants = [...new Set(restList)];
+        .filter(
+          (m) =>
+            this.menuCategoryFilters.length === 0 ||
+            this.menuCategoryFilters.includes(m.Category),
+        )
+        .map((m) => m.Restaurant || m.restaurant)
+        .filter((r) => r && r.trim() !== "");
+
+      // Don't overwrite if we already have the full list from loadDashboardData
+      if (this.availableRestaurants.length === 0) {
+        this.availableRestaurants = [...new Set(restList)];
+      }
     },
 
-    
     clearListeners() {
       if (this.unsubscribeOrders) this.unsubscribeOrders();
       if (this.unsubscribeMenus) this.unsubscribeMenus();
@@ -437,7 +530,6 @@ export const useDashboardStore = defineStore('dashboardStore', {
       this.unsubscribeCategories = null;
     },
 
-    
     async loadDashboardData() {
       this.clearListeners();
 
@@ -445,19 +537,27 @@ export const useDashboardStore = defineStore('dashboardStore', {
       this.menusLoading = true;
       this.restaurantsLoading = true;
 
-      const ordersQuery = query(collection(db, 'Order'));
+      const ordersQuery = query(collection(db, "Order"));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-        const orders = snapshot.docs.map(doc => {
+        const orders = snapshot.docs.map((doc) => {
           const data = doc.data();
           let orderTotal = 0;
 
-          if (data.statusOrder !== 'cancelled' && data.statusOrder !== 'returned') {
+          if (
+            data.statusOrder !== "cancelled" &&
+            data.statusOrder !== "returned"
+          ) {
             if (data.Netprice) orderTotal = Number(data.Netprice);
             else if (data.TotalPrice) orderTotal = Number(data.TotalPrice);
             else if (data.Menu && Array.isArray(data.Menu)) {
               orderTotal = data.Menu.reduce((sum, item) => {
-                if (item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
-                  return sum + (Number(item.Price || 0) * Number(item.Quantity || 1));
+                if (
+                  item.itemStatus !== "cancelled" &&
+                  item.itemStatus !== "returned"
+                ) {
+                  return (
+                    sum + Number(item.Price || 0) * Number(item.Quantity || 1)
+                  );
                 }
                 return sum;
               }, 0);
@@ -471,21 +571,29 @@ export const useDashboardStore = defineStore('dashboardStore', {
         this.applyFilters();
       });
 
-      const menusQuery = query(collection(db, 'Menu'));
+      const menusQuery = query(collection(db, "Menu"));
       this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
-        const menus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const menus = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         this.allMenus = menus;
-        this.availableMenus = menus.filter(m => m.Name).map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
+        this.availableMenus = menus
+          .filter((m) => m.Name)
+          .map((m) => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
         this.totalMenus = menus.length;
         this.menusLoading = false;
         this.applyFilters();
       });
 
-      const restaurantsQuery = query(collection(db, 'Restaurant'));
+      const restaurantsQuery = query(collection(db, "Restaurant"));
       this.unsubscribeRestaurants = onSnapshot(restaurantsQuery, (snapshot) => {
-        const fullData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const names = fullData.map(r => r.Name || r.id);
-        
+        const fullData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        const names = fullData.map((r) => r.Name || r.id);
+
         this.allRestaurants = fullData;
         this.availableRestaurants = [...new Set(names)];
         this.totalRestaurants = snapshot.size;
@@ -493,29 +601,37 @@ export const useDashboardStore = defineStore('dashboardStore', {
         this.applyFilters();
       });
 
-      const categoriesQuery = query(collection(db, 'categories'));
+      const categoriesQuery = query(collection(db, "Category"));
       this.unsubscribeCategories = onSnapshot(categoriesQuery, (snapshot) => {
         const categories = snapshot.docs
-          .map(doc => doc.data().name)
-          .filter(name => name && name.trim() !== '');
+          .map((doc) => {
+            const data = doc.data();
+            return data.Name || data.name;
+          })
+          .filter((name) => name && name.trim() !== "");
         this.availableCategories = [...new Set(categories)];
       });
     },
 
-    
     buildDailyRevenueChart(orders) {
       const days = {};
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       let daysCount = 6;
-      if (this.timeFilter === 'today') daysCount = 0;
-      else if (this.timeFilter === 'thisMonth') daysCount = today.getDate() - 1;
-      else if (this.timeFilter === 'all') daysCount = 29;
-      else if (this.timeFilter === 'custom' && this.customStartDate && this.customEndDate) {
+      if (this.timeFilter === "today") daysCount = 0;
+      else if (this.timeFilter === "thisMonth") daysCount = today.getDate() - 1;
+      else if (this.timeFilter === "all") daysCount = 29;
+      else if (
+        this.timeFilter === "custom" &&
+        this.customStartDate &&
+        this.customEndDate
+      ) {
         const start = new Date(this.customStartDate);
         const end = new Date(this.customEndDate);
-        daysCount = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        daysCount = Math.floor(
+          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+        );
         if (daysCount > 31) daysCount = 31;
         if (daysCount < 0) daysCount = 0;
 
@@ -526,48 +642,49 @@ export const useDashboardStore = defineStore('dashboardStore', {
       for (let i = daysCount; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        const dateString = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        const dateString = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
         days[dateString] = 0;
       }
 
-      orders.forEach(order => {
+      orders.forEach((order) => {
         if (order.filteredLocalTotal > 0 && order.CreatedAt) {
-          const orderDate = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
+          const orderDate = order.CreatedAt.toDate
+            ? order.CreatedAt.toDate()
+            : new Date(order.CreatedAt);
           orderDate.setHours(0, 0, 0, 0);
 
-          const dateString = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
+          const dateString = `${orderDate.getDate().toString().padStart(2, "0")}/${(orderDate.getMonth() + 1).toString().padStart(2, "0")}`;
           if (days[dateString] !== undefined) {
             days[dateString] += Number(order.filteredLocalTotal);
           }
         }
       });
 
-      this.revenueByDay = Object.keys(days).map(key => ({
+      this.revenueByDay = Object.keys(days).map((key) => ({
         date: key,
-        revenue: days[key]
+        revenue: days[key],
       }));
     },
 
-    
     buildCategoryStats(menus) {
       const counts = {};
-      menus.forEach(m => {
-        const cat = m.Category || 'อื่นๆ';
+      menus.forEach((m) => {
+        const cat = m.Category || "อื่นๆ";
         counts[cat] = (counts[cat] || 0) + 1;
       });
 
-      this.categoriesCount = Object.keys(counts).map(key => ({
-        name: key,
-        count: counts[key]
-      })).sort((a, b) => b.count - a.count);
+      this.categoriesCount = Object.keys(counts)
+        .map((key) => ({
+          name: key,
+          count: counts[key],
+        }))
+        .sort((a, b) => b.count - a.count);
     },
 
-    
     buildPeakHoursChart(orders) {
       const hourlyDistribution = Array(24).fill(0);
-      orders.forEach(order => {
+      orders.forEach((order) => {
         if (order.CreatedAt) {
-
           let orderDate;
           if (order.CreatedAt.toDate) {
             orderDate = order.CreatedAt.toDate();
@@ -585,16 +702,16 @@ export const useDashboardStore = defineStore('dashboardStore', {
       });
 
       const chartData = hourlyDistribution.map((count, hour) => ({
-        hour: `${hour.toString().padStart(2, '0')}:00`,
-        count: count
+        hour: `${hour.toString().padStart(2, "0")}:00`,
+        count: count,
       }));
 
       chartData.push({
         hour: "23:59",
-        count: 0
+        count: 0,
       });
 
       this.ordersByHour = chartData;
-    }
-  }
+    },
+  },
 });

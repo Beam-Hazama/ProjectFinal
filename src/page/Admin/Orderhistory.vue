@@ -52,16 +52,14 @@ const getStatusColor = (status) => {
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="table w-full">
-                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                             <tr>
-                                <th class="py-4 pl-6">ORDER NUMBER</th>
-                                <th class="text-center">BUILDING</th>
-                                <th class="text-center">FLOOR</th>
-                                <th class="text-center">ROOM</th>
-                                <th class="text-center">STATUS</th>
-                                <th class="text-center">DATE</th>
-                                <th class="text-center">TOTAL PRICE</th>
-                                <th class="text-center">ACTION</th>
+                                <th class="py-4 pl-6 text-left">Order Number</th>
+                                <th class="py-4 text-center">Room</th>
+                                <th class="py-4 text-center">Status</th>
+                                <th class="py-4 text-center">Date</th>
+                                <th class="py-4 text-center">Total Price</th>
+                                <th class="py-4 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody class="text-slate-600">
@@ -71,14 +69,8 @@ const getStatusColor = (status) => {
                                     #{{ order.OrderNumber }}
                                 </td>
 
-                                <td class="text-center font-medium text-slate-700">
-                                    {{ order.building }}
-                                </td>
-                                <td class="text-center font-medium text-slate-700">
-                                    {{ order.floor }}
-                                </td>
-                                <td class="text-center font-medium text-slate-700">
-                                    <span class="font-bold ">{{ order.room }}</span>
+                                <td class="py-4 text-center font-medium text-slate-700">
+                                    <span class="font-bold text-indigo-600">{{ order.room || order.roomId || '-' }}</span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.statusOrder)">
@@ -103,18 +95,6 @@ const getStatusColor = (status) => {
                                     </button>
                                 </td>
                             </tr>
-                            <tr v-if="historyOrders.length === 0">
-                                <td colspan="8" class="text-center py-12">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-3"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <p class="text-slate-400 font-medium italic">ไม่มีประวัติรายการสั่งซื้อ</p>
-                                    </div>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -131,17 +111,7 @@ const getStatusColor = (status) => {
                     <div v-if="selectedOrder" class="space-y-4">
                         <div
                             class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span v-if="selectedOrder.building && selectedOrder.room" class="flex gap-2">
-                                <span>Building: <span class="font-bold text-slate-700">{{ selectedOrder.building
-                                        }}</span></span>
-                                <span>Floor: <span class="font-bold text-slate-700">{{ selectedOrder.floor
-                                        }}</span></span>
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room
-                                }}</span></span>
-                            </span>
-                            <span v-else>
-                                Room: {{ selectedOrder.roomId }}
-                            </span>
+                            <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room || selectedOrder.roomId }}</span></span>
                             <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>
 

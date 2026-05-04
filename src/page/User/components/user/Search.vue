@@ -4,12 +4,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import MenuList from '@/page/component/blockmenu.vue';
 
+import { useCartStore } from '@/stores/cartStore';
+
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
+const cartStore = useCartStore();
 
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
 const searchQuery = ref('');
@@ -33,10 +34,11 @@ onMounted(() => {
     if (menuStore.list.length === 0) {
         menuStore.loadMenu();
     }
+    cartStore.loadCart(room);
 });
 
 const goBack = () => {
-    router.push(`/User/${building}/${floor}/${room}`);
+    router.push(`/user/${room}`);
 };
 </script>
 

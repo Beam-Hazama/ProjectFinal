@@ -10,7 +10,8 @@ import {
   doc,
   getDoc,
   runTransaction,
-  deleteField
+  deleteField,
+  Timestamp
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -43,27 +44,37 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
       // 2. Filter out cancelled items to determine the active status
       const activeStatuses = statuses.filter(s => s !== 'cancelled');
+      if (activeStatuses.length === 0) return 'cancelled';
 
-      // 3. Status Hierarchy (The "earliest" active status determines the global status)
-      // Hierarchy: waiting/pending > cooking > dispatched > received (completed)
-      
-      if (activeStatuses.some(s => ['waiting', 'pending'].includes(s))) {
-        return 'pending';
-      }
-      
-      if (activeStatuses.some(s => s === 'cooking')) {
-        return 'cooking';
-      }
-      
-      if (activeStatuses.some(s => s === 'dispatched')) {
-        return 'dispatched';
-      }
-      
-      if (activeStatuses.every(s => s === 'received')) {
-        return 'completed';
-      }
+      // 3. Status Hierarchy Ranking (Lower number = Higher Priority for global status)
+      const statusRank = {
+        'waiting': 0,
+        'pending': 0,
+        'cooking': 1,
+        'dispatched': 2,
+        'received': 3
+      };
 
-      return 'pending';
+      // Determine global status by the "least progressed" item (minimum rank)
+      let minRank = 3; 
+      let foundActive = false;
+
+      activeStatuses.forEach(s => {
+        const rank = statusRank[s] !== undefined ? statusRank[s] : 0;
+        if (rank < minRank) minRank = rank;
+        foundActive = true;
+      });
+
+      if (!foundActive) return 'cancelled';
+
+      const rankToGlobalStatus = {
+        0: 'pending',
+        1: 'cooking',
+        2: 'dispatched',
+        3: 'completed'
+      };
+
+      return rankToGlobalStatus[minRank];
     },
 
     
@@ -198,25 +209,22 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async loadOrderUser(building, floor, room) {
+    async loadOrderUser(room) {
       this.clearListener();
+
+      const twelveHoursAgo = Timestamp.fromMillis(Date.now() - (12 * 60 * 60 * 1000));
 
       const orderQuery = query(
         collection(db, "Order"),
-        where("building", "==", building),
-        where("floor", "==", floor),
-        where("room", "==", room)
+        where("room", "==", room),
+        where("CreatedAt", ">=", twelveHoursAgo)
       );
 
       this.unsubscribe = onSnapshot(orderQuery, (orderSnapshot) => {
-        const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
-        const newOrders = orderSnapshot.docs
-          .map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-          .filter(order => (order.CreatedAt?.seconds || 0) >= twelveHoursAgo);
-        this.list = newOrders;
+        this.list = orderSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
       });
     },
 

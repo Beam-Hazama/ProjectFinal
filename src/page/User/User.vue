@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 
 import { formatPrice } from '@/utils/format';
+import { checkShopClosed } from '@/utils/restaurantHelper';
 import { useRoute } from 'vue-router';
 import { useMenuStore } from '@/stores/menuStore';
 import { useCartStore } from '@/stores/cartStore';
@@ -24,59 +25,46 @@ const qrStore = useQrcodeStore();
 const posterStore = usePosterStore();
 const categoryStore = useCategoryStore();
 
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
 const room = route.params.room || '-';
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 const isError = ref(false);
 const errorMessage = ref('');
-const localCategories = ref([]);
 const selectedMenu = ref(null);
 const showModal = ref(false);
 const selectedRestaurantCategories = ref([]);
 const showFilterSheet = ref(false);
 const isFilterPromoOnly = ref(false);
+const now = ref(new Date());
+let timer;
 
 
 
 const displayLocation = computed(() => {
-  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
+  return `ห้อง ${room}`;
 });
 
-const filteredRestaurants = computed(() => {
-  return restaurantStore.list || [];
-});
 
-const filteredMenus = computed(() => {
-  return menuStore.list || [];
-});
 
 const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
     if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
     if (item.Status && item.Status !== 'open') return false;
     const shop = restaurantStore.list.find(r => r.Name === item.Restaurant);
-    return !checkShopClosed(shop);
+    return !checkShopClosed(shop, now.value);
   });
 });
 
 const activeCategories = computed(() => {
-  return localCategories.value.filter(cat => {
-    return (menuStore.list || []).some(item => {
-      const shop = restaurantStore.list.find(r => r.Name === item.Restaurant);
-      if (checkShopClosed(shop)) return false;
-      const matchesCategory = (item.Category && item.Category === cat.name) ||
-        (item.role && (Array.isArray(item.role) ? item.role.includes(cat.name) : item.role === cat.name)) ||
-        (item.Name && item.Name.includes(cat.name));
-      return matchesCategory;
-    });
-  });
+  return categoryStore.list || [];
 });
 
 onMounted(async () => {
   await loadAllData();
+  timer = setInterval(() => {
+    now.value = new Date();
+  }, 60000);
 });
 
 const loadAllData = async () => {
@@ -85,16 +73,16 @@ const loadAllData = async () => {
     isError.value = false;
     errorMessage.value = '';
 
-    const isValid = await qrStore.validateRoom(building, floor, room);
+    const isValid = await qrStore.validateRoom(room);
     isValidLocation.value = isValid;
 
     if (isValid) {
       await Promise.all([
         restaurantStore.loadListRestaurant(),
         menuStore.loadMenu(),
-        cartStore.loadCart(building, floor, room),
-        posterStore.loadPosters(),
-        categoryStore.loadCategories()
+        cartStore.loadCart(room),
+        posterStore.fetchPosters(),
+        categoryStore.fetchCategories()
       ]);
     }
   } catch (error) {
@@ -107,28 +95,24 @@ const loadAllData = async () => {
 };
 
 onUnmounted(() => {
-
+  if (timer) clearInterval(timer);
   restaurantStore.clearListener();
   menuStore.clearListener();
-  posterStore.clearListener();
-  categoryStore.clearListener();
 });
 
-watch(() => categoryStore.list, (newList) => {
-  localCategories.value = [...(newList || [])];
-}, { deep: true, immediate: true });
+// Watch for category store changes is no longer needed as we use computed directly from store
 
 
 
-watch(() => [route.params.building, route.params.floor, route.params.room], async ([newB, newF, newR]) => {
-  if (newB && newF && newR) {
+watch(() => route.params.room, async (newR) => {
+  if (newR) {
     isLoading.value = true;
-    const isValid = await qrStore.validateRoom(newB, newF, newR);
+    const isValid = await qrStore.validateRoom(newR);
     isValidLocation.value = isValid;
     isLoading.value = false;
 
     if (isValid) {
-      cartStore.loadCart(newB, newF, newR);
+      cartStore.loadCart(newR);
     }
   }
 });
@@ -140,10 +124,6 @@ const openMenuModal = (menu) => {
   showModal.value = true;
 };
 
-function isShopClosed(restaurantName) {
-  const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-  return checkShopClosed(shop);
-};
 
 const resetFilters = () => {
   isFilterPromoOnly.value = false;
@@ -173,7 +153,7 @@ const applyFilters = () => {
   <div v-if="isLoading"
     class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
     <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
-    <p class="text-slate-500 font-medium animate-pulse">กำลังเตรียมความอร่อย...</p>
+    <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูล</p>
   </div>
 
   <div v-else-if="isError"
@@ -207,8 +187,6 @@ const applyFilters = () => {
   </div>
 
   <div v-else class="w-full min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans">
-
-
     <div class="px-5 pt-6 pb-2">
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-200">
@@ -237,7 +215,7 @@ const applyFilters = () => {
           <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        <div @click="$router.push(`/user/search/${building}/${floor}/${room}`)"
+        <div @click="$router.push(`/user/search/${room}`)"
           class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
@@ -251,21 +229,20 @@ const applyFilters = () => {
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
-        <button @click="$router.push(`/user/all-categories/${building}/${floor}/${room}`)"
+        <button @click="$router.push(`/user/all-categories/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in activeCategories" :key="cat.id"
-          @click="$router.push(`/user/category/${cat.name}/${building}/${floor}/${room}`)"
+        <div v-for="cat in activeCategories" :key="cat.id" @click="$router.push(`/user/category/${cat.Name}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
-            <img :src="cat.ImageUrl" :alt="cat.name" class="w-full h-full object-cover" />
+            <img :src="cat.ImageUrl" :alt="cat.Name" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
           </div>
           <span
             class="mt-2.5 text-[13px] font-bold text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
-            {{ cat.name }}
+            {{ cat.Name }}
           </span>
         </div>
       </div>
@@ -275,7 +252,7 @@ const applyFilters = () => {
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="$router.push(`/user/all-promotions/${building}/${floor}/${room}`)"
+        <button @click="$router.push(`/user/all-promotions/${room}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
@@ -292,8 +269,10 @@ const applyFilters = () => {
                 <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">
-                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ formatPrice(menu.PromoPrice) }}</span>
-                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ formatPrice(menu.Price) }}</span>
+                <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ formatPrice(menu.PromoPrice)
+                }}</span>
+                <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ formatPrice(menu.Price)
+                }}</span>
               </div>
             </div>
           </div>
@@ -368,14 +347,14 @@ const applyFilters = () => {
                   </button>
 
 
-                  <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.name)"
+                  <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.Name)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
                       selectedRestaurantCategories.includes(cat.name)
                         ? 'bg-blue-50 border-blue-500 text-blue-600 font-black'
                         : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
                     ]">
-                    {{ cat.name }}
+                    {{ cat.Name }}
                   </button>
                 </div>
               </div>
@@ -398,21 +377,15 @@ const applyFilters = () => {
       </Teleport>
 
       <div class="px-4">
-        <div v-if="filteredRestaurants.length > 0" class="animate-fade-in">
-          <RestaurantList :building="building" :floor="floor" :room="room"
-            :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
+        <div class="animate-fade-in">
+          <RestaurantList :room="room" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
-        </div>
-
-        <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400">
-          <span class="text-4xl opacity-50 mb-2">🏪</span>
-          <p class="text-[13px] font-medium">ไม่พบร้านอาหารในขณะนี้</p>
         </div>
       </div>
     </div>
 
 
-    <BottomNavigation :building="building" :floor="floor" :room="room" />
+    <BottomNavigation :room="room" />
     <MenuOrderModal v-if="selectedMenu" :show="showModal" :menu="selectedMenu" @close="showModal = false" />
   </div>
 </template>

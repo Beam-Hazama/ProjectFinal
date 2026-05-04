@@ -60,7 +60,7 @@ const toggleUserStatus = async (user) => {
         const userRef = doc(db, 'User', user.id);
         await updateDoc(userRef, {
             Status: newStatus,
-            updatedAt: serverTimestamp()
+            UpdatedAt: serverTimestamp()
         });
         await fetchUsers();
     } catch (error) {
@@ -98,7 +98,7 @@ const deleteUser = async (id) => {
                 </RouterLink>
             </div>
 
-            <div v-if="users.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 <div v-for="user in users" :key="user.id"
                     class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
 
@@ -142,7 +142,7 @@ const deleteUser = async (id) => {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                {{ user.Restaurant || 'ยังไม่เชื่อมต่อร้าน' }}
+                                {{ user.Restaurant }}
                             </p>
                         </div>
 
@@ -179,7 +179,7 @@ const deleteUser = async (id) => {
                                     </svg>
                                 </div>
                                 <span class="text-slate-500 line-clamp-3 leading-tight">{{ user.Address
-                                    || 'ไม่ระบุที่อยู่' }}</span>
+                                }}</span>
                             </div>
                         </div>
 
@@ -188,6 +188,10 @@ const deleteUser = async (id) => {
                             <div class="flex justify-between px-1">
                                 <span>Created</span>
                                 <span class="text-slate-500">{{ formatTimestamp(user.CreatedAt) }}</span>
+                            </div>
+                            <div class="flex justify-between px-1 mt-1">
+                                <span>Updated</span>
+                                <span class="text-slate-500">{{ formatTimestamp(user.UpdatedAt) }}</span>
                             </div>
                         </div>
                     </div>
@@ -226,18 +230,7 @@ const deleteUser = async (id) => {
                 </div>
             </div>
 
-            <div v-else
-                class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-slate-300">
-                <div class="bg-slate-100 p-6 rounded-full mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-400" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-slate-700">No users found</h3>
-                <p class="text-slate-400 mt-1">เริ่มต้นใช้งานโดยการเพิ่มผู้ใช้ร้านอาหารใหม่</p>
-            </div>
+
         </div>
     </LayoutAdmin>
 </template>

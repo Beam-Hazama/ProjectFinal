@@ -7,37 +7,68 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() &&
+      return isSignedIn() && 
              exists(/databases/$(database)/documents/User/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'admin';
+             (get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'admin' || 
+              get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    function isRestaurant() {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/User/$(request.auth.uid)) &&
+             (get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Role == 'restaurant' || 
+              get(/databases/$(database)/documents/User/$(request.auth.uid)).data.role == 'restaurant');
+    }
+
+    function userRestaurantName() {
+      return exists(/databases/$(database)/documents/User/$(request.auth.uid)) ? 
+             get(/databases/$(database)/documents/User/$(request.auth.uid)).data.Restaurant : null;
     }
 
     match /User/{userId} {
-      allow read: if true;
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
 
-    match /Restaurant/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /Menu/{id} { 
-      allow read: if true; 
-      allow create, update: if isSignedIn();
-      allow delete: if isAdmin();
+    match /Restaurant/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || 
+                       (isRestaurant() && resource.data.Name == userRestaurantName());
     }
 
-    // ✅ เพิ่ม posters (ตัวเล็ก) ที่โค้ดใช้จริง
-    match /posters/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /Poster/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /Menu/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || 
+                       (isRestaurant() && request.resource.data.Restaurant == userRestaurantName());
+      allow update, delete: if isAdmin() || 
+                          (isRestaurant() && resource.data.Restaurant == userRestaurantName());
+    }
 
-    // ✅ categories ตัวเล็ก ที่โค้ดใช้จริง  
-    match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /Poster/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || 
+                       (isRestaurant() && request.resource.data.Restaurant == userRestaurantName());
+      allow update, delete: if isAdmin() || 
+                          (isRestaurant() && resource.data.Restaurant == userRestaurantName());
+    }
+
     match /Category/{id} { allow read: if true; allow write: if isAdmin(); }
 
     match /Commission/{id} { allow read: if true; allow write: if isAdmin(); }
     match /QRCodes/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /Qrcode/{id} { allow read: if true; allow write: if isAdmin(); }
 
     match /Order/{id} {
       allow read, create, update: if true;
       allow delete: if false;
+    }
+
+    match /Metadata/Counters {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.resource.data.lastOrderNumber == resource.data.lastOrderNumber + 1;
     }
   }
 }

@@ -1,4 +1,21 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "Order",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "room", "order": "ASCENDING" },
+        { "fieldPath": "CreatedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "Order",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "RestaurantsInOrder", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "statusOrder", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

@@ -1,34 +1,37 @@
-import { defineStore } from 'pinia';
-import { 
-  addDoc, 
-  collection, 
-  doc, 
-  onSnapshot, 
-  serverTimestamp, 
-  deleteDoc, 
-  query, 
-  where, 
-  writeBatch 
-} from 'firebase/firestore';
-import { storage, db } from '@/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { defineStore } from "pinia";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  deleteDoc,
+  query,
+  where,
+  writeBatch,
+  getDocs,
+} from "firebase/firestore";
+import { storage, db } from "@/firebase";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 
-export const useCategoryStore = defineStore('category', {
-
+export const useCategoryStore = defineStore("category", {
   state: () => ({
     list: [],
     unsubscribe: null,
-    
+
     // UI State for Admin Category Management
     showModal: false,
-    newCategoryName: '',
-    newCategoryImageUrl: '',
+    newCategoryName: "",
+    newCategoryImageUrl: "",
     selectedFile: null,
     isSubmitting: false,
   }),
 
   actions: {
-    
     clearListener() {
       if (this.unsubscribe) {
         this.unsubscribe();
@@ -37,51 +40,98 @@ export const useCategoryStore = defineStore('category', {
       this.list = [];
     },
 
-    
     async loadCategories(restaurantName = null) {
       this.clearListener();
 
-      const categoryRef = collection(db, 'categories');
+      const categoryRef = collection(db, "Category");
       let q;
 
       if (restaurantName) {
-        q = query(categoryRef, where('RestaurantName', '==', restaurantName));
+        q = query(categoryRef, where("Restaurant", "==", restaurantName));
       } else {
         q = query(categoryRef);
       }
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
-        let newList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        if (!restaurantName) {
-          newList = newList.filter(item => !item.RestaurantName);
-        }
+        let newList = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            Name: data.Name,
+            Restaurant: data.Restaurant,
+            ImageUrl: data.ImageUrl,
+            CreatedAt: data.CreatedAt,
+            Position: data.Position,
+          };
+        });
 
         newList.sort((a, b) => {
-          const aOrder = typeof a.order === 'number' ? a.order : Infinity;
-          const bOrder = typeof b.order === 'number' ? b.order : Infinity;
+          const aPos = typeof a.Position === "number" ? a.Position : Infinity;
+          const bPos = typeof b.Position === "number" ? b.Position : Infinity;
 
-          if (aOrder !== Infinity && bOrder !== Infinity) {
-            return aOrder - bOrder;
+          if (aPos !== Infinity && bPos !== Infinity) {
+            return aPos - bPos;
           }
-          if (aOrder !== Infinity) return -1;
-          if (bOrder !== Infinity) return 1;
-          
-          const timeA = a.createdAt?.seconds || 0;
-          const timeB = b.createdAt?.seconds || 0;
+          if (aPos !== Infinity) return -1;
+          if (bPos !== Infinity) return 1;
+
+          const timeA = a.CreatedAt?.seconds || 0;
+          const timeB = b.CreatedAt?.seconds || 0;
           return timeB - timeA;
         });
 
         this.list = newList;
       });
     },
+    async fetchCategories(restaurantName = null) {
+      const categoryRef = collection(db, "Category");
+      let q;
+
+      if (restaurantName) {
+        q = query(categoryRef, where("Restaurant", "==", restaurantName));
+      } else {
+        q = query(categoryRef);
+      }
+
+      const snapshot = await getDocs(q);
+      let newList = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          Name: data.Name,
+          Restaurant: data.Restaurant,
+          ImageUrl: data.ImageUrl,
+          CreatedAt: data.CreatedAt,
+          Position: data.Position,
+        };
+      });
+
+      newList.sort((a, b) => {
+        const aPos = typeof a.Position === "number" ? a.Position : Infinity;
+        const bPos = typeof b.Position === "number" ? b.Position : Infinity;
+
+        if (aPos !== Infinity && bPos !== Infinity) {
+          return aPos - bPos;
+        }
+        if (aPos !== Infinity) return -1;
+        if (bPos !== Infinity) return 1;
+
+        const timeA = a.CreatedAt?.seconds || 0;
+        const timeB = b.CreatedAt?.seconds || 0;
+        return timeB - timeA;
+      });
+
+      this.list = newList;
+    },
 
     // UI Actions
     onImageSelected(file) {
-      if (this.newCategoryImageUrl && this.newCategoryImageUrl.startsWith('blob:')) {
+      if (
+        this.newCategoryImageUrl &&
+        this.newCategoryImageUrl.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(this.newCategoryImageUrl);
       }
       this.selectedFile = file;
@@ -92,12 +142,15 @@ export const useCategoryStore = defineStore('category', {
     },
 
     closeModal() {
-      if (this.newCategoryImageUrl && this.newCategoryImageUrl.startsWith('blob:')) {
+      if (
+        this.newCategoryImageUrl &&
+        this.newCategoryImageUrl.startsWith("blob:")
+      ) {
         URL.revokeObjectURL(this.newCategoryImageUrl);
       }
       this.showModal = false;
-      this.newCategoryName = '';
-      this.newCategoryImageUrl = '';
+      this.newCategoryName = "";
+      this.newCategoryImageUrl = "";
       this.selectedFile = null;
       this.isSubmitting = false;
     },
@@ -106,10 +159,10 @@ export const useCategoryStore = defineStore('category', {
       if (!this.newCategoryName.trim()) {
         return;
       }
-      
+
       try {
         this.isSubmitting = true;
-        let ImageUrl = '';
+        let ImageUrl = "";
 
         if (this.selectedFile) {
           try {
@@ -118,7 +171,7 @@ export const useCategoryStore = defineStore('category', {
             const snapshot = await uploadBytes(fileRef, this.selectedFile);
             ImageUrl = await getDownloadURL(snapshot.ref);
           } catch (uploadError) {
-            console.error('Error uploading category image:', uploadError);
+            console.error("Error uploading category image:", uploadError);
             this.isSubmitting = false;
             return;
           }
@@ -129,16 +182,16 @@ export const useCategoryStore = defineStore('category', {
           return;
         }
 
-        await addDoc(collection(db, 'categories'), {
-          name: this.newCategoryName.trim(),
+        await addDoc(collection(db, "Category"), {
+          Name: this.newCategoryName.trim(),
           ImageUrl: ImageUrl,
-          order: this.list.length,
-          createdAt: serverTimestamp()
+          Position: this.list.length,
+          CreatedAt: serverTimestamp(),
         });
-        
+
         this.closeModal();
       } catch (error) {
-        console.error('Error adding category:', error);
+        console.error("Error adding category:", error);
       } finally {
         this.isSubmitting = false;
       }
@@ -146,19 +199,19 @@ export const useCategoryStore = defineStore('category', {
 
     async deleteCategory(categoryId) {
       try {
-        await deleteDoc(doc(db, 'categories', categoryId));
+        await deleteDoc(doc(db, "Category", categoryId));
       } catch (error) {
-        console.error('Error deleting category:', error);
+        console.error("Error deleting category:", error);
       }
     },
 
-    async updateCategoryOrder(orderedIds) {
+    async updateCategoryPosition(orderedIds) {
       const batch = writeBatch(db);
       orderedIds.forEach((id, index) => {
-        const ref = doc(db, 'categories', id);
-        batch.update(ref, { order: index });
+        const ref = doc(db, "Category", id);
+        batch.update(ref, { Position: index });
       });
       await batch.commit();
-    }
+    },
   },
 });

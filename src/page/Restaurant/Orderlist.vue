@@ -243,12 +243,10 @@ const getRowStatusColor = (status) => {
                                     #{{ order.OrderNumber }}
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Building /
-                                        Floor / Room</span>
-                                    <span v-if="order.building && order.room" class="font-bold text-slate-700 text-sm">
-                                        {{ order.building }} / {{ order.floor }} / {{ order.room }}
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room</span>
+                                    <span class="font-bold text-slate-700 text-sm">
+                                        {{ order.room || order.roomId || 'N/A' }}
                                     </span>
-                                    <span v-else class="font-bold text-slate-700">{{ order.roomId || 'N/A' }}</span>
                                 </div>
                             </div>
                             <div class="text-right">

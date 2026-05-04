@@ -41,14 +41,14 @@ const handleFileUpload = (event) => {
 
 const onDragEnd = async () => {
     const orderedIds = localPosters.value.map(p => p.id);
-    await posterStore.updatePosterOrder(orderedIds);
+    await posterStore.updatePosterPosition(orderedIds);
 };
 </script>
 
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-start mb-6">
+            <div class="flex justify-between items-center mb-7">
                 <div class="text-3xl font-bold text-slate-700">Poster</div>
                 <button @click="posterStore.showModal = true"
                     class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
@@ -136,8 +136,8 @@ const onDragEnd = async () => {
                     <table class="table w-full">
                         <thead class="bg-slate-50 text-slate-500 font-bold text-xs">
                             <tr>
-                                <th class="w-12 text-center py-4 pl-6"></th>
-                                <th>POSTER</th>
+                                <th class="py-4 pl-6"></th>
+                                <th class="text-center">POSTER</th>
                                 <th class="text-center">STATUS</th>
                                 <th class="text-center">DURATION</th>
                                 <th class="text-center">SCHEDULE</th>
@@ -147,23 +147,11 @@ const onDragEnd = async () => {
                             </tr>
                         </thead>
 
-                        <tbody class="text-slate-600" v-if="localPosters.length === 0">
-                            <tr>
-                                <td colspan="8" class="text-center py-10 text-slate-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 opacity-30"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    No posters found
-                                </td>
-                            </tr>
-                        </tbody>
-                        <draggable v-else v-model="localPosters" item-key="id" tag="tbody" class="text-slate-600"
+                        <draggable v-model="localPosters" item-key="id" tag="tbody" class="text-slate-600"
                             handle=".drag-handle" @end="onDragEnd">
                             <template #item="{ element: poster }">
                                 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors bg-white">
-                                    <td class="pl-6 w-12 text-center align-middle">
+                                    <td class="pl-6 align-middle">
                                         <div
                                             class="drag-handle cursor-grab hover:text-blue-600 text-slate-400 p-2 opacity-50 hover:opacity-100 transition-opacity flex justify-center items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -184,25 +172,25 @@ const onDragEnd = async () => {
                                         <div class="flex justify-center flex-col">
                                             <label
                                                 class="cursor-pointer relative inline-flex items-center group w-max mx-auto">
-                                                <input type="checkbox" :checked="poster.isActive"
-                                                    @change="posterStore.toggleActive(poster.id, poster.isActive)" class="sr-only peer">
+                                                <input type="checkbox" :checked="poster.IsActive"
+                                                    @change="posterStore.toggleActive(poster.id, poster.IsActive)" class="sr-only peer">
                                                 <div
                                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                                 </div>
                                                 <span class="ml-3 text-sm font-medium"
-                                                    :class="poster.isActive ? 'text-blue-600' : 'text-slate-400'">
-                                                    {{ poster.isActive ? 'Active' : 'Hidden' }}
+                                                    :class="poster.IsActive ? 'text-blue-600' : 'text-slate-400'">
+                                                    {{ poster.IsActive ? 'Active' : 'Hidden' }}
                                                 </span>
                                             </label>
                                         </div>
                                     </td>
 
                                     <td class="text-center text-xs font-medium text-slate-600">
-                                        {{ poster.displayDuration }} sec
+                                        {{ poster.DisplayDuration || 5 }} sec
                                     </td>
 
                                     <td class="text-center">
-                                        <div v-if="poster.hasSchedule"
+                                        <div v-if="poster.HasSchedule"
                                             class="p-2 bg-blue-50/50 rounded-lg border border-blue-100 text-[11px] text-slate-600 w-max mx-auto">
                                             <div
                                                 class="font-bold text-blue-600 mb-1 flex items-center justify-center gap-1">
@@ -216,9 +204,9 @@ const onDragEnd = async () => {
                                             </div>
                                             <div class="space-y-0.5">
                                                 <div><span class="font-medium text-slate-500">From:</span> {{
-                                                    formatScheduleDate(poster.startTime) }}</div>
+                                                    formatScheduleDate(poster.StartTime) }}</div>
                                                 <div><span class="font-medium text-slate-500">To:</span> {{
-                                                    formatScheduleDate(poster.endTime) }}</div>
+                                                    formatScheduleDate(poster.EndTime) }}</div>
                                             </div>
                                         </div>
                                         <div v-else class="text-[11px] text-slate-400 font-medium">
@@ -227,11 +215,11 @@ const onDragEnd = async () => {
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatTimestamp(poster.createdAt) }}
+                                        {{ formatTimestamp(poster.CreatedAt) }}
                                     </td>
 
                                     <td class="text-center text-xs whitespace-nowrap">
-                                        {{ formatTimestamp(poster.updatedAt) }}
+                                        {{ formatTimestamp(poster.UpdatedAt) }}
                                     </td>
 
                                     <td class="text-center">

@@ -14,35 +14,30 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     const cartStore = useCartStore();
     const menuStore = useMenuStore();
 
-    const IS_NOTIFICATION_ENABLED = false;
+    const IS_NOTIFICATION_ENABLED = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     const notificationPermission = ref(
         ('Notification' in window) ? Notification.permission : 'unsupported'
     );
 
-    const building = ref('');
-    const floor = ref('');
     const room = ref('');
 
-    const setLocation = (b, f, r) => {
-        building.value = b;
-        floor.value = f;
+    const setLocation = (r) => {
         room.value = r;
     };
 
     const displayLocation = computed(() => {
-        return `ห้อง ${room.value} ชั้น ${floor.value} ตึก ${building.value}`;
+        return `ห้อง ${room.value}`;
     });
 
     const roomOrders = computed(() => {
         const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
         return orderListStore.list.filter(order => {
-            const isOwner = order.building === building.value &&
-                order.floor === floor.value &&
-                order.room === room.value;
+            const isOwner = order.room === room.value;
             if (!isOwner) return false;
 
-            // Filter by time
-            if ((order.CreatedAt?.seconds || 0) < twelveHoursAgo) return false;
+            // Filter by time (handle pending server timestamps by using current time as fallback)
+            const createdAtSeconds = order.CreatedAt?.seconds || Math.floor(Date.now() / 1000);
+            if (createdAtSeconds < twelveHoursAgo) return false;
 
             const hasActiveItems = (order.Menu || []).some(item =>
                 !['received', 'cancelled'].includes(item.itemStatus)
@@ -75,7 +70,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
 
         if (!stillHasActive) {
-            router.push(`/user/bill/${building.value}/${floor.value}/${room.value}`);
+            router.push(`/user/bill/${room.value}`);
         }
     };
 
@@ -84,7 +79,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             item.itemStatus !== 'cancelled'
         );
 
-        cartStore.loadCart(building.value, floor.value, room.value);
+        cartStore.loadCart(room.value);
 
         let addedCount = 0;
         let unavailableNames = [];
@@ -117,7 +112,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
 
         if (addedCount > 0) {
-            router.push(`/user/cart/${building.value}/${floor.value}/${room.value}`);
+            router.push(`/user/cart/${room.value}`);
         }
     };
 
@@ -176,7 +171,12 @@ export const useUserStatusStore = defineStore('userStatus', () => {
                 }
             }
         } catch (err) {
-            console.error('Auto fetch token error:', err);
+            // Silence messaging errors on localhost as they are expected due to SSL/ServiceWorker requirements
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.warn('Notification system is disabled on localhost (requires HTTPS).');
+            } else {
+                console.error('Auto fetch token error:', err);
+            }
         }
     };
 
@@ -215,9 +215,9 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         }
     };
 
-    const initUserSession = (b, f, r) => {
-        setLocation(b, f, r);
-        orderListStore.loadOrderUser(b, f, r);
+    const initUserSession = (r) => {
+        setLocation(r);
+        orderListStore.loadOrderUser(r);
         menuStore.loadMenu();
 
         if (IS_NOTIFICATION_ENABLED) {
@@ -238,8 +238,6 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     };
 
     return {
-        building,
-        floor,
         room,
         IS_NOTIFICATION_ENABLED,
         notificationPermission,

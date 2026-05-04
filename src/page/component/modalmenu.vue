@@ -2,6 +2,8 @@
 import { ref, watch, computed, onMounted } from 'vue';
 import { useCartStore } from '@/stores/cartStore';
 import { useRestaurant } from '@/stores/Restaurant';
+import { checkShopClosed } from '@/utils/restaurantHelper';
+import { onUnmounted } from 'vue';
 
 const props = defineProps({
   show: Boolean,
@@ -25,10 +27,10 @@ onMounted(() => {
   }
   timer = setInterval(() => {
     now.value = new Date();
-  }, 1000);
+  }, 60000);
 });
 
-import { onUnmounted } from 'vue';
+
 onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
@@ -36,33 +38,7 @@ onUnmounted(() => {
 const isShopClosed = computed(() => {
   if (!props.menu) return false;
   const shop = restaurantStore.list.find(r => r.Name === props.menu.Restaurant);
-  if (!shop) return true;
-  if (shop.Status === 'close') return true;
-  if (shop.Status === 'open') return false;
-
-  if (!shop.OpenTime || !shop.CloseTime) return true;
-
-  try {
-    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-    const currentDayName = now.value.toLocaleString('en-US', { weekday: 'long' });
-
-    if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
-      return true;
-    }
-
-    const [openH, openM] = shop.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
-    const openMin = openH * 60 + openM;
-    const closeMin = closeH * 60 + closeM;
-
-    if (closeMin > openMin) {
-      return !(currentTime >= openMin && currentTime < closeMin);
-    } else {
-      return !(currentTime >= openMin || currentTime < closeMin);
-    }
-  } catch (e) {
-    return true;
-  }
+  return checkShopClosed(shop, now.value);
 });
 
 const isAvailable = computed(() => {

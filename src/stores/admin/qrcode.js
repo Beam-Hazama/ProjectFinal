@@ -17,20 +17,29 @@ import { nextTick } from 'vue';
 export const useQrcodeStore = defineStore('qrcodeStore', {
   state: () => ({
     rooms: [],
-    // UI State for Admin QRCode page
     isModalOpen: false,
     selectedRoom: null,
-    roomForm: { roomNumber: '', floor: '', building: '' },
-    baseUrl: import.meta.env.VITE_QR_BASE_URL || window.location.origin
+    roomForm: { Roomnumber: '' },
+    baseUrl: import.meta.env.VITE_QR_BASE_URL || window.location.origin,
+    unsubscribe: null
   }),
 
   actions: {
     
-    loadRooms() {
-      const roomCol = collection(db, 'QRCodes');
-      const q = query(roomCol, orderBy('createdAt', 'desc'));
+    clearListener() {
+      if (this.unsubscribe) {
+        this.unsubscribe();
+        this.unsubscribe = null;
+      }
+      this.rooms = [];
+    },
 
-      onSnapshot(q, (snapshot) => {
+    loadRooms() {
+      this.clearListener();
+      const roomCol = collection(db, 'Qrcode');
+      const q = query(roomCol, orderBy('CreatedAt', 'desc'));
+
+      this.unsubscribe = onSnapshot(q, (snapshot) => {
         this.rooms = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -40,20 +49,20 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
 
     
     openAddModal() {
-      this.roomForm = { roomNumber: '', floor: '', building: '' };
+      this.roomForm = { Roomnumber: '' };
       this.isModalOpen = true;
     },
 
     async addRoom() {
-      if (!this.roomForm.roomNumber || !this.roomForm.building || !this.roomForm.floor) {
-        alert('กรุณากรอกข้อมูล ตึก ชั้น และเลขห้อง ให้ครบถ้วนเพื่อให้ระบบแสดงผลได้ถูกต้อง');
+      if (!this.roomForm.Roomnumber) {
+        alert('กรุณากรอกเลขห้อง');
         return;
       }
 
       try {
-        await addDoc(collection(db, 'QRCodes'), {
+        await addDoc(collection(db, 'Qrcode'), {
           ...this.roomForm,
-          createdAt: serverTimestamp()
+          CreatedAt: serverTimestamp()
         });
         this.isModalOpen = false;
       } catch (error) {
@@ -62,12 +71,10 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
     },
 
     async deleteRoom(roomId) {
-      if (confirm('ยืนยันการลบข้อมูลห้องนี้หรือไม่?')) {
-        try {
-          await deleteDoc(doc(db, 'QRCodes', roomId));
-        } catch (error) {
-          console.error("Delete error:", error);
-        }
+      try {
+        await deleteDoc(doc(db, 'Qrcode', roomId));
+      } catch (error) {
+        console.error("Delete error:", error);
       }
     },
 
@@ -78,13 +85,11 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
     },
 
     
-    async validateRoom(building, floor, roomNumber) {
-      const roomCol = collection(db, 'QRCodes');
+    async validateRoom(roomNumber) {
+      const roomCol = collection(db, 'Qrcode');
       const q = query(
         roomCol,
-        where('building', '==', building),
-        where('floor', '==', floor),
-        where('roomNumber', '==', roomNumber)
+        where('Roomnumber', '==', roomNumber)
       );
 
       const snapshot = await getDocs(q);

@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { auth, db, storage } from '@/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut } from 'firebase/auth';
+import { firebaseConfig, auth, db, storage } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, getDocs, doc, query, where, setDoc, serverTimestamp } from 'firebase/firestore';
 import LayoutAdmin from '@/page/Admin/Admin.vue';
@@ -101,38 +102,39 @@ const handleSave = async () => {
             }
         }
 
-        const q = query(collection(db, 'User'), where('Username', '==', Username));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            alert(`Username "${Username}" ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น`);
-            isLoading.value = false;
-            return;
-        }
-
         const fakeEmail = `${Username.toLowerCase().trim()}@system.local`;
-        const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, Password);
-        const uid = userCredential.user.uid;
+        
+        // Use a secondary app to create user so it doesn't log out the Admin
+        const tempApp = initializeApp(firebaseConfig, `TempApp_${Date.now()}`);
+        const tempAuth = getAuth(tempApp);
 
-        await setDoc(doc(db, 'User', uid), {
-            Firstname,
-            Lastname,
-            Username,
-            Password,
-            Phone,
-            Address,
-            Restaurant,
-            Email: Email,
-            Age: Age,
-            Status: Status || 'active',
-            Role: 'restaurant',
-            ImageUrl: finalImageUrl || '',
-            CreatedAt: serverTimestamp(),
-            UpdatedAt: serverTimestamp()
-        });
+        try {
+            const userCredential = await createUserWithEmailAndPassword(tempAuth, fakeEmail, Password);
+            const uid = userCredential.user.uid;
 
-        alert("เพิ่มผู้ใช้สำเร็จ!");
-        router.push('/Admin/Restaurantuser');
+            await setDoc(doc(db, 'User', uid), {
+                Firstname,
+                Lastname,
+                Username: Username.trim(),
+                Password,
+                Phone,
+                Address,
+                Restaurant,
+                Email: Email,
+                Age: Age,
+                Status: Status || 'active',
+                Role: 'restaurant',
+                ImageUrl: finalImageUrl || '',
+                CreatedAt: serverTimestamp(),
+                UpdatedAt: serverTimestamp()
+            });
+
+            router.push('/Admin/Restaurantuser');
+        } finally {
+            // Always clean up secondary app
+            await secondarySignOut(tempAuth).catch(() => {});
+            await deleteApp(tempApp).catch(() => {});
+        }
     } catch (error) {
         console.error("Error Detail:", error);
         if (error.code === 'auth/email-already-in-use') {
@@ -150,9 +152,12 @@ const filterNumbers = (field) => {
 };
 
 const filterNonNumbers = (field) => {
-    let val = userData.value[field].replace(/[^0-9]/g, '');
+    let val = String(userData.value[field]).replace(/[^0-9]/g, '');
     if (field === 'Phone' && val.length > 10) {
         val = val.slice(0, 10);
+    }
+    if (field === 'Age' && val.length > 2) {
+        val = val.slice(0, 2);
     }
     userData.value[field] = val;
 };
@@ -189,8 +194,7 @@ const goBack = () => router.go(-1);
 
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
-                            รูปภาพหน้าร้าน <span class="text-red-500">*</span>
-                            รูปภาพประจำตัว <span class="text-red-500">*</span>
+                            รูปภาพประจำตัว
                         </h3>
 
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
@@ -211,7 +215,7 @@ const goBack = () => router.go(-1);
                                     คลิกเพื่อเลือกไฟล์รูปภาพ
                                     <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
                                 </label>
-                                <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
+                                
                             </div>
                         </div>
                     </div>
@@ -231,21 +235,18 @@ const goBack = () => router.go(-1);
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ <span
-                                                class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ</span></label>
                                     <input type="text" v-model="userData.Firstname" @input="filterNumbers('Firstname')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล
-                                            <span class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล</span></label>
                                     <input type="text" v-model="userData.Lastname" @input="filterNumbers('Lastname')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-bold text-slate-600">Username
-                                            <span class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-bold text-slate-600">Username</span></label>
                                     <input type="text" v-model="userData.Username"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
@@ -253,7 +254,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
-                                            Password *
+                                            Password
                                         </span>
                                     </label>
                                     <input type="password" v-model="userData.Password"
@@ -261,8 +262,7 @@ const goBack = () => router.go(-1);
                                 </div>
 
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร
-                                            <span class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร</span></label>
                                     <select v-model="userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
                                         <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name
@@ -271,8 +271,7 @@ const goBack = () => router.go(-1);
                                 </div>
 
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-medium text-slate-600">Email
-                                            <span class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-medium text-slate-600">Email</span></label>
                                     <div class="relative">
                                         <input type="email" v-model="userData.Email"
                                             class="input input-bordered w-full bg-slate-50 focus:input-primary text-left" />
@@ -281,23 +280,22 @@ const goBack = () => router.go(-1);
 
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span
-                                                class="text-red-500">*</span></span></label>
+                                            class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span></label>
                                     <input type="text" v-model="userData.Phone" maxlength="10"
                                         @input="filterNonNumbers('Phone')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-medium text-slate-600">อายุ <span
-                                                class="text-red-500">*</span></span></label>
-                                    <input type="number" v-model="userData.Age"
+                                    <label class="label"><span class="label-text font-medium text-slate-600">อายุ</span></label>
+                                    <input type="text" v-model="userData.Age" maxlength="2"
+                                        @input="filterNonNumbers('Age')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
-                                            (Address) <span class="text-red-500">*</span></span></label>
+                                            (Address)</span></label>
                                     <textarea v-model="userData.Address" rows="3"
                                         class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>
                                 </div>

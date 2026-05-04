@@ -10,7 +10,8 @@ import {
   query, 
   orderBy, 
   where, 
-  writeBatch 
+  writeBatch,
+  getDocs
 } from 'firebase/firestore';
 import { storage, db } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -36,11 +37,12 @@ export const usePosterStore = defineStore('poster', {
 
   getters: {
     activePosters: (state) => state.list.filter(p => {
-      if (!p.isActive) return false;
-      if (p.hasSchedule && p.startTime && p.endTime) {
+      if (p.IsActive === false) return false;
+      
+      if (p.HasSchedule && p.StartTime && p.EndTime) {
         const now = new Date();
-        const start = new Date(p.startTime);
-        const end = new Date(p.endTime);
+        const start = new Date(p.StartTime);
+        const end = new Date(p.EndTime);
         if (now < start || now > end) {
           return false;
         }
@@ -60,38 +62,101 @@ export const usePosterStore = defineStore('poster', {
 
     async loadPosters(restaurantName = null) {
       this.clearListener();
-      const posterRef = collection(db, 'posters');
+      const posterRef = collection(db, 'Poster');
       let q;
       if (restaurantName) {
-        q = query(posterRef, where('RestaurantName', '==', decodeURIComponent(restaurantName)));
+        q = query(posterRef, where('Restaurant', '==', decodeURIComponent(restaurantName)));
       } else {
-        q = query(posterRef, orderBy('createdAt', 'desc'));
+        q = query(posterRef);
       }
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
-        let docs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        let docs = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            Restaurant: data.Restaurant,
+            CreatedAt: data.CreatedAt,
+            UpdatedAt: data.UpdatedAt,
+            IsActive: data.IsActive,
+            Position: data.Position,
+            HasSchedule: data.HasSchedule,
+            StartTime: data.StartTime,
+            EndTime: data.EndTime,
+            DisplayDuration: data.DisplayDuration,
+          };
+        });
 
         if (!restaurantName) {
-          docs = docs.filter(item => !item.RestaurantName);
+          docs = docs.filter(item => !item.Restaurant);
         }
 
         docs.sort((a, b) => {
-          if (a.order !== undefined && b.order !== undefined) {
-            if (a.order !== b.order) return a.order - b.order;
-          } else if (a.order !== undefined) {
+          const aPos = typeof a.Position === "number" ? a.Position : Infinity;
+          const bPos = typeof b.Position === "number" ? b.Position : Infinity;
+
+          if (aPos !== Infinity && bPos !== Infinity) {
+            if (aPos !== bPos) return aPos - bPos;
+          } else if (aPos !== Infinity) {
             return -1;
-          } else if (b.order !== undefined) {
+          } else if (bPos !== Infinity) {
             return 1;
           }
-          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
-          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+          const timeA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : (a.CreatedAt || 0);
+          const timeB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : (b.CreatedAt || 0);
           return timeB - timeA;
         });
         this.list = docs;
       });
+    },
+    async fetchPosters(restaurantName = null) {
+      const posterRef = collection(db, 'Poster');
+      let q;
+      if (restaurantName) {
+        q = query(posterRef, where('Restaurant', '==', decodeURIComponent(restaurantName)));
+      } else {
+        q = query(posterRef);
+      }
+
+      const snapshot = await getDocs(q);
+      let docs = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          Restaurant: data.Restaurant,
+          CreatedAt: data.CreatedAt,
+          UpdatedAt: data.UpdatedAt,
+          IsActive: data.IsActive,
+          Position: data.Position,
+          HasSchedule: data.HasSchedule,
+          StartTime: data.StartTime,
+          EndTime: data.EndTime,
+          DisplayDuration: data.DisplayDuration,
+        };
+      });
+
+      if (!restaurantName) {
+        docs = docs.filter(item => !item.Restaurant);
+      }
+
+      docs.sort((a, b) => {
+        const aPos = typeof a.Position === "number" ? a.Position : Infinity;
+        const bPos = typeof b.Position === "number" ? b.Position : Infinity;
+
+        if (aPos !== Infinity && bPos !== Infinity) {
+          if (aPos !== bPos) return aPos - bPos;
+        } else if (aPos !== Infinity) {
+          return -1;
+        } else if (bPos !== Infinity) {
+          return 1;
+        }
+        const timeA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : (a.CreatedAt || 0);
+        const timeB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : (b.CreatedAt || 0);
+        return timeB - timeA;
+      });
+      this.list = docs;
     },
 
     // UI Actions
@@ -110,10 +175,10 @@ export const usePosterStore = defineStore('poster', {
       this.isEditing = true;
       this.editingPosterId = poster.id;
       this.newPosterUrl = poster.ImageUrl;
-      this.displayDuration = poster.displayDuration || 5;
-      this.hasSchedule = !!poster.hasSchedule;
-      this.startTime = poster.startTime || '';
-      this.endTime = poster.endTime || '';
+      this.displayDuration = poster.DisplayDuration || 5;
+      this.hasSchedule = !!poster.HasSchedule;
+      this.startTime = poster.StartTime || '';
+      this.endTime = poster.EndTime || '';
       this.showModal = true;
     },
 
@@ -166,31 +231,31 @@ export const usePosterStore = defineStore('poster', {
 
         const posterData = {
           ImageUrl: ImageUrl,
-          hasSchedule: this.hasSchedule,
-          displayDuration: this.displayDuration || 5
+          HasSchedule: this.hasSchedule,
+          DisplayDuration: this.displayDuration || 5
         };
 
         if (this.hasSchedule) {
-          posterData.startTime = this.startTime;
-          posterData.endTime = this.endTime;
+          posterData.StartTime = this.startTime;
+          posterData.EndTime = this.endTime;
         } else {
-          posterData.startTime = null;
-          posterData.endTime = null;
+          posterData.StartTime = null;
+          posterData.EndTime = null;
         }
 
         if (this.isEditing && this.editingPosterId) {
-          const posterRef = doc(db, 'posters', this.editingPosterId);
+          const posterRef = doc(db, 'Poster', this.editingPosterId);
           await setDoc(posterRef, {
             ...posterData,
-            updatedAt: serverTimestamp()
+            UpdatedAt: serverTimestamp()
           }, { merge: true });
         } else {
-          await addDoc(collection(db, 'posters'), {
+          await addDoc(collection(db, 'Poster'), {
             ...posterData,
-            order: this.list.length,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            isActive: true
+            Position: this.list.length,
+            CreatedAt: serverTimestamp(),
+            UpdatedAt: serverTimestamp(),
+            IsActive: true
           });
         }
 
@@ -203,32 +268,60 @@ export const usePosterStore = defineStore('poster', {
     },
 
     async deletePoster(posterId) {
-      if (confirm('Are you sure you want to delete this poster? This cannot be undone.')) {
-        try {
-          await deleteDoc(doc(db, 'posters', posterId));
-        } catch (error) {
-          alert('Error deleting poster: ' + error.message);
-        }
+      try {
+        await deleteDoc(doc(db, 'Poster', posterId));
+      } catch (error) {
+        console.error('Error deleting poster:', error);
       }
     },
 
     async toggleActive(posterId, currentStatus) {
       try {
-        const posterRef = doc(db, 'posters', posterId);
+        const posterRef = doc(db, 'Poster', posterId);
         await setDoc(posterRef, { 
-          isActive: !currentStatus,
-          updatedAt: serverTimestamp()
+          IsActive: !currentStatus,
+          UpdatedAt: serverTimestamp()
         }, { merge: true });
       } catch (error) {
         alert('Error updating status: ' + error.message);
       }
     },
 
-    async updatePosterOrder(orderedIds) {
+    async addPoster(posterData) {
+      try {
+        await addDoc(collection(db, 'Poster'), {
+          ...posterData,
+          Position: this.list.length,
+          CreatedAt: serverTimestamp(),
+          UpdatedAt: serverTimestamp(),
+          IsActive: true
+        });
+      } catch (error) {
+        console.error("Error adding poster:", error);
+        throw error;
+      }
+    },
+
+    async updatePoster(posterId, posterData) {
+      try {
+        const posterRef = doc(db, 'Poster', posterId);
+        await setDoc(posterRef, {
+          ...posterData,
+          UpdatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.error("Error updating poster:", error);
+        throw error;
+      }
+    },
+
+    async updatePosterPosition(orderedIds) {
       const batch = writeBatch(db);
       orderedIds.forEach((id, index) => {
-        const ref = doc(db, 'posters', id);
-        batch.update(ref, { order: index });
+        const ref = doc(db, 'Poster', id);
+        batch.update(ref, { 
+          Position: index 
+        });
       });
       await batch.commit();
     }

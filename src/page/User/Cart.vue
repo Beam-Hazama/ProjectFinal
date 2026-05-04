@@ -9,16 +9,14 @@ const cartStore = useCartStore();
 const route = useRoute();
 const confirmModal = ref(null);
 
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
-const room = route.params.room || '-';
+const room = route.params.room ;
 
 const displayLocation = computed(() => {
-  return `ห้อง ${room} ชั้น ${floor} ตึก ${building}`;
+  return `ห้อง ${room}`;
 });
 
 onMounted(() => {
-  cartStore.loadCart(building, floor, room);
+  cartStore.loadCart(room);
 });
 
 const showConfirmModal = () => {
@@ -191,8 +189,6 @@ const closeConfirmModal = () => {
 
     <dialog ref="confirmModal" class="modal">
       <confirm-order 
-        :building="building" 
-        :floor="floor" 
         :room="room"
         @close-modal="closeConfirmModal"
       ></confirm-order>

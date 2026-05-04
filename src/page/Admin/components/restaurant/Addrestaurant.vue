@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, watch, onUnmounted } from 'vue';
+import { reactive, ref, watch, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -35,7 +35,18 @@ const daysOfWeek = [
   { label: 'ส.', value: 'Saturday' }
 ];
 
-// Removed unused watch
+const isFormValid = computed(() => {
+  return (
+    RestaurantData.Name.trim() !== '' &&
+    RestaurantData.Phone.length === 10 &&
+    RestaurantData.Distance !== '' && RestaurantData.Distance !== null &&
+    RestaurantData.Address.trim() !== '' &&
+    RestaurantData.OpenTime !== '' &&
+    RestaurantData.CloseTime !== '' &&
+    RestaurantData.OpenDays.length > 0 &&
+    selectedFile.value !== null
+  );
+});
 
 const checkSaveRestaurant = async (data) => {
   try {
@@ -129,7 +140,7 @@ const goBack = () => {
         <div class="flex gap-3">
           <button @click="goBack" :disabled="isLoading"
             class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28 disabled:bg-slate-200 disabled:text-slate-400">Cancel</button>
-          <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!RestaurantData.Name || isLoading"
+          <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!isFormValid || isLoading"
             class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-100 hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300 w-28 rounded-xl font-bold">
             <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
             <span v-else>Save</span>
@@ -142,7 +153,7 @@ const goBack = () => {
 
           <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
-              รูปภาพหน้าร้าน
+              รูปภาพโลโก้ร้านอาหาร
             </h3>
 
             <div class="flex flex-col items-center gap-5 w-full max-w-xs">
@@ -165,19 +176,18 @@ const goBack = () => {
                   คลิกเพื่อเลือกไฟล์รูปภาพ
                   <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
                 </label>
-                <div class="text-[10px] text-slate-400 mt-1 text-center">รองรับไฟล์ .jpg, .png ขนาดไม่เกิน 5MB</div>
+
               </div>
             </div>
           </div>
 
           <div class="p-8 lg:col-span-2 space-y-8">
             <div>
-              <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลเบื้องต้น</h3>
+              <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลร้านอาหาร</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร<span
-                        class="text-red-500">*</span></span>
+                    <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span>
                   </label>
                   <input type="text"
                     class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
@@ -191,20 +201,22 @@ const goBack = () => {
                     </label>
                     <input type="text"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model="RestaurantData.Phone" />
+                      v-model="RestaurantData.Phone" maxlength="10"
+                      @input="RestaurantData.Phone = RestaurantData.Phone.replace(/[^0-9]/g, '')" />
                   </div>
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
                     </label>
-                    <input type="number"
+                    <input type="text"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model.number="RestaurantData.Distance" min="0" step="any" />
+                      v-model="RestaurantData.Distance"
+                      @input="RestaurantData.Distance = RestaurantData.Distance.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ที่อยู่</span>
+                    <span class="label-text font-medium text-slate-600">ที่ตั้งร้านอาหาร</span>
                   </label>
                   <textarea
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"

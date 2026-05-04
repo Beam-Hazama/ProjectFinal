@@ -1,69 +1,36 @@
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useMenuStore } from '@/stores/menuStore';
 import { useRestaurant } from '@/stores/Restaurant';
+import { useCartStore } from '@/stores/cartStore';
+import { checkShopClosed } from '@/utils/restaurantHelper';
 
 const route = useRoute();
 const router = useRouter();
 const categoryStore = useCategoryStore();
 const menuStore = useMenuStore();
 const restaurantStore = useRestaurant();
+const cartStore = useCartStore();
 
-const building = route.params.building || '-';
-const floor = route.params.floor || '-';
 const room = route.params.room || '-';
+const now = ref(new Date());
+let timer;
 
 function isShopClosed(restaurantName) {
     const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-    if (!shop) return true;
-    if (shop.Status === 'close') return true;
-    if (shop.Status === 'open') return false;
-
-    if (!shop.OpenTime || !shop.CloseTime) return true;
-
-    try {
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
-
-        if (shop.OpenDays && !shop.OpenDays.includes(currentDayName)) {
-            return true;
-        }
-
-        const [openH, openM] = shop.OpenTime.split(':').map(Number);
-        const [closeH, closeM] = shop.CloseTime.split(':').map(Number);
-        const openMin = openH * 60 + openM;
-        const closeMin = closeH * 60 + closeM;
-
-        if (closeMin > openMin) {
-            return !(currentTime >= openMin && currentTime < closeMin);
-        } else {
-            return !(currentTime >= openMin || currentTime < closeMin);
-        }
-    } catch (e) {
-        return true;
-    }
+    return checkShopClosed(shop, now.value);
 }
 
 const activeCategories = computed(() => {
-    return categoryStore.list.filter(cat => {
-        return (menuStore.list || []).some(item => {
-            if (isShopClosed(item.Restaurant)) return false;
-
-            const matchesCategory = (item.Category && item.Category === cat.name) ||
-                (item.role && (Array.isArray(item.role) ? item.role.includes(cat.name) : item.role === cat.name)) ||
-                (item.Name && item.Name.includes(cat.name));
-
-            return matchesCategory;
-        });
-    });
+    // Return all categories directly to ensure they appear
+    return categoryStore.list || [];
 });
 
 onMounted(() => {
     if (categoryStore.list.length === 0) {
-        categoryStore.loadCategories();
+        categoryStore.fetchCategories();
     }
     if (menuStore.list.length === 0) {
         menuStore.loadMenu();
@@ -71,14 +38,22 @@ onMounted(() => {
     if (restaurantStore.list.length === 0) {
         restaurantStore.loadListRestaurant();
     }
+    cartStore.loadCart(room);
+    timer = setInterval(() => {
+        now.value = new Date();
+    }, 60000);
+});
+
+onUnmounted(() => {
+    if (timer) clearInterval(timer);
 });
 
 const goBack = () => {
-    router.push(`/User/${building}/${floor}/${room}`);
+    router.push(`/user/${room}`);
 };
 
 const goToCategory = (catName) => {
-    router.push(`/user/category/${catName}/${building}/${floor}/${room}`);
+    router.push(`/user/category/${catName}/${room}`);
 };
 </script>
 
@@ -98,16 +73,16 @@ const goToCategory = (catName) => {
 
         <div class="flex-1 px-4 pt-6">
             <div v-if="activeCategories.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-4 animate-fade-in">
-                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.name)"
+                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.Name)"
                     class="flex flex-col items-center cursor-pointer group">
                     <div
                         class="w-full aspect-square rounded-2xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden relative group-hover:shadow-md transition-all duration-300">
-                        <img :src="cat.ImageUrl" :alt="cat.name" class="w-full h-full object-cover rounded-xl" />
+                        <img :src="cat.ImageUrl" :alt="cat.Name" class="w-full h-full object-cover rounded-xl" />
                         <div class="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors"></div>
                     </div>
                     <span
                         class="mt-2 text-[11px] font-bold text-gray-700 text-center leading-tight group-hover:text-blue-600 transition-colors">
-                        {{ cat.name }}
+                        {{ cat.Name }}
                     </span>
                 </div>
             </div>
