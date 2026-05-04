@@ -3,7 +3,7 @@ import { ref, reactive } from 'vue';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, storage } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useAccountStore } from '@/stores/auth/accountStore';
+import { useAccountStore } from '@/stores/auth';
 
 export const useProfileStore = defineStore('restaurantProfile', () => {
     const accountStore = useAccountStore();

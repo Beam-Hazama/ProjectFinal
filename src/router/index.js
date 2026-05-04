@@ -1,45 +1,45 @@
 import { createRouter, createWebHistory, } from "vue-router";
-import { useAccountStore } from '@/stores/auth/accountStore';
+import { useAccountStore } from '@/stores/auth';
 
-const Login = () => import("@/page/Login/Login.vue");
+const Login = () => import("@/views/auth/Login.vue");
 
-const Admin = () => import("@/page/Admin/Admin.vue");
-const Admindashboard = () => import("@/page/Admin/Dashboard.vue");
-const Adminmenulist = () => import("@/page/Admin/MenuList.vue");
-const Adminorderlist = () => import("@/page/Admin/OrderList.vue");
-const Adminorderhistory = () => import("@/page/Admin/OrderHistory.vue");
-const AdminQRCode = () => import("@/page/Admin/QRCode.vue");
-const Adminrestaurantlist = () => import("@/page/Admin/RestaurantList.vue");
-const Adminrestaurantuser = () => import("@/page/Admin/RestaurantUser.vue");
-const Adminpostermanage = () => import("@/page/Admin/Poster.vue");
-const AdminCategory = () => import("@/page/Admin/Category.vue");
-const AdminCommission = () => import("@/page/Admin/Commission.vue");
+const Admin = () => import("@/views/admin/AdminLayout.vue");
+const Admindashboard = () => import("@/views/admin/Dashboard.vue");
+const Adminmenulist = () => import("@/views/admin/MenuList.vue");
+const Adminorderlist = () => import("@/views/admin/OrderList.vue");
+const Adminorderhistory = () => import("@/views/admin/OrderHistory.vue");
+const AdminQRCode = () => import("@/views/admin/QRCode.vue");
+const Adminrestaurantlist = () => import("@/views/admin/RestaurantList.vue");
+const Adminrestaurantuser = () => import("@/views/admin/RestaurantUser.vue");
+const Adminpostermanage = () => import("@/views/admin/Poster.vue");
+const AdminCategory = () => import("@/views/admin/Category.vue");
+const AdminCommission = () => import("@/views/admin/Commission.vue");
 
-const Menudetail = () => import("@/page/Admin/components/menu/MenuDetail.vue");
-const Restaurantdetail = () => import("@/page/Admin/components/restaurant/RestaurantDetail.vue");
-const Addrestaurant = () => import("@/page/Admin/components/restaurant/AddRestaurant.vue");
-const Userdetail = () => import("@/page/Admin/components/user/Userdetail.vue");
-const Adduser = () => import("@/page/Admin/components/user/Adduser.vue");
+const Menudetail = () => import("@/views/admin/MenuDetail.vue");
+const Restaurantdetail = () => import("@/views/admin/RestaurantDetail.vue");
+const Addrestaurant = () => import("@/views/admin/AddRestaurant.vue");
+const Userdetail = () => import("@/views/admin/UserDetail.vue");
+const Adduser = () => import("@/views/admin/AddUser.vue");
 
-const Restaurants = () => import("@/page/Restaurant/Restaurant.vue");
-const Restaurantorderlist = () => import("@/page/Restaurant/OrderList.vue");
-const Restaurantmenulist = () => import("@/page/Restaurant/MenuList.vue");
-const Restaurantprofile = () => import("@/page/Restaurant/Profile.vue");
-const RestaurantAddMenu = () => import("@/page/Restaurant/components/Menu/AddMenu.vue");
-const RestaurantEditMenu = () => import("@/page/Restaurant/components/Menu/EditMenu.vue");
-const RestaurantDashboard = () => import("@/page/Restaurant/Dashboard.vue");
-const RestaurantPoster = () => import("@/page/Restaurant/Poster.vue");
-const RestaurantOrderHistory = () => import("@/page/Restaurant/OrderHistory.vue");
+const Restaurants = () => import("@/views/restaurant/RestaurantLayout.vue");
+const Restaurantorderlist = () => import("@/views/restaurant/OrderList.vue");
+const Restaurantmenulist = () => import("@/views/restaurant/MenuList.vue");
+const Restaurantprofile = () => import("@/views/restaurant/Profile.vue");
+const RestaurantAddMenu = () => import("@/views/restaurant/AddMenu.vue");
+const RestaurantEditMenu = () => import("@/views/restaurant/EditMenu.vue");
+const RestaurantDashboard = () => import("@/views/restaurant/Dashboard.vue");
+const RestaurantPoster = () => import("@/views/restaurant/Poster.vue");
+const RestaurantOrderHistory = () => import("@/views/restaurant/OrderHistory.vue");
 
-const User = () => import("@/page/User/User.vue");
-const Bill = () => import("@/page/User/Bill.vue");
-const Cart = () => import("@/page/User/Cart.vue");
-const Status = () => import("@/page/User/Status.vue");
-const Search = () => import("@/page/User/components/user/Search.vue");
-const Category = () => import("@/page/User/components/user/Category.vue");
-const AllCategories = () => import("@/page/User/components/user/AllCategories.vue");
-const AllPromotions = () => import("@/page/User/components/user/AllPromotions.vue");
-const UserRestaurantMenu = () => import("@/page/User/components/user/RestaurantMenu.vue");
+const User = () => import("@/views/customer/Home.vue");
+const Bill = () => import("@/views/customer/Bill.vue");
+const Cart = () => import("@/views/customer/Cart.vue");
+const Status = () => import("@/views/customer/OrderStatus.vue");
+const Search = () => import("@/views/customer/Search.vue");
+const Category = () => import("@/views/customer/Category.vue");
+const AllCategories = () => import("@/views/customer/AllCategories.vue");
+const AllPromotions = () => import("@/views/customer/AllPromotions.vue");
+const UserRestaurantMenu = () => import("@/views/customer/RestaurantMenu.vue");
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

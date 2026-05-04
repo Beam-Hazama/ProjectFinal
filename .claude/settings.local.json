@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(xargs grep *)",
+      "Bash(xargs sed *)",
+      "Bash(sed -i \"s|'./components/cart/ConfirmOrder.vue'|'./ConfirmOrder.vue'|g\" views/customer/Cart.vue)",
+      "Bash(sed -i -e 's|'\\\\''./components/dashboard/DashboardFilters.vue'\\\\''|'\\\\''@/components/dashboard/DashboardFilters.vue'\\\\''|g' -e 's|'\\\\''./components/dashboard/DashboardSummaryStats.vue'\\\\''|'\\\\''@/components/dashboard/DashboardSummaryStats.vue'\\\\''|g' -e 's|'\\\\''./components/dashboard/DashboardChartsSection.vue'\\\\''|'\\\\''@/components/dashboard/DashboardChartsSection.vue'\\\\''|g' -e 's|'\\\\''./components/dashboard/DashboardDataTables.vue'\\\\''|'\\\\''@/components/dashboard/DashboardDataTables.vue'\\\\''|g' views/admin/Dashboard.vue)",
+      "Bash(sed -i -e 's|'\\\\''./components/Dashboard/DashboardFilters.vue'\\\\''|'\\\\''@/components/dashboard/DashboardFilters.vue'\\\\''|g' -e 's|'\\\\''./components/Dashboard/DashboardSummaryStats.vue'\\\\''|'\\\\''@/components/dashboard/DashboardSummaryStats.vue'\\\\''|g' -e 's|'\\\\''./components/Dashboard/DashboardChartsSection.vue'\\\\''|'\\\\''@/components/dashboard/DashboardChartsSection.vue'\\\\''|g' -e 's|'\\\\''./components/Dashboard/DashboardDataTables.vue'\\\\''|'\\\\''@/components/dashboard/DashboardDataTables.vue'\\\\''|g' views/restaurant/Dashboard.vue)",
+      "Bash(rm -rf src/page)",
+      "Bash(rmdir src/stores/auth)",
+      "Bash(rmdir src/stores/user)"
+    ]
+  }
+}

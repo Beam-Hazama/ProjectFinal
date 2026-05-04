@@ -1,97 +1,29 @@
 import { defineStore } from 'pinia';
 import { db } from '@/firebase';
 import { doc, setDoc, query, collection, onSnapshot } from 'firebase/firestore';
-import { useDashboardStore } from '@/stores/admin/dashboard';
+
+/**
+ * Commission Store
+ * ────────────────
+ * จัดการอัตราค่าธรรมเนียม (Commission Rate) ของแต่ละร้านค้า
+ * 
+ * Flow:
+ *   1. โหลดข้อมูลอัตราค่าธรรมเนียมปัจจุบันจาก Firestore (Restaurant collection)
+ *   2. รับข้อมูลรายได้แยกตามร้านจาก Dashboard Store เพื่อคำนวณยอดรวม
+ *   3. Admin สามารถแก้ไขอัตราค่าธรรมเนียมและบันทึกกลับไปยัง Firestore
+ */
 
 export const useCommissionStore = defineStore('commission', {
   state: () => ({
-    rates: {},
-    nameToId: {},
+    rates: {},          // { 'ร้านค้า A': 10, 'ร้านค้า B': 15 }
+    nameToId: {},       // { 'ร้านค้า A': 'doc_id_123' }
     loading: false,
     unsubscribe: null,
     
-    // UI State
+    // UI State สำหรับการแก้ไข
     localRates: {},
     isEditing: false
   }),
-
-  getters: {
-    restaurantData: (state) => {
-      const dashboardStore = useDashboardStore();
-      if (!dashboardStore.availableRestaurants) return [];
-
-      // 1. Filter orders based on time once
-      const now = new Date();
-      now.setHours(23, 59, 59, 999);
-      let startTime = new Date(0);
-
-      if (dashboardStore.timeFilter === 'today') {
-        startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-      } else if (dashboardStore.timeFilter === '7days') {
-        startTime = new Date();
-        startTime.setHours(0, 0, 0, 0);
-        startTime.setDate(startTime.getDate() - 6);
-      } else if (dashboardStore.timeFilter === 'thisMonth') {
-        startTime = new Date();
-        startTime.setDate(1);
-        startTime.setHours(0, 0, 0, 0);
-      } else if (dashboardStore.timeFilter === 'custom' && dashboardStore.customStartDate && dashboardStore.customEndDate) {
-        startTime = new Date(dashboardStore.customStartDate);
-        startTime.setHours(0, 0, 0, 0);
-        now.setTime(new Date(dashboardStore.customEndDate).getTime());
-        now.setHours(23, 59, 59, 999);
-      }
-
-      const filteredOrders = dashboardStore.allOrders.filter(order => {
-        const createdAt = order.CreatedAt;
-        if (!createdAt) return false;
-        const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
-        return orderDate >= startTime && orderDate <= now;
-      });
-
-      // 2. Map revenue by restaurant
-      return dashboardStore.availableRestaurants.map(restName => {
-        let revenue = 0;
-        filteredOrders.forEach(order => {
-          if (order.statusOrder !== 'cancelled' && order.statusOrder !== 'returned') {
-            if (order.Menu && Array.isArray(order.Menu)) {
-              order.Menu.forEach(item => {
-                if (item.Restaurant === restName && item.itemStatus !== 'cancelled') {
-                  revenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
-                }
-              });
-            } else if (order.Restaurant === restName) {
-              revenue += Number(order.localTotal || 0);
-            }
-          }
-        });
-
-        const rate = state.localRates[restName] !== undefined ? state.localRates[restName] : (state.rates[restName] || 0);
-        const commission = (revenue * rate) / 100;
-
-        return {
-          name: restName,
-          revenue,
-          rate,
-          commission,
-          net: revenue - commission
-        };
-      });
-    },
-
-    totalSystemRevenue() {
-      return this.restaurantData.reduce((sum, r) => sum + r.revenue, 0);
-    },
-
-    totalCommissions() {
-      return this.restaurantData.reduce((sum, r) => sum + r.commission, 0);
-    },
-
-    totalNetPayout() {
-      return this.restaurantData.reduce((sum, r) => sum + r.net, 0);
-    }
-  },
 
   actions: {
     async loadCommissionRates() {
@@ -112,7 +44,7 @@ export const useCommissionStore = defineStore('commission', {
         this.rates = newRates;
         this.nameToId = newNameToId;
         
-        // Sync local rates if not editing
+        // ถ้าไม่ได้กำลังแก้ไข ให้ซิงค์ข้อมูลล่าสุด
         if (!this.isEditing) {
           this.localRates = { ...newRates };
         }
@@ -122,6 +54,11 @@ export const useCommissionStore = defineStore('commission', {
         console.error("Error loading commission rates:", error);
         this.loading = false;
       });
+    },
+
+    startEditing() {
+      this.localRates = { ...this.rates };
+      this.isEditing = true;
     },
 
     updateLocalRate(name, val) {
@@ -152,11 +89,6 @@ export const useCommissionStore = defineStore('commission', {
     cancelEdit() {
       this.localRates = { ...this.rates };
       this.isEditing = false;
-    },
-
-    startEditing() {
-      this.isEditing = true;
-      this.localRates = { ...this.rates };
     },
 
     clearListener() {
