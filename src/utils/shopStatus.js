@@ -41,6 +41,11 @@ export const getAutoStatus = (openTime, closeTime, openDays, now = new Date()) =
  */
 export const checkShopClosed = (shop, now = new Date()) => {
     if (!shop) return true;
-    if (shop.ManualStatus === 'manual') return shop.Status === 'close';
+    
+    // Support 3-state Status: 'open', 'close', 'auto'
+    if (shop.Status === 'open') return false;
+    if (shop.Status === 'close') return true;
+    
+    // Default to 'auto' or calculated status based on time
     return getAutoStatus(shop.OpenTime, shop.CloseTime, shop.OpenDays, now) === 'close';
 };

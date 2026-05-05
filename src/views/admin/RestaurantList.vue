@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp, formatOpenDays } from '@/utils/format';
-import { getAutoStatus } from '@/utils/shopStatus';
+import { getAutoStatus, checkShopClosed } from '@/utils/shopStatus';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useNow } from '@/composables/useNow';
 import { RouterLink } from 'vue-router';
@@ -74,7 +74,7 @@ const deleteRestaurant = async (id) => {
                   </div>
                 </td>
                 <td class="py-4 text-center">
-                  <div v-if="(restaurant.ManualStatus === 'manual' ? restaurant.Status : getAutoStatus(restaurant.OpenTime, restaurant.CloseTime, restaurant.OpenDays, now)) === 'open'" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                  <div v-if="!checkShopClosed(restaurant, now)" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>

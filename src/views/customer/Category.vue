@@ -5,20 +5,20 @@ import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
 import MenuList from '@/components/shared/BlockMenu.vue';
 
-const route = useRoute();
-const router = useRouter();
-const room = computed(() => safeDecode(route.params.room, '-'));
-const categoryId = computed(() => safeDecode(route.params.category, ''));
-const { menuStore, restaurantStore, cartStore } = useCustomerData(room.value);
-
-const safeDecode = (val, fallback) => {
+function safeDecode(val, fallback) {
     if (!val) return fallback;
     try {
         return decodeURIComponent(val);
     } catch (e) {
         return val;
     }
-};
+}
+
+const route = useRoute();
+const router = useRouter();
+const room = computed(() => safeDecode(route.params.room, '-'));
+const categoryId = computed(() => safeDecode(route.params.category, ''));
+const { menuStore, restaurantStore, cartStore } = useCustomerData(room.value);
 
 const { now } = useNow();
 

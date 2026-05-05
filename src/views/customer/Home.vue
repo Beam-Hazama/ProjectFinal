@@ -8,11 +8,12 @@ import { formatPrice } from '@/utils/format';
 import RestaurantList from '@/components/shared/RestaurantList.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 import MenuOrderModal from '@/components/shared/ModalMenu.vue';
+import { useQrcodeStore } from '@/stores/admin/qrcode';
 
 const route = useRoute();
 const router = useRouter();
+const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(route.params.room);
 const room = computed(() => cartStore.room);
-const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(room.value);
 const qrStore = useQrcodeStore();
 const isValidLocation = ref(false);
 const isLoading = ref(true);
