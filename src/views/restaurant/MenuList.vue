@@ -31,7 +31,7 @@ const loadData = async () => {
         console.warn("No restaurant found in account");
         return;
     }
-    await MenuStore.loadMenuRestaurant(restaurantName);
+    await MenuStore.loadMenu(restaurantName);
 };
 
 const switchStatus = async (menu) => {

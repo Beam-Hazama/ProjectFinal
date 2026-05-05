@@ -21,7 +21,7 @@ defineProps({
       </div>
       <div class="bg-rose-50 rounded-xl p-4 border border-rose-100 flex flex-col items-center justify-center text-center">
         <span class="text-rose-500 text-xs font-bold mb-1 uppercase tracking-wider">ยกเลิก</span>
-        <span class="text-2xl font-black text-rose-600">{{ (dashboardStore.orderStatuses.cancelled || 0) + (dashboardStore.orderStatuses.returned || 0) }}</span>
+        <span class="text-2xl font-black text-rose-600">{{ dashboardStore.orderStatuses.cancelled || 0 }}</span>
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="dashboardStore.totalRestaurants !== undefined ? 'lg:grid-cols-5' : 'lg:grid-cols-4'">

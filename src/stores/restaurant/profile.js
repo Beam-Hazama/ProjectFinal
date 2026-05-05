@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, storage } from '@/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
+import { uploadImage } from '@/utils/upload';
 
 export const useProfileStore = defineStore('restaurantProfile', () => {
     const accountStore = useAccountStore();
@@ -86,19 +86,11 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
             let ImageUrl = RestaurantData.ImageUrl;
             let BgUrl = RestaurantData.BgUrl;
 
-            if (selectedFile.value) {
-                const fileName = `restaurants/${docId.value}_profile_${Date.now()}`;
-                const fileRef = storageRef(storage, fileName);
-                const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                ImageUrl = await getDownloadURL(snapshot.ref);
-            }
+            const newUrl = await uploadImage(selectedFile.value, 'restaurants');
+            if (newUrl) ImageUrl = newUrl;
 
-            if (selectedBgFile.value) {
-                const fileName = `restaurants/${docId.value}_cover_${Date.now()}`;
-                const fileRef = storageRef(storage, fileName);
-                const snapshot = await uploadBytes(fileRef, selectedBgFile.value);
-                BgUrl = await getDownloadURL(snapshot.ref);
-            }
+            const newBgUrl = await uploadImage(selectedBgFile.value, 'restaurants');
+            if (newBgUrl) BgUrl = newBgUrl;
 
             await updateDoc(doc(db, 'Restaurant', docId.value), {
                 Name: RestaurantData.Name,

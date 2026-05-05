@@ -5,6 +5,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "@/firebase";
+import { toDayKey } from "@/utils/format";
 
 function getStartTime(timeFilter, customStart) {
   const now = new Date();
@@ -48,7 +49,7 @@ function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = 
   return order.Menu
     .filter(item => {
       const isRightRestaurant = restaurantFilters.length === 0 || restaurantFilters.includes(item.Restaurant);
-      const isNotCancelled = item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned';
+      const isNotCancelled = item.MenuStatus !== 'cancelled';
       
       let isRightCategory = true;
       if (categoryFilters.length > 0) {
@@ -309,12 +310,12 @@ export const useDashboardStore = defineStore("dashboardStore", {
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        days[`${d.getDate().toString().padStart(2,"0")}/${(d.getMonth()+1).toString().padStart(2,"0")}`] = 0;
+        days[toDayKey(d)] = 0;
       }
       orders.forEach(o => {
         const rev = calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
         const date = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
-        const key = `${date.getDate().toString().padStart(2,"0")}/${(date.getMonth()+1).toString().padStart(2,"0")}`;
+        const key = toDayKey(date);
         if (days[key] !== undefined) days[key] += rev;
       });
       this.revenueByDay = Object.entries(days).map(([date, revenue]) => ({ date, revenue }));

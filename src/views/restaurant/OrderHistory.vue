@@ -33,15 +33,13 @@ const historyOrders = computed(() => {
         let localStatus = 'pending';
         if (myItems.length > 0) {
             const allCancelled = myItems.every(i => i.MenuStatus === 'cancelled');
-            const hasReturned = myItems.some(i => i.MenuStatus === 'returned');
             const allReceivedOrCancelled = myItems.every(i =>
                 i.MenuStatus === 'received' || i.MenuStatus === 'cancelled'
             );
             const isFinished = myItems.every(i =>
-                ['dispatched', 'received', 'cancelled', 'returned'].includes(i.MenuStatus)
+                ['dispatched', 'received', 'cancelled'].includes(i.MenuStatus)
             );
             if (allCancelled) localStatus = 'cancelled';
-            else if (hasReturned) localStatus = 'returned';
             else if (allReceivedOrCancelled) localStatus = 'completed';
             else if (isFinished) localStatus = 'dispatched';
             else localStatus = 'cooking';
@@ -55,12 +53,10 @@ const historyOrders = computed(() => {
     }).filter(order =>
         order.displayItems.length > 0 &&
         (order.OrderStatus === 'completed' ||
-            order.OrderStatus === 'returned' ||
             order.OrderStatus === 'cancelled' ||
             order.localStatus === 'completed' ||
             order.localStatus === 'dispatched' ||
-            order.localStatus === 'cancelled' ||
-            order.localStatus === 'returned')
+            order.localStatus === 'cancelled')
     ).sort((a, b) => {
         if (!a.CreatedAt || !b.CreatedAt) return 0;
         return b.CreatedAt.seconds - a.CreatedAt.seconds;
@@ -79,7 +75,6 @@ const getStatusColor = (status) => {
         case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
-        case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
 };
@@ -190,8 +185,7 @@ const getStatusColor = (status) => {
                                                 'badge-info': item.MenuStatus === 'pending',
                                                 'bg-orange-500 text-white border-none': item.MenuStatus === 'cooking',
                                                 'badge-success text-white': item.MenuStatus === 'dispatched',
-                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled',
-                                                'badge-error text-white bg-orange-500': item.MenuStatus === 'returned'
+                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled'
                                             }">
                                                 {{ (item.MenuStatus === 'pending') ? 'cooking' : (item.MenuStatus || 'pending') }}
                                             </span>

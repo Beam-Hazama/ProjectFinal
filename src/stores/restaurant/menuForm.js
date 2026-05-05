@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { computed, reactive, ref } from 'vue';
 import { addDoc, collection, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/firebase';
+import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
+import { uploadImage } from '@/utils/upload';
 
 export const useMenuFormStore = defineStore('menuForm', () => {
     const accountStore = useAccountStore();
@@ -84,12 +84,8 @@ export const useMenuFormStore = defineStore('menuForm', () => {
         try {
             let ImageUrl = MenuData.ImageUrl;
 
-            if (selectedFile.value) {
-                const fileName = `${Date.now()}_${selectedFile.value.name}`;
-                const fileRef = storageRef(storage, `menus/${fileName}`);
-                const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                ImageUrl = await getDownloadURL(snapshot.ref);
-            }
+            const newUrl = await uploadImage(selectedFile.value, 'menus');
+            if (newUrl) ImageUrl = newUrl;
 
             const cleanOptionGroups = (MenuData.OptionGroups || []).map(group => {
                 return {

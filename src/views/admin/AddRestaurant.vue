@@ -2,8 +2,8 @@
 import { reactive, ref, watch, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/firebase';
+import { db } from '@/firebase';
+import { uploadImage } from '@/utils/upload';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
 const router = useRouter();
@@ -54,17 +54,8 @@ const checkSaveRestaurant = async (data) => {
     const { id, CreatedAt, UpdatedAt, ...saveData } = data;
     let ImageUrl = '';
 
-    if (selectedFile.value) {
-      try {
-        const fileName = `restaurants/${Date.now()}_${selectedFile.value.name}`;
-        const fileRef = storageRef(storage, fileName);
-        const snapshot = await uploadBytes(fileRef, selectedFile.value);
-        ImageUrl = await getDownloadURL(snapshot.ref);
-      } catch (uploadError) {
-        console.error('Error uploading image:', uploadError);
-        return;
-      }
-    }
+    const newUrl = await uploadImage(selectedFile.value, 'restaurants');
+    if (newUrl) ImageUrl = newUrl;
 
     saveData.ImageUrl = ImageUrl;
     const colName = 'Restaurant';

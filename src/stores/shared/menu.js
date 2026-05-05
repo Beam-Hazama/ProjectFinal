@@ -31,41 +31,22 @@ export const useMenuStore = defineStore('menu', {
     },
 
     
-    async loadMenu() {
+    async loadMenu(restaurantName = null) {
       this.clearListener();
       this.isLoading = true;
       
-      const menuCollection = collection(db, 'Menu');
-      this.unsubscribe = onSnapshot(menuCollection, (snapshot) => {
+      const ref = restaurantName
+        ? query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName))
+        : collection(db, 'Menu');
+      
+      this.unsubscribe = onSnapshot(ref, (snapshot) => {
         this.list = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         this.isLoading = false;
       }, (error) => {
-        console.error('Error loading all menus:', error);
-        this.isLoading = false;
-      });
-    },
-
-    
-    async loadMenuRestaurant(restaurantName) {
-      this.clearListener();
-      this.isLoading = true;
-
-      const q = query(
-        collection(db, 'Menu'),
-        where('Restaurant', '==', restaurantName)
-      );
-
-      this.unsubscribe = onSnapshot(q, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        this.isLoading = false;
-      }, (error) => {
-        console.error(`Error loading menus for ${restaurantName}:`, error);
+        console.error('Menu load error:', error);
         this.isLoading = false;
       });
     },

@@ -1,55 +1,55 @@
+// Helper function to convert Firebase timestamp or anything to Date object
+const toDate = (timestamp) => {
+  if (!timestamp) return null;
+  try {
+    return timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  } catch (e) {
+    return null;
+  }
+};
+
 /**
  * Formats a Firebase timestamp or Date object to a readable Thai locale string.
  * @param {any} timestamp - Firebase timestamp or Date.
  * @returns {string} - Formatted string (e.g., 03/05/2567 17:50:00).
  */
-export const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '-';
-  try {
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('th-TH');
-  } catch (e) {
-    return '-';
-  }
-};
+export const formatTimestamp = (timestamp) => 
+  toDate(timestamp)?.toLocaleString('th-TH') ?? '-';
 
 /**
  * Formats a timestamp to full date and time for Thai locale.
  * @param {any} timestamp 
  * @returns {string} (e.g., 03/05/67 17:50)
  */
-export const formatFullDateTime = (timestamp) => {
-  if (!timestamp) return '-';
-  try {
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('th-TH', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch (e) {
-    return '-';
-  }
-};
+export const formatFullDateTime = (timestamp) => 
+  toDate(timestamp)?.toLocaleString('th-TH', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }) ?? '-';
 
 /**
  * Formats a timestamp to only time string (HH:mm).
  * @param {any} timestamp 
  * @returns {string}
  */
-export const formatTime = (timestamp) => {
-  if (!timestamp) return '-';
-  try {
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleTimeString('th-TH', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch (e) {
-    return '-';
-  }
+export const formatTime = (timestamp) => 
+  toDate(timestamp)?.toLocaleTimeString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }) ?? '-';
+
+/**
+ * Converts a Date object to a "DD/MM" string.
+ * @param {Date} date 
+ * @returns {string}
+ */
+export const toDayKey = (date) => {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${d}/${m}`;
 };
 
 /**
@@ -57,10 +57,8 @@ export const formatTime = (timestamp) => {
  * @param {number} value 
  * @returns {string}
  */
-export const formatPrice = (value) => {
-  if (value === undefined || value === null || isNaN(value)) return '0';
-  return new Intl.NumberFormat('th-TH').format(value);
-};
+export const formatPrice = (value) => 
+  new Intl.NumberFormat('th-TH').format(Number(value) || 0);
 
 /**
  * Formats an array of day names to a Thai short name string.

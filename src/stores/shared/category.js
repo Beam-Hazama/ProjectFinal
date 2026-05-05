@@ -11,12 +11,8 @@ import {
   writeBatch,
   getDocs,
 } from "firebase/firestore";
-import { storage, db } from "@/firebase";
-import {
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
+import { db } from "@/firebase";
+import { uploadImage } from "@/utils/upload";
 
 export const useCategoryStore = defineStore("category", {
   state: () => ({
@@ -164,18 +160,8 @@ export const useCategoryStore = defineStore("category", {
         this.isSubmitting = true;
         let ImageUrl = "";
 
-        if (this.selectedFile) {
-          try {
-            const fileName = `categories/${Date.now()}_${this.selectedFile.name}`;
-            const fileRef = storageRef(storage, fileName);
-            const snapshot = await uploadBytes(fileRef, this.selectedFile);
-            ImageUrl = await getDownloadURL(snapshot.ref);
-          } catch (uploadError) {
-            console.error("Error uploading category image:", uploadError);
-            this.isSubmitting = false;
-            return;
-          }
-        }
+        const newUrl = await uploadImage(this.selectedFile, "categories");
+        if (newUrl) ImageUrl = newUrl;
 
         if (!ImageUrl) {
           this.isSubmitting = false;

@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { db } from "@/firebase";
 import { collection, doc, setDoc, serverTimestamp, runTransaction } from "firebase/firestore";
 
+const makeCartItemId = (id) => `${id}-${Math.random().toString(36).substr(2, 9)}`;
+
 export const useCartStore = defineStore("cart", {
 
   state: () => ({
@@ -49,7 +51,7 @@ export const useCartStore = defineStore("cart", {
           
           this.item = parsed.map(i => ({
             ...i,
-            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`
+            cartItemId: i.cartItemId || makeCartItemId(i.id)
           }));
         } catch (e) {
           console.error("Cart parse error:", e);
@@ -86,10 +88,11 @@ export const useCartStore = defineStore("cart", {
       if (existingItem) {
         existingItem.Quantity += quantity;
       } else {
+        const id = menu.menuId || menu.id;
         this.item.push({
-          id: menu.menuId || menu.id,
+          id: id,
           Name: menu.Name,
-          cartItemId: `${menu.menuId || menu.id}-${Math.random().toString(36).substr(2, 9)}`,
+          cartItemId: makeCartItemId(id),
           Price: priceToUse,
           basePrice: menu.Price,
           ImageUrl: menu.ImageUrl,
@@ -138,7 +141,7 @@ export const useCartStore = defineStore("cart", {
           Roomnumber: room,
           Menu: cartItems.map(i => ({
             ...i,
-            cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
+            cartItemId: i.cartItemId || makeCartItemId(i.id),
             id: i.menuId || i.id,
             MenuStatus: 'waiting'
           })),

@@ -121,7 +121,7 @@ onMounted(() => {
           </div>
         </div>
         <!-- Progress Stepper (Visible if not all items finished/received) -->
-        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.OrderStatus))"
+        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled'].includes(i.OrderStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
             <!-- Background Progress Line -->
@@ -235,23 +235,22 @@ onMounted(() => {
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
                   'bg-yellow-400 ring-yellow-200': !item.OrderStatus || item.OrderStatus === 'waiting',
-                  'bg-orange-500 ring-orange-200': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking' || item.OrderStatus === 'returned',
+                  'bg-orange-500 ring-orange-200': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking',
                   'bg-green-500 ring-green-200': item.OrderStatus === 'dispatched',
                   'bg-teal-500 ring-teal-200': item.OrderStatus === 'received',
                   'bg-red-500 ring-red-200': item.OrderStatus === 'cancelled'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
                   'text-yellow-500': !item.OrderStatus || item.OrderStatus === 'waiting',
-                  'text-orange-500': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking' || item.OrderStatus === 'returned',
+                  'text-orange-500': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking',
                   'text-green-600': item.OrderStatus === 'dispatched',
                   'text-teal-600': item.OrderStatus === 'received',
                   'text-red-500': item.OrderStatus === 'cancelled'
                 }">
                   {{ (!item.OrderStatus || item.OrderStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
-                    (item.OrderStatus === 'pending' || item.OrderStatus === 'cooking') ? 'กำลังทำอาหาร' :
+                  (item.OrderStatus === 'pending' || item.OrderStatus === 'cooking') ? 'กำลังทำอาหาร' :
                       item.OrderStatus === 'cancelled' ? 'ถูกยกเลิก' :
-                        item.OrderStatus === 'returned' ? 'รายการถูกตีกลับ' :
-                          item.OrderStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
+                        item.OrderStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
                 </span>
               </div>
             </div>

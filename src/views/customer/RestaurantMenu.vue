@@ -31,30 +31,18 @@ const isSearchActive = ref(false);
 const searchInput = ref(null);
 const isCategoryModalOpen = ref(false);
 
-const displayCategories = computed(() => {
-    const categories = new Set();
-    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
-    
-    // 1. Add "Promotion" if any
-    const hasPromo = allItems.some(item => item.PromoPrice && Number(item.PromoPrice) > 0);
-    if (hasPromo) {
-        categories.add("โปรโมชั่น");
-    }
-    
-    // 2. Add only categories that have items in this restaurant
-    // We sort them based on the categoryStore order if available, or just as they appear
-    const restaurantCategories = [...new Set(allItems.map(item => item.Category).filter(Boolean))];
-    
-    // Sort based on global category list position if possible
-    const sortedCategories = restaurantCategories.sort((a, b) => {
-        const indexA = categoryStore.list.findIndex(c => c.Name === a);
-        const indexB = categoryStore.list.findIndex(c => c.Name === b);
-        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
-    });
+// หาเลขลำดับของหมวดหมู่จาก categoryStore (ไม่เจอ = ไปท้ายสุด)
+const categoryOrder = (name) => {
+    const idx = categoryStore.list.findIndex(c => c.Name === name);
+    return idx === -1 ? 999 : idx;
+};
 
-    sortedCategories.forEach(cat => categories.add(cat));
-    
-    return Array.from(categories);
+const displayCategories = computed(() => {
+    const items = (menuStore.list || []).filter(i => i.Restaurant === restaurantName);
+    const hasPromo = items.some(i => Number(i.PromoPrice) > 0);
+    const cats = [...new Set(items.map(i => i.Category).filter(Boolean))]
+                    .sort((a, b) => categoryOrder(a) - categoryOrder(b));
+    return hasPromo ? ['โปรโมชั่น', ...cats] : cats;
 });
 
 const groupedMenu = computed(() => {

@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { db, storage } from '@/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '@/firebase';
+import { uploadImage } from '@/utils/upload';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
@@ -79,19 +79,8 @@ const handleSave = async () => {
     try {
         isLoading.value = true;
         let finalImageUrl = '';
-        if (selectedFile.value) {
-            try {
-                const fileName = `users/${Username}_${Date.now()}`;
-                const fileRef = storageRef(storage, fileName);
-                const snapshot = await uploadBytes(fileRef, selectedFile.value);
-                finalImageUrl = await getDownloadURL(snapshot.ref);
-            } catch (uploadError) {
-                console.error("Error uploading user image:", uploadError);
-                alert("เกิดข้อผิดพลาดในการอัปโหลดรูปภาพประจำตัว");
-                isLoading.value = false;
-                return;
-            }
-        }
+        const newUrl = await uploadImage(selectedFile.value, 'users');
+        if (newUrl) finalImageUrl = newUrl;
             // Validate if username already exists first
             const usersRef = collection(db, 'User');
             const q = query(usersRef, where('Username', '==', Username.trim()));

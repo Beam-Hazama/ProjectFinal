@@ -30,7 +30,6 @@ const getStatusColor = (status) => {
         case 'dispatched': return 'bg-amber-500 text-white border-none';
         case 'completed': return 'badge-success text-white';
         case 'cancelled': return 'badge-error text-white';
-        case 'returned': return 'badge-error text-white bg-orange-500';
         default: return 'badge-ghost text-slate-500';
     }
 };
@@ -116,8 +115,7 @@ const getStatusColor = (status) => {
                                                 'badge-info': item.MenuStatus === 'pending',
                                                 'bg-orange-500 text-white border-none': item.MenuStatus === 'cooking',
                                                 'badge-success text-white': item.MenuStatus === 'dispatched',
-                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled',
-                                                'badge-error text-white bg-orange-500': item.MenuStatus === 'returned'
+                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled'
                                             }">
                                                 {{ item.MenuStatus === 'pending' ? 'cooking' : (item.MenuStatus || 'pending') }}
                                             </span>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { toDayKey } from '@/utils/format';
 
 export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
@@ -176,7 +177,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         if (order.Menu) {
           order.Menu.forEach(item => {
             if (item.Restaurant === this.currentRestaurant) {
-              const isNotCancelled = item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned';
+               const isNotCancelled = item.MenuStatus !== 'cancelled';
               const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
               const menuId = item.id || item.menuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
@@ -247,18 +248,18 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        const label = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        const label = toDayKey(d);
         days[label] = 0;
       }
 
       orders.forEach(order => {
         if (!order.CreatedAt) return;
         const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-        const label = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        const label = toDayKey(date);
         if (days[label] !== undefined) {
           if (order.Menu && order.OrderStatus === 'completed') {
             order.Menu.forEach(item => {
-              if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned') {
+              if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
                 days[label] += (Number(item.Price || 0) * Number(item.Quantity || 1));
               }
             });

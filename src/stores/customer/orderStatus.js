@@ -7,6 +7,15 @@ import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { formatPrice } from '@/utils/format';
 
+// สถานะของเมนูที่ตั้งเป็นค่าคงที่เพื่อให้ความหมายชัดเจน
+const FINISHED = ['received', 'cancelled'];
+const ACTIVE_COOKING = ['pending', 'cooking'];
+const COMPLETED = ['received', 'cancelled'];
+
+// Helper functions สำหรับตรวจสอบสถานะ
+const has = (items, statuses) => items.some(i => statuses.includes(i.MenuStatus));
+const all = (items, statuses) => items.every(i => statuses.includes(i.MenuStatus));
+
 export const useUserStatusStore = defineStore('userStatus', () => {
     const orderListStore = useOrderlistStore();
     const cartStore = useCartStore();
@@ -34,7 +43,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             if (createdAtSeconds < twelveHoursAgo) return false;
 
             const hasActiveItems = (order.Menu || []).some(item =>
-                !['received', 'cancelled'].includes(item.MenuStatus)
+                !COMPLETED.includes(item.MenuStatus)
             );
 
             return hasActiveItems;
@@ -55,7 +64,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
                 const item = order.Menu[i];
                 const isClickedItem = (order.id === orderId) && (itemId ? item.cartItemId === itemId : i === itemIndex);
 
-                if (!isClickedItem && !['received', 'cancelled'].includes(item.MenuStatus)) {
+                if (!isClickedItem && !COMPLETED.includes(item.MenuStatus)) {
                     stillHasActive = true;
                     break;
                 }
@@ -114,16 +123,9 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         const items = order.Menu || [];
         if (items.length === 0) return 0;
 
-        const anyReceived = items.some(i => i.MenuStatus === 'received');
-        const allFinished = items.every(i => ['received', 'cancelled', 'returned'].includes(i.MenuStatus));
-
-        if (anyReceived || allFinished) return 3;
-
-        const anyDispatched = items.some(i => i.MenuStatus === 'dispatched');
-        if (anyDispatched) return 2;
-
-        const anyCooking = items.some(i => ['pending', 'cooking'].includes(i.MenuStatus));
-        if (anyCooking) return 1;
+        if (has(items, ['received']) || all(items, FINISHED)) return 3;
+        if (has(items, ['dispatched'])) return 2;
+        if (has(items, ACTIVE_COOKING)) return 1;
 
         return 0;
     };
@@ -132,9 +134,9 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         const items = order.Menu || [];
         switch (stage) {
             case 0: return items.filter(i => !i.MenuStatus || i.MenuStatus === 'waiting').length;
-            case 1: return items.filter(i => ['pending', 'cooking'].includes(i.MenuStatus)).length;
+            case 1: return items.filter(i => ACTIVE_COOKING.includes(i.MenuStatus)).length;
             case 2: return items.filter(i => i.MenuStatus === 'dispatched').length;
-            case 3: return items.filter(i => ['received', 'cancelled', 'returned'].includes(i.MenuStatus)).length;
+            case 3: return items.filter(i => FINISHED.includes(i.MenuStatus)).length;
             default: return 0;
         }
     };
