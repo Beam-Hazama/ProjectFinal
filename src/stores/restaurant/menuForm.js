@@ -48,6 +48,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
                     OptionGroups: res.OptionGroups || []
                 });
                 imagePreview.value = res.ImageUrl || '';
+                selectedFile.value = null;
             }
         } else {
             Object.assign(MenuData, {
