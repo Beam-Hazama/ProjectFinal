@@ -4,9 +4,15 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import draggable from 'vuedraggable';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useCategoryStore } from '@/stores/shared/category';
+import { useImagePreview } from '@/composables/useImagePreview';
 
 const categoryStore = useCategoryStore();
+const { previewUrl, selectedFile, handleFileSelect, clearPreview } = useImagePreview();
+
 const localCategories = ref([]);
+const showModal = ref(false);
+const newCategoryName = ref('');
+const isSubmitting = ref(false);
 
 onMounted(() => {
     categoryStore.loadCategories();
@@ -21,9 +27,27 @@ watch(() => categoryStore.list, (newList) => {
 }, { deep: true, immediate: true });
 
 const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        categoryStore.onImageSelected(file);
+    handleFileSelect(event);
+};
+
+const closeModal = () => {
+    showModal.value = false;
+    newCategoryName.value = '';
+    clearPreview();
+    isSubmitting.value = false;
+};
+
+const addCategory = async () => {
+    if (!newCategoryName.value.trim() || !selectedFile.value) return;
+    
+    isSubmitting.value = true;
+    const result = await categoryStore.addCategory(newCategoryName.value, selectedFile.value);
+    isSubmitting.value = false;
+    
+    if (result.success) {
+        closeModal();
+    } else {
+        alert(result.error || 'Failed to add category');
     }
 };
 
@@ -38,14 +62,14 @@ const onDragEnd = async () => {
         <div class="p-6">
             <div class="flex justify-between items-center mb-7">
                 <div class="text-3xl font-bold text-slate-700">Category</div>
-                <button @click="categoryStore.showModal = true" class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
+                <button @click="showModal = true" class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                     Add Category
                 </button>
             </div>
-            <div v-if="categoryStore.showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden" @click.stop>
                     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                         <h2 class="text-lg font-bold text-slate-800">Add New Category</h2>
@@ -56,7 +80,7 @@ const onDragEnd = async () => {
                                 <label class="label pt-0">
                                     <span class="label-text font-medium text-slate-600">Category Name</span>
                                 </label>
-                                <input type="text" v-model="categoryStore.newCategoryName" class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
+                                <input type="text" v-model="newCategoryName" class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors" />
                             </div>
                             <div class="flex flex-col gap-4">
                                 <label class="text-sm font-bold text-slate-700">รูปภาพหมวดหมู่</label>
@@ -71,19 +95,19 @@ const onDragEnd = async () => {
                                 </div>
                             </div>
                         </div>
-                        <div v-if="categoryStore.newCategoryImageUrl" class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
-                            <img :src="categoryStore.newCategoryImageUrl" class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
+                        <div v-if="previewUrl" class="mb-6 border border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden relative group w-full h-32">
+                            <img :src="previewUrl" class="w-full h-full object-cover rounded-lg shadow-sm" alt="Preview" />
                             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                 <span class="text-white font-medium text-sm">Preview</span>
                             </div>
                         </div>
                         <div class="flex justify-end gap-3 mt-4">
-                            <button @click="categoryStore.closeModal"
+                            <button @click="closeModal"
                                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
-                            <button @click="categoryStore.addCategory"
-                                :disabled="categoryStore.isSubmitting || !categoryStore.newCategoryName || !categoryStore.newCategoryImageUrl"
+                            <button @click="addCategory"
+                                :disabled="isSubmitting || !newCategoryName || !previewUrl"
                                 class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
-                                <span v-if="categoryStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
+                                <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
                                 <span v-else>Save</span>
                             </button>
                         </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAccountStore } from '@/stores/auth';
 
@@ -10,17 +10,22 @@ const username = ref('');
 const password = ref('');
 const showPassword = ref(false);
 
-const login = () => {
-  accountStore.login(username.value, password.value, router);
+// router.beforeEach ตรวจสอบ session ให้แล้ว ไม่ต้องเรียก checkAuthState ที่นี่อีก
+const login = async () => {
+  try {
+    const role = await accountStore.login(username.value, password.value);
+    if (role) {
+      const routeName = role === 'admin' ? 'Admin' : 'Restaurants';
+      router.replace({ name: routeName });
+    }
+  } catch (error) {
+    // accountStore.errorMessage แสดงใน template ให้แล้ว
+  }
 };
 
 const handleForgotPassword = () => {
   accountStore.forgotPassword();
 };
-
-onMounted(async () => {
-  await accountStore.checkAuthState();
-});
 </script>
 
 <template>

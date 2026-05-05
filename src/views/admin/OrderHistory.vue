@@ -3,6 +3,7 @@ import { formatTimestamp } from '@/utils/format';
 import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useOrderlistStore } from '@/stores/shared/orderlist';
+import { getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 
@@ -23,16 +24,7 @@ const openModal = (order) => {
     showModal.value = true;
 };
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'pending': return 'badge-info text-white';
-        case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'bg-amber-500 text-white border-none';
-        case 'completed': return 'badge-success text-white';
-        case 'cancelled': return 'badge-error text-white';
-        default: return 'badge-ghost text-slate-500';
-    }
-};
+// Removed getStatusColor local helper
 // Removed formatTimestampStore usage
 </script>
 

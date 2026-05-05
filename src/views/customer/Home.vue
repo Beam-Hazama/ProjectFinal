@@ -1,14 +1,9 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useRoute, useRouter } from 'vue-router';
-
+import { useCustomerData } from '@/composables/useCustomerData';
 import { formatPrice } from '@/utils/format';
-import { checkShopClosed } from '@/utils/shopStatus';
-import { useMenuStore } from '@/stores/shared/menu';
-import { useCartStore } from '@/stores/customer/cart';
-import { useQrcodeStore } from '@/stores/admin/qrcode';
-import { useCategoryStore } from '@/stores/shared/category';
-import { useRestaurant } from '@/stores/shared/restaurant';
 
 import RestaurantList from '@/components/shared/RestaurantList.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
@@ -16,13 +11,9 @@ import MenuOrderModal from '@/components/shared/ModalMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
-const restaurantStore = useRestaurant();
-const menuStore = useMenuStore();
-const cartStore = useCartStore();
-const qrStore = useQrcodeStore();
-const categoryStore = useCategoryStore();
-
 const room = computed(() => cartStore.room);
+const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(room.value);
+const qrStore = useQrcodeStore();
 const isValidLocation = ref(false);
 const isLoading = ref(true);
 const isError = ref(false);
@@ -32,8 +23,7 @@ const showModal = ref(false);
 const selectedRestaurantCategories = ref([]);
 const showFilterSheet = ref(false);
 const isFilterPromoOnly = ref(false);
-const now = ref(new Date());
-let timer;
+const { now } = useNow();
 
 const banners = [
   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
@@ -61,8 +51,7 @@ const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
     if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
     if (item.Status && item.Status !== 'open') return false;
-    const shop = restaurantStore.list.find(r => r.Name === item.Restaurant);
-    return !checkShopClosed(shop, now.value);
+    return !restaurantStore.isShopClosedByName(item.Restaurant, now.value);
   });
 });
 
@@ -74,9 +63,6 @@ onMounted(async () => {
   }
   await loadAllData();
   startCarousel();
-  timer = setInterval(() => {
-    now.value = new Date();
-  }, 60000);
 });
 
 const loadAllData = async () => {
@@ -87,6 +73,8 @@ const loadAllData = async () => {
     const isValid = await qrStore.validateRoom(room.value);
     isValidLocation.value = isValid;
     if (isValid) {
+      // Data loading is now handled by useCustomerData's onMounted, 
+      // but we still ensure it's loaded here for the validation flow.
       await Promise.all([
         restaurantStore.loadListRestaurant(),
         menuStore.loadMenu(),
@@ -105,7 +93,6 @@ const loadAllData = async () => {
 
 onUnmounted(() => {
   stopCarousel();
-  if (timer) clearInterval(timer);
   restaurantStore.clearListener();
   menuStore.clearListener();
 });

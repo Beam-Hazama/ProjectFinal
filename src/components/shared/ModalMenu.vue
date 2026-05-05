@@ -1,8 +1,10 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useCartStore } from '@/stores/customer/cart';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { checkShopClosed } from '@/utils/shopStatus';
+import { getBasePrice, calculateOptionPrice, buildOptionsNote } from '@/utils/menuCalculator';
 import { onUnmounted } from 'vue';
 
 const props = defineProps({
@@ -18,20 +20,15 @@ const quantity = ref(1);
 const note = ref('');
 const selections = ref({});
 
-const now = ref(new Date());
-let timer;
+const { now } = useNow();
 
 onMounted(() => {
   if (restaurantStore.list.length === 0) {
     restaurantStore.loadListRestaurant();
   }
-  timer = setInterval(() => {
-    now.value = new Date();
-  }, 60000);
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
 });
 
 const isShopClosed = computed(() => {
@@ -96,58 +93,20 @@ const toggleRadio = (gIndex, choiceName) => {
 
 const calculateTotalPrice = () => {
   if (!props.menu) return 0;
-  let base = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0
-    ? Number(props.menu.PromoPrice)
-    : Number(props.menu.Price);
-  let extra = 0;
-  if (props.menu.OptionGroups) {
-    props.menu.OptionGroups.forEach((group, index) => {
-      const sel = selections.value[index];
-      if (group.maxChoices > 1 && Array.isArray(sel)) {
-        sel.forEach(name => {
-          const choice = group.choices.find(c => c.name === name);
-          if (choice) extra += (Number(choice.price) || 0);
-        });
-      } else if (group.maxChoices === 1 && sel) {
-        const choice = group.choices.find(c => c.name === sel);
-        if (choice) extra += (Number(choice.price) || 0);
-      }
-    });
-  }
+  const base = getBasePrice(props.menu);
+  const extra = calculateOptionPrice(props.menu.OptionGroups, selections.value);
   return (base + extra) * quantity.value;
 };
 
 const confirmAdd = () => {
   if (!isFormValid.value || !isAvailable.value) return;
-  let finalNote = note.value ? `หมายเหตุ: ${note.value}` : '';
-  let optionsNoteArr = [];
-  let extraPrice = 0;
-  if (props.menu && props.menu.OptionGroups) {
-    props.menu.OptionGroups.forEach((group, index) => {
-      const sel = selections.value[index];
-      if (group.maxChoices > 1 && Array.isArray(sel) && sel.length > 0) {
-        const choiceStrs = sel.map(name => {
-          const choice = group.choices.find(c => c.name === name);
-          if (choice) extraPrice += (Number(choice.price) || 0);
-          return choice && Number(choice.price) > 0 ? `${name} (+฿${choice.price})` : name;
-        });
-        optionsNoteArr.push(`${group.name}: ${choiceStrs.join(', ')}`);
-      } else if (group.maxChoices === 1 && sel) {
-        const choice = group.choices.find(c => c.name === sel);
-        if (choice) extraPrice += (Number(choice.price) || 0);
-        const choiceStr = choice && Number(choice.price) > 0 ? `${sel} (+฿${choice.price})` : sel;
-        optionsNoteArr.push(`${group.name}: ${choiceStr}`);
-      }
-    });
-  }
-  if (optionsNoteArr.length > 0) {
-    const combinedOptions = optionsNoteArr.join('\n');
-    finalNote = finalNote ? `${combinedOptions}\n${finalNote}` : combinedOptions;
-  }
-  const basePrice = props.menu.PromoPrice && Number(props.menu.PromoPrice) > 0
-    ? Number(props.menu.PromoPrice)
-    : Number(props.menu.Price);
-  const unitPrice = basePrice + extraPrice;
+
+  const optionsNote = buildOptionsNote(props.menu.OptionGroups, selections.value);
+  const userNote = note.value ? `หมายเหตุ: ${note.value}` : '';
+  const finalNote = [optionsNote, userNote].filter(Boolean).join('\n');
+
+  const unitPrice = getBasePrice(props.menu) + calculateOptionPrice(props.menu.OptionGroups, selections.value);
+  
   cartStore.addOrUpdateItem(props.menu, quantity.value, finalNote, unitPrice);
   emit('close');
 };

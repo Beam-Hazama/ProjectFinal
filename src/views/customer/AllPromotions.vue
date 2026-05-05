@@ -1,54 +1,34 @@
 <script setup>
 import { computed, onMounted, ref, onUnmounted } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useRoute, useRouter } from 'vue-router';
-import { useMenuStore } from '@/stores/shared/menu';
-import { useRestaurant } from '@/stores/shared/restaurant';
-import { useCartStore } from '@/stores/customer/cart';
+import { useCustomerData } from '@/composables/useCustomerData';
 import MenuList from '@/components/shared/BlockMenu.vue';
-import { checkShopClosed } from '@/utils/shopStatus';
 
 const route = useRoute();
 const router = useRouter();
-const menuStore = useMenuStore();
-const restaurantStore = useRestaurant();
-const cartStore = useCartStore();
-
 const room = route.params.room || '-';
+const { menuStore, restaurantStore, cartStore } = useCustomerData(room);
 
 const isLoading = ref(true);
-const now = ref(new Date());
-let timer;
-
-function isShopClosed(restaurantName) {
-    if (restaurantStore.list.length === 0) return false; // Default to open while loading to prevent flash of empty
-    const shop = restaurantStore.list.find(r => r.Name === restaurantName);
-    return checkShopClosed(shop, now.value);
-}
+const { now } = useNow();
 
 const promotionMenus = computed(() => {
     return (menuStore.list || []).filter(item => {
         const hasPromo = item.PromoPrice && Number(item.PromoPrice) > 0;
         const isMenuOpen = item.Status === 'open';
-        return hasPromo && isMenuOpen && !isShopClosed(item.Restaurant);
+        return hasPromo && isMenuOpen && !restaurantStore.isShopClosedByName(item.Restaurant, now.value);
     });
 });
 
 onMounted(async () => {
     isLoading.value = true;
     try {
-        await Promise.all([
-            menuStore.loadMenu(),
-            restaurantStore.loadListRestaurant()
-        ]);
-        cartStore.loadCart(room);
-        // Give it a small delay to ensure listeners are active and data is flowing
+        // Wait for stores to be ready if needed, or just proceed with UI delay
+        // Since useCustomerData handles the load calls, we just manage the loading state here
         setTimeout(() => {
             isLoading.value = false;
         }, 500);
-
-        timer = setInterval(() => {
-            now.value = new Date();
-        }, 60000);
     } catch (error) {
         console.error("Error loading promotions data:", error);
         isLoading.value = false;
@@ -56,7 +36,6 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-    if (timer) clearInterval(timer);
 });
 
 const goBack = () => {

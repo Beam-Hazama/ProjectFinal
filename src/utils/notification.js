@@ -124,3 +124,28 @@ export const enableCustomerNotification = async (orderIds = []) => {
   return { ok: true, token };
 };
 
+/**
+ * High-level wrapper to request notification permission and save tokens for specific orders.
+ * @param {Array} orderIds - List of order IDs to bind the token to
+ * @returns {Object} - { status: 'granted'|'denied'|'default', message: string }
+ */
+export const requestPermissionForOrders = async (orderIds) => {
+    const result = await enableCustomerNotification(orderIds);
+    if (result.ok) {
+        return { 
+            status: 'granted', 
+            message: 'เปิดการแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ' 
+        };
+    } else if (result.reason === 'permission_denied') {
+        return { 
+            status: 'denied', 
+            message: 'คุณปฏิเสธการแจ้งเตือน หากต้องการเปิด ไปที่การตั้งค่าเบราว์เซอร์' 
+        };
+    } else {
+        return { 
+            status: 'default', 
+            message: 'ไม่สามารถเปิดแจ้งเตือนได้ กรุณาลองใหม่' 
+        };
+    }
+};
+

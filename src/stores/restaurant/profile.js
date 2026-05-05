@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } fr
 import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
 import { uploadImage } from '@/utils/upload';
+import { DAYS_OF_WEEK } from '@/utils/constants';
 
 export const useProfileStore = defineStore('restaurantProfile', () => {
     const accountStore = useAccountStore();
@@ -32,15 +33,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         UpdatedAt: null
     });
 
-    const daysOfWeek = [
-        { label: 'อา.', value: 'Sunday' },
-        { label: 'จ.', value: 'Monday' },
-        { label: 'อ.', value: 'Tuesday' },
-        { label: 'พ.', value: 'Wednesday' },
-        { label: 'พฤ.', value: 'Thursday' },
-        { label: 'ศ.', value: 'Friday' },
-        { label: 'ส.', value: 'Saturday' }
-    ];
+    // Use imported DAYS_OF_WEEK
 
     const fetchRestaurantByName = async () => {
         if (!accountStore.isLoggedIn) {
@@ -154,7 +147,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
 
     return {
         RestaurantData,
-        daysOfWeek,
+        daysOfWeek: DAYS_OF_WEEK,
         loading,
         docId,
         imagePreview,

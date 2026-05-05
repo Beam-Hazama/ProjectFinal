@@ -2,8 +2,6 @@
 import { formatTimestamp } from '@/utils/format';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import { doc, updateDoc, deleteDoc, serverTimestamp, deleteField } from 'firebase/firestore';
-import { db } from '@/firebase';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useAccountStore } from '@/stores/auth';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
@@ -36,15 +34,7 @@ const loadData = async () => {
 
 const switchStatus = async (menu) => {
     try {
-        const newStatus = menu.Status === 'open' ? 'close' : 'open';
-        const menuRef = doc(db, 'Menu', menu.id);
-
-        await updateDoc(menuRef, {
-            Status: newStatus,
-            UpdatedAt: serverTimestamp(),
-            status: deleteField(),
-            updatedAt: deleteField()
-        });
+        await MenuStore.toggleStatus(menu.id, menu.Status);
     } catch (error) {
         console.error("Error updating status:", error);
     }
@@ -52,8 +42,7 @@ const switchStatus = async (menu) => {
 
 const deleteMenu = async (id) => {
     try {
-        const menuRef = doc(db, 'Menu', id);
-        await deleteDoc(menuRef);
+        await MenuStore.deleteById(id);
     } catch (error) {
         console.error("Error deleting menu:", error);
     }

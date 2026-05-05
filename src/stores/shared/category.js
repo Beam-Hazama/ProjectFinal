@@ -19,20 +19,13 @@ export const useCategoryStore = defineStore("category", {
     list: [],
     unsubscribe: null,
 
-    // UI State for Admin Category Management
-    showModal: false,
-    newCategoryName: "",
-    newCategoryImageUrl: "",
-    selectedFile: null,
-    isSubmitting: false,
+    isLoading: false,
   }),
 
   actions: {
     clearListener() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
+      this.unsubscribe?.();
+      this.unsubscribe = null;
       this.list = [];
     },
 
@@ -122,64 +115,35 @@ export const useCategoryStore = defineStore("category", {
       this.list = newList;
     },
 
-    // UI Actions
-    onImageSelected(file) {
-      if (
-        this.newCategoryImageUrl &&
-        this.newCategoryImageUrl.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(this.newCategoryImageUrl);
-      }
-      this.selectedFile = file;
-      if (this.selectedFile) {
-        const previewUrl = URL.createObjectURL(this.selectedFile);
-        this.newCategoryImageUrl = previewUrl;
-      }
-    },
 
-    closeModal() {
-      if (
-        this.newCategoryImageUrl &&
-        this.newCategoryImageUrl.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(this.newCategoryImageUrl);
-      }
-      this.showModal = false;
-      this.newCategoryName = "";
-      this.newCategoryImageUrl = "";
-      this.selectedFile = null;
-      this.isSubmitting = false;
-    },
-
-    async addCategory() {
-      if (!this.newCategoryName.trim()) {
-        return;
+    async addCategory(name, file) {
+      if (!name || !name.trim()) {
+        return { success: false, error: 'Name is required' };
       }
 
       try {
-        this.isSubmitting = true;
         let ImageUrl = "";
 
-        const newUrl = await uploadImage(this.selectedFile, "categories");
-        if (newUrl) ImageUrl = newUrl;
+        if (file) {
+          const newUrl = await uploadImage(file, "categories");
+          if (newUrl) ImageUrl = newUrl;
+        }
 
         if (!ImageUrl) {
-          this.isSubmitting = false;
-          return;
+           return { success: false, error: 'Image is required' };
         }
 
         await addDoc(collection(db, "Category"), {
-          Name: this.newCategoryName.trim(),
+          Name: name.trim(),
           ImageUrl: ImageUrl,
           Position: this.list.length,
           CreatedAt: serverTimestamp(),
         });
 
-        this.closeModal();
+        return { success: true };
       } catch (error) {
         console.error("Error adding category:", error);
-      } finally {
-        this.isSubmitting = false;
+        return { success: false, error: error.message };
       }
     },
 

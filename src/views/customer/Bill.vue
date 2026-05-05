@@ -4,6 +4,7 @@ import { onMounted, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/shared/orderlist';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
+import { filterRecentOrders, sortOrdersByDate } from '@/utils/orderHelpers';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
 const orderListStore = useOrderlistStore();
@@ -17,11 +18,8 @@ const displayLocation = computed(() => {
 });
 
 const userOrders = computed(() => {
-    const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
-    return orderListStore.list
-        .filter(order => order.Roomnumber === room.value &&
-                         (order.CreatedAt?.seconds || 0) >= twelveHoursAgo)
-        .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0));
+    const recent = filterRecentOrders(orderListStore.list, room.value, 12);
+    return sortOrdersByDate(recent, 'desc'); // ใหม่สุดอยู่บน
 });
 
 const myOrders = computed(() => {
@@ -51,10 +49,6 @@ onMounted(async () => {
     menuStore.loadMenu();
 });
 
-const getMenuName = (id) => {
-    const menu = menuStore.list.find(m => m.id === id);
-    return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
-};
 </script>
 
 <template>
@@ -110,7 +104,7 @@ const getMenuName = (id) => {
                                 x{{ item.Quantity }}
                             </div>
                             <div class="flex flex-col">
-                                <span class="font-bold text-slate-800 text-sm tracking-tight leading-tight">{{ item.Name || getMenuName(item.id || item.menuId) }}</span>
+                                <span class="font-bold text-slate-800 text-sm tracking-tight leading-tight">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId) }}</span>
                                 <span class="text-[10px] text-slate-400 font-medium">฿{{ item.Price.toLocaleString() }} ต่อหน่วย</span>
                             </div>
                         </div>

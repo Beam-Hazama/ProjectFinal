@@ -2,6 +2,13 @@ import { defineStore } from 'pinia';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { toDayKey } from '@/utils/format';
+import { 
+  getTimeRange, 
+  buildDailyRevenue, 
+  buildPeakHours, 
+  buildCategoryStats as getCategoryStats,
+  isOrderInTimeRange
+} from '@/utils/dashboardHelpers';
 
 export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
@@ -127,39 +134,18 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     clearListeners() {
-      if (this.unsubscribeOrders) this.unsubscribeOrders();
-      if (this.unsubscribeMenus) this.unsubscribeMenus();
-      if (this.unsubscribeRestaurant) this.unsubscribeRestaurant();
+      this.unsubscribeOrders?.();
+      this.unsubscribeMenus?.();
+      this.unsubscribeRestaurant?.();
+      this.unsubscribeOrders = null;
+      this.unsubscribeMenus = null;
+      this.unsubscribeRestaurant = null;
     },
 
     applyFilters() {
-      const now = new Date();
-      let startTime = new Date(0);
+      const { start: startTime, end: endTime } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
 
-      if (this.timeFilter === 'today') {
-        startTime = new Date(now);
-        startTime.setHours(0, 0, 0, 0);
-      } else if (this.timeFilter === '7days') {
-        startTime = new Date(now);
-        startTime.setDate(startTime.getDate() - 6);
-        startTime.setHours(0, 0, 0, 0);
-      } else if (this.timeFilter === 'thisMonth') {
-        startTime = new Date(now.getFullYear(), now.getMonth(), 1);
-        startTime.setHours(0, 0, 0, 0);
-      } else if (this.timeFilter === 'custom') {
-        startTime = new Date(this.customStartDate);
-        startTime.setHours(0, 0, 0, 0);
-      }
-
-      const endTime = this.timeFilter === 'custom' 
-        ? new Date(new Date(this.customEndDate).setHours(23, 59, 59, 999))
-        : new Date(new Date(now).setHours(23, 59, 59, 999));
-
-      const validOrders = this.allOrders.filter(order => {
-        if (!order.CreatedAt) return false;
-        const createdAt = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-        return createdAt >= startTime && createdAt <= endTime;
-      });
+      const validOrders = this.allOrders.filter(order => isOrderInTimeRange(order, startTime, endTime));
 
       const validOrdersForChart = this.allOrders; // No time filter for chart items calculation itself, or use validOrders?
 
@@ -241,52 +227,25 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     buildDailyRevenueChart(orders) {
-      const days = {};
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const label = toDayKey(d);
-        days[label] = 0;
-      }
-
-      orders.forEach(order => {
-        if (!order.CreatedAt) return;
-        const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-        const label = toDayKey(date);
-        if (days[label] !== undefined) {
-          if (order.Menu && order.OrderStatus === 'completed') {
-            order.Menu.forEach(item => {
-              if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
-                days[label] += (Number(item.Price || 0) * Number(item.Quantity || 1));
-              }
-            });
-          }
+      this.revenueByDay = buildDailyRevenue(orders, (order) => {
+        let orderRevenue = 0;
+        if (order.Menu && order.OrderStatus === 'completed') {
+          order.Menu.forEach(item => {
+            if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
+              orderRevenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
+            }
+          });
         }
+        return orderRevenue;
       });
-      this.revenueByDay = Object.entries(days).map(([date, revenue]) => ({ date, revenue }));
     },
 
     buildCategoryStats(menus) {
-      const counts = {};
-      menus.forEach(menu => {
-        const cat = menu.Category || 'อื่นๆ';
-        counts[cat] = (counts[cat] || 0) + 1;
-      });
-      this.categoriesCount = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      this.categoriesCount = getCategoryStats(menus);
     },
 
     buildPeakHoursChart(orders) {
-      const hours = Array(24).fill(0);
-      orders.forEach(order => {
-        if (!order.CreatedAt) return;
-        const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-        hours[date.getHours()]++;
-      });
-      this.ordersByHour = hours.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
-      this.ordersByHour.push({ hour: '24:00', count: hours[0] });
+      this.ordersByHour = buildPeakHours(orders);
     }
   }
 });

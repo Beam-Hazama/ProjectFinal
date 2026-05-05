@@ -1,15 +1,14 @@
 <script setup>
 /* import { formatTimestamp } from '@/utils/format'; */
 import { onMounted, ref, watch, onUnmounted } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useAccountStore } from '@/stores/auth';
 import { useProfileStore } from '@/stores/restaurant/profile';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
 
 const accountStore = useAccountStore();
 const profileStore = useProfileStore();
-
-const now = ref(new Date());
-let timer;
+const { now } = useNow(1000);
 
 watch(
   () => accountStore.user,
@@ -23,13 +22,9 @@ watch(
 
 onMounted(() => {
   profileStore.fetchRestaurantByName();
-  timer = setInterval(() => {
-    now.value = new Date();
-  }, 1000);
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
 });
 </script>
 

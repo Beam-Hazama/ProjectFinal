@@ -92,10 +92,8 @@ export const useCommissionStore = defineStore('commission', {
     },
 
     clearListener() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
+      this.unsubscribe?.();
+      this.unsubscribe = null;
     }
   }
 });

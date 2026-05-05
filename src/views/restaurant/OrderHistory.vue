@@ -4,6 +4,7 @@ import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/shared/orderlist';
 import { useAccountStore } from '@/stores/auth';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
+import { computeLocalStatus, getStatusColor, sortOrdersByDate } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -24,43 +25,32 @@ onUnmounted(() => {
 });
 
 const historyOrders = computed(() => {
-    if (!accountStore.user || !accountStore.user.Restaurant) return [];
-    const myRestaurant = accountStore.user.Restaurant;
+    if (!accountStore.user?.Restaurant) return [];
     if (!orderStore.sortedOrders) return [];
-    return orderStore.sortedOrders.map(order => {
+    const myRestaurant = accountStore.user.Restaurant;
+
+    // 1. ดึงเฉพาะ items ของร้านนี้ + คำนวณสถานะรวม
+    const mapped = orderStore.sortedOrders.map(order => {
         const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-        let localStatus = 'pending';
-        if (myItems.length > 0) {
-            const allCancelled = myItems.every(i => i.MenuStatus === 'cancelled');
-            const allReceivedOrCancelled = myItems.every(i =>
-                i.MenuStatus === 'received' || i.MenuStatus === 'cancelled'
-            );
-            const isFinished = myItems.every(i =>
-                ['dispatched', 'received', 'cancelled'].includes(i.MenuStatus)
-            );
-            if (allCancelled) localStatus = 'cancelled';
-            else if (allReceivedOrCancelled) localStatus = 'completed';
-            else if (isFinished) localStatus = 'dispatched';
-            else localStatus = 'cooking';
-        }
         return {
             ...order,
             displayItems: myItems,
             displayTotal: myTotal,
-            localStatus: localStatus
+            localStatus: computeLocalStatus(myItems)
         };
-    }).filter(order =>
-        order.displayItems.length > 0 &&
-        (order.OrderStatus === 'completed' ||
-            order.OrderStatus === 'cancelled' ||
-            order.localStatus === 'completed' ||
-            order.localStatus === 'dispatched' ||
-            order.localStatus === 'cancelled')
-    ).sort((a, b) => {
-        if (!a.CreatedAt || !b.CreatedAt) return 0;
-        return b.CreatedAt.seconds - a.CreatedAt.seconds;
     });
+
+    // 2. กรองเฉพาะออเดอร์ที่จบแล้ว (completed/cancelled/dispatched)
+    const finishedStatuses = ['completed', 'cancelled', 'dispatched'];
+    const filtered = mapped.filter(order =>
+        order.displayItems.length > 0 &&
+        (finishedStatuses.includes(order.OrderStatus) ||
+         finishedStatuses.includes(order.localStatus))
+    );
+
+    // 3. เรียงจากใหม่ไปเก่า
+    return sortOrdersByDate(filtered, 'desc');
 });
 
 const openModal = (order) => {
@@ -68,16 +58,7 @@ const openModal = (order) => {
     showModal.value = true;
 };
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'pending': return 'badge-info text-white';
-        case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'bg-amber-500 text-white border-none';
-        case 'completed': return 'badge-success text-white';
-        case 'cancelled': return 'badge-error text-white';
-        default: return 'badge-ghost text-slate-500';
-    }
-};
+// Removed getStatusColor local helper
 // Removed formatTimestampStore usage
 </script>
 

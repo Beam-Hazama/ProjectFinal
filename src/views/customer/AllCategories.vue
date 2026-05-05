@@ -1,21 +1,14 @@
 <script setup>
 import { onMounted, computed, ref, onUnmounted } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useRoute, useRouter } from 'vue-router';
-import { useCategoryStore } from '@/stores/shared/category';
-import { useMenuStore } from '@/stores/shared/menu';
-import { useRestaurant } from '@/stores/shared/restaurant';
-import { useCartStore } from '@/stores/customer/cart';
+import { useCustomerData } from '@/composables/useCustomerData';
 
 const route = useRoute();
 const router = useRouter();
-const categoryStore = useCategoryStore();
-const menuStore = useMenuStore();
-const restaurantStore = useRestaurant();
-const cartStore = useCartStore();
-
 const room = route.params.room || '-';
-const now = ref(new Date());
-let timer;
+const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(room);
+const { now } = useNow();
 
 const activeCategories = computed(() => {
     // Return all categories directly to ensure they appear
@@ -23,23 +16,9 @@ const activeCategories = computed(() => {
 });
 
 onMounted(() => {
-    if (categoryStore.list.length === 0) {
-        categoryStore.fetchCategories();
-    }
-    if (menuStore.list.length === 0) {
-        menuStore.loadMenu();
-    }
-    if (restaurantStore.list.length === 0) {
-        restaurantStore.loadListRestaurant();
-    }
-    cartStore.loadCart(room);
-    timer = setInterval(() => {
-        now.value = new Date();
-    }, 60000);
 });
 
 onUnmounted(() => {
-    if (timer) clearInterval(timer);
 });
 
 const goBack = () => {

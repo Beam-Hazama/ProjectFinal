@@ -5,13 +5,15 @@ import { useRouter } from 'vue-router';
 
 import { useUserStatusStore } from '@/stores/customer/orderStatus';
 import { useCartStore } from '@/stores/customer/cart';
-import { isStandalone, enableCustomerNotification } from '@/utils/notification';
+import { useMenuStore } from '@/stores/shared/menu';
+import { isStandalone, requestPermissionForOrders } from '@/utils/notification';
 
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
 const router = useRouter();
 const statusStore = useUserStatusStore();
 const cartStore = useCartStore();
+const menuStore = useMenuStore();
 const room = computed(() => cartStore.room);
 
 const notificationPermission = ref(
@@ -26,17 +28,12 @@ const handleRequestPermission = async () => {
     showIOSGuide.value = true;
     return;
   }
-  // ดึง orderId ปัจจุบันทั้งหมดของห้องนี้
-  const orderIds = statusStore.roomOrders.map(o => o.id);  
-  const result = await enableCustomerNotification(orderIds);  
-  if (result.ok) {
+  
+  const result = await requestPermissionForOrders(statusStore.roomOrders.map(o => o.id));
+  if (result.status === 'granted') {
     notificationPermission.value = 'granted';
-    alert('เปิดแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ');
-  } else if (result.reason === 'permission_denied') {
-    alert('คุณปฏิเสธการแจ้งเตือน หากต้องการเปิด ไปที่การตั้งค่าเบราว์เซอร์');
-  } else {
-    alert('ไม่สามารถเปิดแจ้งเตือนได้ กรุณาลองใหม่');
   }
+  alert(result.message);
 };
 
 onMounted(() => {
@@ -224,7 +221,7 @@ onMounted(() => {
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
                 }}</span>
                 <div class="flex flex-col">
-                  <span class="text-sm font-bold text-gray-700">{{ item.Name || statusStore.getMenuName(item.id || item.menuId)
+                  <span class="text-sm font-bold text-gray-700">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId)
                     }}</span>
                   <span v-if="item.Restaurant" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{{
                     item.Restaurant }}</span>

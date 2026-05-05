@@ -17,10 +17,8 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
   actions: {
     
     clearListener() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
+      this.unsubscribe?.();
+      this.unsubscribe = null;
       this.rooms = [];
     },
 

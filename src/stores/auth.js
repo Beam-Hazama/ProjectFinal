@@ -38,7 +38,7 @@ export const useAccountStore = defineStore('user-account', {
       return this.logout();
     },
 
-    async login(username, password, router) {
+    async login(username, password) {
       if (this.isLoading) return;
       
       this.isLoading = true;
@@ -70,12 +70,6 @@ export const useAccountStore = defineStore('user-account', {
         this.isAuthChecked = true;
         
         sessionStorage.setItem('userId', userDoc.id);
-
-        // Handle Routing
-        if (router) {
-          const routeName = this.role === 'admin' ? 'Admin' : 'Restaurants';
-          router.replace({ name: routeName });
-        }
 
         return this.role;
       } catch (error) {

@@ -1,70 +1,31 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { ref, onMounted } from 'vue';
-import { db } from '@/firebase';
-import { collection, getDocs, doc, updateDoc, query, where, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { onMounted } from 'vue';
+import { useUserListStore } from '@/stores/admin/users';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
-const users = ref([]);
-const restaurants = ref([]);
+const usersStore = useUserListStore();
 
 onMounted(() => {
-    fetchUsers();
-    fetchRestaurants();
+    usersStore.loadAll();
 });
 
-const fetchUsers = async () => {
-    try {
-        const q = query(
-            collection(db, 'User'),
-            where('Role', '==', 'restaurant')
-        );
-        const querySnapshot = await getDocs(q);
-        users.value = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error("Error fetching users:", error);
-    }
-};
-
-const fetchRestaurants = async () => {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'Restaurant'));
-        restaurants.value = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error("Error fetching restaurants:", error);
-    }
-};
-// Removed formatTimestampStore usage
 const toggleUserStatus = async (user) => {
-    const currentStatus = user.Status || 'active';
-    const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
     try {
-        const userRef = doc(db, 'User', user.id);
-        await updateDoc(userRef, {
-            Status: newStatus,
-            UpdatedAt: serverTimestamp()
-        });
-        await fetchUsers();
+        await usersStore.toggleStatus(user);
     } catch (error) {
         console.error("Error updating status:", error);
     }
 };
 
 const getRestaurantImage = (restaurantName) => {
-    const found = restaurants.value.find(res => res.Name === restaurantName);
+    const found = usersStore.restaurants.find(res => res.Name === restaurantName);
     return found ? found.ImageUrl : '';
 };
 
 const deleteUser = async (id) => {
     try {
-        await deleteDoc(doc(db, 'User', id));
-        await fetchUsers();
+        await usersStore.delete(id);
     } catch (error) {
         console.error("Error deleting user:", error);
     }
@@ -85,7 +46,7 @@ const deleteUser = async (id) => {
                 </RouterLink>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                <div v-for="user in users" :key="user.id" class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
+                <div v-for="user in usersStore.users" :key="user.id" class="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
                     <div class="relative h-30 w-full overflow-visible bg-slate-200">
                         <img v-if="getRestaurantImage(user.Restaurant)" :src="getRestaurantImage(user.Restaurant)" class="absolute inset-0 w-full h-full object-cover  transition-transform duration-700" alt="restaurant-bg" />
                         <div v-else class="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700"></div>

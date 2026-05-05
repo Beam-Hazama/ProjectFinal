@@ -6,6 +6,7 @@ import { useMenuStore } from '@/stores/shared/menu';
 import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { formatPrice } from '@/utils/format';
+import { filterRecentOrders } from '@/utils/orderHelpers';
 
 // สถานะของเมนูที่ตั้งเป็นค่าคงที่เพื่อให้ความหมายชัดเจน
 const FINISHED = ['received', 'cancelled'];
@@ -33,27 +34,15 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     });
 
     const roomOrders = computed(() => {
-        const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
-        return orderListStore.list.filter(order => {
-            const isOwner = order.Roomnumber === room.value;
-            if (!isOwner) return false;
-
-            // Filter by time (handle pending server timestamps by using current time as fallback)
-            const createdAtSeconds = order.CreatedAt?.seconds || Math.floor(Date.now() / 1000);
-            if (createdAtSeconds < twelveHoursAgo) return false;
-
+        const recentOrders = filterRecentOrders(orderListStore.list, room.value, 12);
+        return recentOrders.filter(order => {
             const hasActiveItems = (order.Menu || []).some(item =>
                 !COMPLETED.includes(item.MenuStatus)
             );
-
             return hasActiveItems;
         });
     });
 
-    const getMenuName = (id) => {
-        const menu = menuStore.list.find(m => m.id === id);
-        return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
-    };
 
     const markItemAsReceived = async (orderId, itemId, itemIndex, router) => {
         await orderListStore.updateSingleMenuStatus(orderId, itemId, itemIndex, 'received');
@@ -153,7 +142,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         displayLocation,
         roomOrders,
         formatPrice,
-        getMenuName,
+        getMenuName: menuStore.getMenuNameById,
         markItemAsReceived,
         reorder,
         getOrderProgress,

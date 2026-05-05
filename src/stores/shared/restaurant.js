@@ -3,81 +3,74 @@ import {
   collection, 
   doc, 
   onSnapshot, 
-  getDoc,
   getDocs,
+  deleteDoc,
   query,
   where
 } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { useAccountStore } from '@/stores/auth';
+import { checkShopClosed } from '@/utils/shopStatus';
 
 export const useRestaurant = defineStore('Restaurant', {
 
   state: () => ({
     list: [],
-    restaurantName: '',
-    menus: [],
-    restaurant: null,
     unsubscribe: null,
     isLoading: true
   }),
+  
+  getters: {
+    // เช็คว่าร้านชื่อนี้กำลังปิดอยู่หรือไม่ (ใช้ทั้ง ManualStatus + เวลาเปิด-ปิด)
+    isShopClosedByName: (state) => (name, now) => {
+      const shop = state.list.find(r => r.Name === name);
+      return checkShopClosed(shop, now);
+    }
+  },
 
   actions: {
-    
-    async loadRestaurant() {
-      const accountStore = useAccountStore();
-      const uid = accountStore.user?.uid;
-      if (!uid) return;
-
-      const snap = await getDoc(doc(db, 'User', uid));
-      if (!snap.exists()) throw new Error('ไม่พบข้อมูลร้าน');
-
-      this.restaurant = snap.data();
-    },
-
-    
-    async loadMenusByRestaurant() {
-      return new Promise(async (resolve, reject) => {
-        const accountStore = useAccountStore();
-        if (!accountStore.user) return reject('ยังไม่ได้ login');
-
-        this.restaurantName = accountStore.user.Restaurant;
-
-        const q = query(
-          collection(db, 'Menu'),
-          where('Restaurant', '==', this.restaurantName)
-        );
-
-        const snap = await getDocs(q);
-        this.menus = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-        resolve(true);
-      });
-    },
-
-    
+    // โหลดร้านอาหารทั้งหมด (real-time listener)
     async loadListRestaurant() {
       this.clearListener();
       this.isLoading = true;
-      const RestaurantCol = collection(db, 'Restaurant');
-      this.unsubscribe = onSnapshot(RestaurantCol, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        this.isLoading = false;
-      }, (error) => {
-        console.error("Error loading restaurants:", error);
-        this.isLoading = false;
-      });
+      this.unsubscribe = onSnapshot(
+        collection(db, 'Restaurant'),
+        (snapshot) => {
+          this.list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          this.isLoading = false;
+        },
+        (error) => {
+          console.error("Error loading restaurants:", error);
+          this.isLoading = false;
+        }
+      );
     },
 
     clearListener() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
+      this.unsubscribe?.();
+      this.unsubscribe = null;
       this.list = [];
+    },
+
+    // ดึงข้อมูลร้านอาหารตามชื่อ (one-time fetch สำหรับหน้า detail)
+    async fetchByName(name) {
+      try {
+        const q = query(collection(db, "Restaurant"), where("Name", "==", name));
+        const snap = await getDocs(q);
+        return snap.empty ? null : snap.docs[0].data();
+      } catch (error) {
+        console.error("Error fetching restaurant by name:", error);
+        return null;
+      }
+    },
+
+    async deleteById(id) {
+      try {
+        await deleteDoc(doc(db, 'Restaurant', id));
+        await this.loadListRestaurant();
+      } catch (error) {
+        console.error("Error deleting restaurant:", error);
+        throw error;
+      }
     }
   },
 });

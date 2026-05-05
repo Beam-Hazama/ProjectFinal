@@ -1,16 +1,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useMenuStore } from '@/stores/shared/menu';
-import { useCartStore } from '@/stores/customer/cart';
+import { useCustomerData } from '@/composables/useCustomerData';
 
 import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
-const menuStore = useMenuStore();
-const cartStore = useCartStore();
 const room = route.params.room;
+const { menuStore, cartStore } = useCustomerData(room);
 const searchQuery = ref('');
 
 const vFocus = {
@@ -28,12 +26,6 @@ const filteredMenus = computed(() => {
     );
 });
 
-onMounted(() => {
-    if (menuStore.list.length === 0) {
-        menuStore.loadMenu();
-    }
-    cartStore.loadCart(room);
-});
 
 const goBack = () => {
     router.push(`/user/${room}`);

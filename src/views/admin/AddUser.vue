@@ -1,133 +1,48 @@
 <script setup>
-import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { db } from '@/firebase';
-import { uploadImage } from '@/utils/upload';
-import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUserFormStore } from '@/stores/admin/userForm';
+import { useImagePreview } from '@/composables/useImagePreview';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
 const router = useRouter();
+const formStore = useUserFormStore();
 
-const isLoading = ref(false);
-const restaurants = ref([]);
-const imagePreview = ref(null);
-const selectedFile = ref(null);
+// useImagePreview จัดการ blob URL + revoke ตอน unmount ให้เอง
+const { previewUrl, selectedFile, handleFileSelect } = useImagePreview();
 
-const userData = ref({
-    Firstname: '',
-    Lastname: '',
-    Username: '',
-    Password: '',
-    Email: '',
-    Phone: '',
-    Address: '',
-    Status: 'active',
-    Role: 'restaurant',
-    ImageUrl: '',
-    Restaurant: '',
-    Age: ''
+// sync ค่ากับ store ให้ store ใช้ตอน save
+watch(selectedFile, (file) => { formStore.selectedFile = file; });
+watch(previewUrl, (url) => {
+    formStore.imagePreview = url;
+    formStore.userData.ImageUrl = url; // isFormValid ใช้ ImageUrl เช็คว่ามีรูปหรือไม่
 });
 
 onMounted(() => {
-    fetchRestaurants();
+    formStore.loadRestaurants();
 });
 
 const isFormValid = computed(() => {
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Email, ImageUrl, Age, Password } = userData.value;
+    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Email, ImageUrl, Age, Password } = formStore.userData;
     if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Email || !ImageUrl || !Age || !Password) return false;
     if (Phone.length !== 10) return false;
     return true;
 });
 
-const fetchRestaurants = async () => {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'Restaurant'));
-        restaurants.value = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error("Error fetching restaurants:", error);
-    }
-};
+const handleFileUpload = (event) => handleFileSelect(event);
+const handleSave = () => formStore.save(router);
 
-const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-            URL.revokeObjectURL(imagePreview.value);
-        }
-        selectedFile.value = file;
-        const previewUrl = URL.createObjectURL(file);
-        imagePreview.value = previewUrl;
-        userData.value.ImageUrl = previewUrl;
-    }
-};
-
-onUnmounted(() => {
-    if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-        URL.revokeObjectURL(imagePreview.value);
-    }
-});
-
-const handleSave = async () => {
-    const { Firstname, Lastname, Username, Restaurant, Phone, Address, Password, ImageUrl, Status, Email, Age } = userData.value;
-    if (!Firstname || !Lastname || !Username || !Restaurant || !Phone || !Address || !Password || !Age) {
-        alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
-        return;
-    }
-    try {
-        isLoading.value = true;
-        let finalImageUrl = '';
-        const newUrl = await uploadImage(selectedFile.value, 'users');
-        if (newUrl) finalImageUrl = newUrl;
-            // Validate if username already exists first
-            const usersRef = collection(db, 'User');
-            const q = query(usersRef, where('Username', '==', Username.trim()));
-            const querySnapshot = await getDocs(q);            
-            if (!querySnapshot.empty) {
-                alert("Username นี้ถูกใช้งานไปแล้ว");
-                isLoading.value = false;
-                return;
-            }
-            await addDoc(collection(db, 'User'), {
-                Firstname,
-                Lastname,
-                Username: Username.trim(),
-                Password,
-                Phone,
-                Address,
-                Restaurant,
-                Email: Email,
-                Age: Age,
-                Status: Status || 'active',
-                Role: 'restaurant',
-                ImageUrl: finalImageUrl || '',
-                CreatedAt: serverTimestamp(),
-                UpdatedAt: serverTimestamp()
-            });
-            router.push('/Admin/Restaurantuser');
-    } catch (error) {
-        console.error("Error Detail:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
-    } finally {
-        isLoading.value = false;
-    }
-};
-
+// กรองตัวเลขออกจาก field (สำหรับ Firstname, Lastname)
 const filterNumbers = (field) => {
-    userData.value[field] = userData.value[field].replace(/[0-9]/g, '');
+    formStore.userData[field] = formStore.userData[field].replace(/[0-9]/g, '');
 };
 
+// กรองตัวอักษรออกจาก field (สำหรับ Phone, Age) + จำกัดความยาว
 const filterNonNumbers = (field) => {
-    let val = String(userData.value[field]).replace(/[^0-9]/g, '');
-    if (field === 'Phone' && val.length > 10) {
-        val = val.slice(0, 10);
-    }
-    if (field === 'Age' && val.length > 2) {
-        val = val.slice(0, 2);
-    }
-    userData.value[field] = val;
+    let val = String(formStore.userData[field]).replace(/[^0-9]/g, '');
+    if (field === 'Phone' && val.length > 10) val = val.slice(0, 10);
+    if (field === 'Age' && val.length > 2) val = val.slice(0, 2);
+    formStore.userData[field] = val;
 };
 
 const goBack = () => router.go(-1);
@@ -144,8 +59,8 @@ const goBack = () => router.go(-1);
                 </div>
                 <div class="flex gap-3">
                     <button @click="goBack" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28">Cancel</button>
-                    <button @click="handleSave" :disabled="!isFormValid || isLoading" class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white w-28 rounded-xl shadow-md transition-all disabled:bg-slate-200 disabled:text-slate-400 hover:shadow-lg disabled:hover:shadow-none font-bold">
-                        <span v-if="isLoading" class="loading loading-spinner loading-xs mr-2"></span>
+                    <button @click="handleSave" :disabled="!isFormValid || formStore.isLoading" class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white w-28 rounded-xl shadow-md transition-all disabled:bg-slate-200 disabled:text-slate-400 hover:shadow-lg disabled:hover:shadow-none font-bold">
+                        <span v-if="formStore.isLoading" class="loading loading-spinner loading-xs mr-2"></span>
                         Save
                     </button>
                 </div>
@@ -156,7 +71,7 @@ const goBack = () => router.go(-1);
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพประจำตัว </h3>
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
                             <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
-                                <img v-if="imagePreview || userData.ImageUrl" :src="imagePreview || userData.ImageUrl" class="w-full h-full object-cover" />
+                                <img v-if="formStore.imagePreview || formStore.userData.ImageUrl" :src="formStore.imagePreview || formStore.userData.ImageUrl" class="w-full h-full object-cover" />
                                 <div v-else class="text-slate-400 flex flex-col items-center">
                                     <span class="text-sm font-medium">ไม่มีรูปภาพ</span>
                                 </div>
@@ -183,49 +98,49 @@ const goBack = () => router.go(-1);
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ชื่อ</span></label>
-                                    <input type="text" v-model="userData.Firstname" @input="filterNumbers('Firstname')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
+                                    <input type="text" v-model="formStore.userData.Firstname" @input="filterNumbers('Firstname')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">นามสกุล</span></label>
-                                    <input type="text" v-model="userData.Lastname" @input="filterNumbers('Lastname')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
+                                    <input type="text" v-model="formStore.userData.Lastname" @input="filterNumbers('Lastname')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">Username</span></label>
-                                    <input type="text" v-model="userData.Username" class="input input-bordered w-full focus:input-primary bg-slate-50" />
+                                    <input type="text" v-model="formStore.userData.Username" class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">Password</span>
                                     </label>
-                                    <input type="password" v-model="userData.Password" class="input input-bordered w-full bg-slate-50 focus:input-primary" />
+                                    <input type="password" v-model="formStore.userData.Password" class="input input-bordered w-full bg-slate-50 focus:input-primary" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร</span></label>
-                                    <select v-model="userData.Restaurant" class="select select-bordered w-full">
+                                    <select v-model="formStore.userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
-                                        <option v-for="res in restaurants" :key="res.id" :value="res.Name">{{ res.Name }}</option>
+                                        <option v-for="res in formStore.restaurants" :key="res.id" :value="res.Name">{{ res.Name }}</option>
                                     </select>
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">Email</span></label>
                                     <div class="relative">
-                                        <input type="email" v-model="userData.Email" class="input input-bordered w-full bg-slate-50 focus:input-primary text-left" />
+                                        <input type="email" v-model="formStore.userData.Email" class="input input-bordered w-full bg-slate-50 focus:input-primary text-left" />
                                     </div>
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span></label>
-                                    <input type="text" v-model="userData.Phone" maxlength="10" @input="filterNonNumbers('Phone')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
+                                    <input type="text" v-model="formStore.userData.Phone" maxlength="10" @input="filterNonNumbers('Phone')" class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium text-slate-600">อายุ</span></label>
-                                    <input type="text" v-model="userData.Age" maxlength="2"
+                                    <input type="text" v-model="formStore.userData.Age" maxlength="2"
                                         @input="filterNonNumbers('Age')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                             (Address)</span></label>
-                                    <textarea v-model="userData.Address" rows="3" class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>
+                                    <textarea v-model="formStore.userData.Address" rows="3" class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>
                                 </div>
                             </div>
                         </div>

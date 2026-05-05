@@ -1,120 +1,39 @@
 <script setup>
-import { reactive, ref, watch, onUnmounted, computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase';
-import { uploadImage } from '@/utils/upload';
+import { useRestaurantFormStore } from '@/stores/admin/restaurantForm';
+import { useImagePreview } from '@/composables/useImagePreview';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
+import { DAYS_OF_WEEK } from '@/utils/constants';
 
 const router = useRouter();
+const formStore = useRestaurantFormStore();
+const daysOfWeek = DAYS_OF_WEEK;
 
-const selectedFile = ref(null);
-const imagePreview = ref('');
-const isLoading = ref(false);
+// useImagePreview จัดการ blob URL + revoke ตอน unmount ให้เอง
+const { previewUrl, selectedFile, handleFileSelect } = useImagePreview();
 
-const RestaurantData = reactive({
-  Name: '',
-  Phone: '',
-  Distance: '',
-  Address: '',
-  ImageUrl: '',
-  OpenTime: '',
-  CloseTime: '',
-  OpenDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-  CreatedAt: null,
-  UpdatedAt: null
-});
-
-const daysOfWeek = [
-  { label: 'อา.', value: 'Sunday' },
-  { label: 'จ.', value: 'Monday' },
-  { label: 'อ.', value: 'Tuesday' },
-  { label: 'พ.', value: 'Wednesday' },
-  { label: 'พฤ.', value: 'Thursday' },
-  { label: 'ศ.', value: 'Friday' },
-  { label: 'ส.', value: 'Saturday' }
-];
+// sync ค่ากับ store เพื่อให้ store ใช้ตอน save (ไฟล์ + URL preview)
+watch(selectedFile, (file) => { formStore.selectedFile = file; });
+watch(previewUrl, (url) => { formStore.imagePreview = url; });
 
 const isFormValid = computed(() => {
+  const d = formStore.restaurantData;
   return (
-    RestaurantData.Name.trim() !== '' &&
-    RestaurantData.Phone.length === 10 &&
-    RestaurantData.Distance !== '' && RestaurantData.Distance !== null &&
-    RestaurantData.Address.trim() !== '' &&
-    RestaurantData.OpenTime !== '' &&
-    RestaurantData.CloseTime !== '' &&
-    RestaurantData.OpenDays.length > 0 &&
+    d.Name.trim() !== '' &&
+    d.Phone.length === 10 &&
+    d.Distance !== '' && d.Distance !== null &&
+    d.Address.trim() !== '' &&
+    d.OpenTime !== '' &&
+    d.CloseTime !== '' &&
+    d.OpenDays.length > 0 &&
     selectedFile.value !== null
   );
 });
 
-const checkSaveRestaurant = async (data) => {
-  try {
-    isLoading.value = true;
-    const { id, CreatedAt, UpdatedAt, ...saveData } = data;
-    let ImageUrl = '';
-
-    const newUrl = await uploadImage(selectedFile.value, 'restaurants');
-    if (newUrl) ImageUrl = newUrl;
-
-    saveData.ImageUrl = ImageUrl;
-    const colName = 'Restaurant';
-
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    const [openH, openM] = (saveData.OpenTime || '00:00').split(':').map(Number);
-    const [closeH, closeM] = (saveData.CloseTime || '00:00').split(':').map(Number);
-    const openMin = openH * 60 + openM;
-    const closeMin = closeH * 60 + closeM;
-    // Automatically calculate status on save
-    let autoStatus = 'close';
-    const currentDayName = now.toLocaleString('en-US', { weekday: 'long' });
-    // ตรวจสอบวันเปิดให้บริการ
-    if (saveData.OpenDays && saveData.OpenDays.includes(currentDayName)) {
-      if (closeMin > openMin) {
-        if (currentTime >= openMin && currentTime < closeMin) autoStatus = 'open';
-      } else {
-        if (currentTime >= openMin || currentTime < closeMin) autoStatus = 'open';
-      }
-    }
-
-    saveData.Status = autoStatus;
-
-    await addDoc(collection(db, colName), {
-      ...saveData,
-      CreatedAt: serverTimestamp(),
-      UpdatedAt: serverTimestamp()
-    });
-
-    router.push({ name: 'Restaurant List' });
-  } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const handleFileUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-      URL.revokeObjectURL(imagePreview.value);
-    }
-    selectedFile.value = file;
-    const previewUrl = URL.createObjectURL(file);
-    imagePreview.value = previewUrl;
-  }
-};
-
-onUnmounted(() => {
-  if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-    URL.revokeObjectURL(imagePreview.value);
-  }
-});
-
-const goBack = () => {
-  router.go(-1);
-};
+const checkSaveRestaurant = () => formStore.save(router);
+const handleFileUpload = (event) => handleFileSelect(event);
+const goBack = () => router.go(-1);
 </script>
 
 <template>
@@ -125,9 +44,9 @@ const goBack = () => {
           Add New Restaurant
         </div>
         <div class="flex gap-3">
-          <button @click="goBack" :disabled="isLoading" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28 disabled:bg-slate-200 disabled:text-slate-400">Cancel</button>
-          <button @click="checkSaveRestaurant(RestaurantData)" :disabled="!isFormValid || isLoading" class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-100 hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300 w-28 rounded-xl font-bold">
-            <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
+          <button @click="goBack" :disabled="formStore.isLoading" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl transition-all font-bold w-28 disabled:bg-slate-200 disabled:text-slate-400">Cancel</button>
+          <button @click="checkSaveRestaurant" :disabled="!isFormValid || formStore.isLoading" class="btn bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-md shadow-emerald-100 hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-200 disabled:text-slate-400 transition-all duration-300 w-28 rounded-xl font-bold">
+            <span v-if="formStore.isLoading" class="loading loading-spinner loading-sm"></span>
             <span v-else>Save</span>
           </button>
         </div>
@@ -138,7 +57,7 @@ const goBack = () => {
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพโลโก้ร้านอาหาร </h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs">
               <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
-                <img v-if="imagePreview" :src="imagePreview" class="w-full h-full object-cover" />
+                <img v-if="formStore.imagePreview" :src="formStore.imagePreview" class="w-full h-full object-cover" />
                 <div v-else class="text-slate-400 flex flex-col items-center">
                   <span class="text-sm font-medium">ไม่มีรูปภาพร้าน</span>
                 </div>
@@ -162,7 +81,7 @@ const goBack = () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span>
                   </label>
-                  <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="RestaurantData.Name" />
+                  <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="formStore.restaurantData.Name" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -171,23 +90,23 @@ const goBack = () => {
                       <span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span>
                     </label>
                     <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model="RestaurantData.Phone" maxlength="10"
-                      @input="RestaurantData.Phone = RestaurantData.Phone.replace(/[^0-9]/g, '')" />
+                      v-model="formStore.restaurantData.Phone" maxlength="10"
+                      @input="formStore.restaurantData.Phone = formStore.restaurantData.Phone.replace(/[^0-9]/g, '')" />
                   </div>
                   <div class="form-control">
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
                     </label>
                     <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                      v-model="RestaurantData.Distance"
-                      @input="RestaurantData.Distance = RestaurantData.Distance.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')" />
+                      v-model="formStore.restaurantData.Distance"
+                      @input="formStore.restaurantData.Distance = formStore.restaurantData.Distance.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ที่ตั้งร้านอาหาร</span>
                   </label>
-                  <textarea class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24" v-model="RestaurantData.Address"></textarea>
+                  <textarea class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24" v-model="formStore.restaurantData.Address"></textarea>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -196,7 +115,7 @@ const goBack = () => {
                       <span class="label-text font-medium text-slate-600">เวลาเปิด</span>
                     </label>
                     <div class="relative">
-                      <input type="time" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10" v-model="RestaurantData.OpenTime" />
+                      <input type="time" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10" v-model="formStore.restaurantData.OpenTime" />
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -208,7 +127,7 @@ const goBack = () => {
                       <span class="label-text font-medium text-slate-600">เวลาปิด</span>
                     </label>
                     <div class="relative">
-                      <input type="time" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10" v-model="RestaurantData.CloseTime" />
+                      <input type="time" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 pl-10" v-model="formStore.restaurantData.CloseTime" />
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -221,12 +140,12 @@ const goBack = () => {
                     <div class="flex flex-wrap gap-2 mt-1">
                       <label v-for="day in daysOfWeek" :key="day.value" class="flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-all"
                         :class="[
-                          RestaurantData.OpenDays && RestaurantData.OpenDays.includes(day.value)
+                          formStore.restaurantData.OpenDays && formStore.restaurantData.OpenDays.includes(day.value)
                             ? 'bg-blue-50 border-blue-400 text-blue-700 font-bold'
                             : 'bg-white border-slate-200 text-slate-400',
                           'hover:border-blue-300'
                         ]">
-                        <input type="checkbox" :value="day.value" v-model="RestaurantData.OpenDays" class="hidden" />
+                        <input type="checkbox" :value="day.value" v-model="formStore.restaurantData.OpenDays" class="hidden" />
                         <span>{{ day.label }}</span>
                       </label>
                     </div>

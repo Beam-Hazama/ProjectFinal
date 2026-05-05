@@ -1,89 +1,69 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { computed } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { useRouter } from 'vue-router';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { useMenuStore } from '@/stores/shared/menu';
-import { checkShopClosed } from '@/utils/shopStatus';
 
 const props = defineProps({
     room: String,
-    searchQuery: {
-        type: String,
-        default: ''
-    },
-    categoryFilter: {
-        type: Array,
-        default: () => []
-    },
-    promoOnly: {
-        type: Boolean,
-        default: false
-    }
+    searchQuery: { type: String, default: '' },
+    categoryFilter: { type: Array, default: () => [] },
+    promoOnly: { type: Boolean, default: false }
 });
 
 const restaurantStore = useRestaurant();
 const menuStore = useMenuStore();
 const router = useRouter();
+const { now } = useNow();
 
-const now = ref(new Date());
-let timer = null;
+// helper: ร้านนี้ปิดอยู่หรือไม่ (ใช้ใน template ด้วย)
+const isShopClosed = (shop) => restaurantStore.isShopClosedByName(shop.Name, now.value);
 
-onMounted(() => {
-
-    timer = setInterval(() => {
-        now.value = new Date();
-    }, 60000);
-});
-
-onUnmounted(() => {
-    if (timer) clearInterval(timer);
-});
-
+// ฟิลเตอร์ + เรียงรายการร้าน
 const sortedRestaurants = computed(() => {
     if (!restaurantStore.list) return [];
-
     let list = [...restaurantStore.list];
 
-    list = list.filter(shop => !checkShopClosed(shop, now.value));
+    // 1. กรองร้านที่ปิดอยู่ออก
+    list = list.filter(shop => !isShopClosed(shop));
 
-    if (props.categoryFilter && props.categoryFilter.length > 0) {
-        list = list.filter(shop => {
-            return menuStore.list.some(m =>
+    // 2. ถ้ามี categoryFilter → เก็บเฉพาะร้านที่มีเมนูในหมวดที่เลือก
+    if (props.categoryFilter?.length > 0) {
+        list = list.filter(shop =>
+            menuStore.list.some(m =>
                 m.Restaurant === shop.Name &&
                 props.categoryFilter.includes(m.Category)
-            );
-        });
+            )
+        );
     }
 
+    // 3. ถ้าเลือก promoOnly → เก็บเฉพาะร้านที่มีเมนูโปรโมชั่น
     if (props.promoOnly) {
-        list = list.filter(shop => {
-
-            return menuStore.list.some(m =>
+        list = list.filter(shop =>
+            menuStore.list.some(m =>
                 m.Restaurant === shop.Name &&
                 m.PromoPrice && Number(m.PromoPrice) > 0
-            );
-        });
+            )
+        );
     }
 
     return list;
 });
 
-
 const goToRestaurantMenu = (restaurantName) => {
     router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.room}`);
 };
 
+// คืนชื่อหมวดหมู่ของร้าน (สูงสุด 3 ตัว)
 const getRestaurantCategories = (restaurantName) => {
     if (!menuStore.list) return '';
     const categories = menuStore.list
         .filter(m => m.Restaurant === restaurantName && m.Category)
         .map(m => m.Category);
-
     const unique = [...new Set(categories)];
     if (unique.length === 0) return '';
-
-    const displayList = unique.slice(0, 3);
-    return displayList.join(', ') + (unique.length > 3 ? '...' : '');
+    return unique.slice(0, 3).join(', ') + (unique.length > 3 ? '...' : '');
 };
 </script>
 
@@ -91,17 +71,17 @@ const getRestaurantCategories = (restaurantName) => {
     <section class="flex flex-col gap-3 pb-4 px-2">
         <button v-for="shop in sortedRestaurants" :key="shop.id"
             class="w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]"
-            :class="checkShopClosed(shop, now) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
-            :disabled="checkShopClosed(shop, now)"
-            @click="!checkShopClosed(shop, now) && goToRestaurantMenu(shop.Name)">
+            :class="isShopClosed(shop) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5'"
+            :disabled="isShopClosed(shop)"
+            @click="!isShopClosed(shop) && goToRestaurantMenu(shop.Name)">
             <figure class="w-[100px] h-full flex-shrink-0 relative bg-gray-100 flex items-center justify-center border-r border-gray-50">
-                <img v-if="shop.ImageUrl" :src="shop.ImageUrl" class="object-cover w-full h-full" :class="{ 'grayscale': checkShopClosed(shop, now) }" />
+                <img v-if="shop.ImageUrl" :src="shop.ImageUrl" class="object-cover w-full h-full" :class="{ 'grayscale': isShopClosed(shop) }" />
                 <div v-else class="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-300">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
-                <div v-if="checkShopClosed(shop, now)" class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div v-if="isShopClosed(shop)" class="absolute inset-0 bg-black/40 flex items-center justify-center">
                     <span class="text-white font-bold text-[10px] bg-gray-800/80 px-2 py-1 rounded-md shadow-sm">ร้านปิด</span>
                 </div>
             </figure>

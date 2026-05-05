@@ -255,20 +255,37 @@ const router = createRouter({
   ],
 });
 
+// หาว่า role ไหนควรไปหน้าไหน
+const homeRouteByRole = (role) => {
+  if (role === 'admin') return { name: 'Admin' };
+  if (role === 'restaurant') return { name: 'Restaurants' };
+  return null;
+};
+
 router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
 
+  // เช็ค session ครั้งแรกก่อน navigate
   if (!accountStore.isAuthChecked) {
     await accountStore.checkAuthState();
   }
 
+  // ถ้า login อยู่แล้วแต่พยายามเข้าหน้า Login → ส่งไปหน้าหลักของ role
+  if (to.name === 'Login' && accountStore.isLoggedIn) {
+    const home = homeRouteByRole(accountStore.role);
+    if (home) return next(home);
+  }
+
+  // ถ้าหน้านี้ต้อง login แต่ยังไม่ได้ login → ส่งไป Login
   if (to.meta.requiresAuth) {
     if (!accountStore.isLoggedIn) {
       return next({ name: 'Login' });
     }
 
+    // ถ้า role ไม่ตรงกับหน้านี้ → ส่งไปหน้าหลักของ role ตัวเอง
     if (to.meta.role && to.meta.role !== accountStore.role) {
-      return next({ name: 'Login' });
+      const home = homeRouteByRole(accountStore.role);
+      return next(home || { name: 'Login' });
     }
   }
 

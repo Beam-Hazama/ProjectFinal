@@ -3,6 +3,9 @@ import {
   collection, 
   doc, 
   onSnapshot, 
+  getDoc,
+  updateDoc,
+  deleteDoc,
   serverTimestamp, 
   setDoc, 
   addDoc,
@@ -20,13 +23,18 @@ export const useMenuStore = defineStore('menu', {
     isLoading: false,
   }),
 
+  getters: {
+    getMenuNameById: (state) => (id) => {
+      const menu = state.list.find(m => m.id === id);
+      return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+    }
+  },
+
   actions: {
     
     clearListener() {
-      if (this.unsubscribe) {
-        this.unsubscribe();
-        this.unsubscribe = null;
-      }
+      this.unsubscribe?.();
+      this.unsubscribe = null;
       this.list = [];
     },
 
@@ -75,6 +83,46 @@ export const useMenuStore = defineStore('menu', {
 
       await setDoc(menuRef, updatedData, { merge: true });
     },
+
+    async fetchById(id) {
+      try {
+        const menuRef = doc(db, 'Menu', id);
+        const menuSnap = await getDoc(menuRef);
+        if (menuSnap.exists()) {
+          return menuSnap.data();
+        }
+        return null;
+      } catch (error) {
+        console.error('Error fetching menu by id:', error);
+        return null;
+      }
+    },
+
+    async toggleStatus(id, currentStatus) {
+      try {
+        const newStatus = currentStatus === 'open' ? 'close' : 'open';
+        const menuRef = doc(db, 'Menu', id);
+        await updateDoc(menuRef, {
+          Status: newStatus,
+          UpdatedAt: serverTimestamp(),
+          status: deleteField(),
+          updatedAt: deleteField()
+        });
+      } catch (error) {
+        console.error("Error toggling status:", error);
+        throw error;
+      }
+    },
+
+    async deleteById(id) {
+      try {
+        const menuRef = doc(db, 'Menu', id);
+        await deleteDoc(menuRef);
+      } catch (error) {
+        console.error("Error deleting menu:", error);
+        throw error;
+      }
+    }
   },
 });
 

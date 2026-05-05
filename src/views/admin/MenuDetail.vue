@@ -1,13 +1,13 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, getDoc, } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { useMenuStore } from '@/stores/shared/menu';
 
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
 const route = useRoute();
 const router = useRouter();
+const menuStore = useMenuStore();
 
 const imagePreview = ref('');
 
@@ -29,11 +29,8 @@ const goBack = () => {
 
 onMounted(async () => {
   if (route.params.id) {
-    const menuRef = doc(db, 'Menu', route.params.id);
-    const menuSnap = await getDoc(menuRef);
-
-    if (menuSnap.exists()) {
-      const res = menuSnap.data();
+    const res = await menuStore.fetchById(route.params.id);
+    if (res) {
       Object.assign(menuData, res);
       imagePreview.value = res.ImageUrl;
     }

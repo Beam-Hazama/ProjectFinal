@@ -1,12 +1,13 @@
 <script setup>
 import { onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { useRestaurant } from '@/stores/shared/restaurant';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
+import { DAYS_OF_WEEK } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();
+const restaurantStore = useRestaurant();
 
 const RestaurantData = reactive({
   Name: '',
@@ -21,22 +22,12 @@ const RestaurantData = reactive({
   UpdatedAt: null
 });
 
-const daysOfWeek = [
-  { label: 'อา.', value: 'Sunday' },
-  { label: 'จ.', value: 'Monday' },
-  { label: 'อ.', value: 'Tuesday' },
-  { label: 'พ.', value: 'Wednesday' },
-  { label: 'พฤ.', value: 'Thursday' },
-  { label: 'ศ.', value: 'Friday' },
-  { label: 'ส.', value: 'Saturday' }
-];
+const daysOfWeek = DAYS_OF_WEEK;
 
 onMounted(async () => {
   if (route.params.name) {
-    const q = query(collection(db, 'Restaurant'), where('Name', '==', route.params.name));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const res = querySnapshot.docs[0].data();
+    const res = await restaurantStore.fetchByName(route.params.name);
+    if (res) {
       Object.assign(RestaurantData, res);
       // ตรวจสอบและแปลงข้อมูลเก่า (ตัวเลข) เป็นชื่อวัน หรือใส่ค่าเริ่มต้น
       if (!RestaurantData.OpenDays || (RestaurantData.OpenDays.length > 0 && typeof RestaurantData.OpenDays[0] === 'number')) {

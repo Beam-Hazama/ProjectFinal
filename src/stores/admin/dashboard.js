@@ -6,37 +6,14 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import { toDayKey } from "@/utils/format";
+import { 
+  getTimeRange, 
+  buildDailyRevenue, 
+  buildPeakHours, 
+  buildCategoryStats as getCategoryStats,
+  isOrderInTimeRange
+} from "@/utils/dashboardHelpers";
 
-function getStartTime(timeFilter, customStart) {
-  const now = new Date();
-  if (timeFilter === 'today') {
-    const d = new Date(now);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-  if (timeFilter === '7days') {
-    const d = new Date(now);
-    d.setDate(d.getDate() - 6);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-  if (timeFilter === 'thisMonth') {
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }
-  if (timeFilter === 'custom' && customStart) {
-    const d = new Date(customStart);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }
-  return new Date(0);
-}
-
-function isOrderInTimeRange(order, start, end) {
-  const createdAt = order.CreatedAt;
-  if (!createdAt) return false;
-  const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
-  return orderDate >= start && orderDate <= end;
-}
 
 function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = [], menuFilters = []) {
   if (order.OrderStatus !== 'completed') return 0;
@@ -125,8 +102,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const restMap = {};
       state.allRestaurants.forEach(r => restMap[r.Name] = 0);
       
-      const start = getStartTime(state.timeFilter, state.customStartDate);
-      const end = state.timeFilter === 'custom' ? new Date(state.customEndDate).setHours(23, 59, 59, 999) : new Date().setHours(23, 59, 59, 999);
+      const { start, end } = getTimeRange(state.timeFilter, state.customStartDate, state.customEndDate);
 
       state.allOrders
         .filter(o => isOrderInTimeRange(o, start, end))
@@ -200,8 +176,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
     },
 
     applyFilters() {
-      const start = getStartTime(this.timeFilter, this.customStartDate);
-      const end = this.timeFilter === "custom" ? new Date(this.customEndDate).setHours(23, 59, 59, 999) : new Date().setHours(23, 59, 59, 999);
+      const { start, end } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
 
       const filteredOrders = this.allOrders.filter(o => isOrderInTimeRange(o, start, end));
       
@@ -298,43 +273,26 @@ export const useDashboardStore = defineStore("dashboardStore", {
     },
 
     clearListeners() {
-      if (this.unsubscribeOrders) this.unsubscribeOrders();
-      if (this.unsubscribeMenus) this.unsubscribeMenus();
-      if (this.unsubscribeRestaurants) this.unsubscribeRestaurants();
+      this.unsubscribeOrders?.();
+      this.unsubscribeMenus?.();
+      this.unsubscribeRestaurants?.();
+      this.unsubscribeOrders = null;
+      this.unsubscribeMenus = null;
+      this.unsubscribeRestaurants = null;
     },
 
     buildDailyRevenueChart(orders) {
-      const days = {};
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        days[toDayKey(d)] = 0;
-      }
-      orders.forEach(o => {
-        const rev = calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
-        const date = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
-        const key = toDayKey(date);
-        if (days[key] !== undefined) days[key] += rev;
-      });
-      this.revenueByDay = Object.entries(days).map(([date, revenue]) => ({ date, revenue }));
+      this.revenueByDay = buildDailyRevenue(orders, (o) => 
+        calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters)
+      );
     },
 
     buildCategoryStats(menus) {
-      const counts = {};
-      menus.forEach(m => counts[m.Category || "อื่นๆ"] = (counts[m.Category || "อื่นๆ"] || 0) + 1);
-      this.categoriesCount = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
+      this.categoriesCount = getCategoryStats(menus);
     },
 
     buildPeakHoursChart(orders) {
-      const hours = Array(24).fill(0);
-      orders.forEach(o => {
-        const date = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
-        hours[date.getHours()]++;
-      });
-      this.ordersByHour = hours.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
-      this.ordersByHour.push({ hour: '24:00', count: hours[0] });
+      this.ordersByHour = buildPeakHours(orders);
     }
   }
 });

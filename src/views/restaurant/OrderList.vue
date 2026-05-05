@@ -5,6 +5,7 @@ import { useAccountStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/shared/menu';
 import LayoutRestaurant from './RestaurantLayout.vue';
 import { formatTime, formatPrice } from '@/utils/format';
+import { computeLocalStatus, getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -37,23 +38,7 @@ const restaurantOrders = computed(() => {
             uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
         }));
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-        let localStatus = 'pending';
-        if (myItems.length > 0) {
-            const allServed = myItems.every(i => i.MenuStatus === 'dispatched');             /*  ได้ใช้ไหมเนีย */
-            const allCancelled = myItems.every(i => i.MenuStatus === 'cancelled');
-
-            const isFinished = myItems.every(i =>
-                i.MenuStatus === 'dispatched' ||
-                i.MenuStatus === 'received' ||
-                i.MenuStatus === 'cancelled'
-            );
-            const anyCooking = myItems.some(i => i.MenuStatus === 'cooking');
-            const anyServed = myItems.some(i => i.MenuStatus === 'dispatched');
-            if (allCancelled) localStatus = 'cancelled';
-            else if (isFinished) localStatus = 'dispatched';
-            else if (anyCooking || anyServed) localStatus = 'cooking';
-            else localStatus = 'pending';
-        }
+        const localStatus = computeLocalStatus(myItems);
         return {
             ...order,
             displayItems: myItems,
@@ -175,16 +160,7 @@ const deliverOrder = async (order) => {
     }
 }; */
 
-const getRowStatusColor = (status) => {
-    switch (status) {
-        case 'waiting': return 'badge-ghost text-slate-400';
-        case 'pending': return 'badge-info text-white';
-        case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'bg-amber-500 text-white border-none';
-        case 'cancelled': return 'badge-error text-white';
-        default: return 'badge-ghost text-slate-500';
-    }
-};
+// Removed getRowStatusColor local helper
 </script>
 
 <template>
@@ -268,7 +244,7 @@ const getRowStatusColor = (status) => {
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">
                                             <div v-if="item.MenuStatus && item.MenuStatus !== 'waiting'"
-                                                :class="getRowStatusColor(item.MenuStatus)"
+                                                :class="getStatusColor(item.MenuStatus)"
                                                 class="badge badge-xs font-semibold px-2 py-2">
                                                 {{ (item.MenuStatus || 'waiting').toUpperCase() }}
                                             </div>

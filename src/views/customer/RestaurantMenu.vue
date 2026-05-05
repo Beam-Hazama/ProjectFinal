@@ -1,13 +1,13 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+
 
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
 import { useQrcodeStore } from '@/stores/admin/qrcode';
 import { useCategoryStore } from '@/stores/shared/category';
+import { useRestaurant } from '@/stores/shared/restaurant';
 import { formatOpenDays } from '@/utils/format';
 
 import MenuList from '@/components/shared/BlockMenu.vue';
@@ -18,6 +18,7 @@ const menuStore = useMenuStore();
 const cartStore = useCartStore();
 const qrStore = useQrcodeStore();
 const categoryStore = useCategoryStore();
+const restaurantStore = useRestaurant();
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
 const room = (route.params.room && route.params.room !== 'undefined') ? route.params.room : '-';
@@ -79,7 +80,7 @@ onMounted(async () => {
     if (isValid) {
         await menuStore.loadMenu();
         cartStore.loadCart(room);
-        fetchRestaurantDetails();
+        currentRestaurant.value = await restaurantStore.fetchByName(restaurantName);
     }
 });
 
@@ -98,17 +99,6 @@ const toggleCategoryModal = () => {
     isCategoryModalOpen.value = !isCategoryModalOpen.value;
 };
 
-const fetchRestaurantDetails = async () => {
-    try {
-        const q = query(collection(db, "Restaurant"), where("Name", "==", restaurantName));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            currentRestaurant.value = querySnapshot.docs[0].data();
-        }
-    } catch (error) {
-        console.error("Error fetching restaurant details for poster:", error);
-    }
-}
 
 const goBack = () => {
     router.push(`/user/${room}`);

@@ -1,53 +1,27 @@
 <script setup>
 import { formatTimestamp, formatOpenDays } from '@/utils/format';
+import { getAutoStatus } from '@/utils/shopStatus';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useNow } from '@/composables/useNow';
 import { RouterLink } from 'vue-router';
-import { doc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/firebase';
 
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useRestaurant } from '@/stores/shared/restaurant';
 
 const restaurantStore = useRestaurant();
-
-const now = ref(new Date());
-let timer;
+const { now } = useNow(1000);
 
 onMounted(async () => {
   await restaurantStore.loadListRestaurant();
-  timer = setInterval(() => {
-    now.value = new Date();
-  }, 1000);
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
   restaurantStore.clearListener();
 });
 // Removed formatTimestampStore usage
-const getAutoStatus = (restaurant) => {
-  if (restaurant.ManualStatus === 'manual') return restaurant.Status;
-  if (!restaurant.OpenTime || !restaurant.CloseTime) return 'close';
-  try {
-    const currentTime = now.value.getHours() * 60 + now.value.getMinutes();
-    const [openH, openM] = restaurant.OpenTime.split(':').map(Number);
-    const [closeH, closeM] = restaurant.CloseTime.split(':').map(Number);
-    const openMin = openH * 60 + openM;
-    const closeMin = closeH * 60 + closeM;
-    if (closeMin > openMin) {
-      return (currentTime >= openMin && currentTime < closeMin) ? 'open' : 'close';
-    } else {
-      return (currentTime >= openMin || currentTime < closeMin) ? 'open' : 'close';
-    }
-  } catch (e) {
-    return 'close';
-  }
-};
-
 const deleteRestaurant = async (id) => {
   try {
-    await deleteDoc(doc(db, 'Restaurant', id));
-    await restaurantStore.loadListRestaurant();
+    await restaurantStore.deleteById(id);
   } catch (error) {
     console.error("Error deleting restaurant:", error);
   }
@@ -100,7 +74,7 @@ const deleteRestaurant = async (id) => {
                   </div>
                 </td>
                 <td class="py-4 text-center">
-                  <div v-if="getAutoStatus(restaurant) === 'open'" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                  <div v-if="(restaurant.ManualStatus === 'manual' ? restaurant.Status : getAutoStatus(restaurant.OpenTime, restaurant.CloseTime, restaurant.OpenDays, now)) === 'open'" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>

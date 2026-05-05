@@ -1,13 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useUserAdminStore } from '@/stores/admin/user';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 
 const route = useRoute();
 const router = useRouter();
 const username = route.params.username;
+const userAdminStore = useUserAdminStore();
 
 const imagePreview = ref(null);
 const userData = ref({
@@ -30,10 +30,8 @@ onMounted(() => {
 const fetchUserData = async () => {
     if (!username) return;
     try {
-        const q = query(collection(db, 'User'), where('Username', '==', username));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const data = querySnapshot.docs[0].data();
+        const data = await userAdminStore.fetchByUsername(username);
+        if (data) {
             userData.value = { ...userData.value, ...data };
             imagePreview.value = data.ImageUrl;
         } else {
