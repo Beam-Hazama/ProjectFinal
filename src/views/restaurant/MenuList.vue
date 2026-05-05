@@ -58,7 +58,7 @@ const deleteMenu = async (id) => {
         console.error("Error deleting menu:", error);
     }
 };
-// Removed formatTimestampStore usage
+
 </script>
 
 <template>

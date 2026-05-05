@@ -86,8 +86,8 @@ onUnmounted(() => {
               </div>
             </div>
             <div class="text-center md:text-left space-y-4 flex-1">
-              <h2 class="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-lg">
-                {{ profileStore.RestaurantData.Name || 'My Restaurant' }}
+              <h2 class="text-3xl md:text-3xl font-black text-white tracking-tight drop-shadow-lg">
+                {{ profileStore.RestaurantData.Name }}
               </h2>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-5">
                 <div class="px-5 py-2.5 rounded-2xl font-bold text-sm shadow-inner transition-all flex items-center gap-3"
@@ -96,13 +96,6 @@ onUnmounted(() => {
                     :class="profileStore.RestaurantData.Status === 'open' ? 'bg-emerald-500' : profileStore.RestaurantData.Status === 'close' ? 'bg-red-500' : 'bg-blue-500'"></span>
                   {{ profileStore.RestaurantData.Status === 'open' ? 'เปิดบริการ' : profileStore.RestaurantData.Status
                     === 'close' ? 'ปิดบริการ' : 'อัตโนมัติ' }}
-                </div>
-                <div class="flex items-center gap-2 text-white/90 font-bold text-xl drop-shadow-md">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {{ profileStore.RestaurantData.Phone || '0XX-XXX-XXXX' }}
                 </div>
               </div>
             </div>
@@ -166,12 +159,18 @@ onUnmounted(() => {
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">สถานะร้านปัจจุบัน</span></label>
                     <div class="grid grid-cols-3 gap-2">
-                      <button v-for="status in [{ v: 'open', l: 'เปิดทันที', c: 'emerald' }, { v: 'close', l: 'ปิดทันที', c: 'red' }, { v: 'auto', l: 'อัตโนมัติ', c: 'blue' }]"
-                        :key="status.v" type="button" @click="profileStore.RestaurantData.Status = status.v"
-                        :disabled="!profileStore.isEditing"
-                        class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" :class="profileStore.RestaurantData.Status === status.v
-                          ? `!bg-${status.c}-500 !text-white shadow-lg shadow-${status.c}-200`
-                          : 'bg-slate-100 text-slate-400 hover:bg-slate-200'">
+                      <button v-for="status in [
+                        { v: 'open', l: 'เปิดทันที', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
+                        { v: 'close', l: 'ปิดทันที', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
+                        { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
+                      ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.Status = status.v)"
+                        class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" 
+                        :class="[
+                          profileStore.RestaurantData.Status === status.v
+                            ? status.active
+                            : 'bg-slate-100 text-slate-400 hover:bg-slate-200',
+                          !profileStore.isEditing ? (profileStore.RestaurantData.Status === status.v ? 'cursor-default' : 'opacity-50 cursor-not-allowed') : ''
+                        ]">
                         {{ status.l }}
                       </button>
                     </div>

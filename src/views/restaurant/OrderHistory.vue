@@ -32,13 +32,13 @@ const historyOrders = computed(() => {
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
         if (myItems.length > 0) {
-            const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
-            const hasReturned = myItems.some(i => i.itemStatus === 'returned');
+            const allCancelled = myItems.every(i => i.MenuStatus === 'cancelled');
+            const hasReturned = myItems.some(i => i.MenuStatus === 'returned');
             const allReceivedOrCancelled = myItems.every(i =>
-                i.itemStatus === 'received' || i.itemStatus === 'cancelled'
+                i.MenuStatus === 'received' || i.MenuStatus === 'cancelled'
             );
             const isFinished = myItems.every(i =>
-                ['dispatched', 'received', 'cancelled', 'returned'].includes(i.itemStatus)
+                ['dispatched', 'received', 'cancelled', 'returned'].includes(i.MenuStatus)
             );
             if (allCancelled) localStatus = 'cancelled';
             else if (hasReturned) localStatus = 'returned';
@@ -54,9 +54,9 @@ const historyOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        (order.statusOrder === 'completed' ||
-            order.statusOrder === 'returned' ||
-            order.statusOrder === 'cancelled' ||
+        (order.OrderStatus === 'completed' ||
+            order.OrderStatus === 'returned' ||
+            order.OrderStatus === 'cancelled' ||
             order.localStatus === 'completed' ||
             order.localStatus === 'dispatched' ||
             order.localStatus === 'cancelled' ||
@@ -112,7 +112,7 @@ const getStatusColor = (status) => {
                                     #{{ order.OrderNumber }}
                                 </td>
                                 <td class="text-center font-medium text-slate-700">
-                                    <span class="font-bold">{{ order.room }}</span>
+                                    <span class="font-bold">{{ order.Roomnumber || order.room }}</span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.localStatus)">
@@ -158,7 +158,7 @@ const getStatusColor = (status) => {
                     <div v-if="selectedOrder" class="space-y-4">
                         <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
                             <span v-if="selectedOrder.room" class="flex gap-2">
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room }}</span></span>
+                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.Roomnumber || selectedOrder.room }}</span></span>
                             </span>
                             <span v-else>
                                 Room: {{ selectedOrder.roomId }}
@@ -187,13 +187,13 @@ const getStatusColor = (status) => {
                                         <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
                                             <span class="badge badge-xs gap-1" :class="{
-                                                'badge-info': item.itemStatus === 'pending',
-                                                'bg-orange-500 text-white border-none': item.itemStatus === 'cooking',
-                                                'badge-success text-white': item.itemStatus === 'dispatched',
-                                                'badge-error text-white bg-red-500': item.itemStatus === 'cancelled',
-                                                'badge-error text-white bg-orange-500': item.itemStatus === 'returned'
+                                                'badge-info': item.MenuStatus === 'pending',
+                                                'bg-orange-500 text-white border-none': item.MenuStatus === 'cooking',
+                                                'badge-success text-white': item.MenuStatus === 'dispatched',
+                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled',
+                                                'badge-error text-white bg-orange-500': item.MenuStatus === 'returned'
                                             }">
-                                                {{ (item.itemStatus === 'pending') ? 'cooking' : (item.itemStatus || 'pending') }}
+                                                {{ (item.MenuStatus === 'pending') ? 'cooking' : (item.MenuStatus || 'pending') }}
                                             </span>
                                         </td>
                                     </tr>

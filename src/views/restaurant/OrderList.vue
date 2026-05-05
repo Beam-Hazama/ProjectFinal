@@ -39,16 +39,16 @@ const restaurantOrders = computed(() => {
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         let localStatus = 'pending';
         if (myItems.length > 0) {
-            const allServed = myItems.every(i => i.itemStatus === 'dispatched');             /*  ได้ใช้ไหมเนีย */
-            const allCancelled = myItems.every(i => i.itemStatus === 'cancelled');
+            const allServed = myItems.every(i => i.MenuStatus === 'dispatched');             /*  ได้ใช้ไหมเนีย */
+            const allCancelled = myItems.every(i => i.MenuStatus === 'cancelled');
 
             const isFinished = myItems.every(i =>
-                i.itemStatus === 'dispatched' ||
-                i.itemStatus === 'received' ||
-                i.itemStatus === 'cancelled'
+                i.MenuStatus === 'dispatched' ||
+                i.MenuStatus === 'received' ||
+                i.MenuStatus === 'cancelled'
             );
-            const anyCooking = myItems.some(i => i.itemStatus === 'cooking');
-            const anyServed = myItems.some(i => i.itemStatus === 'dispatched');
+            const anyCooking = myItems.some(i => i.MenuStatus === 'cooking');
+            const anyServed = myItems.some(i => i.MenuStatus === 'dispatched');
             if (allCancelled) localStatus = 'cancelled';
             else if (isFinished) localStatus = 'dispatched';
             else if (anyCooking || anyServed) localStatus = 'cooking';
@@ -62,7 +62,7 @@ const restaurantOrders = computed(() => {
         };
     }).filter(order =>
         order.displayItems.length > 0 &&
-        order.statusOrder !== 'cancelled' &&
+        order.OrderStatus !== 'cancelled' &&
         order.localStatus !== 'dispatched' &&
         order.localStatus !== 'cancelled'
     );
@@ -89,14 +89,14 @@ const getSelectionType = (orderId, itemId) => {
 }; */
 
 const areAllItemsSelected = (order) => {
-    const activeItems = order.displayItems.filter(i => i.itemStatus !== 'dispatched' && i.itemStatus !== 'cancelled');
+    const activeItems = order.displayItems.filter(i => i.MenuStatus !== 'dispatched' && i.MenuStatus !== 'cancelled');
     if (activeItems.length === 0) return false;
     const orderSelections = selections.value[order.id] || {};
     return activeItems.every(item => orderSelections[item.uniqueKey]);
 };
 
 const hasWaitingItems = (order) => {
-    return order.displayItems.some(i => !i.itemStatus || i.itemStatus === 'waiting');
+    return order.displayItems.some(i => !i.MenuStatus || i.MenuStatus === 'waiting');
 };
 
 const saveChanges = async (order) => {
@@ -122,9 +122,9 @@ const saveChanges = async (order) => {
             const action = orderSelections[itemKey];
             if (!action) continue;
 
-            let newStatus = item.itemStatus;
+            let newStatus = item.MenuStatus;
             if (action === 'advance') {
-                if (!item.itemStatus || item.itemStatus === 'waiting') {
+                if (!item.MenuStatus || item.MenuStatus === 'waiting') {
                     newStatus = 'cooking';
                 }
             } else if (action === 'cancel') {
@@ -133,7 +133,7 @@ const saveChanges = async (order) => {
                     menusToClose.add(item.id);
                 }
             }
-            if (newStatus !== item.itemStatus) {
+            if (newStatus !== item.MenuStatus) {
                 itemUpdates.push({ itemId: item.cartItemId, itemIndex: currentItemIndex, newStatus });
             }
         }
@@ -223,7 +223,7 @@ const getRowStatusColor = (status) => {
                                 <div class="flex flex-col">
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room</span>
                                     <span class="font-bold text-slate-700 text-sm">
-                                        {{ order.room || order.roomId || 'N/A' }}
+                                        {{ order.Roomnumber || order.room || order.roomId || 'N/A' }}
                                     </span>
                                 </div>
                             </div>
@@ -237,7 +237,7 @@ const getRowStatusColor = (status) => {
                         <div class="p-4 flex-grow space-y-4">
                             <div v-for="(item, index) in order.displayItems" :key="index" class="flex flex-row gap-4 items-center border-b border-slate-50 last:border-0 pb-4 last:pb-0">
                                 <div class="flex flex-col gap-2 flex-shrink-0"
-                                    v-if="!item.itemStatus || item.itemStatus === 'waiting'">
+                                    v-if="!item.MenuStatus || item.MenuStatus === 'waiting'">
                                     <label class="cursor-pointer flex items-center gap-1">
                                         <input type="checkbox" class="checkbox checkbox-success checkbox-xs"
                                             :checked="getSelectionType(order.id, item.uniqueKey) === 'advance'"
@@ -267,10 +267,10 @@ const getRowStatusColor = (status) => {
                                             Note: {{ item.note }}
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">
-                                            <div v-if="item.itemStatus && item.itemStatus !== 'waiting'"
-                                                :class="getRowStatusColor(item.itemStatus)"
+                                            <div v-if="item.MenuStatus && item.MenuStatus !== 'waiting'"
+                                                :class="getRowStatusColor(item.MenuStatus)"
                                                 class="badge badge-xs font-semibold px-2 py-2">
-                                                {{ (item.itemStatus || 'waiting').toUpperCase() }}
+                                                {{ (item.MenuStatus || 'waiting').toUpperCase() }}
                                             </div>
                                         </div>
                                     </div>

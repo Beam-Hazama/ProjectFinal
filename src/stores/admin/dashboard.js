@@ -8,10 +8,25 @@ import { db } from "@/firebase";
 
 function getStartTime(timeFilter, customStart) {
   const now = new Date();
-  if (timeFilter === 'today') return new Date(now.setHours(0, 0, 0, 0));
-  if (timeFilter === '7days') return new Date(now.setDate(now.getDate() - 6));
-  if (timeFilter === 'thisMonth') return new Date(now.setDate(1), now.setHours(0, 0, 0, 0));
-  if (timeFilter === 'custom' && customStart) return new Date(customStart);
+  if (timeFilter === 'today') {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  if (timeFilter === '7days') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 6);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  if (timeFilter === 'thisMonth') {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+  if (timeFilter === 'custom' && customStart) {
+    const d = new Date(customStart);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
   return new Date(0);
 }
 
@@ -23,17 +38,17 @@ function isOrderInTimeRange(order, start, end) {
 }
 
 function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = [], menuFilters = []) {
-  if (order.statusOrder === 'cancelled' || order.statusOrder === 'returned') return 0;
+  if (order.OrderStatus !== 'completed') return 0;
   
   if (!order.Menu || order.Menu.length === 0) {
     const isFiltered = restaurantFilters.length > 0 || categoryFilters.length > 0 || menuFilters.length > 0;
-    return isFiltered ? 0 : Number(order.localTotal || 0);
+    return isFiltered ? 0 : Number(order.TotalPrice || order.localTotal || 0);
   }
 
   return order.Menu
     .filter(item => {
       const isRightRestaurant = restaurantFilters.length === 0 || restaurantFilters.includes(item.Restaurant);
-      const isNotCancelled = item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned';
+      const isNotCancelled = item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned';
       
       let isRightCategory = true;
       if (categoryFilters.length > 0) {
@@ -74,7 +89,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
     topRestaurants: [],
     topMenuItems: [],
     recentOrders: [],
-    orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
+    orderStatuses: { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 },
 
     revenueByDay: [],
     categoriesCount: [],
@@ -115,9 +130,9 @@ export const useDashboardStore = defineStore("dashboardStore", {
       state.allOrders
         .filter(o => isOrderInTimeRange(o, start, end))
         .forEach(order => {
-          if (order.Menu && order.statusOrder !== 'cancelled') {
+          if (order.Menu && order.OrderStatus === 'completed') {
             order.Menu.forEach(item => {
-              if (item.itemStatus !== 'cancelled' && restMap[item.Restaurant] !== undefined) {
+              if (item.MenuStatus !== 'cancelled' && restMap[item.Restaurant] !== undefined) {
                 restMap[item.Restaurant] += (Number(item.Price || 0) * Number(item.Quantity || 1));
               }
             });
@@ -192,7 +207,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       let revenue = 0;
       let commission = 0;
       let filteredOrdersCount = 0;
-      const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
+      const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
       const menuMetrics = {};
       const restRevenue = {};
 
@@ -213,7 +228,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
               const menuId = item.id || item.menuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
-              if (item.itemStatus !== 'cancelled' && isRightRest && isRightCat && isRightMenu) {
+              if (item.MenuStatus !== 'cancelled' && isRightRest && isRightCat && isRightMenu) {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
                 commission += (itemRev * (restRateMap[item.Restaurant] || 0)) / 100;
                 
@@ -226,7 +241,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
             });
           }
 
-          const status = order.statusOrder || 'pending';
+          const status = order.OrderStatus || 'pending';
           if (statusCounts[status] !== undefined) statusCounts[status]++;
         }
       });
@@ -317,7 +332,8 @@ export const useDashboardStore = defineStore("dashboardStore", {
         const date = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
         hours[date.getHours()]++;
       });
-      this.ordersByHour = hours.map((count, i) => ({ hour: `${i.toString().padStart(2,"0")}:00`, count }));
+      this.ordersByHour = hours.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
+      this.ordersByHour.push({ hour: '24:00', count: hours[0] });
     }
   }
 });

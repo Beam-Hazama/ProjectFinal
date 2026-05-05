@@ -17,7 +17,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     totalRevenue: 0,
     totalMenus: 0,
     commissionRate: 0,
-    orderStatuses: { pending: 0, preparing: 0, completed: 0, cancelled: 0 },
+    orderStatuses: { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 },
     topMenuItems: [],
     recentOrders: [],
     revenueByDay: [],
@@ -90,6 +90,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.clearListeners();
       this.currentRestaurant = restaurantName;
       
+      // 1. Get Restaurant Info (Commission Rate)
       const resQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
       this.unsubscribeRestaurant = onSnapshot(resQuery, (snapshot) => {
         if (!snapshot.empty) {
@@ -99,14 +100,20 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         }
       });
 
-      const ordersQuery = query(collection(db, 'Order'));
+      // 2. Optimized Order Query (Only relevant restaurant)
+      const ordersQuery = query(
+        collection(db, 'Order'),
+        where('RestaurantsInOrder', 'array-contains', restaurantName)
+      );
+
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
         this.allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         this.ordersLoading = false;
         this.applyFilters();
       }, (error) => {
+        console.error("Orders Snapshot Error:", error);
         this.isError = true;
-        this.errorMessage = error.message;
+        this.errorMessage = "ไม่สามารถโหลดข้อมูลออเดอร์ได้: " + error.message;
       });
 
       const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
@@ -129,12 +136,15 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       let startTime = new Date(0);
 
       if (this.timeFilter === 'today') {
-        startTime = new Date(now.setHours(0, 0, 0, 0));
+        startTime = new Date(now);
+        startTime.setHours(0, 0, 0, 0);
       } else if (this.timeFilter === '7days') {
-        startTime = new Date(now.setDate(now.getDate() - 6));
+        startTime = new Date(now);
+        startTime.setDate(startTime.getDate() - 6);
         startTime.setHours(0, 0, 0, 0);
       } else if (this.timeFilter === 'thisMonth') {
         startTime = new Date(now.getFullYear(), now.getMonth(), 1);
+        startTime.setHours(0, 0, 0, 0);
       } else if (this.timeFilter === 'custom') {
         startTime = new Date(this.customStartDate);
         startTime.setHours(0, 0, 0, 0);
@@ -142,77 +152,71 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       const endTime = this.timeFilter === 'custom' 
         ? new Date(new Date(this.customEndDate).setHours(23, 59, 59, 999))
-        : new Date();
+        : new Date(new Date(now).setHours(23, 59, 59, 999));
 
       const validOrders = this.allOrders.filter(order => {
         if (!order.CreatedAt) return false;
         const createdAt = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
-        const inTimeRange = createdAt >= startTime && createdAt <= endTime;
-        if (!inTimeRange) return false;
-        if (order.Menu) return order.Menu.some(item => item.Restaurant === this.currentRestaurant);
-        return false;
+        return createdAt >= startTime && createdAt <= endTime;
       });
 
-      const validOrdersForChart = this.allOrders.filter(order => {
-        if (!order.CreatedAt) return false;
-        if (order.Menu) return order.Menu.some(item => item.Restaurant === this.currentRestaurant);
-        return false;
-      });
+      const validOrdersForChart = this.allOrders; // No time filter for chart items calculation itself, or use validOrders?
 
       let revenue = 0;
-      const statusCounts = { pending: 0, preparing: 0, completed: 0, cancelled: 0 };
+      const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
       const menuMetricsMap = {};
 
       validOrders.forEach(order => {
         let orderHasRestaurantItem = false;
         let orderRevenue = 0;
 
+        // Only count completed orders towards revenue and stats
+        const isCompleted = order.OrderStatus === 'completed';
+
         if (order.Menu) {
           order.Menu.forEach(item => {
             if (item.Restaurant === this.currentRestaurant) {
-              const isNotCancelled = item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned';
+              const isNotCancelled = item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned';
               const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
               const menuId = item.id || item.menuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
               if (isNotCancelled && isRightCategory && isRightMenu) {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
-                orderRevenue += itemRev;
-                orderHasRestaurantItem = true;
-
-                if (!menuMetricsMap[menuId]) {
-                  menuMetricsMap[menuId] = {
-                    name: item.Name || 'ไม่ระบุชื่อเมนู',
-                    qty: 0,
-                    revenue: 0,
-                    image: item.ImageUrl
-                  };
+                
+                // Only add to revenue if order is completed
+                if (isCompleted) {
+                  orderRevenue += itemRev;
+                  
+                  if (!menuMetricsMap[menuId]) {
+                    menuMetricsMap[menuId] = {
+                      name: item.Name || 'ไม่ระบุชื่อเมนู',
+                      qty: 0,
+                      revenue: 0,
+                      image: item.ImageUrl
+                    };
+                  }
+                  menuMetricsMap[menuId].qty += Number(item.Quantity || 1);
+                  menuMetricsMap[menuId].revenue += itemRev;
                 }
-                menuMetricsMap[menuId].qty += Number(item.Quantity || 1);
-                menuMetricsMap[menuId].revenue += itemRev;
+                
+                orderHasRestaurantItem = true;
               }
             }
           });
         }
 
         if (orderHasRestaurantItem) {
-          revenue += orderRevenue;
-          const status = order.statusOrder || 'pending';
+          if (isCompleted) {
+            revenue += orderRevenue;
+          }
+          const status = order.OrderStatus || 'pending';
           if (statusCounts[status] !== undefined) statusCounts[status]++;
         }
       });
 
       this.totalRevenue = revenue;
-      this.totalOrders = validOrders.filter(o => {
-        if (!o.Menu) return false;
-        return o.Menu.some(item => {
-           const isRightRest = item.Restaurant === this.currentRestaurant;
-           const isRightCat = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
-           const menuId = item.id || item.menuId;
-           const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
-           return isRightRest && isRightCat && isRightMenu && item.itemStatus !== 'cancelled';
-        });
-      }).length;
+      this.totalOrders = validOrders.filter(o => o.OrderStatus === 'completed').length;
       this.orderStatuses = statusCounts;
       this.topMenuItems = Object.values(menuMetricsMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
@@ -231,8 +235,8 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.availableCategories = [...new Set(catList)];
       this.availableMenus = filteredMenus.map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
 
-      this.buildDailyRevenueChart(validOrdersForChart);
-      this.buildPeakHoursChart(validOrdersForChart);
+      this.buildDailyRevenueChart(this.allOrders);
+      this.buildPeakHoursChart(this.allOrders);
     },
 
     buildDailyRevenueChart(orders) {
@@ -252,9 +256,9 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         const date = order.CreatedAt.toDate ? order.CreatedAt.toDate() : new Date(order.CreatedAt);
         const label = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
         if (days[label] !== undefined) {
-          if (order.Menu) {
+          if (order.Menu && order.OrderStatus === 'completed') {
             order.Menu.forEach(item => {
-              if (item.Restaurant === this.currentRestaurant && item.itemStatus !== 'cancelled' && item.itemStatus !== 'returned') {
+              if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled' && item.MenuStatus !== 'returned') {
                 days[label] += (Number(item.Price || 0) * Number(item.Quantity || 1));
               }
             });
@@ -281,6 +285,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         hours[date.getHours()]++;
       });
       this.ordersByHour = hours.map((count, hour) => ({ hour: `${hour.toString().padStart(2, '0')}:00`, count }));
+      this.ordersByHour.push({ hour: '24:00', count: hours[0] });
     }
   }
 });

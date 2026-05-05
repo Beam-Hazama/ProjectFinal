@@ -60,11 +60,11 @@ const getStatusColor = (status) => {
                             <tr v-for="order in historyOrders" :key="order.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                 <td class="pl-6 font-bold text-indigo-600">#{{ order.OrderNumber }}</td>
                                 <td class="py-4 text-center font-medium text-slate-700">
-                                    <span class="font-bold text-indigo-600">{{ order.room || order.roomId || '-' }}</span>
+                                    <span class="font-bold text-indigo-600">{{ order.Roomnumber || order.room || order.roomId || '-' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge gap-2 font-semibold" :class="getStatusColor(order.statusOrder)">
-                                        {{ order.statusOrder?.toUpperCase() || '-' }}
+                                    <span class="badge gap-2 font-semibold" :class="getStatusColor(order.OrderStatus)">
+                                        {{ order.OrderStatus?.toUpperCase() || '-' }}
                                     </span>
                                 </td>
                                 <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}</td>
@@ -89,7 +89,7 @@ const getStatusColor = (status) => {
                     <h3 class="font-bold text-lg mb-4 text-indigo-600"> Order Details #{{ selectedOrder?.OrderNumber }} </h3>
                     <div v-if="selectedOrder" class="space-y-4">
                         <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.room || selectedOrder.roomId }}</span></span>
+                            <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.Roomnumber || selectedOrder.room || selectedOrder.roomId }}</span></span>
                             <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>
                         <div class="overflow-x-auto">
@@ -113,13 +113,13 @@ const getStatusColor = (status) => {
                                         <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
                                             <span class="badge badge-xs gap-1" :class="{
-                                                'badge-info': item.itemStatus === 'pending',
-                                                'bg-orange-500 text-white border-none': item.itemStatus === 'cooking',
-                                                'badge-success text-white': item.itemStatus === 'dispatched',
-                                                'badge-error text-white bg-red-500': item.itemStatus === 'cancelled',
-                                                'badge-error text-white bg-orange-500': item.itemStatus === 'returned'
+                                                'badge-info': item.MenuStatus === 'pending',
+                                                'bg-orange-500 text-white border-none': item.MenuStatus === 'cooking',
+                                                'badge-success text-white': item.MenuStatus === 'dispatched',
+                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled',
+                                                'badge-error text-white bg-orange-500': item.MenuStatus === 'returned'
                                             }">
-                                                {{ item.itemStatus === 'pending' ? 'cooking' : (item.itemStatus || 'pending') }}
+                                                {{ item.MenuStatus === 'pending' ? 'cooking' : (item.MenuStatus || 'pending') }}
                                             </span>
                                         </td>
                                     </tr>
@@ -129,7 +129,7 @@ const getStatusColor = (status) => {
                         <div class="flex justify-between items-end border-t border-slate-200 pt-4 mt-4">
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-500">Total Amount</span>
-                                <span class="badge" :class="getStatusColor(selectedOrder?.statusOrder)">{{ selectedOrder?.statusOrder?.toUpperCase() || '-' }}</span>
+                                <span class="badge" :class="getStatusColor(selectedOrder?.OrderStatus)">{{ selectedOrder?.OrderStatus?.toUpperCase() || '-' }}</span>
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{ selectedOrder.TotalPrice?.toLocaleString() }} ฿</span>
                         </div>

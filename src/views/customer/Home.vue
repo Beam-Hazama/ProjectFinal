@@ -234,7 +234,7 @@ const applyFilters = () => {
     </div>
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
-        <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่ยอดนิยม</h3>
+        <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่</h3>
         <button @click="router.push(`/user/all-categories/${room}`)" class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">

@@ -135,15 +135,15 @@ export const useCartStore = defineStore("cart", {
 
         const orderData = {
           OrderNumber: finalOrderNumber,
-          room: room,
+          Roomnumber: room,
           Menu: cartItems.map(i => ({
             ...i,
             cartItemId: i.cartItemId || `${i.id}-${Math.random().toString(36).substr(2, 9)}`,
             id: i.menuId || i.id,
-            itemStatus: 'waiting'
+            MenuStatus: 'waiting'
           })),
           TotalPrice: totalPrice,
-          statusOrder: 'pending',
+          OrderStatus: 'pending',
           CreatedAt: serverTimestamp(),
           RestaurantsInOrder: restaurants
         };

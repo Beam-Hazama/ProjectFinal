@@ -37,7 +37,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     _deriveOrderStatus(updatedMenu) {
       if (!updatedMenu || updatedMenu.length === 0) return 'pending';
 
-      const statuses = updatedMenu.map(item => item.itemStatus || 'waiting');
+      const statuses = updatedMenu.map(item => item.MenuStatus || 'waiting');
       
       // 1. If all items are cancelled, the entire order is cancelled
       if (statuses.every(s => s === 'cancelled')) return 'cancelled';
@@ -88,8 +88,8 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            if (item.Restaurant === restaurantName && item.itemStatus !== 'cancelled') {
-              return { ...item, itemStatus: newStatus };
+            if (item.Restaurant === restaurantName && item.MenuStatus !== 'cancelled') {
+              return { ...item, MenuStatus: newStatus };
             }
             return item;
           });
@@ -98,7 +98,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: globalStatus,
+            OrderStatus: globalStatus,
             UpdatedAt: serverTimestamp()
           });
         });
@@ -109,7 +109,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     
-    async updateSingleItemStatus(orderId, itemId, itemIndex, newStatus) {
+    async updateSingleMenuStatus(orderId, itemId, itemIndex, newStatus) {
       try {
         const orderRef = doc(db, 'Order', orderId);
 
@@ -121,7 +121,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           const updatedMenu = orderData.Menu.map((item, index) => {
             const isMatch = itemId ? item.cartItemId === itemId : index === itemIndex;
             if (isMatch) {
-              return { ...item, itemStatus: newStatus };
+              return { ...item, MenuStatus: newStatus };
             }
             return item;
           });
@@ -130,7 +130,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: globalStatus,
+            OrderStatus: globalStatus,
             UpdatedAt: serverTimestamp()
           });
         });
@@ -153,7 +153,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           const updatedMenu = orderData.Menu.map((item, index) => {
             const update = updates.find(u => u.itemId ? u.itemId === item.cartItemId : u.itemIndex === index);
             if (update) {
-              return { ...item, itemStatus: update.newStatus };
+              return { ...item, MenuStatus: update.newStatus };
             }
             return item;
           });
@@ -162,7 +162,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: globalStatus,
+            OrderStatus: globalStatus,
             UpdatedAt: serverTimestamp()
           });
         });
@@ -184,12 +184,12 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => ({
             ...item,
-            itemStatus: 'cancelled'
+            MenuStatus: 'cancelled'
           }));
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            statusOrder: 'cancelled',
+            OrderStatus: 'cancelled',
             UpdatedAt: serverTimestamp()
           });
         });
@@ -216,7 +216,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
       const orderQuery = query(
         collection(db, "Order"),
-        where("room", "==", room),
+        where("Roomnumber", "==", room),
         where("CreatedAt", ">=", twelveHoursAgo)
       );
 
@@ -236,13 +236,13 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       if (restaurantName) {
         orderQuery = query(
           collection(db, "Order"),
-          where("statusOrder", "in", ["pending", "cooking", "dispatched"]),
+          where("OrderStatus", "in", ["pending", "cooking", "dispatched"]),
           where("RestaurantsInOrder", "array-contains", restaurantName)
         );
       } else {
         orderQuery = query(
           collection(db, "Order"),
-          where("statusOrder", "in", ["pending", "cooking", "dispatched"])
+          where("OrderStatus", "in", ["pending", "cooking", "dispatched"])
         );
       }
 

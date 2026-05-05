@@ -121,7 +121,7 @@ onMounted(() => {
           </div>
         </div>
         <!-- Progress Stepper (Visible if not all items finished/received) -->
-        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus))"
+        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled', 'returned'].includes(i.OrderStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
             <!-- Background Progress Line -->
@@ -234,36 +234,36 @@ onMounted(() => {
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
-                  'bg-yellow-400 ring-yellow-200': !item.itemStatus || item.itemStatus === 'waiting',
-                  'bg-orange-500 ring-orange-200': item.itemStatus === 'pending' || item.itemStatus === 'cooking' || item.itemStatus === 'returned',
-                  'bg-green-500 ring-green-200': item.itemStatus === 'dispatched',
-                  'bg-teal-500 ring-teal-200': item.itemStatus === 'received',
-                  'bg-red-500 ring-red-200': item.itemStatus === 'cancelled'
+                  'bg-yellow-400 ring-yellow-200': !item.OrderStatus || item.OrderStatus === 'waiting',
+                  'bg-orange-500 ring-orange-200': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking' || item.OrderStatus === 'returned',
+                  'bg-green-500 ring-green-200': item.OrderStatus === 'dispatched',
+                  'bg-teal-500 ring-teal-200': item.OrderStatus === 'received',
+                  'bg-red-500 ring-red-200': item.OrderStatus === 'cancelled'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
-                  'text-yellow-500': !item.itemStatus || item.itemStatus === 'waiting',
-                  'text-orange-500': item.itemStatus === 'pending' || item.itemStatus === 'cooking' || item.itemStatus === 'returned',
-                  'text-green-600': item.itemStatus === 'dispatched',
-                  'text-teal-600': item.itemStatus === 'received',
-                  'text-red-500': item.itemStatus === 'cancelled'
+                  'text-yellow-500': !item.OrderStatus || item.OrderStatus === 'waiting',
+                  'text-orange-500': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking' || item.OrderStatus === 'returned',
+                  'text-green-600': item.OrderStatus === 'dispatched',
+                  'text-teal-600': item.OrderStatus === 'received',
+                  'text-red-500': item.OrderStatus === 'cancelled'
                 }">
-                  {{ (!item.itemStatus || item.itemStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
-                    (item.itemStatus === 'pending' || item.itemStatus === 'cooking') ? 'กำลังทำอาหาร' :
-                      item.itemStatus === 'cancelled' ? 'ถูกยกเลิก' :
-                        item.itemStatus === 'returned' ? 'รายการถูกตีกลับ' :
-                          item.itemStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
+                  {{ (!item.OrderStatus || item.OrderStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
+                    (item.OrderStatus === 'pending' || item.OrderStatus === 'cooking') ? 'กำลังทำอาหาร' :
+                      item.OrderStatus === 'cancelled' ? 'ถูกยกเลิก' :
+                        item.OrderStatus === 'returned' ? 'รายการถูกตีกลับ' :
+                          item.OrderStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
                 </span>
               </div>
             </div>
             <div class="text-right flex flex-col items-end gap-1">
-              <template v-if="item.itemStatus === 'cancelled'">
+              <template v-if="item.OrderStatus === 'cancelled'">
                 <span class="text-sm font-black text-gray-800">฿0</span>
                 <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)}}</span>
               </template>
               <template v-else>
                 <span class="text-sm font-black text-gray-800">฿{{ statusStore.formatPrice(item.Price * item.Quantity) }}</span>
               </template>
-              <button v-if="item.itemStatus === 'dispatched'" @click="statusStore.markItemAsReceived(order.id, item.cartItemId, i, router)"
+              <button v-if="item.OrderStatus === 'dispatched'" @click="statusStore.markItemAsReceived(order.id, item.cartItemId, i, router)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันรับอาหาร
               </button>
@@ -274,7 +274,7 @@ onMounted(() => {
         <div class="p-4 bg-white/60 border-t border-white flex justify-between items-center">
           <span class="text-xs font-bold text-gray-400 uppercase">ยอดรวมรายการนี้</span>
           <span class="text-lg font-black text-blue-600">
-            ฿{{statusStore.formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.itemStatus === 'cancelled' ? 0 :
+            ฿{{statusStore.formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.OrderStatus === 'cancelled' ? 0 :
               (item.Price *
             item.Quantity)), 0)) }}
           </span>

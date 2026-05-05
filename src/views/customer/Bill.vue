@@ -19,7 +19,7 @@ const displayLocation = computed(() => {
 const userOrders = computed(() => {
     const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
     return orderListStore.list
-        .filter(order => order.room === room.value &&
+        .filter(order => order.Roomnumber === room.value &&
                          (order.CreatedAt?.seconds || 0) >= twelveHoursAgo)
         .sort((a, b) => (b.CreatedAt?.seconds || 0) - (a.CreatedAt?.seconds || 0));
 });
@@ -27,7 +27,7 @@ const userOrders = computed(() => {
 const myOrders = computed(() => {
     return userOrders.value.map(order => {
         const receivedItems = (order.Menu || []).filter(item => 
-            ['received', 'dispatched', 'cooking', 'pending', 'waiting'].includes(item.itemStatus) || !item.itemStatus
+            ['received', 'dispatched', 'cooking', 'pending', 'waiting'].includes(item.MenuStatus) || !item.MenuStatus
         );
         const subtotal = receivedItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         const grandTotal = Math.max(0, subtotal - (order.discount || 0));

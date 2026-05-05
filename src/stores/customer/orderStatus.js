@@ -26,7 +26,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     const roomOrders = computed(() => {
         const twelveHoursAgo = Math.floor(Date.now() / 1000) - (12 * 60 * 60);
         return orderListStore.list.filter(order => {
-            const isOwner = order.room === room.value;
+            const isOwner = order.Roomnumber === room.value;
             if (!isOwner) return false;
 
             // Filter by time (handle pending server timestamps by using current time as fallback)
@@ -34,7 +34,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
             if (createdAtSeconds < twelveHoursAgo) return false;
 
             const hasActiveItems = (order.Menu || []).some(item =>
-                !['received', 'cancelled'].includes(item.itemStatus)
+                !['received', 'cancelled'].includes(item.MenuStatus)
             );
 
             return hasActiveItems;
@@ -47,7 +47,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     };
 
     const markItemAsReceived = async (orderId, itemId, itemIndex, router) => {
-        await orderListStore.updateSingleItemStatus(orderId, itemId, itemIndex, 'received');
+        await orderListStore.updateSingleMenuStatus(orderId, itemId, itemIndex, 'received');
 
         let stillHasActive = false;
         for (const order of roomOrders.value) {
@@ -55,7 +55,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
                 const item = order.Menu[i];
                 const isClickedItem = (order.id === orderId) && (itemId ? item.cartItemId === itemId : i === itemIndex);
 
-                if (!isClickedItem && !['received', 'cancelled'].includes(item.itemStatus)) {
+                if (!isClickedItem && !['received', 'cancelled'].includes(item.MenuStatus)) {
                     stillHasActive = true;
                     break;
                 }
@@ -70,7 +70,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
 
     const reorder = async (order, router) => {
         const validItems = (order.Menu || []).filter(item =>
-            item.itemStatus !== 'cancelled'
+            item.MenuStatus !== 'cancelled'
         );
 
         cartStore.loadCart(room.value);
@@ -114,15 +114,15 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         const items = order.Menu || [];
         if (items.length === 0) return 0;
 
-        const anyReceived = items.some(i => i.itemStatus === 'received');
-        const allFinished = items.every(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus));
+        const anyReceived = items.some(i => i.MenuStatus === 'received');
+        const allFinished = items.every(i => ['received', 'cancelled', 'returned'].includes(i.MenuStatus));
 
         if (anyReceived || allFinished) return 3;
 
-        const anyDispatched = items.some(i => i.itemStatus === 'dispatched');
+        const anyDispatched = items.some(i => i.MenuStatus === 'dispatched');
         if (anyDispatched) return 2;
 
-        const anyCooking = items.some(i => ['pending', 'cooking'].includes(i.itemStatus));
+        const anyCooking = items.some(i => ['pending', 'cooking'].includes(i.MenuStatus));
         if (anyCooking) return 1;
 
         return 0;
@@ -131,10 +131,10 @@ export const useUserStatusStore = defineStore('userStatus', () => {
     const getItemCountByStage = (order, stage) => {
         const items = order.Menu || [];
         switch (stage) {
-            case 0: return items.filter(i => !i.itemStatus || i.itemStatus === 'waiting').length;
-            case 1: return items.filter(i => ['pending', 'cooking'].includes(i.itemStatus)).length;
-            case 2: return items.filter(i => i.itemStatus === 'dispatched').length;
-            case 3: return items.filter(i => ['received', 'cancelled', 'returned'].includes(i.itemStatus)).length;
+            case 0: return items.filter(i => !i.MenuStatus || i.MenuStatus === 'waiting').length;
+            case 1: return items.filter(i => ['pending', 'cooking'].includes(i.MenuStatus)).length;
+            case 2: return items.filter(i => i.MenuStatus === 'dispatched').length;
+            case 3: return items.filter(i => ['received', 'cancelled', 'returned'].includes(i.MenuStatus)).length;
             default: return 0;
         }
     };

@@ -34,16 +34,26 @@ const isCategoryModalOpen = ref(false);
 const displayCategories = computed(() => {
     const categories = new Set();
     const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    
+    // 1. Add "Promotion" if any
     const hasPromo = allItems.some(item => item.PromoPrice && Number(item.PromoPrice) > 0);
     if (hasPromo) {
         categories.add("โปรโมชั่น");
     }
-    categoryStore.list.forEach(c => {
-        if (c.Name) categories.add(c.Name);
+    
+    // 2. Add only categories that have items in this restaurant
+    // We sort them based on the categoryStore order if available, or just as they appear
+    const restaurantCategories = [...new Set(allItems.map(item => item.Category).filter(Boolean))];
+    
+    // Sort based on global category list position if possible
+    const sortedCategories = restaurantCategories.sort((a, b) => {
+        const indexA = categoryStore.list.findIndex(c => c.Name === a);
+        const indexB = categoryStore.list.findIndex(c => c.Name === b);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
     });
-    allItems.forEach(item => {
-        if (item.Category) categories.add(item.Category);
-    });
+
+    sortedCategories.forEach(cat => categories.add(cat));
+    
     return Array.from(categories);
 });
 
