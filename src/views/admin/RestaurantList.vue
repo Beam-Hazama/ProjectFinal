@@ -74,7 +74,7 @@ const deleteRestaurant = async (id) => {
                   </div>
                 </td>
                 <td class="py-4 text-center">
-                  <div v-if="!checkShopClosed(restaurant, now)" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
+                  <div v-if="restaurant.Status == 'open'" class="badge badge-success gap-1 text-[10px] text-white font-bold border-none mx-auto whitespace-nowrap">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                     Open Now
                   </div>
