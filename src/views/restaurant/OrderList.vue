@@ -49,7 +49,8 @@ const restaurantOrders = computed(() => {
         order.displayItems.length > 0 &&
         order.OrderStatus !== 'cancelled' &&
         order.localStatus !== 'dispatched' &&
-        order.localStatus !== 'cancelled'
+        order.localStatus !== 'cancelled' &&
+        order.localStatus !== 'completed'
     );
 });
 
@@ -239,7 +240,7 @@ const deliverOrder = async (order) => {
                                                 item.Quantity
                                             }}</span>
                                         </div>
-                                        <p v-if="item.note" class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100">
+                                        <p v-if="item.note" class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100 whitespace-pre-wrap break-words">
                                             Note: {{ item.note }}
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">

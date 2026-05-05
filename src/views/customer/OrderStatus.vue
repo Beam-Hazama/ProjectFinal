@@ -118,7 +118,7 @@ onMounted(() => {
           </div>
         </div>
         <!-- Progress Stepper (Visible if not all items finished/received) -->
-        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled'].includes(i.OrderStatus))"
+        <div v-if="!(order.Menu || []).every(i => ['received', 'cancelled'].includes(i.MenuStatus))"
           class="px-8 py-6 bg-white border-b border-gray-50">
           <div class="relative flex items-center justify-between">
             <!-- Background Progress Line -->
@@ -215,17 +215,17 @@ onMounted(() => {
         <!-- Order Items -->
         <div class="p-4 space-y-4">
           <div v-for="(item, i) in order.Menu" :key="i"
-            class="group flex justify-between items-center p-2 rounded-xl hover:bg-white/50 transition-colors">
-            <div class="flex flex-col">
+            class="group flex justify-between items-start gap-4 p-2 rounded-xl hover:bg-white/50 transition-colors">
+            <div class="flex flex-col min-w-0 flex-1">
               <div class="flex gap-3 items-center">
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
                 }}</span>
-                <div class="flex flex-col">
-                  <span class="text-sm font-bold text-gray-700">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId)
+                <div class="flex flex-col min-w-0 flex-1">
+                  <span class="text-sm font-bold text-gray-700 leading-tight">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId)
                     }}</span>
                   <span v-if="item.Restaurant" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{{
                     item.Restaurant }}</span>
-                  <span v-if="item.note" class="text-xs text-gray-500 mt-0.5">โน้ต: {{ item.note }}</span>
+                  <span v-if="item.note" class="text-xs text-gray-500 mt-0.5 whitespace-pre-wrap break-words">{{ item.note }}</span>
                 </div>
               </div>
               <div class="mt-1.5 flex items-center gap-1.5">
@@ -251,7 +251,7 @@ onMounted(() => {
                 </span>
               </div>
             </div>
-            <div class="text-right flex flex-col items-end gap-1">
+            <div class="text-right flex flex-col items-end gap-1 flex-shrink-0">
               <template v-if="item.MenuStatus === 'cancelled'">
                 <span class="text-sm font-black text-gray-800">฿0</span>
                 <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)}}</span>
