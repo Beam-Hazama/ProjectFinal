@@ -231,35 +231,35 @@ onMounted(() => {
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
-                  'bg-yellow-400 ring-yellow-200': !item.OrderStatus || item.OrderStatus === 'waiting',
-                  'bg-orange-500 ring-orange-200': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking',
-                  'bg-green-500 ring-green-200': item.OrderStatus === 'dispatched',
-                  'bg-teal-500 ring-teal-200': item.OrderStatus === 'received',
-                  'bg-red-500 ring-red-200': item.OrderStatus === 'cancelled'
+                  'bg-yellow-400 ring-yellow-200': !item.MenuStatus || item.MenuStatus === 'waiting',
+                  'bg-orange-500 ring-orange-200': item.MenuStatus === 'pending' || item.MenuStatus === 'cooking',
+                  'bg-green-500 ring-green-200': item.MenuStatus === 'dispatched',
+                  'bg-teal-500 ring-teal-200': item.MenuStatus === 'received',
+                  'bg-red-500 ring-red-200': item.MenuStatus === 'cancelled'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
-                  'text-yellow-500': !item.OrderStatus || item.OrderStatus === 'waiting',
-                  'text-orange-500': item.OrderStatus === 'pending' || item.OrderStatus === 'cooking',
-                  'text-green-600': item.OrderStatus === 'dispatched',
-                  'text-teal-600': item.OrderStatus === 'received',
-                  'text-red-500': item.OrderStatus === 'cancelled'
+                  'text-yellow-500': !item.MenuStatus || item.MenuStatus === 'waiting',
+                  'text-orange-500': item.MenuStatus === 'pending' || item.MenuStatus === 'cooking',
+                  'text-green-600': item.MenuStatus === 'dispatched',
+                  'text-teal-600': item.MenuStatus === 'received',
+                  'text-red-500': item.MenuStatus === 'cancelled'
                 }">
-                  {{ (!item.OrderStatus || item.OrderStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
-                  (item.OrderStatus === 'pending' || item.OrderStatus === 'cooking') ? 'กำลังทำอาหาร' :
-                      item.OrderStatus === 'cancelled' ? 'ถูกยกเลิก' :
-                        item.OrderStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
+                  {{ (!item.MenuStatus || item.MenuStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
+                  (item.MenuStatus === 'pending' || item.MenuStatus === 'cooking') ? 'กำลังทำอาหาร' :
+                      item.MenuStatus === 'cancelled' ? 'ถูกยกเลิก' :
+                        item.MenuStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
                 </span>
               </div>
             </div>
             <div class="text-right flex flex-col items-end gap-1">
-              <template v-if="item.OrderStatus === 'cancelled'">
+              <template v-if="item.MenuStatus === 'cancelled'">
                 <span class="text-sm font-black text-gray-800">฿0</span>
                 <span class="text-[10px] text-gray-400 line-through">฿{{ statusStore.formatPrice(item.Price * item.Quantity)}}</span>
               </template>
               <template v-else>
                 <span class="text-sm font-black text-gray-800">฿{{ statusStore.formatPrice(item.Price * item.Quantity) }}</span>
               </template>
-              <button v-if="item.OrderStatus === 'dispatched'" @click="statusStore.markItemAsReceived(order.id, item.cartItemId, i, router)"
+              <button v-if="item.MenuStatus === 'dispatched'" @click="statusStore.markItemAsReceived(order.id, item.cartItemId, i, router)"
                 class="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none shadow-sm animate-pulse">
                 ยืนยันรับอาหาร
               </button>
@@ -270,7 +270,7 @@ onMounted(() => {
         <div class="p-4 bg-white/60 border-t border-white flex justify-between items-center">
           <span class="text-xs font-bold text-gray-400 uppercase">ยอดรวมรายการนี้</span>
           <span class="text-lg font-black text-blue-600">
-            ฿{{statusStore.formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.OrderStatus === 'cancelled' ? 0 :
+            ฿{{statusStore.formatPrice((order.Menu || []).reduce((sum, item) => sum + (item.MenuStatus === 'cancelled' ? 0 :
               (item.Price *
             item.Quantity)), 0)) }}
           </span>
