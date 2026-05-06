@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { formatFullDateTime } from '@/utils/format';
 import { useRouter } from 'vue-router';
 
@@ -35,6 +35,19 @@ const handleRequestPermission = async () => {
   }
   alert(result.message);
 };
+
+// const registeredOrderIds = new Set();
+
+// watch(() => statusStore.roomOrders, async (newOrders) => {
+//   if (!newOrders || newOrders.length === 0) return;
+//   if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+//   const unregisteredIds = newOrders.map(o => o.id).filter(id => !registeredOrderIds.has(id));
+//   if (unregisteredIds.length > 0) {
+//     unregisteredIds.forEach(id => registeredOrderIds.add(id));
+//     await requestPermissionForOrders(unregisteredIds);
+//   }
+// }, { immediate: true, deep: true });
 
 onMounted(() => {
   statusStore.initUserSession(room.value);
