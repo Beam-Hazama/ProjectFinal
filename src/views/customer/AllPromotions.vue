@@ -1,6 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, onUnmounted } from 'vue';
-import { useNow } from '@/composables/useNow';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
 import MenuList from '@/components/shared/BlockMenu.vue';
@@ -8,34 +7,22 @@ import MenuList from '@/components/shared/BlockMenu.vue';
 const route = useRoute();
 const router = useRouter();
 const room = route.params.room || '-';
-const { menuStore, restaurantStore, cartStore } = useCustomerData(room);
+const { menuStore } = useCustomerData(room);
 
 const isLoading = ref(true);
-const { now } = useNow();
 
 const promotionMenus = computed(() => {
     return (menuStore.list || []).filter(item => {
         const hasPromo = item.PromoPrice && Number(item.PromoPrice) > 0;
-        const isMenuOpen = item.Status === 'open';
-        return hasPromo && isMenuOpen && !restaurantStore.isShopClosedByName(item.Restaurant, now.value);
+        const isMenuOpen = !item.Status || item.Status === 'open';
+        return hasPromo && isMenuOpen;
     });
 });
 
-onMounted(async () => {
-    isLoading.value = true;
-    try {
-        // Wait for stores to be ready if needed, or just proceed with UI delay
-        // Since useCustomerData handles the load calls, we just manage the loading state here
-        setTimeout(() => {
-            isLoading.value = false;
-        }, 500);
-    } catch (error) {
-        console.error("Error loading promotions data:", error);
+onMounted(() => {
+    setTimeout(() => {
         isLoading.value = false;
-    }
-});
-
-onUnmounted(() => {
+    }, 400);
 });
 
 const goBack = () => {
