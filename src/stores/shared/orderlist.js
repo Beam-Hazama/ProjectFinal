@@ -14,7 +14,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { db } from "@/firebase";
-import { sortOrdersByDate, deriveOrderStatus } from "@/utils/orderHelpers";
+import { sortOrdersByDate, getProgressStatus } from "@/utils/orderHelpers";
 
 export const useOrderlistStore = defineStore("orderlistStore", {
 
@@ -40,13 +40,13 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            if (item.Restaurant === restaurantName && item.MenuStatus !== 'cancelled') {
+            if ((item.RestaurantName || item.Restaurant) === restaurantName && item.MenuStatus !== 'cancelled') {
               return { ...item, MenuStatus: newStatus };
             }
             return item;
           });
 
-          const globalStatus = deriveOrderStatus(updatedMenu);
+          const globalStatus = getProgressStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -78,7 +78,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
             return item;
           });
 
-          const globalStatus = deriveOrderStatus(updatedMenu);
+          const globalStatus = getProgressStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -110,7 +110,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
             return item;
           });
 
-          const globalStatus = deriveOrderStatus(updatedMenu);
+          const globalStatus = getProgressStatus(updatedMenu);
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
@@ -172,7 +172,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       const twelveHoursAgo = Timestamp.fromMillis(Date.now() - (12 * 60 * 60 * 1000));
       this._listenTo(query(
         collection(db, "Order"),
-        where("Roomnumber", "==", room),
+        where("RoomNumber", "==", room),
         where("CreatedAt", ">=", twelveHoursAgo)
       ));
     },

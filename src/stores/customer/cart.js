@@ -101,7 +101,7 @@ export const useCartStore = defineStore("cart", {
           ImageUrl: menu.ImageUrl,
           Quantity: quantity,
           note: note,
-          Restaurant: menu.Restaurant,
+          RestaurantName: menu.RestaurantName || menu.Restaurant,
         });
       }
 
@@ -131,7 +131,7 @@ export const useCartStore = defineStore("cart", {
         const room = this.room;
         const totalPrice = this.totalPrice;
         const restaurants = [
-          ...new Set(cartItems.map((i) => i.Restaurant || "Unknown")),
+          ...new Set(cartItems.map((i) => i.RestaurantName || i.Restaurant || "Unknown")),
         ];
 
         // 1. Prepare Order Document & ID
@@ -140,7 +140,7 @@ export const useCartStore = defineStore("cart", {
 
         const orderData = {
           OrderNumber: finalOrderNumber,
-          Roomnumber: room,
+          RoomNumber: room,
           Menu: cartItems.map((i) => ({
             ...i,
             cartItemId: i.cartItemId || makeCartItemId(i.id),

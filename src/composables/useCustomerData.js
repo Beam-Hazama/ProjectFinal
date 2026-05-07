@@ -13,22 +13,26 @@ export const useCustomerData = (room) => {
   const cartStore = useCartStore();
   const categoryStore = useCategoryStore();
 
-  const loadData = () => {
+  const loadData = async () => {
+    const promises = [];
+    
     if (menuStore.list.length === 0) {
-      menuStore.loadMenu();
+      promises.push(menuStore.loadMenu());
     }
 
     if (restaurantStore.list.length === 0) {
-      restaurantStore.loadListRestaurant();
+      promises.push(restaurantStore.loadListRestaurant());
     }
 
     if (categoryStore.list.length === 0) {
-      categoryStore.fetchCategories();
+      promises.push(categoryStore.fetchCategories());
     }
 
     if (room) {
-      cartStore.loadCart(room);
+      promises.push(cartStore.loadCart(room));
     }
+
+    await Promise.all(promises);
   };
 
   // เรียกใช้อัตโนมัติเฉพาะตอนอยู่ใน setup lifecycle เท่านั้น เพื่อหลีกเลี่ยง error เมื่อเรียกหลัง async หรือใน watch

@@ -13,11 +13,11 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     const isLoading = ref(false);
 
     const MenuData = reactive({
-        Menu: '',
+        Name: '',
         ImageUrl: '',
         Price: '',
         PromoPrice: null,
-        Restaurant: '',
+        RestaurantName: '',
         Description: '',
         Category: '',
         Status: '',
@@ -25,7 +25,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     });
 
     const isFormValid = computed(() => {
-        return MenuData.Menu.trim() !== '' && 
+        return MenuData.Name.trim() !== '' && 
                MenuData.Price !== '' && 
                Number(MenuData.Price) > 0 &&
                MenuData.Category !== '' && 
@@ -52,11 +52,11 @@ export const useMenuFormStore = defineStore('menuForm', () => {
             }
         } else {
             Object.assign(MenuData, {
-                Menu: '',
+                Name: '',
                 ImageUrl: '',
                 Price: '',
                 PromoPrice: null,
-                Restaurant: accountStore.user?.Restaurant || '',
+                RestaurantName: accountStore.user?.RestaurantName || accountStore.user?.Restaurant || '',
                 Description: '',
                 Category: '',
                 Status: '',
@@ -100,10 +100,10 @@ export const useMenuFormStore = defineStore('menuForm', () => {
             }).filter(group => group.name !== '' && group.choices.length > 0);
 
             const saveData = {
-                Menu: MenuData.Menu,
+                Name: MenuData.Name,
                 ImageUrl: ImageUrl,
                 Price: Number(MenuData.Price),
-                Restaurant: MenuData.Restaurant,
+                RestaurantName: MenuData.RestaurantName,
                 Description: MenuData.Description,
                 Category: MenuData.Category,
                 Status: MenuData.Status,

@@ -4,7 +4,7 @@
       "collectionGroup": "Order",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "Roomnumber", "order": "ASCENDING" },
+        { "fieldPath": "RoomNumber", "order": "ASCENDING" },
         { "fieldPath": "CreatedAt", "order": "ASCENDING" }
       ]
     },

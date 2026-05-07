@@ -12,7 +12,7 @@ import { useQrcodeStore } from '@/stores/admin/qrcode';
 
 const route = useRoute();
 const router = useRouter();
-const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(route.params.room);
+const { menuStore, restaurantStore, cartStore, categoryStore, loadData } = useCustomerData(route.params.room);
 const room = computed(() => cartStore.room);
 const qrStore = useQrcodeStore();
 const isValidLocation = ref(false);
@@ -58,39 +58,9 @@ const promotionMenus = computed(() => {
 
 const activeCategories = computed(() => categoryStore.list || []);
 
-onMounted(async () => {
-  if (route.params.room) {
-    cartStore.setRoom(route.params.room);
-  }
-  await loadAllData();
+onMounted(() => {
   startCarousel();
 });
-
-const loadAllData = async () => {
-  try {
-    isLoading.value = true;
-    isError.value = false;
-    errorMessage.value = '';
-    const isValid = await qrStore.validateRoom(room.value);
-    isValidLocation.value = isValid;
-    if (isValid) {
-      // Data loading is now handled by useCustomerData's onMounted, 
-      // but we still ensure it's loaded here for the validation flow.
-      await Promise.all([
-        restaurantStore.loadListRestaurant(),
-        menuStore.loadMenu(),
-        cartStore.loadCart(room.value),
-        categoryStore.fetchCategories()
-      ]);
-    }
-  } catch (error) {
-    console.error("Error loading user data:", error);
-    isError.value = true;
-    errorMessage.value = "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต";
-  } finally {
-    isLoading.value = false;
-  }
-};
 
 onUnmounted(() => {
   stopCarousel();
@@ -110,16 +80,27 @@ watch(() => route.params.room, async (newR) => {
     }
   }
   if (room.value !== '-' && room.value !== 'undefined') {
-    isLoading.value = true;
-    const isValid = await qrStore.validateRoom(room.value);
-    isValidLocation.value = isValid;
-    isLoading.value = false;
-
-    if (isValid) {
-      cartStore.loadCart(room.value);
+    try {
+      isLoading.value = true;
+      isError.value = false;
+      errorMessage.value = '';
+      
+      const isValid = await qrStore.validateRoom(room.value);
+      isValidLocation.value = isValid;
+      
+      if (isValid) {
+        await loadData();
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      isError.value = true;
+      errorMessage.value = "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต";
+    } finally {
+      isLoading.value = false;
     }
   } else {
     isValidLocation.value = false;
+    isLoading.value = false;
   }
 }, { immediate: true });
 

@@ -5,7 +5,7 @@ import { useAccountStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/shared/menu';
 import LayoutRestaurant from './RestaurantLayout.vue';
 import { formatTime, formatPrice, formatFullDateTime } from '@/utils/format';
-import { computeLocalStatus, getStatusColor } from '@/utils/orderHelpers';
+import { getCompletionStatus, getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -33,12 +33,12 @@ const restaurantOrders = computed(() => {
     if (!orderStore.sortedOrders) return [];
     return orderStore.sortedOrders.map(order => {
         let dIdx = 0;
-        const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant).map(item => ({
+        const myItems = (order.Menu || []).filter(item => (item.RestaurantName || item.Restaurant) === myRestaurant).map(item => ({
             ...item,
             uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
         }));
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-        const localStatus = computeLocalStatus(myItems);
+        const localStatus = getCompletionStatus(myItems);
         return {
             ...order,
             displayItems: myItems,
@@ -102,7 +102,7 @@ const saveChanges = async (order) => {
         let menuIndex = 0;
         for (const item of latestOrder.Menu || []) {
             const currentItemIndex = menuIndex++;
-            if (item.Restaurant !== myRestaurant) continue;
+            if ((item.RestaurantName || item.Restaurant) !== myRestaurant) continue;
 
             const itemKey = item.cartItemId || (item.id + '-' + dIdx++);
             const action = orderSelections[itemKey];
@@ -200,7 +200,7 @@ const deliverOrder = async (order) => {
                                 <div class="flex flex-col">
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room</span>
                                     <span class="font-bold text-slate-700 text-sm">
-                                        {{ order.Roomnumber || order.room || order.roomId }}
+                                        {{ order.RoomNumber }}
                                     </span>
                                 </div>
                             </div>

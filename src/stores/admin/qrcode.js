@@ -9,7 +9,7 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
     rooms: [],
     isModalOpen: false,
     selectedRoom: null,
-    roomForm: { Roomnumber: '' },
+    roomForm: { RoomNumber: '' },
     baseUrl: import.meta.env.VITE_QR_BASE_URL || window.location.origin,
     unsubscribe: null
   }),
@@ -35,11 +35,11 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
       });
     },
     openAddModal() {
-      this.roomForm = { Roomnumber: '' };
+      this.roomForm = { RoomNumber: '' };
       this.isModalOpen = true;
     },
     async addRoom() {
-      if (!this.roomForm.Roomnumber) {
+      if (!this.roomForm.RoomNumber) {
         alert('กรุณากรอกเลขห้อง');
         return;
       }
@@ -69,7 +69,7 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
       const roomCol = collection(db, 'Qrcode');
       const q = query(
         roomCol,
-        where('Roomnumber', '==', roomNumber)
+        where('RoomNumber', '==', roomNumber)
       );
 
       const snapshot = await getDocs(q);

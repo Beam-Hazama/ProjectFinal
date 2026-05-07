@@ -39,7 +39,7 @@ onMounted(() => {
               </thead>
               <tbody class="text-slate-600">
                 <tr v-for="room in qrStore.rooms" :key="room.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td class="py-4 font-bold text-indigo-600 ">{{ room.Roomnumber }}</td>
+                  <td class="py-4 font-bold text-indigo-600 ">{{ room.RoomNumber }}</td>
                   <td class="py-4 text-center text-sm">{{ formatTimestamp(room.CreatedAt) }}</td>
                   <td class="py-4 text-center">
                     <button @click="qrStore.printRoomQR(room)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50 gap-2">
@@ -68,7 +68,7 @@ onMounted(() => {
               <div class="space-y-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text">Room Number</span></label>
-                  <input v-model="qrStore.roomForm.Roomnumber" type="text" placeholder="เช่น 101, A5, 204"
+                  <input v-model="qrStore.roomForm.RoomNumber" type="text" placeholder="เช่น 101, A5, 204"
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
               </div>
@@ -76,7 +76,7 @@ onMounted(() => {
               <button @click="qrStore.isModalOpen = false" class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">
                 Cancel
               </button>
-              <button @click="qrStore.addRoom" :disabled="!qrStore.roomForm.Roomnumber" class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
+              <button @click="qrStore.addRoom" :disabled="!qrStore.roomForm.RoomNumber" class="btn bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
                 Save
               </button>
             </div>
@@ -86,9 +86,9 @@ onMounted(() => {
       <div v-if="qrStore.selectedRoom" class="print-container">
         <div class="qr-print-card">
           <div class="qr-border">
-            <qrcode-vue :value="`${qrStore.baseUrl}/user/${qrStore.selectedRoom.Roomnumber}`" :size="420" level="H" render-as="svg" />
+            <qrcode-vue :value="`${qrStore.baseUrl}/user/${qrStore.selectedRoom.RoomNumber}`" :size="420" level="H" render-as="svg" />
           </div>
-          <h1 class="room-title">ห้อง {{ qrStore.selectedRoom.Roomnumber }}</h1>
+          <h1 class="room-title">ห้อง {{ qrStore.selectedRoom.RoomNumber }}</h1>
           <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>
         </div>
       </div>

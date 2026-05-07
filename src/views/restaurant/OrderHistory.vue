@@ -4,7 +4,7 @@ import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useOrderlistStore } from '@/stores/shared/orderlist';
 import { useAccountStore } from '@/stores/auth';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
-import { computeLocalStatus, getStatusColor, sortOrdersByDate } from '@/utils/orderHelpers';
+import { getCompletionStatus, getStatusColor, sortOrdersByDate } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -31,13 +31,13 @@ const historyOrders = computed(() => {
 
     // 1. ดึงเฉพาะ items ของร้านนี้ + คำนวณสถานะรวม
     const mapped = orderStore.sortedOrders.map(order => {
-        const myItems = (order.Menu || []).filter(item => item.Restaurant === myRestaurant);
+        const myItems = (order.Menu || []).filter(item => (item.RestaurantName || item.Restaurant) === myRestaurant);
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         return {
             ...order,
             displayItems: myItems,
             displayTotal: myTotal,
-            localStatus: computeLocalStatus(myItems)
+            localStatus: getCompletionStatus(myItems)
         };
     });
 
@@ -88,7 +88,7 @@ const openModal = (order) => {
                                     #{{ order.OrderNumber }}
                                 </td>
                                 <td class="text-center font-medium text-slate-700">
-                                    <span class="font-bold">{{ order.Roomnumber || order.room }}</span>
+                                    <span class="font-bold">{{ order.RoomNumber }}</span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.localStatus)">
@@ -133,12 +133,7 @@ const openModal = (order) => {
                     </h3>
                     <div v-if="selectedOrder" class="space-y-4">
                         <div class="flex justify-between items-center text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span v-if="selectedOrder.room" class="flex gap-2">
-                                <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.Roomnumber || selectedOrder.room }}</span></span>
-                            </span>
-                            <span v-else>
-                                Room: {{ selectedOrder.roomId }}
-                            </span>
+                            <span>Room: <span class="font-bold text-slate-700">{{ selectedOrder.RoomNumber }}</span></span>
                             <span>Date: {{ formatTimestamp(selectedOrder.CreatedAt) }}</span>
                         </div>
                         <div class="overflow-x-auto">
@@ -155,7 +150,7 @@ const openModal = (order) => {
                                     <tr v-for="(item, index) in selectedOrder.displayItems" :key="index" class="border-b border-slate-100 last:border-none">
                                         <td>
                                             <div class="font-bold text-slate-700">{{ item.Name }}</div>
-                                            <div class="text-xs text-slate-400">{{ item.Restaurant }}</div>
+                                            <div class="text-xs text-slate-400">{{ item.RestaurantName || item.Restaurant }}</div>
                                             <div v-if="item.note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ item.note }}</div>
                                         </td>
                                         <td class="text-center font-medium">{{ item.quantity || item.Quantity || 1 }}
@@ -194,3 +189,4 @@ const openModal = (order) => {
         </div>
     </LayoutRestaurant>
 </template>
+

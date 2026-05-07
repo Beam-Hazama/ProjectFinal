@@ -1,9 +1,11 @@
 /**
- * Computes the aggregate status of an order based on the MenuStatus of its items.
- * @param {Array} items - List of menu items in the order
- * @returns {string} - The aggregate status ('pending', 'cooking', 'dispatched', 'completed', 'cancelled')
+ * คำนวณสถานะรวมของรายการอาหารในร้านค้านั้นๆ เพื่อใช้สำหรับแสดงผลบน UI ฝั่งร้านอาหาร (มองในแง่ ความสำเร็จ/เสร็จสิ้น)
+ * ใช้เมื่อต้องการสรุปสถานะรายการอาหารเพื่อแสดง badge สีสันต่างๆ บนหน้าเว็บฝั่งร้านค้า
+ * 
+ * @param {Array} items - รายการอาหารในออเดอร์
+ * @returns {string} - สถานะรวมสำหรับแสดงผล ('pending', 'cooking', 'dispatched', 'completed', 'cancelled')
  */
-export const computeLocalStatus = (items) => {
+export const getCompletionStatus = (items) => {
     if (!items || items.length === 0) return 'pending';
 
     // All items cancelled -> Order cancelled
@@ -59,7 +61,7 @@ export const filterRecentOrders = (orders, room, hours = 12) => {
     if (!orders) return [];
     const cutoff = Math.floor(Date.now() / 1000) - (hours * 60 * 60);
     return orders.filter(o => {
-        const isOwner = o.Roomnumber === room;
+        const isOwner = o.RoomNumber === room;
         if (!isOwner) return false;
 
         // Filter by time (handle pending server timestamps by using current time as fallback)
@@ -85,13 +87,14 @@ export const sortOrdersByDate = (orders, direction = 'desc') => {
 };
 
 /**
- * Derive the global order status from all menu items' statuses.
- * ใช้กฎ "items ที่คืบหน้าน้อยที่สุดกำหนดสถานะรวม" — ถ้ายังมี item ที่ pending อยู่ ออเดอร์ก็ pending
- * (ต่างจาก computeLocalStatus ที่มอง "ความสำเร็จ" ส่วน deriveOrderStatus มอง "ความคืบหน้า")
- * @param {Array} items - Menu items
+ * คำนวณสถานะรวมของทั้งออเดอร์เพื่ออัปเดตและบันทึกลง Firestore (มองในแง่ ความคืบหน้าต่ำสุด)
+ * ใช้ใน store ออเดอร์หลักเพื่อคอยติดตามความก้าวหน้าของทุกสินค้าในออเดอร์
+ * ใช้กฎ "รายการอาหารที่คืบหน้าน้อยที่สุดกำหนดสถานะรวม" — เช่น ถ้ายังมีอาหารค้างอยู่ที่ pending ออเดอร์นั้นก็จะค้างที่ pending
+ * 
+ * @param {Array} items - รายการอาหารในออเดอร์
  * @returns {string} - 'pending' | 'cooking' | 'dispatched' | 'completed' | 'cancelled'
  */
-export const deriveOrderStatus = (items) => {
+export const getProgressStatus = (items) => {
     if (!items?.length) return 'pending';
 
     // ถ้าทุก item ถูกยกเลิก → ออเดอร์ถูกยกเลิก
