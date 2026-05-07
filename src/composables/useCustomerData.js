@@ -1,4 +1,4 @@
-import { onMounted } from "vue";
+import { onMounted, getCurrentInstance } from "vue";
 import { useMenuStore } from "@/stores/shared/menu";
 import { useRestaurant } from "@/stores/shared/restaurant";
 import { useCartStore } from "@/stores/customer/cart";
@@ -13,7 +13,7 @@ export const useCustomerData = (room) => {
   const cartStore = useCartStore();
   const categoryStore = useCategoryStore();
 
-  onMounted(() => {
+  const loadData = () => {
     if (menuStore.list.length === 0) {
       menuStore.loadMenu();
     }
@@ -29,12 +29,21 @@ export const useCustomerData = (room) => {
     if (room) {
       cartStore.loadCart(room);
     }
-  });
+  };
+
+  // เรียกใช้อัตโนมัติเฉพาะตอนอยู่ใน setup lifecycle เท่านั้น เพื่อหลีกเลี่ยง error เมื่อเรียกหลัง async หรือใน watch
+  if (getCurrentInstance()) {
+    onMounted(() => {
+      loadData();
+    });
+  }
 
   return {
     menuStore,
     restaurantStore,
     cartStore,
     categoryStore,
+    loadData
   };
 };
+

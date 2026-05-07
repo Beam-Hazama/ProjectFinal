@@ -1,57 +1,63 @@
 import { defineStore } from "pinia";
 import { db } from "@/firebase";
-import { collection, doc, setDoc, serverTimestamp, runTransaction } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  setDoc,
+  serverTimestamp,
+  runTransaction,
+} from "firebase/firestore";
 
-const makeCartItemId = (id) => `${id}-${Math.random().toString(36).substr(2, 9)}`;
+const makeCartItemId = (id) =>
+  `${id}-${Math.random().toString(36).substr(2, 9)}`;
 
 export const useCartStore = defineStore("cart", {
-
   state: () => ({
     item: [],
     room: (() => {
-      const saved = localStorage.getItem('lastRoom');
-      return (saved && saved !== 'undefined') ? saved : '-';
+      const saved = localStorage.getItem("lastRoom");
+      return saved && saved !== "undefined" ? saved : "-";
     })(),
   }),
 
   getters: {
-    
     getItemById: (state) => {
-      return (menuId) => state.item.find(i => i.id === menuId) || null;
+      return (menuId) => state.item.find((i) => i.id === menuId) || null;
     },
 
-    
     totalQuantity(state) {
       return state.item.reduce((acc, item) => acc + item.Quantity, 0);
     },
 
-
     totalPrice(state) {
-      return state.item.reduce((acc, item) => acc + (item.Price * item.Quantity), 0);
+      return state.item.reduce(
+        (acc, item) => acc + item.Price * item.Quantity,
+        0,
+      );
     },
   },
 
   actions: {
     setRoom(roomNumber) {
-      if (roomNumber && roomNumber !== '-' && roomNumber !== 'undefined') {
+      if (roomNumber && roomNumber !== "-" && roomNumber !== "undefined") {
         this.room = roomNumber;
-        localStorage.setItem('lastRoom', roomNumber);
+        localStorage.setItem("lastRoom", roomNumber);
       }
     },
-    
+
     loadCart(room) {
       this.room = room;
-      
+
       const storageKey = `cart-data-${room}`;
       const previousCart = localStorage.getItem(storageKey);
-      
+
       if (previousCart) {
         try {
           const parsed = JSON.parse(previousCart);
-          
-          this.item = parsed.map(i => ({
+
+          this.item = parsed.map((i) => ({
             ...i,
-            cartItemId: i.cartItemId || makeCartItemId(i.id)
+            cartItemId: i.cartItemId || makeCartItemId(i.id),
           }));
         } catch (e) {
           console.error("Cart parse error:", e);
@@ -60,11 +66,8 @@ export const useCartStore = defineStore("cart", {
       } else {
         this.item = [];
       }
-
-
     },
 
-    
     saveToStorage() {
       if (this.room) {
         const storageKey = `cart-data-${this.room}`;
@@ -76,13 +79,13 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    
     addOrUpdateItem(menu, quantity, note, unitPrice) {
       const priceToUse = unitPrice !== undefined ? unitPrice : menu.Price;
-      const existingItem = this.item.find(i => 
-        i.id === (menu.menuId || menu.id) && 
-        i.note === note && 
-        i.Price === priceToUse
+      const existingItem = this.item.find(
+        (i) =>
+          i.id === (menu.menuId || menu.id) &&
+          i.note === note &&
+          i.Price === priceToUse,
       );
 
       if (existingItem) {
@@ -98,20 +101,18 @@ export const useCartStore = defineStore("cart", {
           ImageUrl: menu.ImageUrl,
           Quantity: quantity,
           note: note,
-          Restaurant: menu.Restaurant
+          Restaurant: menu.Restaurant,
         });
       }
 
       this.saveToStorage();
     },
 
-    
     removeItemInCart(index) {
       this.item.splice(index, 1);
       this.saveToStorage();
     },
 
-    
     updateQuantity(index, increment) {
       if (this.item[index]) {
         const newQuantity = this.item[index].Quantity + increment;
@@ -124,31 +125,32 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    
     async placeOrder() {
       try {
         const cartItems = [...this.item];
         const room = this.room;
         const totalPrice = this.totalPrice;
-        const restaurants = [...new Set(cartItems.map(i => i.Restaurant || 'Unknown'))];
+        const restaurants = [
+          ...new Set(cartItems.map((i) => i.Restaurant || "Unknown")),
+        ];
 
         // 1. Prepare Order Document & ID
-        const orderRef = doc(collection(db, 'Order'));
+        const orderRef = doc(collection(db, "Order"));
         const finalOrderNumber = orderRef.id.slice(0, 8).toUpperCase();
 
         const orderData = {
           OrderNumber: finalOrderNumber,
           Roomnumber: room,
-          Menu: cartItems.map(i => ({
+          Menu: cartItems.map((i) => ({
             ...i,
             cartItemId: i.cartItemId || makeCartItemId(i.id),
             id: i.menuId || i.id,
-            MenuStatus: 'waiting'
+            MenuStatus: "waiting",
           })),
           TotalPrice: totalPrice,
-          OrderStatus: 'pending',
+          OrderStatus: "pending",
           CreatedAt: serverTimestamp(),
-          RestaurantsInOrder: restaurants
+          RestaurantsInOrder: restaurants,
         };
 
         // 2. Save Document to Firestore
@@ -164,11 +166,9 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    
     clearCart() {
       this.item = [];
       this.saveToStorage();
-    }
-  }
+    },
+  },
 });
-
