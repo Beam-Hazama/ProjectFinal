@@ -13,7 +13,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     const isLoading = ref(false);
 
     const MenuData = reactive({
-        Name: '',
+        Menu: '',
         ImageUrl: '',
         Price: '',
         PromoPrice: null,
@@ -25,7 +25,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     });
 
     const isFormValid = computed(() => {
-        return MenuData.Name.trim() !== '' && 
+        return MenuData.Menu.trim() !== '' && 
                MenuData.Price !== '' && 
                Number(MenuData.Price) > 0 &&
                MenuData.Category !== '' && 
@@ -52,7 +52,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
             }
         } else {
             Object.assign(MenuData, {
-                Name: '',
+                Menu: '',
                 ImageUrl: '',
                 Price: '',
                 PromoPrice: null,
@@ -94,13 +94,13 @@ export const useMenuFormStore = defineStore('menuForm', () => {
                     isRequired: group.isRequired !== false,
                     maxChoices: group.maxChoices ? Number(group.maxChoices) : 1,
                     choices: group.choices
-                        .filter(c => c.name.trim() !== '')
-                        .map(c => ({ name: c.name.trim(), price: Number(c.price) || 0 }))
+                        .filter(c => (c.ChoiceName || c.name || '').trim() !== '')
+                        .map(c => ({ ChoiceName: (c.ChoiceName || c.name).trim(), price: Number(c.price) || 0 }))
                 };
             }).filter(group => group.name !== '' && group.choices.length > 0);
 
             const saveData = {
-                Name: MenuData.Name,
+                Menu: MenuData.Menu,
                 ImageUrl: ImageUrl,
                 Price: Number(MenuData.Price),
                 Restaurant: MenuData.Restaurant,
@@ -137,7 +137,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
             name: '',
             isRequired: true,
             maxChoices: 1,
-            choices: [{ name: '', price: 0 }]
+            choices: [{ ChoiceName: '', price: 0 }]
         });
     };
 
@@ -146,7 +146,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     };
 
     const addChoice = (groupIndex) => {
-        MenuData.OptionGroups[groupIndex].choices.push({ name: '', price: 0 });
+        MenuData.OptionGroups[groupIndex].choices.push({ ChoiceName: '', price: 0 });
     };
 
     const removeChoice = (groupIndex, choiceIndex) => {

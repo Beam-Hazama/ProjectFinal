@@ -121,7 +121,7 @@ const onlyNumber = (e) => {
                                             <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร</span>
                                         </label>
                                         <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
-                                            v-model="MenuData.Name" />
+                                            v-model="MenuData.Menu" />
                                     </div>
                                     <div class="form-control md:col-span-2">
                                         <label class="label">
@@ -167,7 +167,7 @@ const onlyNumber = (e) => {
                                         <select class="select select-bordered w-full focus:select-primary bg-slate-50 border-slate-200"
                                             v-model="MenuData.Category">
                                             <option disabled value="">เลือกหมวดหมู่</option>
-                                            <option v-for="cat in categoryStore.list" :key="cat.id" :value="cat.Name">{{ cat.Name }}</option>
+                                            <option v-for="cat in categoryStore.list" :key="cat.id" :value="cat.Category">{{ cat.Category }}</option>
                                         </select>
                                     </div>
                                     <div class="form-control md:col-span-2">
@@ -243,7 +243,7 @@ const onlyNumber = (e) => {
                                                 <div v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex" class="flex items-start gap-4">
                                                     <div class="form-control flex-1">
                                                         <input type="text" class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10"
-                                                            v-model="choice.name" />
+                                                            v-model="choice.ChoiceName" />
                                                     </div>
                                                     <div class="form-control w-32">
                                                         <div class="relative">

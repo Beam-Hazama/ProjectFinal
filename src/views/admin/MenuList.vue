@@ -48,11 +48,11 @@ onUnmounted(() => {
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" :alt="menu.Name" />
+                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" :alt="menu.Menu" />
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-indigo-600">{{ menu.Name }}</div>
+                      <div class="font-bold text-indigo-600">{{ menu.Menu }}</div>
                     </div>
                   </div>
                 </td>                

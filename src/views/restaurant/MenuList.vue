@@ -94,7 +94,7 @@ const deleteMenu = async (id) => {
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-slate-800">{{ menu.Name }}</div>
+                      <div class="font-bold text-slate-800">{{ menu.Menu }}</div>
                     </div>
                   </div>
                 </td>

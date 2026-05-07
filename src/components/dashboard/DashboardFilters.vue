@@ -57,26 +57,7 @@ defineProps({
           </ul>
         </div>
       </div>
-      <div v-if="dashboardStore.availableCategories && dashboardStore.availableCategories.length > 0" class="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
-        <div class="dropdown w-full lg:w-auto">
-          <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[140px] h-[32px] min-h-[32px] px-3">
-            <span v-if="dashboardStore.menuCategoryFilters.length === 0">ทุกหมวดหมู่</span>
-            <span v-else class="text-indigo-600">หมวดหมู่: {{ dashboardStore.menuCategoryFilters.length }}</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-          </label>
-          <ul tabindex="0" class="dropdown-content z-[10] menu p-2 shadow-xl border border-slate-100 bg-base-100 rounded-box w-60 max-h-[50vh] overflow-y-auto mt-2 flex-nowrap">
-            <li class="sticky top-0 bg-base-100 z-10 border-b border-slate-100 pb-1 mb-1">
-              <a @click="dashboardStore.clearCategoryFilters()" class="text-rose-500 font-medium justify-center py-2" :class="{ 'opacity-50 pointer-events-none': dashboardStore.menuCategoryFilters.length === 0 }">ล้างหมวดหมู่</a>
-            </li>
-            <li v-for="cat in dashboardStore.availableCategories" :key="cat">
-              <label class="label cursor-pointer flex justify-start gap-3 py-2">
-                <input type="checkbox" :checked="dashboardStore.menuCategoryFilters.includes(cat)" @change="dashboardStore.toggleCategoryFilter(cat)" class="checkbox checkbox-sm checkbox-primary rounded-full border-indigo-600" />
-                <span class="label-text whitespace-normal font-medium leading-tight text-slate-600">{{ cat }}</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-      </div>
+
       <div v-if="dashboardStore.availableMenus && dashboardStore.availableMenus.length > 0" class="flex flex-col lg:flex-row gap-2 w-full lg:w-auto">
         <div class="dropdown w-full lg:w-auto">
           <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[140px] h-[32px] min-h-[32px] px-3">

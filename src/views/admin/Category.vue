@@ -142,7 +142,7 @@ const onDragEnd = async () => {
                                         </div>
                                     </td>
                                     <td class="py-4 text-center font-bold text-indigo-600">
-                                        {{ category.Name }}
+                                        {{ category.Category }}
                                     </td>
                                     <td class="py-4 text-center text-sm">
                                         {{ formatTimestamp(category.CreatedAt) }}

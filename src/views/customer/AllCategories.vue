@@ -42,13 +42,13 @@ const goToCategory = (catName) => {
         </div>
         <div class="flex-1 px-4 pt-6">
             <div v-if="activeCategories.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-4 animate-fade-in">
-                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.Name)" class="flex flex-col items-center cursor-pointer group">
+                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.Category)" class="flex flex-col items-center cursor-pointer group">
                     <div class="w-full aspect-square rounded-2xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden relative group-hover:shadow-md transition-all duration-300">
-                        <img :src="cat.ImageUrl" :alt="cat.Name" class="w-full h-full object-cover rounded-xl" />
+                        <img :src="cat.ImageUrl" :alt="cat.Category" class="w-full h-full object-cover rounded-xl" />
                         <div class="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors"></div>
                     </div>
                     <span class="mt-2 text-[11px] font-bold text-gray-700 text-center leading-tight group-hover:text-blue-600 transition-colors">
-                        {{ cat.Name }}
+                        {{ cat.Category }}
                     </span>
                 </div>
             </div>

@@ -244,16 +244,16 @@ const applyFilters = () => {
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in activeCategories" :key="cat.id" @click="router.push(`/user/category/${cat.Name}/${room}`)"
+        <div v-for="cat in activeCategories" :key="cat.id" @click="router.push(`/user/category/${cat.Category}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
-            <img :src="cat.ImageUrl" :alt="cat.Name" class="w-full h-full object-cover" />
+            <img :src="cat.ImageUrl" :alt="cat.Category" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
           </div>
           <span
             class="mt-2.5 text-[13px] font-bold text-gray-800 leading-tight group-hover:text-blue-600 px-1 text-center">
-            {{ cat.Name }}
+            {{ cat.Category }}
           </span>
         </div>
       </div>
@@ -274,7 +274,7 @@ const applyFilters = () => {
           <div class="p-2.5">
             <div class="flex justify-between items-start">
               <div class="flex flex-col min-w-0 pr-2">
-                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.Name }}</h4>
+                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.Menu }}</h4>
                 <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">
@@ -337,14 +337,14 @@ const applyFilters = () => {
                   ]">
                     ทั้งหมด
                   </button>
-                  <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.Name)"
+                  <button v-for="cat in activeCategories" :key="'sheet-' + cat.id" @click="toggleCategory(cat.Category)"
                     :class="[
                       'px-5 py-2.5 rounded-xl border text-[13px] font-bold transition-all duration-200',
-                      selectedRestaurantCategories.includes(cat.Name)
+                      selectedRestaurantCategories.includes(cat.Category)
                         ? 'bg-blue-50 border-blue-500 text-blue-600 font-black'
                         : 'bg-white border-gray-200 text-gray-500 hover:border-blue-200'
                     ]">
-                    {{ cat.Name }}
+                    {{ cat.Category }}
                   </button>
                 </div>
               </div>

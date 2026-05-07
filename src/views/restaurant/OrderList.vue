@@ -4,7 +4,7 @@ import { useOrderlistStore } from '@/stores/shared/orderlist';
 import { useAccountStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/shared/menu';
 import LayoutRestaurant from './RestaurantLayout.vue';
-import { formatTime, formatPrice } from '@/utils/format';
+import { formatTime, formatPrice, formatFullDateTime } from '@/utils/format';
 import { computeLocalStatus, getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
@@ -200,14 +200,14 @@ const deliverOrder = async (order) => {
                                 <div class="flex flex-col">
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room</span>
                                     <span class="font-bold text-slate-700 text-sm">
-                                        {{ order.Roomnumber || order.room || order.roomId || 'N/A' }}
+                                        {{ order.Roomnumber || order.room || order.roomId }}
                                     </span>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date & Time</div>
                                 <span class="text-xs font-semibold text-slate-600">
-                                    {{ formatTime(order.CreatedAt) }}
+                                    {{ formatFullDateTime(order.CreatedAt) }}
                                 </span>
                             </div>
                         </div>
@@ -226,11 +226,11 @@ const deliverOrder = async (order) => {
                                             @change="toggleSelection(order.id, item.uniqueKey, 'cancel')" />
                                     </label>
                                 </div>
-                                <div class="flex gap-3 flex-grow">
+                                <div class="flex gap-3 flex-grow min-w-0">
                                     <div class="w-12 h-12 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
                                         <img :src="item.ImageUrl || 'https://placehold.co/150'" class="w-full h-full object-cover">
                                     </div>
-                                    <div class="flex-grow">
+                                    <div class="flex-grow min-w-0">
                                         <div class="flex justify-between items-start">
                                             <span class="font-bold text-slate-700 text-sm line-clamp-2" :class="{
                                                 'text-emerald-600': getSelectionType(order.id, item.uniqueKey) === 'advance',
@@ -240,8 +240,8 @@ const deliverOrder = async (order) => {
                                                 item.Quantity
                                             }}</span>
                                         </div>
-                                        <p v-if="item.note" class="text-xs text-amber-500 mt-1 bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-100 whitespace-pre-wrap break-words">
-                                            Note: {{ item.note }}
+                                        <p v-if="item.note" class="text-xs text-amber-500 mt-1 bg-amber-50 block w-full px-2 py-1 rounded-md border border-amber-100 whitespace-pre-wrap break-all">
+                                            {{ item.note }}
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">
                                             <div v-if="item.MenuStatus && item.MenuStatus !== 'waiting'"

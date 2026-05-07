@@ -47,7 +47,7 @@ export const useCategoryStore = defineStore("category", {
           return {
             id: doc.id,
             ...data,
-            Name: data.Name,
+            Category: data.Category,
             Restaurant: data.Restaurant,
             ImageUrl: data.ImageUrl,
             CreatedAt: data.CreatedAt,
@@ -89,7 +89,7 @@ export const useCategoryStore = defineStore("category", {
         return {
           id: doc.id,
           ...data,
-          Name: data.Name,
+          Category: data.Category,
           Restaurant: data.Restaurant,
           ImageUrl: data.ImageUrl,
           CreatedAt: data.CreatedAt,
@@ -134,7 +134,7 @@ export const useCategoryStore = defineStore("category", {
         }
 
         await addDoc(collection(db, "Category"), {
-          Name: name.trim(),
+          Category: name.trim(),
           ImageUrl: ImageUrl,
           Position: this.list.length,
           CreatedAt: serverTimestamp(),

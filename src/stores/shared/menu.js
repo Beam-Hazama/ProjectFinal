@@ -26,7 +26,7 @@ export const useMenuStore = defineStore('menu', {
   getters: {
     getMenuNameById: (state) => (id) => {
       const menu = state.list.find(m => m.id === id);
-      return menu ? menu.Name : 'เมนู (ไม่ทราบชื่อ)';
+      return menu ? menu.Menu : 'เมนู (ไม่ทราบชื่อ)';
     }
   },
 
