@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } fr
 import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
 import { uploadImage } from '@/utils/upload';
+import { cleanupBlobUrl } from '@/composables/useImagePreview';
 import { DAYS_OF_WEEK } from '@/utils/constants';
 
 export const useProfileStore = defineStore('restaurantProfile', () => {
@@ -111,12 +112,8 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     };
 
     const cancelEdit = () => {
-        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-            URL.revokeObjectURL(imagePreview.value);
-        }
-        if (backgroundPreview.value && backgroundPreview.value.startsWith('blob:')) {
-            URL.revokeObjectURL(backgroundPreview.value);
-        }
+        cleanupBlobUrl(imagePreview.value);
+        cleanupBlobUrl(backgroundPreview.value);
         selectedFile.value = null;
         selectedBgFile.value = null;
         fetchRestaurantByName();
@@ -126,9 +123,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     const onImageSelected = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePreview.value);
-            }
+            cleanupBlobUrl(imagePreview.value);
             selectedFile.value = file;
             imagePreview.value = URL.createObjectURL(file);
         }
@@ -137,9 +132,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     const onCoverSelected = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (backgroundPreview.value && backgroundPreview.value.startsWith('blob:')) {
-                URL.revokeObjectURL(backgroundPreview.value);
-            }
+            cleanupBlobUrl(backgroundPreview.value);
             selectedBgFile.value = file;
             backgroundPreview.value = URL.createObjectURL(file);
         }

@@ -16,7 +16,7 @@ export const useAccountStore = defineStore('user-account', {
   }),
 
   actions: {
-    
+
     async checkAuthState() {
       const savedUid = sessionStorage.getItem('userId');
       if (!savedUid) return this.logout();

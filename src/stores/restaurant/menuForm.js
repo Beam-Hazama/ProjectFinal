@@ -4,6 +4,7 @@ import { addDoc, collection, doc, getDoc, updateDoc, serverTimestamp } from 'fir
 import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
 import { uploadImage } from '@/utils/upload';
+import { cleanupBlobUrl } from '@/composables/useImagePreview';
 
 export const useMenuFormStore = defineStore('menuForm', () => {
     const accountStore = useAccountStore();
@@ -34,9 +35,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     });
 
     const initForm = async (id = null) => {
-        if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-            URL.revokeObjectURL(imagePreview.value);
-        }
+        cleanupBlobUrl(imagePreview.value);
         await accountStore.checkAuthState();
         
         if (id) {
@@ -70,9 +69,7 @@ export const useMenuFormStore = defineStore('menuForm', () => {
     const onImageSelected = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (imagePreview.value && imagePreview.value.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePreview.value);
-            }
+            cleanupBlobUrl(imagePreview.value);
             selectedFile.value = file;
             const previewUrl = URL.createObjectURL(file);
             imagePreview.value = previewUrl;
