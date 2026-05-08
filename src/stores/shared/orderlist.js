@@ -40,7 +40,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map(item => {
-            if ((item.RestaurantName || item.Restaurant) === restaurantName && item.MenuStatus !== 'cancelled') {
+            if (item.RestaurantName === restaurantName && item.MenuStatus !== 'cancelled') {
               return { ...item, MenuStatus: newStatus };
             }
             return item;
@@ -169,12 +169,21 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     // โหลดออเดอร์ของห้องนี้ใน 12 ชม.ล่าสุด (ฝั่งลูกค้า)
     async loadOrderUser(room) {
       this.clearListener();
-      const twelveHoursAgo = Timestamp.fromMillis(Date.now() - (12 * 60 * 60 * 1000));
-      this._listenTo(query(
+      const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
+      const q = query(
         collection(db, "Order"),
-        where("RoomNumber", "==", room),
-        where("CreatedAt", ">=", twelveHoursAgo)
-      ));
+        where("RoomNumber", "==", room)
+      );
+      this.unsubscribe = onSnapshot(q, (snap) => {
+        this.list = snap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(order => {
+            if (!order.CreatedAt) return true;
+            // Convert Firestore Timestamp to milliseconds
+            const ms = order.CreatedAt.toMillis ? order.CreatedAt.toMillis() : order.CreatedAt;
+            return ms >= twelveHoursAgo;
+          });
+      });
     },
 
     // โหลดออเดอร์ที่กำลังดำเนินการอยู่ (ถ้ามี restaurantName ก็กรองเฉพาะของร้านนั้น)

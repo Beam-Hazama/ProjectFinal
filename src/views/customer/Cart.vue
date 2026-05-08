@@ -3,10 +3,12 @@ import { onMounted, computed, ref } from 'vue';
 import { formatPrice } from '@/utils/format';
 /* import { useRoute } from 'vue-router'; */
 import { useCartStore } from '@/stores/customer/cart';
+import { useMenuStore } from '@/stores/shared/menu';
 import ConfirmOrder from './ConfirmOrder.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
 const cartStore = useCartStore();
+const menuStore = useMenuStore();
 /* const route = useRoute(); */
 const confirmModal = ref(null);
 
@@ -18,6 +20,9 @@ const displayLocation = computed(() => {
 
 onMounted(() => {
   cartStore.loadCart(room.value);
+  if (menuStore.list.length === 0) {
+    menuStore.loadMenu();
+  }
 });
 
 const showConfirmModal = () => {
@@ -75,9 +80,10 @@ const closeConfirmModal = () => {
               <div>
                 <div class="flex justify-between items-start">
                   <div class="flex-grow min-w-0">
-                    <h3 class="font-bold text-slate-800 text-base leading-tight pr-2">{{ cart.Name }}</h3>
-                    <div v-if="cart.note" class="text-[11px] text-slate-400 font-normal mt-0.5 italic whitespace-pre-wrap break-words">
-                      {{ cart.note }}
+                    <h3 class="font-bold text-slate-800 text-base leading-tight pr-2">{{ cart.MenuName }}</h3>
+                    <p v-if="cart.RestaurantName || cart.Restaurant" class="text-[11px] text-slate-500 font-medium mt-0.5 truncate w-full">{{ cart.RestaurantName || cart.Restaurant }}</p>
+                    <div v-if="cart.Note" class="text-[11px] text-slate-400 font-normal mt-0.5 italic whitespace-pre-wrap break-words">
+                      {{ cart.Note }}
                     </div>
                   </div>
                   <div class="flex flex-col items-end flex-shrink-0">

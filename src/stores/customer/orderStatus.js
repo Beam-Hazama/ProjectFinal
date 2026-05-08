@@ -77,7 +77,7 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         let unavailableNames = [];
 
         for (const item of validItems) {
-            const menuId = item.menuId || item.id;
+            const menuId = item.MenuId;
             try {
                 const menuRef = doc(db, 'Menu', menuId);
                 const menuSnap = await getDoc(menuRef);
@@ -85,17 +85,17 @@ export const useUserStatusStore = defineStore('userStatus', () => {
                 if (menuSnap.exists()) {
                     const menuData = menuSnap.data();
                     if (menuData.Status === 'open') {
-                        cartStore.addOrUpdateItem(item, item.Quantity, item.note || '');
+                        cartStore.addOrUpdateItem(item, item.Quantity, item.Note || '');
                         addedCount++;
                     } else {
-                        unavailableNames.push(item.Name);
+                        unavailableNames.push(item.MenuName);
                     }
                 } else {
-                    unavailableNames.push(item.Name);
+                    unavailableNames.push(item.MenuName);
                 }
             } catch (err) {
                 console.error("Error checking menu availability:", err);
-                unavailableNames.push(item.Name);
+                unavailableNames.push(item.MenuName);
             }
         }
 
@@ -142,7 +142,6 @@ export const useUserStatusStore = defineStore('userStatus', () => {
         displayLocation,
         roomOrders,
         formatPrice,
-        getMenuName: menuStore.getMenuNameById,
         markItemAsReceived,
         reorder,
         getOrderProgress,

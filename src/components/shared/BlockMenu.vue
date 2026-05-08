@@ -61,7 +61,7 @@ const sortedMenus = computed(() => {
 
 <template>
   <section :class="layout === 'horizontal' ? 'flex flex-col gap-3 px-2 pb-4' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'">
-    <button v-for="(menu, index) in sortedMenus" :key="menu.id"
+    <button v-for="(menu, index) in sortedMenus" :key="menu.MenuId"
       :class="[(!isMenuAvailable(menu)) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:-translate-y-0.5', layout === 'horizontal' ? 'w-full flex text-left bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 relative overflow-hidden transition-all duration-300 h-[100px]' : 'flex flex-col text-left bg-white rounded-xl shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-300']"
       :disabled="!isMenuAvailable(menu)" @click="openModal(menu)">
       <template v-if="layout === 'horizontal'">
@@ -80,7 +80,7 @@ const sortedMenus = computed(() => {
           </div>
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
-          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.Menu }}</h3>
+          <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.MenuName }}</h3>
           <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex items-center gap-2">
@@ -112,7 +112,7 @@ const sortedMenus = computed(() => {
         </div>
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
           <div class="space-y-0.5">
-            <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ menu.Menu }}</h3>
+            <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ menu.MenuName }}</h3>
             <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
           </div>
           <div class="flex justify-between items-end mt-auto pt-3">

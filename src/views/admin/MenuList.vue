@@ -43,16 +43,16 @@ onUnmounted(() => {
               </tr>
             </thead>            
             <tbody class="text-slate-600">
-              <tr v-for="menu in menuStore.list" :key="menu.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">                
+              <tr v-for="menu in menuStore.list" :key="menu.MenuId" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">                
                 <td class="py-4 pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" :alt="menu.Menu" />
+                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" :alt="menu.MenuName" />
                       </div>
                     </div>
                     <div>
-                      <div class="font-bold text-indigo-600">{{ menu.Menu }}</div>
+                      <div class="font-bold text-indigo-600">{{ menu.MenuName }}</div>
                     </div>
                   </div>
                 </td>                
@@ -76,7 +76,7 @@ onUnmounted(() => {
                 <td class="py-4 text-center text-xs whitespace-nowrap"> {{ formatTimestamp(menu.CreatedAt) }} </td>                
                 <td class="py-4 text-center">
                   <div class="flex justify-center items-center">
-                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.id } }" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50 gap-2">
+                    <RouterLink :to="{ name: 'Admin menu detail', params: { id: menu.MenuId } }" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50 gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />

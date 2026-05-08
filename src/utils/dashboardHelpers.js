@@ -128,7 +128,7 @@ export const getTopMenuItems = (metricsMap, limit = 5) =>
 
 export const addMenuMetric = (map, menuId, item, itemRev) => {
     if (!map[menuId]) {
-        map[menuId] = { name: item.Name || 'ไม่ระบุชื่อเมนู', qty: 0, revenue: 0, image: item.ImageUrl };
+        map[menuId] = { name: item.MenuName, qty: 0, revenue: 0, image: item.ImageUrl };
     }
     map[menuId].qty += Number(item.Quantity || 1);
     map[menuId].revenue += itemRev;

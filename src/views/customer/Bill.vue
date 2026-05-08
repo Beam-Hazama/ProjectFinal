@@ -104,7 +104,7 @@ onMounted(async () => {
                                 x{{ item.Quantity }}
                             </div>
                             <div class="flex flex-col">
-                                <span class="font-bold text-slate-800 text-sm tracking-tight leading-tight">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId) }}</span>
+                                <span class="font-bold text-slate-800 text-sm tracking-tight leading-tight">{{ item.MenuName }}</span>
                                 <span class="text-[10px] text-slate-400 font-medium">฿{{ item.Price.toLocaleString() }} ต่อหน่วย</span>
                             </div>
                         </div>

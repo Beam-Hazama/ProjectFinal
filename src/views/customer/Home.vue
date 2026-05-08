@@ -246,7 +246,7 @@ const applyFilters = () => {
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
-        <div v-for="menu in promotionMenus" :key="menu.id" @click="openMenuModal(menu)"
+        <div v-for="menu in promotionMenus" :key="menu.MenuId" @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
             <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover w-full h-full"
@@ -255,7 +255,7 @@ const applyFilters = () => {
           <div class="p-2.5">
             <div class="flex justify-between items-start">
               <div class="flex flex-col min-w-0 pr-2">
-                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.Menu }}</h4>
+                <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.MenuName }}</h4>
                 <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">

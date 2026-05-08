@@ -51,6 +51,7 @@ const handleRequestPermission = async () => {
 
 onMounted(() => {
   statusStore.initUserSession(room.value);
+  menuStore.loadMenu();
 });
 </script>
 
@@ -234,11 +235,10 @@ onMounted(() => {
                 <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-md">x{{ item.Quantity
                 }}</span>
                 <div class="flex flex-col min-w-0 flex-1">
-                  <span class="text-sm font-bold text-gray-700 leading-tight">{{ item.Name || menuStore.getMenuNameById(item.id || item.menuId)
-                    }}</span>
-                  <span v-if="item.Restaurant" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{{
-                    item.Restaurant }}</span>
-                  <span v-if="item.note" class="text-xs text-gray-500 mt-0.5 whitespace-pre-wrap break-words">{{ item.note }}</span>
+                  <span class="text-sm font-bold text-gray-700 leading-tight">{{ item.MenuName }}</span>
+                  <span v-if="item.RestaurantName " class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{{
+                    item.RestaurantName}}</span>
+                  <span v-if="item.Note" class="text-xs text-gray-500 mt-0.5 whitespace-pre-wrap break-words">{{ item.Note }}</span>
                 </div>
               </div>
               <div class="mt-1.5 flex items-center gap-1.5">

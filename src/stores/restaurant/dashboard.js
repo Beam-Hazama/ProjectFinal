@@ -98,7 +98,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
       this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
-        this.allMenus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.allMenus = snapshot.docs.map(doc => ({ MenuId: doc.id, ...doc.data() }));
         this.totalMenus = this.allMenus.length;
         this.menusLoading = false;
         this.applyFilters();
@@ -137,7 +137,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
             if (item.Restaurant === this.currentRestaurant) {
                const isNotCancelled = item.MenuStatus !== 'cancelled';
               const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
-              const menuId = item.id || item.menuId;
+              const menuId = item.MenuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
               if (isNotCancelled && isRightCategory && isRightMenu) {
@@ -177,7 +177,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.buildCategoryStats(filteredMenus);
 
       this.availableCategories = extractUniqueCategories(this.allMenus);
-      this.availableMenus = filteredMenus.map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
+      this.availableMenus = filteredMenus.map(m => ({ MenuId: m.MenuId, Name: m.Name, Restaurant: m.Restaurant }));
 
       this.buildDailyRevenueChart(this.allOrders);
       this.buildPeakHoursChart(this.allOrders);

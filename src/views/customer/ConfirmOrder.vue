@@ -2,14 +2,12 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/customer/cart';
-import { useMenuStore } from '@/stores/shared/menu';
 
 const props = defineProps({
   room: String
 });
 const router = useRouter();
 const cartStore = useCartStore();
-const menuStore = useMenuStore();
 
 const emit = defineEmits(['close-modal']);
 
@@ -59,7 +57,7 @@ const editOrder = () => {
         <div v-for="(cart, index) in cartStore.item" :key="index" class="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all">
           <div class="flex items-center gap-4">
             <div>
-              <div class="font-bold text-slate-700 text-base leading-tight">{{ cart.Name || menuStore.getMenuNameById(cart.id || cart.menuId) }}</div>
+              <div class="font-bold text-slate-700 text-base leading-tight">{{ cart.MenuName }}</div>
               <p class="text-xs text-slate-400 font-medium mt-1">จำนวน: x{{ cart.Quantity }} (฿{{ cart.Price }})</p>
             </div>
           </div>

@@ -31,7 +31,7 @@ const historyOrders = computed(() => {
 
     // 1. ดึงเฉพาะ items ของร้านนี้ + คำนวณสถานะรวม
     const mapped = orderStore.sortedOrders.map(order => {
-        const myItems = (order.Menu || []).filter(item => (item.RestaurantName || item.Restaurant) === myRestaurant);
+        const myItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurant);
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         return {
             ...order,
@@ -149,9 +149,9 @@ const openModal = (order) => {
                                 <tbody>
                                     <tr v-for="(item, index) in selectedOrder.displayItems" :key="index" class="border-b border-slate-100 last:border-none">
                                         <td>
-                                            <div class="font-bold text-slate-700">{{ item.Name }}</div>
-                                            <div class="text-xs text-slate-400">{{ item.RestaurantName || item.Restaurant }}</div>
-                                            <div v-if="item.note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ item.note }}</div>
+                                            <div class="font-bold text-slate-700">{{ item.MenuName }}</div>
+                                            <div class="text-xs text-slate-400">{{ item.RestaurantName }}</div>
+                                            <div v-if="item.Note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ item.Note }}</div>
                                         </td>
                                         <td class="text-center font-medium">{{ item.quantity || item.Quantity || 1 }}
                                         </td>

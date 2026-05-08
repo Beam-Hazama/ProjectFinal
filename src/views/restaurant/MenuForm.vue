@@ -116,7 +116,7 @@ const onlyNumber = (e) => {
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                                     <div class="form-control md:col-span-2">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร</span></label>
-                                        <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Menu" />
+                                        <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.MenuName" />
                                     </div>
                                     <div class="form-control md:col-span-2">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาปกติ</span></label>

@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   runTransaction,
 } from "firebase/firestore";
+import { useMenuStore } from "@/stores/shared/menu";
 
 const makeCartItemId = (id) =>
   `${id}-${Math.random().toString(36).substr(2, 9)}`;
@@ -22,7 +23,7 @@ export const useCartStore = defineStore("cart", {
 
   getters: {
     getItemById: (state) => {
-      return (menuId) => state.item.find((i) => i.id === menuId) || null;
+      return (menuId) => state.item.find((i) => i.MenuId === menuId) || null;
     },
 
     totalQuantity(state) {
@@ -57,7 +58,7 @@ export const useCartStore = defineStore("cart", {
 
           this.item = parsed.map((i) => ({
             ...i,
-            cartItemId: i.cartItemId || makeCartItemId(i.id),
+            cartItemId: i.cartItemId || makeCartItemId(i.MenuId || i.id),
           }));
         } catch (e) {
           console.error("Cart parse error:", e);
@@ -79,29 +80,29 @@ export const useCartStore = defineStore("cart", {
       }
     },
 
-    addOrUpdateItem(menu, quantity, note, unitPrice) {
+    addOrUpdateItem(menu, quantity, Note, unitPrice) {
       const priceToUse = unitPrice !== undefined ? unitPrice : menu.Price;
       const existingItem = this.item.find(
         (i) =>
-          i.id === (menu.menuId || menu.id) &&
-          i.note === note &&
+          i.MenuId === menu.MenuId &&
+          i.Note === Note &&
           i.Price === priceToUse,
       );
 
       if (existingItem) {
         existingItem.Quantity += quantity;
       } else {
-        const id = menu.menuId || menu.id;
+        const id = menu.MenuId;
         this.item.push({
-          id: id,
-          Name: menu.Name,
+          MenuId: id,
+          MenuName: menu.MenuName,
           cartItemId: makeCartItemId(id),
           Price: priceToUse,
           basePrice: menu.Price,
           ImageUrl: menu.ImageUrl,
           Quantity: quantity,
-          note: note,
-          RestaurantName: menu.RestaurantName || menu.Restaurant,
+          Note: Note,
+          RestaurantName: menu.RestaurantName,
         });
       }
 
@@ -127,6 +128,7 @@ export const useCartStore = defineStore("cart", {
 
     async placeOrder() {
       try {
+        const menuStore = useMenuStore();
         const cartItems = [...this.item];
         const room = this.room;
         const totalPrice = this.totalPrice;
@@ -141,12 +143,15 @@ export const useCartStore = defineStore("cart", {
         const orderData = {
           OrderNumber: finalOrderNumber,
           RoomNumber: room,
-          Menu: cartItems.map((i) => ({
-            ...i,
-            cartItemId: i.cartItemId || makeCartItemId(i.id),
-            id: i.menuId || i.id,
-            MenuStatus: "waiting",
-          })),
+          Menu: cartItems.map((i) => {
+            const menuId = i.MenuId;
+            return {
+              ...i,
+              cartItemId: i.cartItemId || makeCartItemId(menuId),
+              MenuId: menuId,
+              MenuStatus: "waiting",
+            };
+          }),
           TotalPrice: totalPrice,
           OrderStatus: "pending",
           CreatedAt: serverTimestamp(),

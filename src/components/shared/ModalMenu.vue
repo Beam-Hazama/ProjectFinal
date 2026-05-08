@@ -19,7 +19,7 @@ const restaurantStore = useRestaurant();
 const statusStore = useUserStatusStore();
 
 const quantity = ref(1);
-const note = ref('');
+const Note = ref('');
 const selections = ref({});
 
 const { now } = useNow();
@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 const isShopClosed = computed(() => {
   if (!props.menu) return false;
-  const shop = restaurantStore.list.find(r => r.Name === props.menu.Restaurant);
+  const shop = restaurantStore.list.find(r => (r.RestaurantName) === props.menu.Restaurant);
   return checkShopClosed(shop, now.value);
 });
 
@@ -61,7 +61,7 @@ watch(
 
     // Always start with quantity 1 for new additions/re-opens
     quantity.value = 1;
-    note.value = '';
+    Note.value = '';
   },
   { immediate: true }
 );
@@ -101,7 +101,7 @@ const confirmAdd = () => {
   if (!isFormValid.value || !isAvailable.value) return;
 
   const optionsNote = buildOptionsNote(props.menu.OptionGroups, selections.value);
-  const userNote = note.value ? `หมายเหตุ: ${note.value}` : '';
+  const userNote = Note.value ? `หมายเหตุ: ${Note.value}` : '';
   const finalNote = [optionsNote, userNote].filter(Boolean).join('\n');
 
   const unitPrice = getBasePrice(props.menu) + calculateOptionPrice(props.menu.OptionGroups, selections.value);
@@ -134,7 +134,7 @@ const confirmAdd = () => {
           </div>
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
             <div class="flex justify-between items-center mb-2">
-              <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ menu.Menu }}</h2>
+              <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ menu.MenuName }}</h2>
               <div class="flex flex-col items-end">
                 <div v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="text-[18px] font-black text-red-500">
                   ฿{{ menu.PromoPrice }}
@@ -183,7 +183,7 @@ const confirmAdd = () => {
           </div>
           <div class="bg-white px-5 py-4 mt-2 mb-8 border-b border-gray-100">
             <h3 class="font-bold text-gray-800 text-[15px] mb-3">รายละเอียดเพิ่มเติม</h3>
-            <textarea v-model="note"
+            <textarea v-model="Note"
               class="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder:text-gray-400 resize-none h-20 shadow-[0_2px_10px_rgba(0,0,0,0.02)]" />
           </div>
         </div>

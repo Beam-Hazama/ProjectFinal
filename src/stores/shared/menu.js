@@ -11,7 +11,8 @@ import {
   addDoc,
   query, 
   where, 
-  deleteField 
+  deleteField,
+  or
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 
@@ -25,8 +26,8 @@ export const useMenuStore = defineStore('menu', {
 
   getters: {
     getMenuNameById: (state) => (id) => {
-      const menu = state.list.find(m => m.id === id);
-      return menu ? menu.Menu : 'เมนู (ไม่ทราบชื่อ)';
+      const menu = state.list.find(m => m.MenuId === id);
+      return menu ? menu.MenuName : '';
     }
   },
 
@@ -44,14 +45,19 @@ export const useMenuStore = defineStore('menu', {
       this.isLoading = true;
       
       const ref = restaurantName
-        ? query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName))
+        ? query(collection(db, 'Menu'), where('RestaurantName', '==', restaurantName))
         : collection(db, 'Menu');
       
       this.unsubscribe = onSnapshot(ref, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        this.list = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            MenuId: doc.id,
+            ...data,
+            MenuName: data.MenuName,
+            Restaurant: data.RestaurantName,
+          };
+        });
         this.isLoading = false;
       }, (error) => {
         console.error('Menu load error:', error);

@@ -69,9 +69,9 @@ defineProps({
             <li class="sticky top-0 bg-base-100 z-10 border-b border-slate-100 pb-1 mb-1">
               <a @click="dashboardStore.clearMenuFilters()" class="text-rose-500 font-medium justify-center py-2" :class="{ 'opacity-50 pointer-events-none': dashboardStore.menuFilters.length === 0 }">ล้างเมนู</a>
             </li>
-            <li v-for="menu in dashboardStore.availableMenus" :key="menu.id">
+            <li v-for="menu in dashboardStore.availableMenus" :key="menu.MenuId">
               <label class="label cursor-pointer flex justify-start gap-3 py-2">
-                <input type="checkbox" :checked="dashboardStore.menuFilters.includes(menu.id)" @change="dashboardStore.toggleMenuFilter(menu.id)" class="checkbox checkbox-sm checkbox-primary rounded-full border-indigo-600" />
+                <input type="checkbox" :checked="dashboardStore.menuFilters.includes(menu.MenuId)" @change="dashboardStore.toggleMenuFilter(menu.MenuId)" class="checkbox checkbox-sm checkbox-primary rounded-full border-indigo-600" />
                 <span class="label-text whitespace-normal font-medium leading-tight text-slate-600">{{ menu.Name }}</span>
               </label>
             </li>

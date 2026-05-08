@@ -40,7 +40,7 @@ function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = 
       
       let isRightMenu = true;
       if (menuFilters.length > 0) {
-        const menuId = item.id || item.menuId;
+        const menuId = item.MenuId;
         isRightMenu = menuFilters.includes(menuId);
       }
       
@@ -173,7 +173,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
             order.Menu.forEach(item => {
               const isRightRest = this.restaurantFilters.length === 0 || this.restaurantFilters.includes(item.Restaurant);
               const isRightCat = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
-              const menuId = item.id || item.menuId;
+              const menuId = item.MenuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
               if (item.MenuStatus !== 'cancelled' && isRightRest && isRightCat && isRightMenu) {
@@ -206,7 +206,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.availableMenus = this.allMenus
         .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.Restaurant))
         .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
-        .map(m => ({ id: m.id, Name: m.Name }));
+        .map(m => ({ MenuId: m.MenuId, Name: m.Name }));
 
       this.buildDailyRevenueChart(filteredOrders);
       this.buildPeakHoursChart(filteredOrders);
@@ -224,7 +224,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
 
       const menusQuery = query(collection(db, "Menu"));
       this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
-        this.allMenus = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.allMenus = snapshot.docs.map(doc => ({ MenuId: doc.id, ...doc.data() }));
         this.totalMenus = this.allMenus.length;
         this.menusLoading = false;
         this.applyFilters();

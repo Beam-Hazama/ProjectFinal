@@ -33,9 +33,9 @@ const restaurantOrders = computed(() => {
     if (!orderStore.sortedOrders) return [];
     return orderStore.sortedOrders.map(order => {
         let dIdx = 0;
-        const myItems = (order.Menu || []).filter(item => (item.RestaurantName || item.Restaurant) === myRestaurant).map(item => ({
+        const myItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurant).map(item => ({
             ...item,
-            uniqueKey: item.cartItemId || (item.id + '-' + dIdx++)
+            uniqueKey: item.cartItemId || (item.MenuId + '-' + dIdx++)
         }));
         const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         const localStatus = getCompletionStatus(myItems);
@@ -102,9 +102,9 @@ const saveChanges = async (order) => {
         let menuIndex = 0;
         for (const item of latestOrder.Menu || []) {
             const currentItemIndex = menuIndex++;
-            if ((item.RestaurantName || item.Restaurant) !== myRestaurant) continue;
+            if (item.RestaurantName !== myRestaurant) continue;
 
-            const itemKey = item.cartItemId || (item.id + '-' + dIdx++);
+            const itemKey = item.cartItemId || (item.MenuId + '-' + dIdx++);
             const action = orderSelections[itemKey];
             if (!action) continue;
 
@@ -115,8 +115,8 @@ const saveChanges = async (order) => {
                 }
             } else if (action === 'cancel') {
                 newStatus = 'cancelled';
-                if (item.id) {
-                    menusToClose.add(item.id);
+                if (item.MenuId) {
+                    menusToClose.add(item.MenuId);
                 }
             }
             if (newStatus !== item.MenuStatus) {
@@ -235,13 +235,13 @@ const deliverOrder = async (order) => {
                                             <span class="font-bold text-slate-700 text-sm line-clamp-2" :class="{
                                                 'text-emerald-600': getSelectionType(order.id, item.uniqueKey) === 'advance',
                                                 'text-red-500 line-through': getSelectionType(order.id, item.uniqueKey) === 'cancel',
-                                            }">{{ item.Name }}</span>
+                                            }">{{ item.MenuName }}</span>
                                             <span class="text-xs font-bold text-slate-500 whitespace-nowrap">x {{
                                                 item.Quantity
                                             }}</span>
                                         </div>
-                                        <p v-if="item.note" class="text-xs text-amber-500 mt-1 bg-amber-50 block w-full px-2 py-1 rounded-md border border-amber-100 whitespace-pre-wrap break-all">
-                                            {{ item.note }}
+                                        <p v-if="item.Note" class="text-xs text-amber-500 mt-1 bg-amber-50 block w-full px-2 py-1 rounded-md border border-amber-100 whitespace-pre-wrap break-all">
+                                            {{ item.Note }}
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">
                                             <div v-if="item.MenuStatus && item.MenuStatus !== 'waiting'"

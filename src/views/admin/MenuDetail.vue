@@ -12,7 +12,7 @@ const menuStore = useMenuStore();
 const imagePreview = ref('');
 
 const menuData = reactive({
-  Name: '',
+  Menu: '',
   ImageUrl: '',
   Price: 0,
   PromoPrice: null,
@@ -84,7 +84,7 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span class="text-red-500">*</span></span>
                   </label>
                   <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
-                    {{ menuData.Name }}
+                    {{ menuData.MenuName }}
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
