@@ -22,7 +22,7 @@ export const useRestaurant = defineStore('Restaurant', {
   getters: {
     // เช็คว่าร้านชื่อนี้กำลังปิดอยู่หรือไม่ (ใช้ทั้ง ManualStatus + เวลาเปิด-ปิด)
     isShopClosedByName: (state) => (name, now) => {
-      const shop = state.list.find(r => r.Restaurant === name);
+      const shop = state.list.find(r => r.RestaurantName === name);
       return checkShopClosed(shop, now);
     }
   },
@@ -54,9 +54,11 @@ export const useRestaurant = defineStore('Restaurant', {
     // ดึงข้อมูลร้านอาหารตามชื่อ (one-time fetch สำหรับหน้า detail)
     async fetchByName(name) {
       try {
-        const q = query(collection(db, "Restaurant"), where("Restaurant", "==", name));
+        const q = query(collection(db, "Restaurant"), where("RestaurantName", "==", name));
         const snap = await getDocs(q);
-        return snap.empty ? null : snap.docs[0].data();
+        if (snap.empty) return null;
+        const docSnap = snap.docs[0];
+        return { id: docSnap.id, ...docSnap.data() };
       } catch (error) {
         console.error("Error fetching restaurant by name:", error);
         return null;

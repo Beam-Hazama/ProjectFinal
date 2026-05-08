@@ -25,8 +25,7 @@ const Restaurants = () => import("@/views/restaurant/RestaurantLayout.vue");
 const Restaurantorderlist = () => import("@/views/restaurant/OrderList.vue");
 const Restaurantmenulist = () => import("@/views/restaurant/MenuList.vue");
 const Restaurantprofile = () => import("@/views/restaurant/Profile.vue");
-const RestaurantAddMenu = () => import("@/views/restaurant/AddMenu.vue");
-const RestaurantEditMenu = () => import("@/views/restaurant/EditMenu.vue");
+const RestaurantMenuForm = () => import("@/views/restaurant/MenuForm.vue");
 const RestaurantDashboard = () => import("@/views/restaurant/Dashboard.vue");
 
 const RestaurantOrderHistory = () => import("@/views/restaurant/OrderHistory.vue");
@@ -232,13 +231,13 @@ const router = createRouter({
     {
       path: '/Restaurant/AddMenu',
       name: 'Restaurant Add Menu',
-      component: RestaurantAddMenu,
+      component: RestaurantMenuForm,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
       path: '/Restaurant/EditMenu/:id',
       name: 'Restaurant Edit Menu',
-      component: RestaurantEditMenu,
+      component: RestaurantMenuForm,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
 

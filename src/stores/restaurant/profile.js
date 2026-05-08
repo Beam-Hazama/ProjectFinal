@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia';
 import { ref, reactive } from 'vue';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useAccountStore } from '@/stores/auth';
+import { useRestaurant } from '@/stores/shared/restaurant';
 import { uploadImage } from '@/utils/upload';
-import { cleanupBlobUrl } from '@/composables/useImagePreview';
+import { cleanupBlobUrl, handleImageSelect } from '@/composables/useImagePreview';
 import { DAYS_OF_WEEK } from '@/utils/constants';
 
 export const useProfileStore = defineStore('restaurantProfile', () => {
     const accountStore = useAccountStore();
-    
+    const restaurantStore = useRestaurant();
+
     const loading = ref(true);
     const docId = ref(null);
     const imagePreview = ref('');
@@ -20,7 +22,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
     const isSubmitting = ref(false);
 
     const RestaurantData = reactive({
-        Name: '',
+        RestaurantName: '',
         Phone: '',
         Distance: '',
         Address: '',
@@ -49,19 +51,12 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
 
         loading.value = true;
         try {
-            const q = query(
-                collection(db, "Restaurant"),
-                where("Name", "==", nameFromUser)
-            );
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const restaurantDoc = querySnapshot.docs[0];
-                docId.value = restaurantDoc.id;
-                const data = restaurantDoc.data();
+            const result = await restaurantStore.fetchByName(nameFromUser);
+            if (result) {
+                const { id, ...data } = result;
+                docId.value = id;
                 Object.assign(RestaurantData, data);
                 if (!RestaurantData.Status) RestaurantData.Status = 'auto';
-
                 imagePreview.value = RestaurantData.ImageUrl;
                 backgroundPreview.value = RestaurantData.BgUrl || '';
             }
@@ -87,7 +82,7 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
             if (newBgUrl) BgUrl = newBgUrl;
 
             await updateDoc(doc(db, 'Restaurant', docId.value), {
-                Name: RestaurantData.Name,
+                RestaurantName: RestaurantData.RestaurantName,
                 Phone: RestaurantData.Phone,
                 Distance: RestaurantData.Distance,
                 Address: RestaurantData.Address,
@@ -120,23 +115,8 @@ export const useProfileStore = defineStore('restaurantProfile', () => {
         isEditing.value = false;
     };
 
-    const onImageSelected = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            cleanupBlobUrl(imagePreview.value);
-            selectedFile.value = file;
-            imagePreview.value = URL.createObjectURL(file);
-        }
-    };
-
-    const onCoverSelected = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            cleanupBlobUrl(backgroundPreview.value);
-            selectedBgFile.value = file;
-            backgroundPreview.value = URL.createObjectURL(file);
-        }
-    };
+    const onImageSelected = (event) => handleImageSelect(event, imagePreview, selectedFile);
+    const onCoverSelected = (event) => handleImageSelect(event, backgroundPreview, selectedBgFile);
 
     return {
         RestaurantData,

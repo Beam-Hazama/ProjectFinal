@@ -10,7 +10,7 @@ const router = useRouter();
 const restaurantStore = useRestaurant();
 
 const RestaurantData = reactive({
-  Name: '',
+  RestaurantName: '',
   Phone: '',
   Distance: '',
   Address: '',
@@ -83,7 +83,7 @@ const goBack = () => {
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span>
                   </label>
-                  <input type="text" class="input input-bordered w-full bg-slate-50 border-slate-200" v-model="RestaurantData.Name" readonly />
+                  <input type="text" class="input input-bordered w-full bg-slate-50 border-slate-200" v-model="RestaurantData.RestaurantName" readonly />
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">

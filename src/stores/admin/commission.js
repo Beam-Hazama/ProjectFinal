@@ -37,7 +37,7 @@ export const useCommissionStore = defineStore('commission', {
         const newNameToId = {};
         snapshot.docs.forEach(doc => {
           const data = doc.data();
-          const name = data.Name || doc.id;
+          const name = data.RestaurantName || doc.id;
           newNameToId[name] = doc.id;
           newRates[name] = data.CommissionRate !== undefined ? Number(data.CommissionRate) : 0;
         });

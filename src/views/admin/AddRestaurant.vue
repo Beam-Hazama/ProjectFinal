@@ -11,28 +11,33 @@ const formStore = useRestaurantFormStore();
 const daysOfWeek = DAYS_OF_WEEK;
 
 // useImagePreview จัดการ blob URL + revoke ตอน unmount ให้เอง
-const { previewUrl, selectedFile, handleFileSelect } = useImagePreview();
+const { previewUrl: logoPreviewUrl, selectedFile: logoFile, handleFileSelect: handleLogoSelect } = useImagePreview();
+const { previewUrl: bgPreviewUrl, selectedFile: bgFile, handleFileSelect: handleBgSelect } = useImagePreview();
 
 // sync ค่ากับ store เพื่อให้ store ใช้ตอน save (ไฟล์ + URL preview)
-watch(selectedFile, (file) => { formStore.selectedFile = file; });
-watch(previewUrl, (url) => { formStore.imagePreview = url; });
+watch(logoFile, (file) => { formStore.selectedFile = file; });
+watch(logoPreviewUrl, (url) => { formStore.imagePreview = url; });
+
+watch(bgFile, (file) => { formStore.selectedBgFile = file; });
+watch(bgPreviewUrl, (url) => { formStore.bgImagePreview = url; });
 
 const isFormValid = computed(() => {
   const d = formStore.restaurantData;
   return (
-    d.Name.trim() !== '' &&
+    d.RestaurantName.trim() !== '' &&
     d.Phone.length === 10 &&
     d.Distance !== '' && d.Distance !== null &&
     d.Address.trim() !== '' &&
     d.OpenTime !== '' &&
     d.CloseTime !== '' &&
     d.OpenDays.length > 0 &&
-    selectedFile.value !== null
+    logoFile.value !== null
   );
 });
 
 const checkSaveRestaurant = () => formStore.save(router);
-const handleFileUpload = (event) => handleFileSelect(event);
+const handleLogoUpload = (event) => handleLogoSelect(event);
+const handleBgUpload = (event) => handleBgSelect(event);
 const goBack = () => router.go(-1);
 </script>
 
@@ -53,23 +58,46 @@ const goBack = () => router.go(-1);
       </div>
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
-          <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
-            <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพโลโก้ร้านอาหาร </h3>
-            <div class="flex flex-col items-center gap-5 w-full max-w-xs">
-              <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
-                <img v-if="formStore.imagePreview" :src="formStore.imagePreview" class="w-full h-full object-cover" />
-                <div v-else class="text-slate-400 flex flex-col items-center">
-                  <span class="text-sm font-medium">ไม่มีรูปภาพร้าน</span>
+          <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center space-y-10">
+            <div class="w-full flex flex-col items-center">
+              <h3 class="font-bold text-slate-700 mb-4 w-full flex items-center gap-2 justify-center lg:justify-start"> รูปภาพโลโก้ร้านอาหาร </h3>
+              <div class="flex flex-col items-center gap-4 w-full max-w-xs">
+                <div class="w-full h-44 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
+                  <img v-if="formStore.imagePreview" :src="formStore.imagePreview" class="w-full h-full object-cover" />
+                  <div v-else class="text-slate-400 flex flex-col items-center">
+                    <span class="text-sm font-medium">ไม่มีรูปภาพโลโก้</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2 w-full">
+                  <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-11 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    คลิกเลือกรูปภาพโลโก้
+                    <input type="file" class="hidden" @change="handleLogoUpload" accept="image/*" />
+                  </label>
                 </div>
               </div>
-              <div class="flex flex-col gap-4 w-full">
-                <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  คลิกเพื่อเลือกไฟล์รูปภาพ
-                  <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
-                </label>
+            </div>
+
+            <div class="w-full flex flex-col items-center">
+              <h3 class="font-bold text-slate-700 mb-4 w-full flex items-center gap-2 justify-center lg:justify-start"> รูปภาพพื้นหลัง </h3>
+              <div class="flex flex-col items-center gap-4 w-full max-w-xs">
+                <div class="w-full h-44 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
+                  <img v-if="formStore.bgImagePreview" :src="formStore.bgImagePreview" class="w-full h-full object-cover" />
+                  <div v-else class="text-slate-400 flex flex-col items-center">
+                    <span class="text-sm font-medium">ไม่มีรูปภาพพื้นหลัง</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2 w-full">
+                  <label class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-11 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    คลิกเลือกรูปภาพพื้นหลัง
+                    <input type="file" class="hidden" @change="handleBgUpload" accept="image/*" />
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -81,7 +109,7 @@ const goBack = () => router.go(-1);
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span>
                   </label>
-                  <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="formStore.restaurantData.Name" />
+                  <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="formStore.restaurantData.RestaurantName" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">

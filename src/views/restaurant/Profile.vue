@@ -82,7 +82,7 @@ onUnmounted(() => {
             </div>
             <div class="text-center md:text-left space-y-4 flex-1">
               <h2 class="text-3xl md:text-3xl font-black text-white tracking-tight drop-shadow-lg">
-                {{ profileStore.RestaurantData.Name }}
+                {{ profileStore.RestaurantData.RestaurantName }}
               </h2>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-5">
                 <div class="px-5 py-2.5 rounded-2xl font-bold text-sm shadow-inner transition-all flex items-center gap-3"
@@ -109,7 +109,7 @@ onUnmounted(() => {
         </div>
         <div class="pb-16 px-8 md:px-16 border-t border-slate-50 pt-12">
           <div class="md:hidden mb-8">
-            <h2 class="text-2xl font-black text-slate-800">{{ profileStore.RestaurantData.Name }}</h2>
+            <h2 class="text-2xl font-black text-slate-800">{{ profileStore.RestaurantData.RestaurantName }}</h2>
             <p class="text-slate-500 font-medium">{{ profileStore.RestaurantData.Phone }}</p>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -122,7 +122,7 @@ onUnmounted(() => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="form-control md:col-span-2">
                     <label class="label"><span class="label-text font-bold text-slate-500">ชื่อร้านอาหาร</span></label>
-                    <input type="text" v-model="profileStore.RestaurantData.Name" disabled
+                    <input type="text" v-model="profileStore.RestaurantData.RestaurantName" disabled
                       class="input input-bordered w-full bg-slate-50 font-medium text-slate-600" />
                   </div>
                   <div class="form-control">

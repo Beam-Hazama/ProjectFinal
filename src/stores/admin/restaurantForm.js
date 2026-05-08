@@ -9,11 +9,12 @@ const ALL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 
 // ค่าเริ่มต้นของฟอร์มเพิ่มร้านอาหาร — แยกออกมาเพื่อใช้ตอน init และตอน reset
 const DEFAULT_RESTAURANT = {
-  Name: '',
+  RestaurantName: '',
   Phone: '',
   Distance: '',
   Address: '',
   ImageUrl: '',
+  BgUrl: '',
   OpenTime: '',
   CloseTime: '',
   OpenDays: [...ALL_DAYS],
@@ -23,6 +24,8 @@ export const useRestaurantFormStore = defineStore('restaurantForm', () => {
   const isLoading = ref(false);
   const selectedFile = ref(null);
   const imagePreview = ref('');
+  const selectedBgFile = ref(null);
+  const bgImagePreview = ref('');
 
   const restaurantData = reactive({ ...DEFAULT_RESTAURANT, OpenDays: [...ALL_DAYS] });
 
@@ -32,16 +35,24 @@ export const useRestaurantFormStore = defineStore('restaurantForm', () => {
     restaurantData.OpenDays = [...ALL_DAYS]; // ต้องสร้าง array ใหม่ไม่ให้แชร์ reference
     selectedFile.value = null;
     imagePreview.value = '';
+    selectedBgFile.value = null;
+    bgImagePreview.value = '';
   };
 
   const save = async (router) => {
     try {
       isLoading.value = true;
       let ImageUrl = restaurantData.ImageUrl;
+      let BgUrl = restaurantData.BgUrl;
 
       if (selectedFile.value) {
         const newUrl = await uploadImage(selectedFile.value, 'restaurants');
         if (newUrl) ImageUrl = newUrl;
+      }
+
+      if (selectedBgFile.value) {
+        const newBgUrl = await uploadImage(selectedBgFile.value, 'restaurants');
+        if (newBgUrl) BgUrl = newBgUrl;
       }
 
       // คำนวณสถานะอัตโนมัติด้วย util เดียวกับที่ใช้แสดงผล
@@ -54,6 +65,7 @@ export const useRestaurantFormStore = defineStore('restaurantForm', () => {
       await addDoc(collection(db, 'Restaurant'), {
         ...restaurantData,
         ImageUrl,
+        BgUrl,
         Status,
         CreatedAt: serverTimestamp(),
         UpdatedAt: serverTimestamp()
@@ -75,6 +87,8 @@ export const useRestaurantFormStore = defineStore('restaurantForm', () => {
     isLoading,
     selectedFile,
     imagePreview,
+    selectedBgFile,
+    bgImagePreview,
     save,
     resetForm
   };

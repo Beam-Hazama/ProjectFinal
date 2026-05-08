@@ -2,13 +2,18 @@ import { defineStore } from 'pinia';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { toDayKey } from '@/utils/format';
-import { 
-  getTimeRange, 
-  buildDailyRevenue, 
-  buildPeakHours, 
+import {
+  getTimeRange,
+  buildDailyRevenue,
+  buildPeakHours,
   buildCategoryStats as getCategoryStats,
-  isOrderInTimeRange
+  isOrderInTimeRange,
+  extractUniqueCategories,
+  getSortedRecentOrders,
+  getTopMenuItems,
+  addMenuMetric,
 } from '@/utils/dashboardHelpers';
+import { sharedFilterActions } from '@/stores/shared/filterActions';
 
 export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
@@ -53,40 +58,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
   },
 
   actions: {
-    setTimeFilter(filter) {
-      this.timeFilter = filter;
-      this.applyFilters();
-    },
-
-    setCustomDates(start, end) {
-      this.customStartDate = start;
-      this.customEndDate = end;
-      if (this.timeFilter === 'custom') this.applyFilters();
-    },
-
-    toggleCategoryFilter(category) {
-      const index = this.menuCategoryFilters.indexOf(category);
-      if (index > -1) this.menuCategoryFilters.splice(index, 1);
-      else this.menuCategoryFilters.push(category);
-      this.applyFilters();
-    },
-
-    clearCategoryFilters() {
-      this.menuCategoryFilters = [];
-      this.applyFilters();
-    },
-
-    toggleMenuFilter(menuId) {
-      const index = this.menuFilters.indexOf(menuId);
-      if (index > -1) this.menuFilters.splice(index, 1);
-      else this.menuFilters.push(menuId);
-      this.applyFilters();
-    },
-
-    clearMenuFilters() {
-      this.menuFilters = [];
-      this.applyFilters();
-    },
+    ...sharedFilterActions,
 
     clearAllFilters() {
       this.menuCategoryFilters = [];
@@ -99,7 +71,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.currentRestaurant = restaurantName;
       
       // 1. Get Restaurant Info (Commission Rate)
-      const resQuery = query(collection(db, 'Restaurant'), where('Name', '==', restaurantName));
+      const resQuery = query(collection(db, 'Restaurant'), where('RestaurantName', '==', restaurantName));
       this.unsubscribeRestaurant = onSnapshot(resQuery, (snapshot) => {
         if (!snapshot.empty) {
           const resData = snapshot.docs[0].data();
@@ -175,16 +147,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
                 if (isCompleted) {
                   orderRevenue += itemRev;
                   
-                  if (!menuMetricsMap[menuId]) {
-                    menuMetricsMap[menuId] = {
-                      name: item.Name || 'ไม่ระบุชื่อเมนู',
-                      qty: 0,
-                      revenue: 0,
-                      image: item.ImageUrl
-                    };
-                  }
-                  menuMetricsMap[menuId].qty += Number(item.Quantity || 1);
-                  menuMetricsMap[menuId].revenue += itemRev;
+                  addMenuMetric(menuMetricsMap, menuId, item, itemRev);
                 }
                 
                 orderHasRestaurantItem = true;
@@ -205,21 +168,15 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.totalRevenue = revenue;
       this.totalOrders = validOrders.filter(o => o.OrderStatus === 'completed').length;
       this.orderStatuses = statusCounts;
-      this.topMenuItems = Object.values(menuMetricsMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
-
-      this.recentOrders = [...validOrders].sort((a, b) => {
-          const timeA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
-          const timeB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : new Date(b.CreatedAt).getTime();
-          return timeB - timeA;
-      }).slice(0, 10);
+      this.topMenuItems = getTopMenuItems(menuMetricsMap);
+      this.recentOrders = getSortedRecentOrders(validOrders);
 
       let filteredMenus = this.allMenus;
       if (this.menuCategoryFilters.length > 0) filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
       this.filteredTotalMenus = filteredMenus.length;
       this.buildCategoryStats(filteredMenus);
 
-      const catList = this.allMenus.map(m => m.Category).filter(c => c && c.trim() !== '');
-      this.availableCategories = [...new Set(catList)];
+      this.availableCategories = extractUniqueCategories(this.allMenus);
       this.availableMenus = filteredMenus.map(m => ({ id: m.id, Name: m.Name, Restaurant: m.Restaurant }));
 
       this.buildDailyRevenueChart(this.allOrders);

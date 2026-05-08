@@ -112,3 +112,24 @@ export const isOrderInTimeRange = (order, start, end) => {
     const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
     return orderDate >= start && orderDate <= end;
 };
+
+export const extractUniqueCategories = (menus) =>
+    [...new Set(menus.map(m => m.Category).filter(c => c && c.trim() !== ''))];
+
+export const getSortedRecentOrders = (orders, limit = 10) =>
+    [...orders].sort((a, b) => {
+        const timeA = a.CreatedAt?.toMillis ? a.CreatedAt.toMillis() : new Date(a.CreatedAt).getTime();
+        const timeB = b.CreatedAt?.toMillis ? b.CreatedAt.toMillis() : new Date(b.CreatedAt).getTime();
+        return timeB - timeA;
+    }).slice(0, limit);
+
+export const getTopMenuItems = (metricsMap, limit = 5) =>
+    Object.values(metricsMap).sort((a, b) => b.qty - a.qty).slice(0, limit);
+
+export const addMenuMetric = (map, menuId, item, itemRev) => {
+    if (!map[menuId]) {
+        map[menuId] = { name: item.Name || 'ไม่ระบุชื่อเมนู', qty: 0, revenue: 0, image: item.ImageUrl };
+    }
+    map[menuId].qty += Number(item.Quantity || 1);
+    map[menuId].revenue += itemRev;
+};

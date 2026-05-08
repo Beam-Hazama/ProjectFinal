@@ -118,7 +118,7 @@ const goBack = () => router.go(-1);
                                     <label class="label"><span class="label-text font-bold text-slate-600">ร้านอาหาร</span></label>
                                     <select v-model="formStore.userData.Restaurant" class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
-                                        <option v-for="res in formStore.restaurants" :key="res.id" :value="res.Name">{{ res.Name }}</option>
+                                        <option v-for="res in formStore.restaurants" :key="res.id" :value="res.RestaurantName">{{ res.RestaurantName }}</option>
                                     </select>
                                 </div>
                                 <div class="form-control">

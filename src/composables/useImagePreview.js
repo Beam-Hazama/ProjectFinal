@@ -6,6 +6,15 @@ export const cleanupBlobUrl = (url) => {
     }
 };
 
+export const handleImageSelect = (event, previewRef, fileRef) => {
+    const file = event?.target?.files?.[0];
+    if (file) {
+        cleanupBlobUrl(previewRef.value);
+        fileRef.value = file;
+        previewRef.value = URL.createObjectURL(file);
+    }
+};
+
 export const useImagePreview = () => {
     const previewUrl = ref('');
     const selectedFile = ref(null);

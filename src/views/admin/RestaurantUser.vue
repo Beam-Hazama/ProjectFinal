@@ -19,7 +19,7 @@ const toggleUserStatus = async (user) => {
 };
 
 const getRestaurantImage = (restaurantName) => {
-    const found = usersStore.restaurants.find(res => res.Name === restaurantName);
+    const found = usersStore.restaurants.find(res => res.RestaurantName === restaurantName);
     return found ? found.ImageUrl : '';
 };
 
