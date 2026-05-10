@@ -127,7 +127,7 @@ const saveChanges = async (order) => {
             await orderStore.updateMultipleItemsStatus(order.id, itemUpdates);
             for (const menuId of menusToClose) {
                 try {
-                    await menuStore.menuUpdate(menuId, { Status: 'close' });
+                    await menuStore.updateMenu(menuId, { Status: 'close' });
                 } catch (err) {
                     console.error("Error closing menu item automatically:", err);
                 }

@@ -25,7 +25,7 @@ const selectedMenu = ref(null);
 const showModal = ref(false);
 
 onMounted(() => {
-  restaurantStore.loadListRestaurant();
+  restaurantStore.loadRestaurants();
 });
 
 // helper: เมนูตัวนี้สั่งซื้อได้ไหม (ทั้ง Status เมนู + ร้านปิดหรือไม่)

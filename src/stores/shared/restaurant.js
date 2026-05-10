@@ -29,7 +29,7 @@ export const useRestaurant = defineStore('Restaurant', {
 
   actions: {
     // โหลดร้านอาหารทั้งหมด (real-time listener)
-    async loadListRestaurant() {
+    async loadRestaurants() {
       this.clearListener();
       this.isLoading = true;
       this.unsubscribe = onSnapshot(
@@ -65,10 +65,10 @@ export const useRestaurant = defineStore('Restaurant', {
       }
     },
 
-    async deleteById(id) {
+    async deleteRestaurantById(id) {
       try {
         await deleteDoc(doc(db, 'Restaurant', id));
-        await this.loadListRestaurant();
+        await this.loadRestaurants();
       } catch (error) {
         console.error("Error deleting restaurant:", error);
         throw error;

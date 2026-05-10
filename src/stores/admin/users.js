@@ -36,7 +36,7 @@ export const useUserListStore = defineStore('userList', () => {
     }
   };
 
-  const loadAll = async () => {
+  const fetchAll = async () => {
     isLoading.value = true;
     await Promise.all([fetchUsers(), fetchRestaurants()]);
     isLoading.value = false;
@@ -72,7 +72,7 @@ export const useUserListStore = defineStore('userList', () => {
     users,
     restaurants,
     isLoading,
-    loadAll,
+    fetchAll,
     toggleStatus,
     delete: deleteUser
   };

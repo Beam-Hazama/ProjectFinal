@@ -26,7 +26,7 @@ const { now } = useNow();
 
 onMounted(() => {
   if (restaurantStore.list.length === 0) {
-    restaurantStore.loadListRestaurant();
+    restaurantStore.loadRestaurants();
   }
 });
 

@@ -16,7 +16,7 @@ const formStore = useMenuFormStore();
 const isEdit = computed(() => !!route.params.id);
 
 onMounted(() => {
-    Restaurant.loadListRestaurant();
+    Restaurant.loadRestaurants();
     categoryStore.loadCategories();
     formStore.initForm(route.params.id || null);
 });

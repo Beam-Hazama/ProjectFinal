@@ -1,6 +1,5 @@
 <script setup>
 import { formatTimestamp, formatOpenDays } from '@/utils/format';
-import { getAutoStatus, checkShopClosed } from '@/utils/shopStatus';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useNow } from '@/composables/useNow';
 import { RouterLink } from 'vue-router';
@@ -12,7 +11,7 @@ const restaurantStore = useRestaurant();
 const { now } = useNow(1000);
 
 onMounted(async () => {
-  await restaurantStore.loadListRestaurant();
+  await restaurantStore.loadRestaurants();
 });
 
 onUnmounted(() => {
@@ -21,7 +20,7 @@ onUnmounted(() => {
 // Removed formatTimestampStore usage
 const deleteRestaurant = async (id) => {
   try {
-    await restaurantStore.deleteById(id);
+    await restaurantStore.deleteRestaurantById(id);
   } catch (error) {
     console.error("Error deleting restaurant:", error);
   }

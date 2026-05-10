@@ -36,7 +36,7 @@ const switchStatus = async (menu) => {
 
 const deleteMenu = async (id) => {
     try {
-        await MenuStore.deleteById(id);
+        await MenuStore.deleteMenuById(id);
     } catch (error) {
         console.error("Error deleting menu:", error);
     }

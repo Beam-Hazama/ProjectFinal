@@ -246,11 +246,6 @@ const router = createRouter({
       name: 'UserWithParams',
       component: User,
     },
-    {
-      path: '/:room',
-      name: 'UserShortUrl',
-      component: User,
-    },
   ],
 });
 
@@ -264,7 +259,7 @@ const homeRouteByRole = (role) => {
 router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
 
-  // เช็ค session ครั้งแรกก่อน navigate
+  // เช็ค session เปลี่่ยนหน้า
   if (!accountStore.isAuthChecked) {
     await accountStore.checkAuthState();
   }

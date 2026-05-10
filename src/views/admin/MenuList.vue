@@ -2,7 +2,6 @@
 import { formatTimestamp } from '@/utils/format';
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
-
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useMenuStore } from '@/stores/shared/menu';
 
@@ -23,7 +22,6 @@ onUnmounted(() => {
       <div class="flex justify-between items-start mb-7">
         <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
       </div>      
-      <!-- Loading State -->
       <div v-if="menuStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลเมนู...</p>
@@ -48,7 +46,7 @@ onUnmounted(() => {
                   <div class="flex items-center gap-4">
                     <div class="avatar">
                       <div class="mask mask-squircle w-12 h-12 bg-slate-100">
-                        <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover" :alt="menu.MenuName" />
+                        <img :src="menu.ImageUrl" class="object-cover" :alt="menu.MenuName" />
                       </div>
                     </div>
                     <div>

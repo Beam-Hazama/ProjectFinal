@@ -1,23 +1,17 @@
 import { defineStore } from "pinia";
 import {
   collection,
-  addDoc,
   query,
   where,
   onSnapshot,
   serverTimestamp,
-  updateDoc,
   doc,
-  getDoc,
   runTransaction,
-  deleteField,
-  Timestamp
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import { sortOrdersByDate, getProgressStatus } from "@/utils/orderHelpers";
 
 export const useOrderlistStore = defineStore("orderlistStore", {
-
   state: () => ({
     list: [],
     unsubscribe: null,
@@ -25,22 +19,24 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
   getters: {
     // เรียงจากเก่าไปใหม่ (asc) เพื่อให้ component แสดงตามลำดับเวลาที่ออเดอร์เข้ามา
-    sortedOrders: (state) => sortOrdersByDate(state.list, 'asc'),
+    sortedOrders: (state) => sortOrdersByDate(state.list, "asc"),
   },
 
   actions: {
-    
     async updateOrderStatus(orderId, newStatus, restaurantName) {
       try {
-        const orderRef = doc(db, 'Order', orderId);
+        const orderRef = doc(db, "Order", orderId);
 
         await runTransaction(db, async (transaction) => {
           const orderSnap = await transaction.get(orderRef);
           if (!orderSnap.exists()) return;
 
           const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map(item => {
-            if (item.RestaurantName === restaurantName && item.MenuStatus !== 'cancelled') {
+          const updatedMenu = orderData.Menu.map((item) => {
+            if (
+              item.RestaurantName === restaurantName &&
+              item.MenuStatus !== "cancelled"
+            ) {
               return { ...item, MenuStatus: newStatus };
             }
             return item;
@@ -51,7 +47,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           transaction.update(orderRef, {
             Menu: updatedMenu,
             OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp()
+            UpdatedAt: serverTimestamp(),
           });
         });
       } catch (error) {
@@ -60,10 +56,9 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       }
     },
 
-    
     async updateSingleMenuStatus(orderId, itemId, itemIndex, newStatus) {
       try {
-        const orderRef = doc(db, 'Order', orderId);
+        const orderRef = doc(db, "Order", orderId);
 
         await runTransaction(db, async (transaction) => {
           const orderSnap = await transaction.get(orderRef);
@@ -71,7 +66,9 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map((item, index) => {
-            const isMatch = itemId ? item.cartItemId === itemId : index === itemIndex;
+            const isMatch = itemId
+              ? item.cartItemId === itemId
+              : index === itemIndex;
             if (isMatch) {
               return { ...item, MenuStatus: newStatus };
             }
@@ -83,7 +80,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           transaction.update(orderRef, {
             Menu: updatedMenu,
             OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp()
+            UpdatedAt: serverTimestamp(),
           });
         });
       } catch (error) {
@@ -92,10 +89,9 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       }
     },
 
-    
     async updateMultipleItemsStatus(orderId, updates) {
       try {
-        const orderRef = doc(db, 'Order', orderId);
+        const orderRef = doc(db, "Order", orderId);
 
         await runTransaction(db, async (transaction) => {
           const orderSnap = await transaction.get(orderRef);
@@ -103,7 +99,9 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
           const orderData = orderSnap.data();
           const updatedMenu = orderData.Menu.map((item, index) => {
-            const update = updates.find(u => u.itemId ? u.itemId === item.cartItemId : u.itemIndex === index);
+            const update = updates.find((u) =>
+              u.itemId ? u.itemId === item.cartItemId : u.itemIndex === index,
+            );
             if (update) {
               return { ...item, MenuStatus: update.newStatus };
             }
@@ -115,7 +113,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           transaction.update(orderRef, {
             Menu: updatedMenu,
             OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp()
+            UpdatedAt: serverTimestamp(),
           });
         });
       } catch (error) {
@@ -124,25 +122,24 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       }
     },
 
-    
     async cancelEntireOrder(orderId) {
       try {
-        const orderRef = doc(db, 'Order', orderId);
+        const orderRef = doc(db, "Order", orderId);
 
         await runTransaction(db, async (transaction) => {
           const orderSnap = await transaction.get(orderRef);
           if (!orderSnap.exists()) return;
 
           const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map(item => ({
+          const updatedMenu = orderData.Menu.map((item) => ({
             ...item,
-            MenuStatus: 'cancelled'
+            MenuStatus: "cancelled",
           }));
 
           transaction.update(orderRef, {
             Menu: updatedMenu,
-            OrderStatus: 'cancelled',
-            UpdatedAt: serverTimestamp()
+            OrderStatus: "cancelled",
+            UpdatedAt: serverTimestamp(),
           });
         });
       } catch (error) {
@@ -151,7 +148,6 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       }
     },
 
-    
     clearListener() {
       // ใช้ optional chaining ให้สั้นลง
       this.unsubscribe?.();
@@ -160,27 +156,26 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     // Helper ภายใน: subscribe ไปที่ query แล้วอัพเดท list
-    _listenTo(queryRef) {
+    _subscribeToQuery(queryRef) {
       this.unsubscribe = onSnapshot(queryRef, (snap) => {
-        this.list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.list = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       });
     },
 
     // โหลดออเดอร์ของห้องนี้ใน 12 ชม.ล่าสุด (ฝั่งลูกค้า)
     async loadOrderUser(room) {
       this.clearListener();
-      const twelveHoursAgo = Date.now() - (12 * 60 * 60 * 1000);
-      const q = query(
-        collection(db, "Order"),
-        where("RoomNumber", "==", room)
-      );
+      const twelveHoursAgo = Date.now() - 12 * 60 * 60 * 1000;
+      const q = query(collection(db, "Order"), where("RoomNumber", "==", room));
       this.unsubscribe = onSnapshot(q, (snap) => {
         this.list = snap.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(order => {
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((order) => {
             if (!order.CreatedAt) return true;
             // Convert Firestore Timestamp to milliseconds
-            const ms = order.CreatedAt.toMillis ? order.CreatedAt.toMillis() : order.CreatedAt;
+            const ms = order.CreatedAt.toMillis
+              ? order.CreatedAt.toMillis()
+              : order.CreatedAt;
             return ms >= twelveHoursAgo;
           });
       });
@@ -194,18 +189,23 @@ export const useOrderlistStore = defineStore("orderlistStore", {
         where("OrderStatus", "in", ["pending", "cooking", "dispatched"]),
       ];
       if (restaurantName) {
-        conditions.push(where("RestaurantsInOrder", "array-contains", restaurantName));
+        conditions.push(
+          where("RestaurantsInOrder", "array-contains", restaurantName),
+        );
       }
-      this._listenTo(query(...conditions));
+      this._subscribeToQuery(query(...conditions));
     },
 
     // โหลดออเดอร์ทั้งหมด (ถ้ามี restaurantName ก็กรองเฉพาะของร้านนั้น)
     async loadAllOrders(restaurantName = null) {
       this.clearListener();
       const ref = restaurantName
-        ? query(collection(db, "Order"), where("RestaurantsInOrder", "array-contains", restaurantName))
+        ? query(
+            collection(db, "Order"),
+            where("RestaurantsInOrder", "array-contains", restaurantName),
+          )
         : collection(db, "Order");
-      this._listenTo(ref);
+      this._subscribeToQuery(ref);
     },
   },
 });

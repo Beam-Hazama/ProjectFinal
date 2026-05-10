@@ -39,8 +39,6 @@ export const useAccountStore = defineStore('user-account', {
     },
 
     async login(username, password) {
-      if (this.isLoading) return;
-      
       this.isLoading = true;
       this.errorMessage = '';
 
@@ -52,8 +50,8 @@ export const useAccountStore = defineStore('user-account', {
           throw new Error('ไม่พบข้อมูลผู้ใช้งานในระบบ');
         }
 
-        const userDoc = querySnapshot.docs[0];
-        const userData = userDoc.data();
+        const userDoc = querySnapshot.docs[0];     
+        const userData = userDoc.data();           
 
         if (userData.Password !== password) {
           throw new Error('Username หรือ Password ไม่ถูกต้อง');
@@ -63,7 +61,6 @@ export const useAccountStore = defineStore('user-account', {
           throw new Error('บัญชีของคุณถูกระงับการใช้งาน');
         }
 
-        // Set State
         this.user = { uid: userDoc.id, ...userData };
         this.isLoggedIn = true;
         this.role = userData.Role;
@@ -81,18 +78,18 @@ export const useAccountStore = defineStore('user-account', {
     },
 
     async logout() {
-      // Clear Listeners
+      
       useOrderlistStore().clearListener();
       useMenuStore().clearListener();
 
-      // Clear Session
+      
       sessionStorage.removeItem('userId');
       
-      // Reset State
+      
       this.user = null;
       this.isLoggedIn = false;
       this.role = null;
-      this.isAuthChecked = true;
+      this.isAuthChecked = true;    //ถ้าเป็น false จะเกิดลูปไม่รู้จบ
       
       return false;
     },

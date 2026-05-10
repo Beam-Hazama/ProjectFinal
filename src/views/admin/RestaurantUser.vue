@@ -7,7 +7,7 @@ import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 const usersStore = useUserListStore();
 
 onMounted(() => {
-    usersStore.loadAll();
+    usersStore.fetchAll();
 });
 
 const toggleUserStatus = async (user) => {

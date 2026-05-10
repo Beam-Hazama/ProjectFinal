@@ -29,7 +29,7 @@ const goBack = () => {
 
 onMounted(async () => {
   if (route.params.id) {
-    const res = await menuStore.fetchById(route.params.id);
+    const res = await menuStore.fetchMenuById(route.params.id);
     if (res) {
       Object.assign(menuData, res);
       imagePreview.value = res.ImageUrl;

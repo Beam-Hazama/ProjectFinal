@@ -21,7 +21,7 @@ export const useCustomerData = (room) => {
     }
 
     if (restaurantStore.list.length === 0) {
-      promises.push(restaurantStore.loadListRestaurant());
+      promises.push(restaurantStore.loadRestaurants());
     }
 
     if (categoryStore.list.length === 0) {

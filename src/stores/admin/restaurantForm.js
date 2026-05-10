@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue';
 import { db } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { uploadImage } from '@/utils/upload';
-import { getAutoStatus } from '@/utils/shopStatus';
+import { getShopAutoStatus } from '@/utils/shopStatus';
 
 const ALL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -56,7 +56,7 @@ export const useRestaurantFormStore = defineStore('restaurantForm', () => {
       }
 
       // คำนวณสถานะอัตโนมัติด้วย util เดียวกับที่ใช้แสดงผล
-      const Status = getAutoStatus(
+      const Status = getShopAutoStatus(
         restaurantData.OpenTime,
         restaurantData.CloseTime,
         restaurantData.OpenDays

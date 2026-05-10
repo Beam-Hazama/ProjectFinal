@@ -1,118 +1,110 @@
-import { defineStore } from 'pinia';
-import { 
-  collection, 
-  doc, 
-  onSnapshot, 
+import { defineStore } from "pinia";
+import {
+  collection,
+  doc,
+  onSnapshot,
   getDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp, 
-  setDoc, 
+  serverTimestamp,
+  setDoc,
   addDoc,
-  query, 
-  where, 
-  deleteField,
-  or
-} from 'firebase/firestore';
-import { db } from '@/firebase';
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "@/firebase";
 
-export const useMenuStore = defineStore('menu', {
-
+export const useMenuStore = defineStore("menu", {
   state: () => ({
     list: [],
     unsubscribe: null,
     isLoading: false,
   }),
 
-  getters: {
-    getMenuNameById: (state) => (id) => {
-      const menu = state.list.find(m => m.MenuId === id);
-      return menu ? menu.MenuName : '';
-    }
-  },
-
   actions: {
-    
     clearListener() {
-      this.unsubscribe?.();
+      if (this.unsubscribe) {     //ถ้าไม่มีโค้ดจะเกิดError
+        this.unsubscribe();
+      }
       this.unsubscribe = null;
       this.list = [];
     },
 
-    
     async loadMenu(restaurantName = null) {
       this.clearListener();
       this.isLoading = true;
-      
-      const ref = restaurantName
-        ? query(collection(db, 'Menu'), where('RestaurantName', '==', restaurantName))
-        : collection(db, 'Menu');
-      
-      this.unsubscribe = onSnapshot(ref, (snapshot) => {
-        this.list = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            MenuId: doc.id,
-            ...data,
-            MenuName: data.MenuName,
-            Restaurant: data.RestaurantName,
-          };
-        });
-        this.isLoading = false;
-      }, (error) => {
-        console.error('Menu load error:', error);
-        this.isLoading = false;
-      });
+
+      let ref;
+      if (restaurantName) {
+        ref = query(
+          collection(db, "Menu"),
+          where("RestaurantName", "==", restaurantName),
+        );
+      } else {
+        ref = collection(db, "Menu");
+      }
+
+      this.unsubscribe = onSnapshot(
+        ref,
+        (snapshot) => {
+          this.list = snapshot.docs.map((doc) => {
+            const menuData = doc.data();
+            return {
+              MenuId: doc.id,
+              ...menuData,
+              MenuName: menuData.MenuName,
+              Restaurant: menuData.RestaurantName,
+            };
+          });
+          this.isLoading = false;
+        },
+        (error) => {
+          console.error("Menu load error:", error);
+          this.isLoading = false;
+        },
+      );
     },
 
-    
     async addMenu(menuData) {
       const timestamp = serverTimestamp();
-      await addDoc(collection(db, 'Menu'), {
+      await addDoc(collection(db, "Menu"), {
         ...menuData,
         CreatedAt: timestamp,
         UpdatedAt: timestamp,
       });
     },
 
-    
-    async menuUpdate(menuId, menuData) {
-      const menuRef = doc(db, 'Menu', menuId);
-      
+    async updateMenu(menuId, menuData) {
+      const menuRef = doc(db, "Menu", menuId);
+
       const updatedData = {
         ...menuData,
         UpdatedAt: serverTimestamp(),
-
-        status: deleteField(),
-        updatedAt: deleteField()
       };
-
       await setDoc(menuRef, updatedData, { merge: true });
     },
 
-    async fetchById(id) {
+    async fetchMenuById(id) {
       try {
-        const menuRef = doc(db, 'Menu', id);
+        const menuRef = doc(db, "Menu", id);
         const menuSnap = await getDoc(menuRef);
         if (menuSnap.exists()) {
           return menuSnap.data();
         }
         return null;
       } catch (error) {
-        console.error('Error fetching menu by id:', error);
+        console.error("Error fetching menu by id:", error);
         return null;
       }
     },
 
     async toggleStatus(id, currentStatus) {
       try {
-        const newStatus = currentStatus === 'open' ? 'close' : 'open';
-        const menuRef = doc(db, 'Menu', id);
+        const newStatus = currentStatus === "open" ? "close" : "open";
+        const menuRef = doc(db, "Menu", id);
         await updateDoc(menuRef, {
           Status: newStatus,
           UpdatedAt: serverTimestamp(),
-          status: deleteField(),
-          updatedAt: deleteField()
         });
       } catch (error) {
         console.error("Error toggling status:", error);
@@ -120,15 +112,14 @@ export const useMenuStore = defineStore('menu', {
       }
     },
 
-    async deleteById(id) {
+    async deleteMenuById(id) {
       try {
-        const menuRef = doc(db, 'Menu', id);
+        const menuRef = doc(db, "Menu", id);
         await deleteDoc(menuRef);
       } catch (error) {
         console.error("Error deleting menu:", error);
         throw error;
       }
-    }
+    },
   },
 });
-

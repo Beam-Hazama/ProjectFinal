@@ -6,7 +6,7 @@
  * @param {Date} [now=new Date()] - current time
  * @returns {string} - 'open' or 'close'
  */
-export const getAutoStatus = (openTime, closeTime, openDays, now = new Date()) => {
+export const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date()) => {
     const currentDay = now.toLocaleString('en-US', { weekday: 'long' });
     if (openDays && Array.isArray(openDays) && openDays.length > 0) {
         if (!openDays.includes(currentDay)) return 'close';
@@ -47,5 +47,5 @@ export const checkShopClosed = (shop, now = new Date()) => {
     if (shop.Status === 'close') return true;
     
     // Default to 'auto' or calculated status based on time
-    return getAutoStatus(shop.OpenTime, shop.CloseTime, shop.OpenDays, now) === 'close';
+    return getShopAutoStatus(shop.OpenTime, shop.CloseTime, shop.OpenDays, now) === 'close';
 };
