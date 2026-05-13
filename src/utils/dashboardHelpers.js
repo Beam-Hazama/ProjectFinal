@@ -15,6 +15,10 @@ export const getTimeRange = (filter, customStart, customEnd) => {
     } else if (filter === 'thisMonth') {
         start = new Date(now.getFullYear(), now.getMonth(), 1);
         start.setHours(0, 0, 0, 0);
+    } else if (filter === 'all') {
+        start = new Date(now);
+        start.setDate(start.getDate() - 29);
+        start.setHours(0, 0, 0, 0);
     } else if (filter === 'custom' && customStart) {
         start = new Date(customStart); 
         start.setHours(0, 0, 0, 0);
@@ -28,15 +32,16 @@ export const getTimeRange = (filter, customStart, customEnd) => {
 };
 
 
-export const buildDailyRevenue = (orders, getRevenueFromOrder) => {
+export const buildDailyRevenue = (orders, getRevenueFromOrder, start, end) => {
     const days = {};
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        days[toDayKey(d)] = 0;
+    const curr = new Date(start);
+    curr.setHours(0, 0, 0, 0);
+    const last = new Date(end);
+    last.setHours(0, 0, 0, 0);
+
+    while (curr <= last) {
+        days[toDayKey(new Date(curr))] = 0;
+        curr.setDate(curr.getDate() + 1);
     }
     
     orders.forEach(order => {

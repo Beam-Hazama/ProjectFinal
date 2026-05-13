@@ -26,11 +26,15 @@ const historyOrders = computed(() => {
 
     return orderStore.sortedOrders.map(order => {
         const shopItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurantName);
+        const localStatus = getCompletionStatus(shopItems);
         return {
             ...order,
             displayItems: shopItems,
-            displayTotal: shopItems.reduce((total, item) => total + (item.Price * item.Quantity), 0),
-            localStatus: getCompletionStatus(shopItems)
+            displayTotal: localStatus === 'cancelled' ? 0 : shopItems.reduce((total, item) => {
+                const itemStatus = item.MenuStatus || 'pending';
+                return total + (itemStatus === 'cancelled' ? 0 : (item.Price * item.Quantity));
+            }, 0),
+            localStatus: localStatus
         };
     });
 });

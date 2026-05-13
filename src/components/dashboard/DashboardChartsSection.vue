@@ -31,7 +31,7 @@ onMounted(() => {
         </h2>
         <div class="h-72 w-full">
           <apexchart v-if="dashboardStore.salesChartSeries[0]?.data?.length > 0" 
-            :key="'sales-' + dashboardStore.salesChartSeries[0].data.length"
+            :key="'sales-' + dashboardStore.timeFilter + dashboardStore.salesChartSeries[0].data.length"
             type="bar" height="100%"
             :options="salesOptions" :series="dashboardStore.salesChartSeries">
           </apexchart>
@@ -50,7 +50,7 @@ onMounted(() => {
         </h2>
         <div class="h-72 w-full flex items-center justify-center">
           <apexchart v-if="dashboardStore.categoryChartSeries?.length > 0" 
-            :key="'cat-' + dashboardStore.categoryChartSeries.length"
+            :key="'cat-' + dashboardStore.timeFilter + dashboardStore.categoryChartSeries.length"
             type="donut" width="100%"
             :options="categoryOptions" :series="dashboardStore.categoryChartSeries"></apexchart>
           <div v-else class="text-slate-400 text-sm">ไม่มีข้อมูล</div>
@@ -67,7 +67,7 @@ onMounted(() => {
       </h2>
       <div class="h-72 w-full">
         <apexchart v-if="dashboardStore.peakHoursChartSeries[0]?.data?.length > 0" 
-          :key="'peak-' + dashboardStore.peakHoursChartSeries[0].data.length"
+          :key="'peak-' + dashboardStore.timeFilter + dashboardStore.peakHoursChartSeries[0].data.length"
           type="area" height="100%"
           :options="peakHoursOptions" :series="dashboardStore.peakHoursChartSeries"></apexchart>
         <div v-else class="text-slate-400 text-sm flex items-center justify-center h-full">

@@ -114,8 +114,9 @@ onMounted(() => {
                   </div>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">ระยะทาง (กม.)</span></label>
-                    <input type="number" v-model.number="profileStore.RestaurantData.Distance"
+                    <input type="text" inputmode="decimal" v-model="profileStore.RestaurantData.Distance"
                       :disabled="!profileStore.isEditing"
+                      @keypress="(e) => { const v = e.target.value; const [int, dec] = v.split('.'); if (!/[\d.]/.test(e.key)) { e.preventDefault(); return; } if (e.key === '.' && v.includes('.')) { e.preventDefault(); return; } if (e.key !== '.' && !v.includes('.') && (int || '').length >= 2) { e.preventDefault(); return; } if (e.key !== '.' && v.includes('.') && (dec || '').length >= 1) e.preventDefault() }"
                       class="input input-bordered w-full transition-all focus:border-indigo-500" />
                   </div>
                   <div class="form-control md:col-span-2">

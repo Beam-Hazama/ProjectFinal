@@ -56,7 +56,7 @@ const openModal = (order) => {
                                 </td>
                                 <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}</td>
                                                                                         <!-- แปลงค่า 1000 to 1,000 -->
-                                <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>                   
+                                <td class="text-center font-bold text-emerald-600">{{ (order.OrderStatus === 'cancelled' ? 0 : order.TotalPrice)?.toLocaleString() }} ฿</td>                   
                                 <td class="text-center">
                                     <button @click="openModal(order)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -118,7 +118,7 @@ const openModal = (order) => {
                                 <span class="text-slate-500">Total Amount</span>
                                 <span class="badge" :class="getStatusColor(selectedOrder?.OrderStatus)">{{ selectedOrder?.OrderStatus?.toUpperCase() }}</span>
                             </div>
-                            <span class="text-2xl font-bold text-emerald-600">{{ selectedOrder.TotalPrice?.toLocaleString() }} ฿</span>
+                            <span class="text-2xl font-bold text-emerald-600">{{ (selectedOrder.OrderStatus === 'cancelled' ? 0 : selectedOrder.TotalPrice)?.toLocaleString() }} ฿</span>
                         </div>
                     </div>
                 </div>

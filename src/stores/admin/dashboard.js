@@ -149,7 +149,18 @@ export const useDashboardStore = defineStore("dashboardStore", {
     },
 
     applyFilters() {
-      const { start, end } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
+      let { start, end } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
+      
+      // ถ้าเลือก "ทั้งหมด" ให้หาออเดอร์ที่เก่าที่สุดเป็นวันเริ่มต้น
+      if (this.timeFilter === 'all' && this.allOrders.length > 0) {
+        const orderDates = this.allOrders
+          .map(o => o.CreatedAt?.toDate?.() || new Date(o.CreatedAt))
+          .filter(d => d instanceof Date && !isNaN(d));
+        if (orderDates.length > 0) {
+          start = new Date(Math.min(...orderDates));
+          start.setHours(0, 0, 0, 0);
+        }
+      }
 
       const filteredOrders = this.allOrders.filter(o => isOrderInTimeRange(o, start, end));
       
@@ -165,7 +176,11 @@ export const useDashboardStore = defineStore("dashboardStore", {
 
       filteredOrders.forEach(order => {
         const orderRev = calculateOrderRevenue(order, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
+        const status = order.OrderStatus || 'pending';
         
+        // นับสถานะเสมอ ถ้าออเดอร์อยู่ในช่วงเวลา
+        if (statusCounts[status] !== undefined) statusCounts[status]++;
+
         if (orderRev > 0 || (this.restaurantFilters.length === 0 && this.menuCategoryFilters.length === 0 && this.menuFilters.length === 0)) {
           revenue += orderRev;
           if (orderRev > 0) filteredOrdersCount++;
@@ -188,9 +203,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
               }
             });
           }
-
-          const status = order.OrderStatus || 'pending';
-          if (statusCounts[status] !== undefined) statusCounts[status]++;
         }
       });
 
@@ -210,8 +222,8 @@ export const useDashboardStore = defineStore("dashboardStore", {
         .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
         .map(m => ({ MenuId: m.MenuId, Name: m.MenuName }));
 
-      this.buildDailyRevenueChart(filteredOrders);
-      this.buildPeakHoursChart(filteredOrders);
+      this.buildDailyRevenueChart(filteredOrders, start, end);
+      this.buildPeakHoursChart(filteredOrders.filter(o => o.OrderStatus !== 'cancelled'));
       this.buildCategoryStats(this.allMenus);
     },
 
@@ -251,10 +263,10 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.unsubscribeRestaurants = null;
     },
 
-    buildDailyRevenueChart(orders) {
+    buildDailyRevenueChart(orders, start, end) {
       this.revenueByDay = buildDailyRevenue(orders, (o) => 
         calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters)
-      );
+      , start, end);
     },
 
     buildCategoryStats(menus) {

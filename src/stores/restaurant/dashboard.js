@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { toDayKey } from '@/utils/format';
+
 import {
   getTimeRange,
   buildDailyRevenue,
@@ -69,7 +69,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.clearListeners();
       this.currentRestaurant = restaurantName;
       
-      // 1. Get Restaurant Info (Commission Rate)
+     
       const resQuery = query(collection(db, 'Restaurant'), where('RestaurantName', '==', restaurantName));
       this.unsubscribeRestaurant = onSnapshot(resQuery, (snapshot) => {
         if (!snapshot.empty) {
@@ -79,7 +79,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         }
       });
 
-      // 2. Optimized Order Query (Only relevant restaurant)
+      
       const ordersQuery = query(
         collection(db, 'Order'),
         where('RestaurantsInOrder', 'array-contains', restaurantName)
@@ -114,11 +114,22 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     applyFilters() {
-      const { start: startTime, end: endTime } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
+      let { start: startTime, end: endTime } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
+      
+      
+      if (this.timeFilter === 'all' && this.allOrders.length > 0) {
+        const orderDates = this.allOrders
+          .map(o => o.CreatedAt?.toDate?.() || new Date(o.CreatedAt))
+          .filter(d => d instanceof Date && !isNaN(d));
+        if (orderDates.length > 0) {
+          startTime = new Date(Math.min(...orderDates));
+          startTime.setHours(0, 0, 0, 0);
+        }
+      }
 
       const validOrders = this.allOrders.filter(order => isOrderInTimeRange(order, startTime, endTime));
 
-      const validOrdersForChart = this.allOrders; // No time filter for chart items calculation itself, or use validOrders?
+      
 
       let revenue = 0;
       const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
@@ -128,27 +139,32 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         let orderHasRestaurantItem = false;
         let orderRevenue = 0;
 
-        // Only count completed orders towards revenue and stats
+       
         const isCompleted = order.OrderStatus === 'completed';
 
         if (order.Menu) {
           order.Menu.forEach(item => {
             if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant) {
-               const isNotCancelled = item.MenuStatus !== 'cancelled';
+             
+              if (order.OrderStatus === 'cancelled') {
+                orderHasRestaurantItem = true;
+                return;
+              }
+
+              const isNotCancelled = item.MenuStatus !== 'cancelled';
               const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
               const menuId = item.MenuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
               if (isNotCancelled && isRightCategory && isRightMenu) {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
+
                 
-                // Only add to revenue if order is completed
                 if (isCompleted) {
                   orderRevenue += itemRev;
-                  
                   addMenuMetric(menuMetricsMap, menuId, item, itemRev);
                 }
-                
+
                 orderHasRestaurantItem = true;
               }
             }
@@ -164,6 +180,11 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         }
       });
 
+      const ordersWithRestaurantItems = validOrders.filter(order => {
+        if (order.OrderStatus === 'cancelled') return false;
+        return order.Menu?.some(item => (item.RestaurantName || item.Restaurant) === this.currentRestaurant);
+      });
+
       this.totalRevenue = revenue;
       this.totalOrders = validOrders.filter(o => o.OrderStatus === 'completed').length;
       this.orderStatuses = statusCounts;
@@ -177,11 +198,11 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.availableCategories = extractUniqueCategories(this.allMenus);
       this.availableMenus = filteredMenus.map(m => ({ MenuId: m.MenuId, Name: m.MenuName, Restaurant: m.RestaurantName || m.Restaurant }));
 
-      this.buildDailyRevenueChart(this.allOrders);
-      this.buildPeakHoursChart(this.allOrders);
+      this.buildDailyRevenueChart(ordersWithRestaurantItems, startTime, endTime);
+      this.buildPeakHoursChart(ordersWithRestaurantItems);
     },
 
-    buildDailyRevenueChart(orders) {
+    buildDailyRevenueChart(orders, start, end) {
       this.revenueByDay = buildDailyRevenue(orders, (order) => {
         let orderRevenue = 0;
         if (order.Menu && order.OrderStatus === 'completed') {
@@ -192,7 +213,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
           });
         }
         return orderRevenue;
-      });
+      }, start, end);
     },
 
     buildCategoryStats(menus) {

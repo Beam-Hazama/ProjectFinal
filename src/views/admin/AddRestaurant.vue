@@ -146,15 +146,15 @@ const goBack = () => router.go(-1);
                     <label class="label">
                       <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
                     </label>
-                    <input type="text"
+                    <input type="text" inputmode="decimal"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                       v-model="formStore.restaurantData.Distance"
-                      @input="formStore.restaurantData.Distance = formStore.restaurantData.Distance.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')" />
+                      @keypress="(e) => { const v = e.target.value; const [int, dec] = v.split('.'); if (!/[\d.]/.test(e.key)) { e.preventDefault(); return; } if (e.key === '.' && v.includes('.')) { e.preventDefault(); return; } if (e.key !== '.' && !v.includes('.') && (int || '').length >= 2) { e.preventDefault(); return; } if (e.key !== '.' && v.includes('.') && (dec || '').length >= 1) e.preventDefault() }" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ที่ตั้งร้านอาหาร</span>
+                    <span class="label-text font-medium text-slate-600">ที่อยู่ร้านอาหาร</span>
                   </label>
                   <textarea
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
