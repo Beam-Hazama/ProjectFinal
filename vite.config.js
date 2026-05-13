@@ -1,26 +1,23 @@
 import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-
 import tailwindcss from "@tailwindcss/vite";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 
-
-
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     vue(),
-    
+    command === "serve" && basicSsl(),
     tailwindcss(),
-  ],
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
-    host: true, // เพิ่มบรรทัดนี้ เพื่อให้สแกนเข้าผ่าน IP ได้
+    host: true,
     port: 5173,
   },
-});
+}));

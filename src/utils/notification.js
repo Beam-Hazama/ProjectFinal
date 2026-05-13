@@ -31,7 +31,7 @@ export const isStandalone = () => {
 // ─────────────────────────────────────────────────────────────
 // ขอ permission จาก user
 // ─────────────────────────────────────────────────────────────
-export const requestNotificationPermission = async () => {
+const requestNotificationPermission = async () => {
   if (!('Notification' in window)) {
     alert('เบราว์เซอร์ของคุณไม่รองรับการแจ้งเตือน');
     return false;
@@ -43,7 +43,7 @@ export const requestNotificationPermission = async () => {
 // ─────────────────────────────────────────────────────────────
 // ขอ FCM token (เรียกหลัง permission = granted)
 // ─────────────────────────────────────────────────────────────
-export const getFCMToken = async () => {
+const getFCMToken = async () => {
   const messaging = await messagingPromise;
   if (!messaging) {
     console.warn('Messaging not supported');
@@ -70,7 +70,7 @@ export const getFCMToken = async () => {
 // ─────────────────────────────────────────────────────────────
 // เก็บ token ผูกกับ Order (สำหรับลูกค้า)
 // ─────────────────────────────────────────────────────────────
-export const saveCustomerToken = async (orderId, token) => {
+const saveCustomerToken = async (orderId, token) => {
   if (!orderId || !token) return false;
   try {
     await updateDoc(doc(db, 'Order', orderId), {
@@ -88,7 +88,7 @@ export const saveCustomerToken = async (orderId, token) => {
 // Foreground listener — แสดง notification ตอนเปิดเว็บอยู่
 // (ตอนปิดจอ/ปิดแอป — sw.js จัดการเอง)
 // ─────────────────────────────────────────────────────────────
-export const listenForegroundMessages = async () => {
+const listenForegroundMessages = async () => {
   const messaging = await messagingPromise;
   if (!messaging) return;
 
@@ -108,7 +108,7 @@ export const listenForegroundMessages = async () => {
 // ─────────────────────────────────────────────────────────────
 // Helper: เปิดแจ้งเตือนแบบครบ flow (ลูกค้า)
 // ─────────────────────────────────────────────────────────────
-export const enableCustomerNotification = async (orderIds = []) => {
+const enableCustomerNotification = async (orderIds = []) => {
   const granted = await requestNotificationPermission();
   if (!granted) return { ok: false, reason: 'permission_denied' };
 
@@ -128,20 +128,36 @@ export const enableCustomerNotification = async (orderIds = []) => {
 export const requestPermissionForOrders = async (orderIds) => {
     const result = await enableCustomerNotification(orderIds);
     if (result.ok) {
-        return { 
-            status: 'granted', 
-            message: 'เปิดการแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ' 
+        return {
+            status: 'granted',
+            message: 'เปิดการแจ้งเตือนสำเร็จ! ระบบจะแจ้งเตือนเมื่อสถานะออเดอร์เปลี่ยน แม้ปิดจอ'
         };
     } else if (result.reason === 'permission_denied') {
-        return { 
-            status: 'denied', 
-            message: 'คุณปฏิเสธการแจ้งเตือน หากต้องการเปิด ไปที่การตั้งค่าเบราว์เซอร์' 
+        return {
+            status: 'denied',
+            message: 'คุณปฏิเสธการแจ้งเตือน หากต้องการเปิด ไปที่การตั้งค่าเบราว์เซอร์'
         };
     } else {
-        return { 
-            status: 'default', 
-            message: 'ไม่สามารถเปิดแจ้งเตือนได้ กรุณาลองใหม่' 
+        return {
+            status: 'default',
+            message: 'ไม่สามารถเปิดแจ้งเตือนได้ กรุณาลองใหม่'
         };
     }
+};
+
+// ─────────────────────────────────────────────────────────────
+// Save token ไปทุก order โดยไม่ขอ permission ซ้ำ
+// ใช้เมื่อ permission granted แล้ว แต่มี order ใหม่เพิ่มเข้ามา
+// ─────────────────────────────────────────────────────────────
+export const autoSaveTokenToOrders = async (orderIds = []) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (orderIds.length === 0) return;
+
+  const token = await getFCMToken();
+  if (!token) return;
+
+  for (const orderId of orderIds) {
+    await saveCustomerToken(orderId, token);
+  }
 };
 

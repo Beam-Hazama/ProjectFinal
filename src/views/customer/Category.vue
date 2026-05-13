@@ -34,12 +34,6 @@ const filteredMenus = computed(() => {
     });
 });
 
-onMounted(() => {
-});
-
-onUnmounted(() => {
-});
-
 const goBack = () => {
     router.push(`/user/${room.value}`);
 };

@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 import { useUserStatusStore } from '@/stores/customer/orderStatus';
 import { useCartStore } from '@/stores/customer/cart';
 import { useMenuStore } from '@/stores/shared/menu';
-import { isStandalone, requestPermissionForOrders } from '@/utils/notification';
+import { isStandalone, requestPermissionForOrders, autoSaveTokenToOrders } from '@/utils/notification';
 
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
@@ -22,32 +22,34 @@ const notificationPermission = ref(
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const showIOSGuide = ref(false);
 
+const isRequestingPermission = ref(false);
+
 const handleRequestPermission = async () => {
-  // iOS ต้อง install เป็น PWA ก่อน
   if (isIOS && !isStandalone()) {
     showIOSGuide.value = true;
     return;
   }
-  
-  const result = await requestPermissionForOrders(statusStore.roomOrders.map(o => o.id));
-  if (result.status === 'granted') {
-    notificationPermission.value = 'granted';
+
+  isRequestingPermission.value = true;
+  try {
+    const result = await requestPermissionForOrders(statusStore.roomOrders.map(o => o.id));
+    if (result.status === 'granted') {
+      notificationPermission.value = 'granted';
+    }
+    alert(result.message);
+  } catch (error) {
+    console.error("Permission error:", error);
+  } finally {
+    isRequestingPermission.value = false;
   }
-  alert(result.message);
 };
 
-// const registeredOrderIds = new Set();
-
-// watch(() => statusStore.roomOrders, async (newOrders) => {
-//   if (!newOrders || newOrders.length === 0) return;
-//   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-
-//   const unregisteredIds = newOrders.map(o => o.id).filter(id => !registeredOrderIds.has(id));
-//   if (unregisteredIds.length > 0) {
-//     unregisteredIds.forEach(id => registeredOrderIds.add(id));
-//     await requestPermissionForOrders(unregisteredIds);
-//   }
-// }, { immediate: true, deep: true });
+// เมื่อ order list เปลี่ยน (order ใหม่เพิ่มเข้ามา) ให้ save token ไปทุก order อัตโนมัติ
+// ถ้า permission granted อยู่แล้ว จะไม่มี popup ขออนุญาตอีก
+const orderIds = computed(() => statusStore.roomOrders.map(o => o.id));
+watch(orderIds, (ids) => {
+  autoSaveTokenToOrders(ids);
+}, { immediate: true });
 
 onMounted(() => {
   statusStore.initUserSession(room.value);
@@ -86,7 +88,9 @@ onMounted(() => {
             <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
           </div>
         </div>
-        <button @click="handleRequestPermission" class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4">
+        <button @click="handleRequestPermission" :disabled="isRequestingPermission" 
+          class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4 flex items-center gap-1">
+          <span v-if="isRequestingPermission" class="loading loading-spinner loading-xs"></span>
           เปิดเลย
         </button>
       </div>

@@ -1,4 +1,25 @@
 {
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ]
+  },
   "firestore": {
     "database": "(default)",
     "location": "asia-southeast1",
@@ -18,20 +39,6 @@
       ]
     }
   ],
-  "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  },
   "storage": {
     "bucket": "projectfinal-eb377.firebasestorage.app",
     "rules": "storage.rules"
@@ -42,6 +49,7 @@
     "firestore": { "port": 8080 },
     "database": { "port": 9000 },
     "storage": { "port": 9199 },
+    "hosting": { "port": 5000 },
     "ui": { "enabled": true },
     "singleProjectMode": true
   },
