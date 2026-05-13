@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/customer/cart';
 
 const props = defineProps({
-  room: String
+  qrId: String
 });
 const router = useRouter();
 const cartStore = useCartStore();
@@ -22,11 +22,11 @@ const payment = async () => {
     if (success) {
       emit('close-modal');
       
-      router.push({ 
-        name: 'Status', 
-        params: { 
-          room: props.room 
-        } 
+      router.push({
+        name: 'Status',
+        params: {
+          qrId: props.qrId
+        }
       });
     }
   } catch (error) {

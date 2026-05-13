@@ -21,7 +21,7 @@ const categoryStore = useCategoryStore();
 const restaurantStore = useRestaurant();
 
 const restaurantName = decodeURIComponent(route.params.restaurantName || '');
-const room = (route.params.room && route.params.room !== 'undefined') ? route.params.room : '-';
+const qrId = (route.params.qrId && route.params.qrId !== 'undefined') ? route.params.qrId : '-';
 
 const isValidLocation = ref(false);
 const isLoading = ref(true);
@@ -74,12 +74,12 @@ const totalVisibleItems = computed(() => {
 });
 
 onMounted(async () => {
-    const isValid = await qrStore.validateRoom(room);
-    isValidLocation.value = isValid;
+    const qrData = await qrStore.getQrById(qrId);
+    isValidLocation.value = !!qrData;
     isLoading.value = false;
-    if (isValid) {
+    if (qrData) {
+        cartStore.setRoom(qrData.RoomNumber);
         await menuStore.loadMenu();
-        cartStore.loadCart(room);
         currentRestaurant.value = await restaurantStore.fetchByName(restaurantName);
     }
 });
@@ -101,7 +101,7 @@ const toggleCategoryModal = () => {
 
 
 const goBack = () => {
-    router.push(`/user/${room}`);
+    router.push(`/user/${qrId}`);
 };
 
 const scrollToCategory = (categoryName) => {
@@ -242,7 +242,7 @@ const scrollToCategory = (categoryName) => {
                     </div>
                     <div class="px-4">
                         <div class="animate-fade-in mb-8">
-                            <MenuList :selectionRole="groupedMenu[categoryName]" :hideRestaurantName="true" />
+                            <MenuList :selectionRole="groupedMenu[categoryName]" />
                         </div>
                     </div>
                 </div>

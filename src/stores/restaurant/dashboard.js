@@ -95,7 +95,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         this.errorMessage = "ไม่สามารถโหลดข้อมูลออเดอร์ได้: " + error.message;
       });
 
-      const menusQuery = query(collection(db, 'Menu'), where('Restaurant', '==', restaurantName));
+      const menusQuery = query(collection(db, 'Menu'), where('RestaurantName', '==', restaurantName));
       this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
         this.allMenus = snapshot.docs.map(doc => ({ MenuId: doc.id, ...doc.data() }));
         this.totalMenus = this.allMenus.length;
@@ -133,7 +133,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
         if (order.Menu) {
           order.Menu.forEach(item => {
-            if (item.Restaurant === this.currentRestaurant) {
+            if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant) {
                const isNotCancelled = item.MenuStatus !== 'cancelled';
               const isRightCategory = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
               const menuId = item.MenuId;
@@ -175,7 +175,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.buildCategoryStats(filteredMenus);
 
       this.availableCategories = extractUniqueCategories(this.allMenus);
-      this.availableMenus = filteredMenus.map(m => ({ MenuId: m.MenuId, Name: m.Name, Restaurant: m.Restaurant }));
+      this.availableMenus = filteredMenus.map(m => ({ MenuId: m.MenuId, Name: m.MenuName, Restaurant: m.RestaurantName || m.Restaurant }));
 
       this.buildDailyRevenueChart(this.allOrders);
       this.buildPeakHoursChart(this.allOrders);
@@ -186,7 +186,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         let orderRevenue = 0;
         if (order.Menu && order.OrderStatus === 'completed') {
           order.Menu.forEach(item => {
-            if (item.Restaurant === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
+            if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
               orderRevenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
             }
           });

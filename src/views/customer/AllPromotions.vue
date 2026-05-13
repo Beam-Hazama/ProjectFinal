@@ -6,17 +6,15 @@ import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
-const room = route.params.room || '-';
-const { menuStore } = useCustomerData(room);
+const qrId = route.params.qrId;
+const { menuStore } = useCustomerData();
 
 const isLoading = ref(true);
 
 const promotionMenus = computed(() => {
-    return (menuStore.list || []).filter(item => {
-        const hasPromo = item.PromoPrice && Number(item.PromoPrice) > 0;
-        const isMenuOpen = !item.Status || item.Status === 'open';
-        return hasPromo && isMenuOpen;
-    });
+    return (menuStore.list || []).filter(item =>
+        Number(item.PromoPrice) > 0 && item.Status === 'open'
+    );
 });
 
 onMounted(() => {
@@ -26,7 +24,7 @@ onMounted(() => {
 });
 
 const goBack = () => {
-    router.push(`/user/${room}`);
+    router.push(`/user/${qrId}`);
 };
 </script>
 

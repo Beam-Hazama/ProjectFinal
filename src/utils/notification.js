@@ -1,7 +1,7 @@
 import { messagingPromise } from '@/firebase';
 import { getToken, onMessage } from 'firebase/messaging';
 import { db } from '@/firebase';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 

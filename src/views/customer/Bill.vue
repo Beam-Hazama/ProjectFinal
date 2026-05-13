@@ -19,7 +19,7 @@ const displayLocation = computed(() => {
 
 const userOrders = computed(() => {
     const recent = filterRecentOrders(orderListStore.list, room.value, 12);
-    return sortOrdersByDate(recent, 'desc'); // ใหม่สุดอยู่บน
+    return sortOrdersByDate(recent, 'desc'); 
 });
 
 const myOrders = computed(() => {
@@ -40,9 +40,6 @@ const myOrders = computed(() => {
     }).filter(order => order.receivedItems.length > 0);
 });
 
-/* const totalAmount = computed(() => {
-    return myOrders.value.reduce((sum, order) => sum + (order.grandTotal || 0), 0);
-}); */
 
 onMounted(async () => {
     if (room.value && room.value !== '-') {

@@ -1,13 +1,7 @@
 import { defineStore } from "pinia";
 import { db } from "@/firebase";
-import {
-  collection,
-  doc,
-  setDoc,
-  serverTimestamp,
-  runTransaction,
-} from "firebase/firestore";
-import { useMenuStore } from "@/stores/shared/menu";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+
 
 const makeCartItemId = (id) =>
   `${id}-${Math.random().toString(36).substr(2, 9)}`;
@@ -15,10 +9,8 @@ const makeCartItemId = (id) =>
 export const useCartStore = defineStore("cart", {
   state: () => ({
     item: [],
-    room: (() => {
-      const saved = localStorage.getItem("lastRoom");
-      return saved && saved !== "undefined" ? saved : "-";
-    })(),
+    room: localStorage.getItem("lastRoom") || null,
+    qrId: localStorage.getItem("lastQrId") || null,
   }),
 
   getters: {
@@ -39,11 +31,18 @@ export const useCartStore = defineStore("cart", {
   },
 
   actions: {
+    setQrId(qrId) {
+      if (qrId && qrId !== "undefined") {
+        this.qrId = qrId;
+        localStorage.setItem("lastQrId", qrId);
+      }
+    },
+
     setRoom(roomNumber) {
-      if (roomNumber && roomNumber !== "-" && roomNumber !== "undefined") {
+      if (roomNumber && roomNumber !== "undefined") {
         this.room = roomNumber;
         localStorage.setItem("lastRoom", roomNumber);
-        this.loadCart(roomNumber); // อัปเดตและโหลดรายการอาหารในตะกร้าของห้องนี้ทันที
+        this.loadCart(roomNumber);
       }
     },
 
@@ -85,9 +84,7 @@ export const useCartStore = defineStore("cart", {
       const priceToUse = unitPrice !== undefined ? unitPrice : menu.Price;
       const existingItem = this.item.find(
         (i) =>
-          i.MenuId === menu.MenuId &&
-          i.Note === Note &&
-          i.Price === priceToUse,
+          i.MenuId === menu.MenuId && i.Note === Note && i.Price === priceToUse,
       );
 
       if (existingItem) {
@@ -129,15 +126,17 @@ export const useCartStore = defineStore("cart", {
 
     async placeOrder() {
       try {
-        const menuStore = useMenuStore();
+        
         const cartItems = [...this.item];
         const room = this.room;
         const totalPrice = this.totalPrice;
         const restaurants = [
-          ...new Set(cartItems.map((i) => i.RestaurantName || i.Restaurant || "Unknown")),
+          ...new Set(
+            cartItems.map((i) => i.RestaurantName),
+          ),
         ];
 
-        // 1. Prepare Order Document & ID
+       
         const orderRef = doc(collection(db, "Order"));
         const finalOrderNumber = orderRef.id.slice(0, 8).toUpperCase();
 
@@ -159,10 +158,9 @@ export const useCartStore = defineStore("cart", {
           RestaurantsInOrder: restaurants,
         };
 
-        // 2. Save Document to Firestore
+        
         await setDoc(orderRef, orderData);
 
-        // Clear cart after successful save
         this.clearCart();
         return true;
       } catch (error) {

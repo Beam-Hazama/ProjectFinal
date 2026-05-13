@@ -32,8 +32,6 @@ export const filterRecentOrders = (orders, room, hours = 12) => {
     return orders.filter(o => {
         const isOwner = String(o.RoomNumber) === String(room);
         if (!isOwner) return false;
-
-        // Filter by time (handle pending server timestamps by using current time as fallback)
         const createdAtSeconds = o.CreatedAt?.seconds || Math.floor(Date.now() / 1000);
         return createdAtSeconds >= cutoff;
     });
@@ -53,15 +51,15 @@ export const getProgressStatus = (items) => {
     if (!items?.length) return 'pending';
 
     // ถ้าทุก item ถูกยกเลิก → ออเดอร์ถูกยกเลิก
-    if (items.every(i => (i.MenuStatus || 'pending') === 'cancelled')) return 'cancelled';
+    if (items.every(i => i.MenuStatus === 'cancelled')) return 'cancelled';
 
-    // ลำดับขั้นของสถานะ (เลขน้อย = ก้าวหน้าน้อย)
+    // ลำดับขั้นของสถานะ 
     const rank = { pending: 0, cooking: 1, dispatched: 2, received: 3 };
     const rankToStatus = ['pending', 'cooking', 'dispatched', 'completed'];
 
     // หา rank ต่ำสุดในกลุ่ม items ที่ยังไม่ถูกยกเลิก
     const activeRanks = items
-        .filter(i => (i.MenuStatus || 'pending') !== 'cancelled')
+        .filter(i => i.MenuStatus !== 'cancelled')
         .map(i => rank[i.MenuStatus] ?? 0);
 
     if (activeRanks.length === 0) return 'cancelled';

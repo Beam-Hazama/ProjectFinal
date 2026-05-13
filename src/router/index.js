@@ -56,42 +56,42 @@ const router = createRouter({
       component: User,
     },
     {
-      path: '/user/bill/:room',
+      path: '/user/bill/:qrId',
       name: 'user-bill',
       component: Bill,
     },
     {
-      path: '/user/restaurant/:restaurantName/:room',
+      path: '/user/restaurant/:restaurantName/:qrId',
       name: 'UserRestaurantMenu',
       component: UserRestaurantMenu,
     },
     {
-      path: '/user/status/:room',
+      path: '/user/status/:qrId',
       name: 'Status',
       component: Status,
     },
     {
-      path: '/user/cart/:room',
+      path: '/user/cart/:qrId',
       name: 'Cart',
       component: Cart,
     },
     {
-      path: '/user/search/:room',
+      path: '/user/search/:qrId',
       name: 'Search',
       component: Search,
     },
     {
-      path: '/user/category/:category/:room',
+      path: '/user/category/:category/:qrId',
       name: 'Category',
       component: Category,
     },
     {
-      path: '/user/all-categories/:room',
+      path: '/user/all-categories/:qrId',
       name: 'AllCategories',
       component: AllCategories,
     },
     {
-      path: '/user/all-promotions/:room',
+      path: '/user/all-promotions/:qrId',
       name: 'AllPromotions',
       component: AllPromotions,
     },
@@ -244,7 +244,7 @@ const router = createRouter({
     },
 
     {
-      path: '/user/:room',
+      path: '/user/:qrId',
       name: 'UserWithParams',
       component: User,
     },
@@ -262,9 +262,9 @@ router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
   const cartStore = useCartStore();
 
-  // ดึงข้อมูลห้องจาก URL เสมอถ้ามีค่า (เช่น /user/status/5) เพื่อแก้ไขปัญหา State หายบนมือถือ
-  if (to.params.room) {
-    cartStore.setRoom(to.params.room);
+  // ดึง qrId จาก URL เสมอถ้ามีค่า เพื่อแก้ไขปัญหา State หายบนมือถือ
+  if (to.params.qrId) {
+    cartStore.setQrId(to.params.qrId);
   }
 
   // เช็ค session เปลี่่ยนหน้า

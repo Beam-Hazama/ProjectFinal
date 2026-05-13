@@ -7,8 +7,8 @@ import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
-const room = route.params.room;
-const { menuStore } = useCustomerData(room);
+const qrId = route.params.qrId;
+const { menuStore } = useCustomerData();
 const searchQuery = ref('');
 
 const vFocus = {
@@ -28,7 +28,7 @@ const filteredMenus = computed(() => {
 
 
 const goBack = () => {
-    router.push(`/user/${room}`);
+    router.push(`/user/${qrId}`);
 };
 </script>
 

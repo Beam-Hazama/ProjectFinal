@@ -5,7 +5,6 @@ import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import DashboardFilters from '@/components/dashboard/DashboardFilters.vue';
 import DashboardSummaryStats from '@/components/dashboard/DashboardSummaryStats.vue';
 import DashboardChartsSection from '@/components/dashboard/DashboardChartsSection.vue';
-import DashboardDataTables from '@/components/dashboard/DashboardDataTables.vue';
 
 const dashboardStore = useDashboardStore();
 
@@ -31,7 +30,6 @@ onUnmounted(() => {
       <div v-else class="space-y-6">
         <DashboardSummaryStats :dashboardStore="dashboardStore" />
         <DashboardChartsSection :dashboardStore="dashboardStore" />
-        <DashboardDataTables :dashboardStore="dashboardStore" />
       </div>
     </div>
   </LayoutAdmin>

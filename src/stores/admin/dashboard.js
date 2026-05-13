@@ -30,7 +30,7 @@ function calculateOrderRevenue(order, restaurantFilters = [], categoryFilters = 
 
   return order.Menu
     .filter(item => {
-      const isRightRestaurant = restaurantFilters.length === 0 || restaurantFilters.includes(item.Restaurant);
+      const isRightRestaurant = restaurantFilters.length === 0 || restaurantFilters.includes(item.RestaurantName || item.Restaurant);
       const isNotCancelled = item.MenuStatus !== 'cancelled';
       
       let isRightCategory = true;
@@ -114,8 +114,9 @@ export const useDashboardStore = defineStore("dashboardStore", {
         .forEach(order => {
           if (order.Menu && order.OrderStatus === 'completed') {
             order.Menu.forEach(item => {
-              if (item.MenuStatus !== 'cancelled' && restMap[item.Restaurant] !== undefined) {
-                restMap[item.Restaurant] += (Number(item.Price || 0) * Number(item.Quantity || 1));
+              const rName = item.RestaurantName || item.Restaurant;
+              if (item.MenuStatus !== 'cancelled' && restMap[rName] !== undefined) {
+                restMap[rName] += (Number(item.Price || 0) * Number(item.Quantity || 1));
               }
             });
           }
@@ -171,18 +172,19 @@ export const useDashboardStore = defineStore("dashboardStore", {
           
           if (order.Menu) {
             order.Menu.forEach(item => {
-              const isRightRest = this.restaurantFilters.length === 0 || this.restaurantFilters.includes(item.Restaurant);
+              const rName = item.RestaurantName || item.Restaurant;
+              const isRightRest = this.restaurantFilters.length === 0 || this.restaurantFilters.includes(rName);
               const isRightCat = this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(item.Category);
               const menuId = item.MenuId;
               const isRightMenu = this.menuFilters.length === 0 || this.menuFilters.includes(menuId);
 
               if (item.MenuStatus !== 'cancelled' && isRightRest && isRightCat && isRightMenu) {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
-                commission += (itemRev * (restRateMap[item.Restaurant] || 0)) / 100;
+                commission += (itemRev * (restRateMap[rName] || 0)) / 100;
                 
                 addMenuMetric(menuMetrics, menuId, item, itemRev);
 
-                restRevenue[item.Restaurant] = (restRevenue[item.Restaurant] || 0) + itemRev;
+                restRevenue[rName] = (restRevenue[rName] || 0) + itemRev;
               }
             });
           }
@@ -204,9 +206,9 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.availableCategories = extractUniqueCategories(this.allMenus);
       
       this.availableMenus = this.allMenus
-        .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.Restaurant))
+        .filter(m => this.restaurantFilters.length === 0 || this.restaurantFilters.includes(m.RestaurantName || m.Restaurant))
         .filter(m => this.menuCategoryFilters.length === 0 || this.menuCategoryFilters.includes(m.Category))
-        .map(m => ({ MenuId: m.MenuId, Name: m.Name }));
+        .map(m => ({ MenuId: m.MenuId, Name: m.MenuName }));
 
       this.buildDailyRevenueChart(filteredOrders);
       this.buildPeakHoursChart(filteredOrders);

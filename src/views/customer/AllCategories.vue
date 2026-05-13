@@ -1,29 +1,23 @@
 <script setup>
-import { onMounted, computed, ref, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
 
 const route = useRoute();
 const router = useRouter();
-const room = route.params.room || '-';
-const { categoryStore } = useCustomerData(room);
+const qrId = route.params.qrId;
+const { categoryStore } = useCustomerData();
 
 const activeCategories = computed(() => {
     return categoryStore.list || [];
 });
 
-onMounted(() => {
-});
-
-onUnmounted(() => {
-});
-
 const goBack = () => {
-    router.push(`/user/${room}`);
+    router.push(`/user/${qrId}`);
 };
 
 const goToCategory = (catName) => {
-    router.push(`/user/category/${catName}/${room}`);
+    router.push(`/user/category/${catName}/${qrId}`);
 };
 </script>
 
@@ -31,7 +25,8 @@ const goToCategory = (catName) => {
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-24 font-sans flex flex-col">
         <div class="bg-white px-4 py-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm flex items-center gap-3">
             <button @click="goBack" class="p-2 -ml-2 text-gray-400 hover:text-blue-600 active:scale-95 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
             </button>
@@ -39,12 +34,15 @@ const goToCategory = (catName) => {
         </div>
         <div class="flex-1 px-4 pt-6">
             <div v-if="activeCategories.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-4 animate-fade-in">
-                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.Category)" class="flex flex-col items-center cursor-pointer group">
-                    <div class="w-full aspect-square rounded-2xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden relative group-hover:shadow-md transition-all duration-300">
+                <div v-for="cat in activeCategories" :key="cat.id" @click="goToCategory(cat.Category)"
+                    class="flex flex-col items-center cursor-pointer group">
+                    <div
+                        class="w-full aspect-square rounded-2xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden relative group-hover:shadow-md transition-all duration-300">
                         <img :src="cat.ImageUrl" :alt="cat.Category" class="w-full h-full object-cover rounded-xl" />
                         <div class="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors"></div>
                     </div>
-                    <span class="mt-2 text-[11px] font-bold text-gray-700 text-center leading-tight group-hover:text-blue-600 transition-colors">
+                    <span
+                        class="mt-2 text-[11px] font-bold text-gray-700 text-center leading-tight group-hover:text-blue-600 transition-colors">
                         {{ cat.Category }}
                     </span>
                 </div>

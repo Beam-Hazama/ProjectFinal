@@ -13,7 +13,6 @@ const categoryOptions = computed(() => categoryChartOptions(props.dashboardStore
 const peakHoursOptions = computed(() => peakHoursChartOptions(props.dashboardStore.ordersByHour.map(h => h.hour)));
 
 onMounted(() => {
-  // Delay slightly to ensure DOM is fully ready for ApexCharts
   setTimeout(() => {
     isReady.value = true;
   }, 100);

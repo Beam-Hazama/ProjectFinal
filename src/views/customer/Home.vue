@@ -12,8 +12,9 @@ import { useQrcodeStore } from '@/stores/admin/qrCode';
 
 const route = useRoute();
 const router = useRouter();
-const { menuStore, restaurantStore, cartStore, categoryStore, loadData } = useCustomerData(route.params.room);
+const { menuStore, restaurantStore, cartStore, categoryStore, loadData } = useCustomerData();
 const room = computed(() => cartStore.room);
+const qrId = computed(() => cartStore.qrId);
 const qrStore = useQrcodeStore();
 const isValidLocation = ref(false);
 const isLoading = ref(true);
@@ -68,27 +69,29 @@ onUnmounted(() => {
   menuStore.clearListener();
 });
 
-watch(() => route.params.room, async (newR) => {
-  if (newR) {
-    cartStore.setRoom(newR);
+watch(() => route.params.qrId, async (newQrId) => {
+  if (newQrId) {
+    cartStore.setQrId(newQrId);
   }
-  if (!room.value || room.value === '-' || room.value === 'undefined') {
-    const savedRoom = localStorage.getItem('lastRoom');
-    if (savedRoom && savedRoom !== 'undefined') {
-      router.replace(`/user/${savedRoom}`);
+  const currentQrId = cartStore.qrId;
+  if (!currentQrId || currentQrId === '-') {
+    const savedQrId = localStorage.getItem('lastQrId');
+    if (savedQrId && savedQrId !== '-') {
+      router.replace(`/user/${savedQrId}`);
       return;
     }
   }
-  if (room.value !== '-' && room.value !== 'undefined') {
+  if (currentQrId && currentQrId !== '-') {
     try {
       isLoading.value = true;
       isError.value = false;
       errorMessage.value = '';
 
-      const isValid = await qrStore.validateRoom(room.value);
-      isValidLocation.value = isValid;
+      const qrData = await qrStore.getQrById(currentQrId);
+      isValidLocation.value = !!qrData;
 
-      if (isValid) {
+      if (qrData) {
+        cartStore.setRoom(qrData.RoomNumber);
         await loadData();
       }
     } catch (error) {
@@ -148,7 +151,7 @@ const applyFilters = () => {
     </div>
     <h2 class="text-xl font-bold text-slate-800 mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</h2>
     <p class="text-slate-500 mb-6">{{ errorMessage }}</p>
-    <button @click="loadAllData"
+    <button @click="loadData"
       class="btn bg-blue-600 hover:bg-blue-700 text-white border-none px-8 rounded-xl shadow-lg shadow-blue-200">
       ลองใหม่อีกครั้ง
     </button>
@@ -192,17 +195,17 @@ const applyFilters = () => {
           <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"
             stroke-linejoin="round" />
         </svg>
-        <div @click="router.push(`/user/search/${room}`)"
+        <div @click="router.push(`/user/search/${qrId}`)"
           class="w-full bg-slate-100 border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm text-gray-400 cursor-text">
           ค้นหาร้าน หรือ ชื่อเมนู
         </div>
       </div>
     </div>
-    <!-- Banner Slider Section -->
+    
     <div class="px-4 py-2 mt-2">
       <div class="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-lg shadow-blue-100/50 group"
         @mouseenter="stopCarousel" @mouseleave="startCarousel">
-        <!-- Slides -->
+    
         <div class="flex transition-transform duration-700 ease-in-out h-full w-full"
           :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
           <div v-for="(img, index) in banners" :key="index" class="w-full flex-shrink-0 h-full relative">
@@ -210,7 +213,7 @@ const applyFilters = () => {
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>
         </div>
-        <!-- Dots -->
+       
         <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
           <button v-for="(_, index) in banners" :key="'dot-' + index" @click="currentSlide = index" :class="['w-1.5 h-1.5 rounded-full transition-all duration-300',
             currentSlide === index ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80']">
@@ -221,12 +224,12 @@ const applyFilters = () => {
     <div class="mt-4 pb-2">
       <div class="flex items-center justify-between mb-3 px-5">
         <h3 class="text-[14px] font-bold text-gray-800">หมวดหมู่</h3>
-        <button @click="router.push(`/user/all-categories/${room}`)"
+        <button @click="router.push(`/user/all-categories/${qrId}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
         <div v-for="cat in activeCategories" :key="cat.id"
-          @click="router.push(`/user/category/${cat.Category}/${room}`)"
+          @click="router.push(`/user/category/${cat.Category}/${qrId}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
@@ -243,7 +246,7 @@ const applyFilters = () => {
     <div v-if="promotionMenus.length > 0">
       <div class="px-5 mb-3 flex items-center justify-between">
         <h3 class="text-[14px] font-bold text-gray-800">โปรโมชั่น</h3>
-        <button @click="router.push(`/user/all-promotions/${room}`)"
+        <button @click="router.push(`/user/all-promotions/${qrId}`)"
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-6 no-scrollbar px-4">
@@ -346,7 +349,7 @@ const applyFilters = () => {
       </Teleport>
       <div class="px-4">
         <div class="animate-fade-in">
-          <RestaurantList :room="room" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
+          <RestaurantList :qrId="qrId" :categoryFilter="selectedRestaurantCategories" :promoOnly="isFilterPromoOnly">
           </RestaurantList>
         </div>
       </div>

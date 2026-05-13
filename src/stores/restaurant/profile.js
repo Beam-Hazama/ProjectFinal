@@ -63,7 +63,6 @@ export const useProfileStore = defineStore("restaurantProfile", {
         if (result) {
           const { id, ...data } = result;
           this.docId = id;
-          // เมิร์จข้อมูลที่ดึงมา เข้ากับโครงสร้างเดิม
           Object.assign(this.RestaurantData, data);
           if (!this.RestaurantData.Status) this.RestaurantData.Status = "auto";
           

@@ -88,7 +88,7 @@ onMounted(() => {
       <div v-if="qrStore.selectedRoom" class="print-container">
         <div class="qr-print-card">
           <div class="qr-border">
-            <qrcode-vue :value="`${qrStore.baseUrl}/user/${qrStore.selectedRoom.RoomNumber}`" :size="420" level="H" render-as="svg" />
+            <qrcode-vue :value="`${qrStore.baseUrl}/user/${qrStore.selectedRoom.id}`" :size="420" level="H" render-as="svg" />
           </div>
           <h1 class="room-title">ห้อง {{ qrStore.selectedRoom.RoomNumber }}</h1>
           <p class="scan-text">สแกนเพื่อสั่งอาหาร</p>

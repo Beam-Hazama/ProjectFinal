@@ -6,7 +6,7 @@ import { useRestaurant } from '@/stores/shared/restaurant';
 import { useMenuStore } from '@/stores/shared/menu';
 
 const props = defineProps({
-    room: String,
+    qrId: String,
     searchQuery: { type: String, default: '' },
     categoryFilter: { type: Array, default: () => [] },
     promoOnly: { type: Boolean, default: false }
@@ -52,7 +52,7 @@ const sortedRestaurants = computed(() => {
 });
 
 const goToRestaurantMenu = (restaurantName) => {
-    router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.room}`);
+    router.push(`/user/restaurant/${encodeURIComponent(restaurantName)}/${props.qrId}`);
 };
 
 // คืนชื่อหมวดหมู่ของร้าน (สูงสุด 3 ตัว)

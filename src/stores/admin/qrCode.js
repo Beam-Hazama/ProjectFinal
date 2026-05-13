@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { db } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, getDocs, where
+import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, getDoc
 } from 'firebase/firestore';
 import { nextTick } from 'vue';
 
@@ -67,15 +67,14 @@ export const useQrcodeStore = defineStore('qrcodeStore', {
       await nextTick();
       window.print();
     },
-    async validateRoom(roomNumber) {
-      const roomCol = collection(db, 'Qrcode');
-      const q = query(
-        roomCol,
-        where('RoomNumber', '==', roomNumber)
-      );
-
-      const snapshot = await getDocs(q);
-      return !snapshot.empty;
+    async getQrById(qrId) {
+      if (!qrId || qrId === '-') return null;
+      const docRef = doc(db, 'Qrcode', qrId);
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        return { id: snapshot.id, ...snapshot.data() };
+      }
+      return null;
     }
   }
 });

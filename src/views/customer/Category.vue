@@ -1,41 +1,21 @@
 <script setup>
-import { computed, onMounted, ref, onUnmounted } from 'vue';
-import { useNow } from '@/composables/useNow';
+import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
 import MenuList from '@/components/shared/BlockMenu.vue';
 
-function safeDecode(val, fallback) {
-    if (!val) return fallback;
-    try {
-        return decodeURIComponent(val);
-    } catch (e) {
-        return val;
-    }
-}
-
 const route = useRoute();
 const router = useRouter();
-const room = computed(() => safeDecode(route.params.room, '-'));
-const categoryId = computed(() => safeDecode(route.params.category, ''));
-const { menuStore } = useCustomerData(room.value);
-
-
+const categoryName = computed(() => route.params.category || '');
+const { menuStore } = useCustomerData();
 
 const filteredMenus = computed(() => {
-    if (!categoryId.value) return [];
-
-    return menuStore.list.filter(item => {
-        const matchesCategory = (item.Category && item.Category === categoryId.value) ||
-            (item.role && (Array.isArray(item.role) ? item.role.includes(categoryId.value) : item.role === categoryId.value)) ||
-            (item.MenuName && item.MenuName.includes(categoryId.value));
-
-        return matchesCategory;
-    });
+    if (!categoryName.value) return [];
+    return menuStore.list.filter(item => item.Category === categoryName.value);
 });
 
 const goBack = () => {
-    router.push(`/user/${room.value}`);
+    router.push(`/user/all-categories/${route.params.qrId}`);
 };
 </script>
 
@@ -48,13 +28,13 @@ const goBack = () => {
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
             </button>
-            <h1 class="font-bold text-gray-800 text-lg flex-1 text-center pr-8">{{ categoryId }}</h1>
+            <h1 class="font-bold text-gray-800 text-lg flex-1 text-center pr-8">{{ categoryName }}</h1>
         </div>
         <div class="flex-1 px-4 pt-5 pb-10">
             <div v-if="filteredMenus.length === 0"
                 class="flex flex-col items-center justify-center pt-20 text-gray-400">
                 <span class="text-4xl opacity-50 mb-2">🍽️</span>
-                <p class="text-[13px] font-medium">ไม่มีเมนูในหมวดหมู่ "{{ categoryId }}" ณ ตอนนี้</p>
+                <p class="text-[13px] font-medium">ไม่มีเมนูในหมวดหมู่ "{{ categoryName }}" ณ ตอนนี้</p>
             </div>
             <div v-else>
                 <div class="mb-4 flex items-center justify-between">

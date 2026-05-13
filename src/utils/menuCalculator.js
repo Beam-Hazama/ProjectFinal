@@ -1,13 +1,4 @@
-/**
- * Utility functions for menu price calculations and note generation.
- */
 
-/**
- * Calculates the total extra price from selected options.
- * @param {Array} optionGroups - The menu's option groups.
- * @param {Object} selections - The user's selections.
- * @returns {number} The total extra price.
- */
 export const calculateOptionPrice = (optionGroups, selections) => {
     if (!optionGroups) return 0;
     let extra = 0;
@@ -24,11 +15,7 @@ export const calculateOptionPrice = (optionGroups, selections) => {
     return extra;
 };
 
-/**
- * Gets the base price of a menu item, accounting for promotions.
- * @param {Object} menu - The menu item object.
- * @returns {number} The base price.
- */
+
 export const getBasePrice = (menu) => {
     if (!menu) return 0;
     return Number(menu.PromoPrice) > 0 
@@ -36,12 +23,7 @@ export const getBasePrice = (menu) => {
         : Number(menu.Price);
 };
 
-/**
- * Builds a summary note of the selected options.
- * @param {Array} optionGroups - The menu's option groups.
- * @param {Object} selections - The user's selections.
- * @returns {string} The formatted options note.
- */
+
 export const buildOptionsNote = (optionGroups, selections) => {
     if (!optionGroups) return '';
     const lines = [];

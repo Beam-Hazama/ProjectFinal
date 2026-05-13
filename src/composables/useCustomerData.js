@@ -3,39 +3,24 @@ import { useMenuStore } from "@/stores/shared/menu";
 import { useRestaurant } from "@/stores/shared/restaurant";
 import { useCartStore } from "@/stores/customer/cart";
 import { useCategoryStore } from "@/stores/shared/category";
+import { useCustomerDataStore } from "@/stores/customer/customerData";
 
-/**
- * Composable to load basic customer-side data (menu, restaurant list, cart, and categories)
- */
 export const useCustomerData = (room) => {
   const menuStore = useMenuStore();
   const restaurantStore = useRestaurant();
   const cartStore = useCartStore();
   const categoryStore = useCategoryStore();
+  const customerDataStore = useCustomerDataStore();
 
   const loadData = async () => {
-    const promises = [];
-    
-    if (menuStore.list.length === 0) {
-      promises.push(menuStore.loadMenu());
-    }
 
-    if (restaurantStore.list.length === 0) {
-      promises.push(restaurantStore.loadRestaurants());
+    if (room && room !== "-" && room !== "undefined") {
+      cartStore.setRoom(room);
     }
-
-    if (categoryStore.list.length === 0) {
-      promises.push(categoryStore.fetchCategories());
-    }
-
-    if (room) {
-      promises.push(cartStore.loadCart(room));
-    }
-
-    await Promise.all(promises);
+    await customerDataStore.loadAllData();
   };
 
-  // เรียกใช้อัตโนมัติเฉพาะตอนอยู่ใน setup lifecycle เท่านั้น เพื่อหลีกเลี่ยง error เมื่อเรียกหลัง async หรือใน watch
+
   if (getCurrentInstance()) {
     onMounted(() => {
       loadData();
@@ -47,7 +32,7 @@ export const useCustomerData = (room) => {
     restaurantStore,
     cartStore,
     categoryStore,
-    loadData
+    customerDataStore,
+    loadData,
   };
 };
-

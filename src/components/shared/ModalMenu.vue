@@ -1,12 +1,10 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useNow } from '@/composables/useNow';
 import { useCartStore } from '@/stores/customer/cart';
 import { useRestaurant } from '@/stores/shared/restaurant';
-import { useUserStatusStore } from '@/stores/customer/orderStatus';
 import { checkShopClosed } from '@/utils/shopStatus';
 import { getBasePrice, calculateOptionPrice, buildOptionsNote } from '@/utils/menuCalculator';
-import { onUnmounted } from 'vue';
 
 const props = defineProps({
   show: Boolean,
@@ -16,97 +14,59 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const cartStore = useCartStore();
 const restaurantStore = useRestaurant();
-const statusStore = useUserStatusStore();
 
 const quantity = ref(1);
 const Note = ref('');
 const selections = ref({});
-
 const { now } = useNow();
 
-onMounted(() => {
-  if (restaurantStore.list.length === 0) {
-    restaurantStore.loadRestaurants();
-  }
-});
+const resetForm = () => {
+  selections.value = {};
+  props.menu?.OptionGroups?.forEach((group, i) => {
+    selections.value[i] = group.MaxChoices > 1 ? [] : null;
+  });
+  quantity.value = 1;
+  Note.value = '';
+};
 
-onUnmounted(() => {
+onMounted(() => {
+  if (restaurantStore.list.length === 0) restaurantStore.loadRestaurants();
+  resetForm();
 });
 
 const isShopClosed = computed(() => {
   if (!props.menu) return false;
-  const shop = restaurantStore.list.find(r => (r.RestaurantName) === props.menu.RestaurantName);
+  const shop = restaurantStore.list.find(r => r.RestaurantName === props.menu.RestaurantName);
   return checkShopClosed(shop, now.value);
 });
 
-const isAvailable = computed(() => {
-  return props.menu?.Status === 'open' && !isShopClosed.value;
-});
-
-watch(
-  [() => props.menu, () => props.show],
-  ([menu, show]) => {
-    if (!menu || !show) return;
-    
-    selections.value = {};
-    if (menu.OptionGroups) {
-      menu.OptionGroups.forEach((group, index) => {
-        if (group.MaxChoices > 1) {
-          selections.value[index] = [];
-        } else {
-          selections.value[index] = null;
-        }
-      });
-    }
-
-    // Always start with quantity 1 for new additions/re-opens
-    quantity.value = 1;
-    Note.value = '';
-  },
-  { immediate: true }
-);
+const isAvailable = computed(() => props.menu?.Status === 'open' && !isShopClosed.value);
 
 const isFormValid = computed(() => {
-  if (!props.menu || !props.menu.OptionGroups) return true;
-  for (let i = 0; i < props.menu.OptionGroups.length; i++) {
-    const group = props.menu.OptionGroups[i];
-    if (group.isRequired) {
-      const sel = selections.value[i];
-      if (group.MaxChoices > 1) {
-        if (!Array.isArray(sel) || sel.length === 0) return false;
-      } else {
-        if (!sel) return false;
-      }
-    }
-  }
-  return true;
+  const groups = props.menu?.OptionGroups || [];
+  return groups.every((group, i) => {
+    if (!group.isRequired) return true;
+    const sel = selections.value[i];
+    return group.MaxChoices > 1 ? (Array.isArray(sel) && sel.length > 0) : !!sel;
+  });
 });
 
 const toggleRadio = (gIndex, choiceName) => {
-  if (selections.value[gIndex] === choiceName) {
-    selections.value[gIndex] = null;
-  } else {
-    selections.value[gIndex] = choiceName;
-  }
+  selections.value[gIndex] = selections.value[gIndex] === choiceName ? null : choiceName;
 };
 
-const calculateTotalPrice = () => {
+const unitPrice = computed(() => {
   if (!props.menu) return 0;
-  const base = getBasePrice(props.menu);
-  const extra = calculateOptionPrice(props.menu.OptionGroups, selections.value);
-  return (base + extra) * quantity.value;
-};
+  return getBasePrice(props.menu) + calculateOptionPrice(props.menu.OptionGroups, selections.value);
+});
+
+const calculateTotalPrice = () => unitPrice.value * quantity.value;
 
 const confirmAdd = () => {
   if (!isFormValid.value || !isAvailable.value) return;
-
   const optionsNote = buildOptionsNote(props.menu.OptionGroups, selections.value);
-  const userNote = Note.value ? `หมายเหตุ: ${Note.value}` : '';
-  const finalNote = [optionsNote, userNote].filter(Boolean).join('\n');
-
-  const unitPrice = getBasePrice(props.menu) + calculateOptionPrice(props.menu.OptionGroups, selections.value);
-
-  cartStore.addOrUpdateItem(props.menu, quantity.value, finalNote, unitPrice);
+  const finalNote = [optionsNote, Note.value ? `หมายเหตุ: ${Note.value}` : ''].filter(Boolean).join('\n');
+  cartStore.addOrUpdateItem(props.menu, quantity.value, finalNote, unitPrice.value);
   emit('close');
 };
 </script>
@@ -173,13 +133,13 @@ const confirmAdd = () => {
                 <label v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex"
                   class="flex items-center justify-between cursor-pointer group">
                   <div class="flex items-center gap-3">
-                    <input v-if="group.MaxChoices > 1" type="checkbox" :value="choice.ChoiceName || choice.name" v-model="selections[gIndex]"
-                      :disabled="selections[gIndex].length >= group.MaxChoices && !selections[gIndex].includes(choice.ChoiceName || choice.name)"
+                    <input v-if="group.MaxChoices > 1" type="checkbox" :value="choice.ChoiceName" v-model="selections[gIndex]"
+                      :disabled="selections[gIndex].length >= group.MaxChoices && !selections[gIndex].includes(choice.ChoiceName)"
                       class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer disabled:opacity-50">
-                    <input v-else type="radio" :checked="selections[gIndex] === (choice.ChoiceName || choice.name)" :name="'grp-' + gIndex"
-                      @click="toggleRadio(gIndex, choice.ChoiceName || choice.name)"
+                    <input v-else type="radio" :checked="selections[gIndex] === choice.ChoiceName" :name="'grp-' + gIndex"
+                      @click="toggleRadio(gIndex, choice.ChoiceName)"
                       class="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white transition-all cursor-pointer">
-                    <span class="text-gray-700 text-[14px] font-medium">{{ choice.ChoiceName || choice.name }}</span>
+                    <span class="text-gray-700 text-[14px] font-medium">{{ choice.ChoiceName }}</span>
                   </div>
                   <span v-if="choice.ExtraPrice > 0" class="text-[14px] text-gray-600">+฿{{ choice.ExtraPrice }}</span>
                 </label>

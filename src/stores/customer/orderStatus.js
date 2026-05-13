@@ -1,10 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useOrderlistStore } from "@/stores/shared/orderList";
-import { useCartStore } from "@/stores/customer/cart";
 import { useMenuStore } from "@/stores/shared/menu";
-import { db } from "@/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { formatPrice } from "@/utils/format";
 import { filterRecentOrders } from "@/utils/orderHelpers";
 
@@ -21,7 +18,6 @@ const all = (items, statuses) =>
 
 export const useUserStatusStore = defineStore("userStatus", () => {
   const orderListStore = useOrderlistStore();
-  const cartStore = useCartStore();
   const menuStore = useMenuStore();
 
   const room = ref("");

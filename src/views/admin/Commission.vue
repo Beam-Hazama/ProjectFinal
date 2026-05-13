@@ -17,7 +17,7 @@ onUnmounted(() => {
   commissionStore.clearListener();
   dashboardStore.clearListeners();
 });
-// คำนวณข้อมูลตารางโดยรวมข้อมูลจากทั้ง 2 stores
+
 const tableData = computed(() => {
   return dashboardStore.revenueByRestaurant.map(item => {
     const rate = commissionStore.isEditing 
