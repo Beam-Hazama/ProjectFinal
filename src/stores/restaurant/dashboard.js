@@ -43,7 +43,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     unsubscribeRestaurant: null,
     availableMenus: [],
     availableCategories: [],
-    filteredTotalMenus: 0,
     isError: false,
     errorMessage: ''
   }),
@@ -173,7 +172,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       let filteredMenus = this.allMenus;
       if (this.menuCategoryFilters.length > 0) filteredMenus = filteredMenus.filter(m => this.menuCategoryFilters.includes(m.Category));
-      this.filteredTotalMenus = filteredMenus.length;
       this.buildCategoryStats(filteredMenus);
 
       this.availableCategories = extractUniqueCategories(this.allMenus);

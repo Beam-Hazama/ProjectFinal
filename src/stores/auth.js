@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { useOrderlistStore } from './shared/orderlist';
+import { useOrderlistStore } from './shared/orderList';
 import { useMenuStore } from './shared/menu';
 
 export const useAccountStore = defineStore('user-account', {

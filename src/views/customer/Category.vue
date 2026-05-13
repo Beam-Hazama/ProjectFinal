@@ -18,9 +18,9 @@ const route = useRoute();
 const router = useRouter();
 const room = computed(() => safeDecode(route.params.room, '-'));
 const categoryId = computed(() => safeDecode(route.params.category, ''));
-const { menuStore, restaurantStore, cartStore } = useCustomerData(room.value);
+const { menuStore } = useCustomerData(room.value);
 
-const { now } = useNow();
+
 
 const filteredMenus = computed(() => {
     if (!categoryId.value) return [];
@@ -28,7 +28,7 @@ const filteredMenus = computed(() => {
     return menuStore.list.filter(item => {
         const matchesCategory = (item.Category && item.Category === categoryId.value) ||
             (item.role && (Array.isArray(item.role) ? item.role.includes(categoryId.value) : item.role === categoryId.value)) ||
-            (item.Name && item.Name.includes(categoryId.value));
+            (item.MenuName && item.MenuName.includes(categoryId.value));
 
         return matchesCategory;
     });

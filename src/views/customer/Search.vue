@@ -8,7 +8,7 @@ import MenuList from '@/components/shared/BlockMenu.vue';
 const route = useRoute();
 const router = useRouter();
 const room = route.params.room;
-const { menuStore, cartStore } = useCustomerData(room);
+const { menuStore } = useCustomerData(room);
 const searchQuery = ref('');
 
 const vFocus = {
@@ -21,8 +21,8 @@ const filteredMenus = computed(() => {
     if (!searchQuery.value) return [];
 
     return menuStore.list.filter(item =>
-        item.Name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        item.Restaurant?.toLowerCase().includes(searchQuery.value.toLowerCase())
+        item.MenuName?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        item.RestaurantName?.toLowerCase().includes(searchQuery.value.toLowerCase())
     );
 });
 

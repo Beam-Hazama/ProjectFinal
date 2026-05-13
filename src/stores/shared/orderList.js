@@ -18,8 +18,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
   }),
 
   getters: {
-    // เรียงจากเก่าไปใหม่ (asc) เพื่อให้ component แสดงตามลำดับเวลาที่ออเดอร์เข้ามา
-    sortedOrders: (state) => sortOrdersByDate(state.list, "asc"),
+    sortedOrders: (state) => sortOrdersByDate(state.list, "desc"),
   },
 
   actions: {
@@ -149,16 +148,17 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     },
 
     clearListener() {
-      // ใช้ optional chaining ให้สั้นลง
-      this.unsubscribe?.();
+      if (this.unsubscribe) {     //ถ้าไม่มีโค้ดจะเกิดError
+        this.unsubscribe();
+      }
       this.unsubscribe = null;
       this.list = [];
     },
 
-    // Helper ภายใน: subscribe ไปที่ query แล้วอัพเดท list
-    _subscribeToQuery(queryRef) {
-      this.unsubscribe = onSnapshot(queryRef, (snap) => {
-        this.list = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    
+    subscribeToQuery(queryRef) {
+      this.unsubscribe = onSnapshot(queryRef, (snapshot) => {
+        this.list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       });
     },
 
@@ -172,7 +172,6 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           .map((doc) => ({ id: doc.id, ...doc.data() }))
           .filter((order) => {
             if (!order.CreatedAt) return true;
-            // Convert Firestore Timestamp to milliseconds
             const ms = order.CreatedAt.toMillis
               ? order.CreatedAt.toMillis()
               : order.CreatedAt;
@@ -181,31 +180,19 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       });
     },
 
-    // โหลดออเดอร์ที่กำลังดำเนินการอยู่ (ถ้ามี restaurantName ก็กรองเฉพาะของร้านนั้น)
-    async loadOrder(restaurantName = null) {
-      this.clearListener();
-      const conditions = [
-        collection(db, "Order"),
-        where("OrderStatus", "in", ["pending", "cooking", "dispatched"]),
-      ];
-      if (restaurantName) {
-        conditions.push(
-          where("RestaurantsInOrder", "array-contains", restaurantName),
-        );
-      }
-      this._subscribeToQuery(query(...conditions));
-    },
-
     // โหลดออเดอร์ทั้งหมด (ถ้ามี restaurantName ก็กรองเฉพาะของร้านนั้น)
     async loadAllOrders(restaurantName = null) {
       this.clearListener();
-      const ref = restaurantName
-        ? query(
-            collection(db, "Order"),
-            where("RestaurantsInOrder", "array-contains", restaurantName),
-          )
-        : collection(db, "Order");
-      this._subscribeToQuery(ref);
+      let ref;
+      if (restaurantName) {
+        ref = query(
+          collection(db, "Order"),
+          where("RestaurantsInOrder", "array-contains", restaurantName),
+        );
+      } else {
+        ref = collection(db, "Order");
+      }
+      this.subscribeToQuery(ref);
     },
   },
 });

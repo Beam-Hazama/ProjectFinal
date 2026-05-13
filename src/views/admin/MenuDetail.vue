@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useMenuStore } from '@/stores/shared/menu';
 
@@ -9,14 +9,12 @@ const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
 
-const imagePreview = ref('');
-
-const menuData = reactive({
+const menuData = reactive({         //กัน error ค่าว่าง []
   Menu: '',
   ImageUrl: '',
   Price: 0,
   PromoPrice: null,
-  Restaurant: '',
+  RestaurantName: '',
   Description: '',
   Category: '',
   Status: '',
@@ -32,7 +30,6 @@ onMounted(async () => {
     const res = await menuStore.fetchMenuById(route.params.id);
     if (res) {
       Object.assign(menuData, res);
-      imagePreview.value = res.ImageUrl;
     }
   }
 });
@@ -63,7 +60,7 @@ onMounted(async () => {
             </h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs">
               <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative group">
-                <img v-if="imagePreview || menuData.ImageUrl" :src="imagePreview || menuData.ImageUrl" class="w-full h-full object-cover" />
+                <img v-if="menuData.ImageUrl" :src="menuData.ImageUrl" class="w-full h-full object-cover" />
                 <div v-else class="text-slate-400 flex flex-col items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -122,7 +119,7 @@ onMounted(async () => {
                     <span class="label-text font-medium text-slate-600">ร้านอาหาร</span>
                   </label>
                   <div class="input input-bordered w-full focus:select-primary bg-slate-50 border-slate-200 flex items-center">
-                    {{ menuData.Restaurant }}
+                    {{ menuData.RestaurantName }}
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
@@ -164,7 +161,7 @@ onMounted(async () => {
                           <span class="label-text font-medium text-slate-600">ชื่อหมวดหมู่ตัวเลือก</span>
                         </label>
                         <div class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 flex items-center">
-                          {{ group.name.replace(' / คุณสมบัติพิเศษ', '') }}
+                          {{ group.GroupName }}
                         </div>
                       </div>
                       <div class="form-control">
@@ -173,7 +170,7 @@ onMounted(async () => {
                         </label>
                         <div class="relative">
                           <div class="input input-bordered w-full pr-16 focus:input-primary bg-slate-50 border-slate-200 flex items-center">
-                            {{ group.maxChoices }}
+                            {{ group.MaxChoices }}
                           </div>
                           <span class="absolute right-4 top-3 text-slate-400 text-sm font-medium">รายการ</span>
                         </div>
@@ -197,13 +194,13 @@ onMounted(async () => {
                         <div v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex" class="flex items-start gap-4">
                           <div class="form-control flex-1">
                             <div class="input input-sm input-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center">
-                              {{ choice.name }}
+                              {{ choice.ChoiceName}}
                             </div>
                           </div>
                           <div class="form-control w-32">
                             <div class="relative">
                               <div class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10 flex items-center justify-end">
-                                {{ choice.price }}
+                                {{ choice.ExtraPrice}}
                               </div>
                               <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
                             </div>

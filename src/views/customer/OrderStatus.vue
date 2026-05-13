@@ -141,7 +141,7 @@ onMounted(() => {
               <div class="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-700 ease-out"
                 :style="{ width: `${(statusStore.getOrderProgress(order) / 3) * 100}%` }"></div>
             </div>
-            <!-- Stage 0: Waiting -->
+            <!-- Stage 0: Pending -->
             <div class="relative z-10 flex flex-col items-center">
               <div class="relative">
                 <div :class="[
@@ -244,21 +244,21 @@ onMounted(() => {
               <div class="mt-1.5 flex items-center gap-1.5">
                 <span :class="{
                   'w-1.5 h-1.5 rounded-full ring-2 ring-offset-1': true,
-                  'bg-yellow-400 ring-yellow-200': !item.MenuStatus || item.MenuStatus === 'waiting',
-                  'bg-orange-500 ring-orange-200': item.MenuStatus === 'pending' || item.MenuStatus === 'cooking',
+                  'bg-yellow-400 ring-yellow-200': !item.MenuStatus || item.MenuStatus === 'pending',
+                  'bg-orange-500 ring-orange-200': item.MenuStatus === 'cooking',
                   'bg-green-500 ring-green-200': item.MenuStatus === 'dispatched',
                   'bg-teal-500 ring-teal-200': item.MenuStatus === 'received',
                   'bg-red-500 ring-red-200': item.MenuStatus === 'cancelled'
                 }"></span>
                 <span class="text-[9px] font-black uppercase tracking-wider" :class="{
-                  'text-yellow-500': !item.MenuStatus || item.MenuStatus === 'waiting',
-                  'text-orange-500': item.MenuStatus === 'pending' || item.MenuStatus === 'cooking',
+                  'text-yellow-500': !item.MenuStatus || item.MenuStatus === 'pending',
+                  'text-orange-500': item.MenuStatus === 'cooking',
                   'text-green-600': item.MenuStatus === 'dispatched',
                   'text-teal-600': item.MenuStatus === 'received',
                   'text-red-500': item.MenuStatus === 'cancelled'
                 }">
-                  {{ (!item.MenuStatus || item.MenuStatus === 'waiting') ? 'รอร้านรับออเดอร์' :
-                  (item.MenuStatus === 'pending' || item.MenuStatus === 'cooking') ? 'กำลังทำอาหาร' :
+                  {{ (!item.MenuStatus || item.MenuStatus === 'pending') ? 'รอร้านรับออเดอร์' :
+                  (item.MenuStatus === 'cooking') ? 'กำลังทำอาหาร' :
                       item.MenuStatus === 'cancelled' ? 'ถูกยกเลิก' :
                         item.MenuStatus === 'received' ? 'ได้รับแล้ว' : 'จัดส่ง' }}
                 </span>

@@ -63,7 +63,7 @@ const logout = async () => {
                 </div>
                 <div class="avatar w-8 h-8">
                     <div class="rounded-full bg-slate-200">
-                        <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Restaurant'" alt="Admin" />
+                        <img :src="accountStore.user?.ImageUrl" alt="Admin" />
                     </div>
                 </div>
             </div>            
@@ -113,10 +113,10 @@ const logout = async () => {
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-sm font-bold text-slate-700 truncate">
-                                {{ accountStore.user?.Firstname }} {{ accountStore.user?.Lastname || '' }}
+                                {{ accountStore.user?.Firstname }} {{ accountStore.user?.Lastname }}
                                 <span v-if="!accountStore.user?.Firstname">Restaurant User</span>
                             </p>
-                            <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.Username || 'user' }}</p>
+                            <p class="text-xs text-slate-400 truncate">{{ accountStore.user?.Username }}</p>
                         </div>
                     </div>
                     <button @click="logout" class="btn btn-outline btn-error btn-sm w-full gap-2 rounded-lg font-bold">

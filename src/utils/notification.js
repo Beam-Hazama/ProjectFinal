@@ -124,11 +124,7 @@ export const enableCustomerNotification = async (orderIds = []) => {
   return { ok: true, token };
 };
 
-/**
- * High-level wrapper to request notification permission and save tokens for specific orders.
- * @param {Array} orderIds - List of order IDs to bind the token to
- * @returns {Object} - { status: 'granted'|'denied'|'default', message: string }
- */
+
 export const requestPermissionForOrders = async (orderIds) => {
     const result = await enableCustomerNotification(orderIds);
     if (result.ok) {

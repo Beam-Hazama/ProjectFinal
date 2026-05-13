@@ -52,8 +52,6 @@ export const useMenuStore = defineStore("menu", {
             return {
               MenuId: doc.id,
               ...menuData,
-              MenuName: menuData.MenuName,
-              Restaurant: menuData.RestaurantName,
             };
           });
           this.isLoading = false;
@@ -66,11 +64,10 @@ export const useMenuStore = defineStore("menu", {
     },
 
     async addMenu(menuData) {
-      const timestamp = serverTimestamp();
       await addDoc(collection(db, "Menu"), {
         ...menuData,
-        CreatedAt: timestamp,
-        UpdatedAt: timestamp,
+        CreatedAt: serverTimestamp(),
+        UpdatedAt: serverTimestamp(),
       });
     },
 

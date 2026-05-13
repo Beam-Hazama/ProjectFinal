@@ -1,12 +1,6 @@
 import { toDayKey } from '@/utils/format';
 
-/**
- * Calculates the time range (start and end dates) based on a filter.
- * @param {string} filter - 'today', '7days', 'thisMonth', or 'custom'.
- * @param {string|Date} customStart - Custom start date.
- * @param {string|Date} customEnd - Custom end date.
- * @returns {Object} { start, end } as Date objects.
- */
+
 export const getTimeRange = (filter, customStart, customEnd) => {
     const now = new Date();
     let start = new Date(0);
@@ -33,12 +27,7 @@ export const getTimeRange = (filter, customStart, customEnd) => {
     return { start, end };
 };
 
-/**
- * Builds daily revenue data for the last 7 days.
- * @param {Array} orders - List of order objects.
- * @param {Function} getRevenueFromOrder - Callback to calculate revenue for a single order.
- * @returns {Array} List of { date, revenue } objects.
- */
+
 export const buildDailyRevenue = (orders, getRevenueFromOrder) => {
     const days = {};
     const today = new Date();
@@ -62,11 +51,7 @@ export const buildDailyRevenue = (orders, getRevenueFromOrder) => {
     return Object.entries(days).map(([date, revenue]) => ({ date, revenue }));
 };
 
-/**
- * Builds peak hours data (count per hour).
- * @param {Array} orders - List of order objects.
- * @returns {Array} List of { hour, count } objects.
- */
+
 export const buildPeakHours = (orders) => {
     const hours = Array(24).fill(0);
     orders.forEach(order => {
@@ -78,16 +63,10 @@ export const buildPeakHours = (orders) => {
         hour: `${String(hour).padStart(2, '0')}:00`, 
         count 
     }));
-    // Add 24:00 as a duplicate of 00:00 for chart continuity if needed
     result.push({ hour: '24:00', count: hours[0] });
     return result;
 };
 
-/**
- * Builds category distribution statistics.
- * @param {Array} menus - List of menu objects.
- * @returns {Array} List of { name, count } objects sorted by count.
- */
 export const buildCategoryStats = (menus) => {
     const counts = {};
     menus.forEach(m => {
@@ -99,13 +78,7 @@ export const buildCategoryStats = (menus) => {
         .sort((a, b) => b.count - a.count);
 };
 
-/**
- * Helper to check if an order falls within a given time range.
- * @param {Object} order - Order object.
- * @param {Date} start - Start date.
- * @param {Date} end - End date.
- * @returns {boolean}
- */
+
 export const isOrderInTimeRange = (order, start, end) => {
     const createdAt = order.CreatedAt;
     if (!createdAt) return false;

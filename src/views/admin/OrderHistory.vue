@@ -2,7 +2,7 @@
 import { formatTimestamp } from '@/utils/format';
 import { ref, computed, onMounted } from 'vue';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
-import { useOrderlistStore } from '@/stores/shared/orderlist';
+import { useOrderlistStore } from '@/stores/shared/orderList';
 import { getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
@@ -11,8 +11,7 @@ const selectedOrder = ref(null);
 const showModal = ref(false);
 
 const historyOrders = computed(() => {
-    const orders = orderStore.sortedOrders || [];
-    return [...orders].reverse();
+    return orderStore.sortedOrders || [];
 });
 
 onMounted(() => {
@@ -23,9 +22,6 @@ const openModal = (order) => {
     selectedOrder.value = order;
     showModal.value = true;
 };
-
-// Removed getStatusColor local helper
-// Removed formatTimestampStore usage
 </script>
 
 <template>
@@ -55,11 +51,12 @@ const openModal = (order) => {
                                 </td>
                                 <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.OrderStatus)">
-                                        {{ order.OrderStatus?.toUpperCase() || '-' }}
+                                        {{ order.OrderStatus?.toUpperCase()}}
                                     </span>
                                 </td>
                                 <td class="text-center text-sm whitespace-nowrap">{{ formatTimestamp(order.CreatedAt) }}</td>
-                                <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>
+                                                                                        <!-- แปลงค่า 1000 to 1,000 -->
+                                <td class="text-center font-bold text-emerald-600">{{ order.TotalPrice?.toLocaleString() }} ฿</td>                   
                                 <td class="text-center">
                                     <button @click="openModal(order)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
@@ -94,22 +91,22 @@ const openModal = (order) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in selectedOrder.Menu" :key="index" class="border-b border-slate-100 last:border-none">
+                                    <tr v-for="(menu, index) in selectedOrder.Menu" :key="index" class="border-b border-slate-100 last:border-none">
                                         <td>
-                                            <div class="font-bold text-slate-700">{{ item.MenuName }}</div>
-                                            <div class="text-xs text-slate-400">{{ item.RestaurantName || item.Restaurant }}</div>
-                                            <div v-if="item.Note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ item.Note }}</div>
+                                            <div class="font-bold text-slate-700">{{ menu.MenuName }}</div>
+                                            <div class="text-xs text-slate-400">{{ menu.RestaurantName}}</div>
+                                            <div v-if="menu.Note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ menu.Note }}</div>
                                         </td>
-                                        <td class="text-center font-medium">{{ item.quantity || item.Quantity || 1 }} </td>
-                                        <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
+                                        <td class="text-center font-medium">{{menu.Quantity}} </td>
+                                        <td class="text-right font-medium">{{ menu.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
                                             <span class="badge badge-xs gap-1" :class="{
-                                                'badge-info': item.MenuStatus === 'pending',
-                                                'bg-orange-500 text-white border-none': item.MenuStatus === 'cooking',
-                                                'badge-success text-white': item.MenuStatus === 'dispatched',
-                                                'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled'
+                                                'badge-info': menu.MenuStatus === 'pending',
+                                                'bg-orange-500 text-white border-none': menu.MenuStatus === 'cooking',
+                                                'badge-success text-white': menu.MenuStatus === 'dispatched',
+                                                'badge-error text-white bg-red-500': menu.MenuStatus === 'cancelled'
                                             }">
-                                                {{ item.MenuStatus === 'pending' ? 'cooking' : (item.MenuStatus || 'pending') }}
+                                                {{ menu.MenuStatus }}
                                             </span>
                                         </td>
                                     </tr>
@@ -119,7 +116,7 @@ const openModal = (order) => {
                         <div class="flex justify-between items-end border-t border-slate-200 pt-4 mt-4">
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-500">Total Amount</span>
-                                <span class="badge" :class="getStatusColor(selectedOrder?.OrderStatus)">{{ selectedOrder?.OrderStatus?.toUpperCase() || '-' }}</span>
+                                <span class="badge" :class="getStatusColor(selectedOrder?.OrderStatus)">{{ selectedOrder?.OrderStatus?.toUpperCase() }}</span>
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">{{ selectedOrder.TotalPrice?.toLocaleString() }} ฿</span>
                         </div>

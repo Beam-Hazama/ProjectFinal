@@ -52,7 +52,7 @@ const logout = async () => {
         </label>
         <div class="avatar w-8 h-8">
           <div class="rounded-full bg-slate-200">
-            <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'" alt="Admin Profile" />
+            <img :src="accountStore.user?.ImageUrl" alt="Admin Profile" />
           </div>
         </div>
       </header>      
@@ -98,7 +98,7 @@ const logout = async () => {
           <div class="flex items-center gap-3 mb-4 px-2">
             <div class="avatar online">
               <div class="w-10 rounded-full ring ring-blue-600 ring-offset-base-100 ring-offset-2">
-                <img :src="accountStore.user?.ImageUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'" alt="User Profile" />
+                <img :src="accountStore.user?.ImageUrl" alt="User Profile" />
               </div>
             </div>
             <div class="overflow-hidden">

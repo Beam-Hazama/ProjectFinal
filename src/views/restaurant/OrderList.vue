@@ -1,10 +1,10 @@
 <script setup>
 import { onMounted, onUnmounted, computed, ref } from 'vue';
-import { useOrderlistStore } from '@/stores/shared/orderlist';
+import { useOrderlistStore } from '@/stores/shared/orderList';
 import { useAccountStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/shared/menu';
 import LayoutRestaurant from './RestaurantLayout.vue';
-import { formatTime, formatPrice, formatFullDateTime } from '@/utils/format';
+import { formatPrice, formatFullDateTime } from '@/utils/format';
 import { getCompletionStatus, getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
@@ -69,11 +69,6 @@ const getSelectionType = (orderId, itemId) => {
     return selections.value[orderId]?.[itemId];
 };
 
-/* const hasSelections = (orderId) => {
-    const orderSelections = selections.value[orderId];
-    return orderSelections && Object.keys(orderSelections).length > 0;
-}; */
-
 const areAllItemsSelected = (order) => {
     const activeItems = order.displayItems.filter(i => i.MenuStatus !== 'dispatched' && i.MenuStatus !== 'cancelled');
     if (activeItems.length === 0) return false;
@@ -81,8 +76,8 @@ const areAllItemsSelected = (order) => {
     return activeItems.every(item => orderSelections[item.uniqueKey]);
 };
 
-const hasWaitingItems = (order) => {
-    return order.displayItems.some(i => !i.MenuStatus || i.MenuStatus === 'waiting');
+const hasPendingItems = (order) => {
+    return order.displayItems.some(i => !i.MenuStatus || i.MenuStatus === 'pending');
 };
 
 const saveChanges = async (order) => {
@@ -110,7 +105,7 @@ const saveChanges = async (order) => {
 
             let newStatus = item.MenuStatus;
             if (action === 'advance') {
-                if (!item.MenuStatus || item.MenuStatus === 'waiting') {
+                if (!item.MenuStatus || item.MenuStatus === 'pending') {
                     newStatus = 'cooking';
                 }
             } else if (action === 'cancel') {
@@ -149,19 +144,6 @@ const deliverOrder = async (order) => {
     }
 };
 
-
-
-/* const getStatusColor = (status) => {
-    switch (status) {
-        case 'pending': return 'badge-info text-white';
-        case 'cooking': return 'bg-orange-500 text-white border-none';
-        case 'dispatched': return 'bg-amber-500 text-white border-none';
-        case 'cancelled': return 'badge-error text-white';
-        default: return 'badge-ghost';
-    }
-}; */
-
-// Removed getRowStatusColor local helper
 </script>
 
 <template>
@@ -214,7 +196,7 @@ const deliverOrder = async (order) => {
                         <div class="p-4 flex-grow space-y-4">
                             <div v-for="(item, index) in order.displayItems" :key="index" class="flex flex-row gap-4 items-center border-b border-slate-50 last:border-0 pb-4 last:pb-0">
                                 <div class="flex flex-col gap-2 flex-shrink-0"
-                                    v-if="!item.MenuStatus || item.MenuStatus === 'waiting'">
+                                    v-if="!item.MenuStatus || item.MenuStatus === 'pending'">
                                     <label class="cursor-pointer flex items-center gap-1">
                                         <input type="checkbox" class="checkbox checkbox-success checkbox-xs"
                                             :checked="getSelectionType(order.id, item.uniqueKey) === 'advance'"
@@ -244,10 +226,10 @@ const deliverOrder = async (order) => {
                                             {{ item.Note }}
                                         </p>
                                         <div class="mt-1 flex gap-2 items-center">
-                                            <div v-if="item.MenuStatus && item.MenuStatus !== 'waiting'"
+                                            <div v-if="item.MenuStatus && item.MenuStatus !== 'pending'"
                                                 :class="getStatusColor(item.MenuStatus)"
                                                 class="badge badge-xs font-semibold px-2 py-2">
-                                                {{ (item.MenuStatus || 'waiting').toUpperCase() }}
+                                                {{ (item.MenuStatus || 'pending').toUpperCase() }}
                                             </div>
                                         </div>
                                     </div>
@@ -261,7 +243,7 @@ const deliverOrder = async (order) => {
                                     ฿</span>
                             </div>
                             <div class="flex gap-2 items-center justify-end">
-                                <button v-if="hasWaitingItems(order)" @click="saveChanges(order)" class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-lg disabled:bg-slate-200 transition-all duration-300"
+                                <button v-if="hasPendingItems(order)" @click="saveChanges(order)" class="btn btn-sm w-full bg-emerald-500 hover:bg-emerald-600 border-none text-white shadow-lg disabled:bg-slate-200 transition-all duration-300"
                                     :disabled="!areAllItemsSelected(order)">
                                     บันทึก
                                 </button>

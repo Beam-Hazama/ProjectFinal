@@ -31,7 +31,6 @@ const payment = async () => {
     }
   } catch (error) {
     console.error("Payment error:", error);
-    // Error is already handled by alert in store, but we catch it here to reset loading
   } finally {
     isPlacingOrder.value = false;
   }

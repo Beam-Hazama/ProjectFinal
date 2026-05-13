@@ -1,10 +1,10 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
 import { onMounted, onUnmounted, ref, computed } from 'vue';
-import { useOrderlistStore } from '@/stores/shared/orderlist';
+import { useOrderlistStore } from '@/stores/shared/orderList';
 import { useAccountStore } from '@/stores/auth';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
-import { getCompletionStatus, getStatusColor, sortOrdersByDate } from '@/utils/orderHelpers';
+import { getCompletionStatus, getStatusColor } from '@/utils/orderHelpers';
 
 const orderStore = useOrderlistStore();
 const accountStore = useAccountStore();
@@ -12,12 +12,8 @@ const accountStore = useAccountStore();
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
-onMounted(async () => {
-    if (accountStore.user && accountStore.user.Restaurant) {
-        await orderStore.loadAllOrders(accountStore.user.Restaurant);
-    } else {
-        await orderStore.loadAllOrders();
-    }
+onMounted(() => {
+    orderStore.loadAllOrders(accountStore.user.Restaurant);
 });
 
 onUnmounted(() => {
@@ -25,41 +21,24 @@ onUnmounted(() => {
 });
 
 const historyOrders = computed(() => {
-    if (!accountStore.user?.Restaurant) return [];
-    if (!orderStore.sortedOrders) return [];
-    const myRestaurant = accountStore.user.Restaurant;
+    const myRestaurantName = accountStore.user?.Restaurant;
+    if (!myRestaurantName) return [];
 
-    // 1. ดึงเฉพาะ items ของร้านนี้ + คำนวณสถานะรวม
-    const mapped = orderStore.sortedOrders.map(order => {
-        const myItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurant);
-        const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
+    return orderStore.sortedOrders.map(order => {
+        const shopItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurantName);
         return {
             ...order,
-            displayItems: myItems,
-            displayTotal: myTotal,
-            localStatus: getCompletionStatus(myItems)
+            displayItems: shopItems,
+            displayTotal: shopItems.reduce((total, item) => total + (item.Price * item.Quantity), 0),
+            localStatus: getCompletionStatus(shopItems)
         };
     });
-
-    // 2. กรองเฉพาะออเดอร์ที่จบแล้ว (completed/cancelled/dispatched)
-    const finishedStatuses = ['completed', 'cancelled', 'dispatched'];
-    const filtered = mapped.filter(order =>
-        order.displayItems.length > 0 &&
-        (finishedStatuses.includes(order.OrderStatus) ||
-         finishedStatuses.includes(order.localStatus))
-    );
-
-    // 3. เรียงจากใหม่ไปเก่า
-    return sortOrdersByDate(filtered, 'desc');
 });
 
 const openModal = (order) => {
     selectedOrder.value = order;
     showModal.value = true;
 };
-
-// Removed getStatusColor local helper
-// Removed formatTimestampStore usage
 </script>
 
 <template>
@@ -92,7 +71,7 @@ const openModal = (order) => {
                                 </td>
                                 <td class="text-center">
                                     <span class="badge gap-2 font-semibold" :class="getStatusColor(order.localStatus)">
-                                        {{ order.localStatus?.toUpperCase() || '-' }}
+                                        {{ order.localStatus?.toUpperCase() }}
                                     </span>
                                 </td>
                                 <td class="text-center text-sm whitespace-nowrap">
@@ -117,7 +96,7 @@ const openModal = (order) => {
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <p class="text-slate-400 font-medium italic">ไม่มีประวัติรายการสั่งซื้อที่เสร็จสิ้น</p>
+                                        <p class="text-slate-400 font-medium italic">No order history</p>
                                     </div>
                                 </td>
                             </tr>
@@ -153,7 +132,7 @@ const openModal = (order) => {
                                             <div class="text-xs text-slate-400">{{ item.RestaurantName }}</div>
                                             <div v-if="item.Note" class="text-xs text-orange-500 italic mt-0.5 whitespace-pre-wrap">Note: {{ item.Note }}</div>
                                         </td>
-                                        <td class="text-center font-medium">{{ item.quantity || item.Quantity || 1 }}
+                                        <td class="text-center font-medium">{{ item.Quantity }}
                                         </td>
                                         <td class="text-right font-medium">{{ item.Price?.toLocaleString() }} ฿</td>
                                         <td class="text-center">
@@ -163,7 +142,7 @@ const openModal = (order) => {
                                                 'badge-success text-white': item.MenuStatus === 'dispatched',
                                                 'badge-error text-white bg-red-500': item.MenuStatus === 'cancelled'
                                             }">
-                                                {{ (item.MenuStatus === 'pending') ? 'cooking' : (item.MenuStatus || 'pending') }}
+                                                {{ item.MenuStatus }}
                                             </span>
                                         </td>
                                     </tr>
@@ -174,7 +153,7 @@ const openModal = (order) => {
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-500">Total Amount</span>
                                 <span class="badge" :class="getStatusColor(selectedOrder?.localStatus)">
-                                    {{ selectedOrder?.localStatus?.toUpperCase() || '-' }}</span>
+                                    {{ selectedOrder?.localStatus?.toUpperCase() }}</span>
                             </div>
                             <span class="text-2xl font-bold text-emerald-600">
                                 {{selectedOrder.displayTotal?.toLocaleString()}} ฿

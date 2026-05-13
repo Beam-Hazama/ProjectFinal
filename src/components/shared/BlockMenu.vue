@@ -31,12 +31,12 @@ onMounted(() => {
 // helper: เมนูตัวนี้สั่งซื้อได้ไหม (ทั้ง Status เมนู + ร้านปิดหรือไม่)
 const isMenuAvailable = (menu) => {
   if (menu.Status !== 'open') return false;
-  return !restaurantStore.isShopClosedByName(menu.Restaurant, now.value);
+  return !restaurantStore.isShopClosedByName(menu.RestaurantName, now.value);
 };
 
 // helper: ร้านของเมนูนี้ปิดอยู่หรือไม่ (ใช้แสดง overlay "ร้านปิด" ใน template)
 const isShopClosed = (menu) => {
-  return restaurantStore.isShopClosedByName(menu.Restaurant, now.value);
+  return restaurantStore.isShopClosedByName(menu.RestaurantName, now.value);
 };
 
 const openModal = (menu) => {
@@ -81,7 +81,7 @@ const sortedMenus = computed(() => {
         </figure>
         <div class="py-2 px-3 w-full flex flex-col justify-center flex-grow bg-white min-w-0">
           <h3 class="font-bold text-[15px] text-gray-800 leading-tight truncate w-full mb-0.5">{{ menu.MenuName }}</h3>
-          <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
+          <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.RestaurantName }}</p>
           <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex items-center gap-2">
               <p v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="font-black text-[15px] text-red-500">฿{{ formatPrice(menu.PromoPrice) }}</p>
@@ -113,7 +113,7 @@ const sortedMenus = computed(() => {
         <div class="px-2.5 py-2 w-full flex flex-col justify-between flex-grow">
           <div class="space-y-0.5">
             <h3 class="font-bold text-[13px] text-gray-800 leading-tight line-clamp-2">{{ menu.MenuName }}</h3>
-            <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.Restaurant }}</p>
+            <p v-if="!hideRestaurantName" class="text-[10px] text-gray-500 truncate w-full">{{ menu.RestaurantName }}</p>
           </div>
           <div class="flex justify-between items-end mt-auto pt-3">
             <div class="flex flex-wrap items-center gap-1.5">

@@ -17,7 +17,7 @@ export const calculateOptionPrice = (optionGroups, selections) => {
         choices.forEach(name => {
             const choice = group.choices.find(c => (c.ChoiceName || c.name) === name);
             if (choice) {
-                extra += Number(choice.price) || 0;
+                extra += Number(choice.ExtraPrice) || 0;
             }
         });
     });
@@ -52,10 +52,10 @@ export const buildOptionsNote = (optionGroups, selections) => {
         
         const strs = choices.map(name => {
             const choice = group.choices.find(c => (c.ChoiceName || c.name) === name);
-            const price = choice ? Number(choice.price) || 0 : 0;
+            const price = choice ? Number(choice.ExtraPrice) || 0 : 0;
             return price > 0 ? `${name} (+฿${price})` : name;
         });
-        lines.push(`${group.name}: ${strs.join(', ')}`);
+        lines.push(`${group.GroupName}: ${strs.join(', ')}`);
     });
     return lines.join('\n');
 };

@@ -1,42 +1,19 @@
-/**
- * คำนวณสถานะรวมของรายการอาหารในร้านค้านั้นๆ เพื่อใช้สำหรับแสดงผลบน UI ฝั่งร้านอาหาร (มองในแง่ ความสำเร็จ/เสร็จสิ้น)
- * ใช้เมื่อต้องการสรุปสถานะรายการอาหารเพื่อแสดง badge สีสันต่างๆ บนหน้าเว็บฝั่งร้านค้า
- * 
- * @param {Array} items - รายการอาหารในออเดอร์
- * @returns {string} - สถานะรวมสำหรับแสดงผล ('pending', 'cooking', 'dispatched', 'completed', 'cancelled')
- */
 export const getCompletionStatus = (items) => {
-    if (!items || items.length === 0) return 'pending';
-
-    // All items cancelled -> Order cancelled
     if (items.every(i => i.MenuStatus === 'cancelled')) {
         return 'cancelled';
     }
-
-    // All items received or cancelled -> Order completed
     if (items.every(i => ['received', 'cancelled'].includes(i.MenuStatus))) {
         return 'completed';
     }
-
-    // All items dispatched, received or cancelled -> Order dispatched (for restaurant list view)
     if (items.every(i => ['dispatched', 'received', 'cancelled'].includes(i.MenuStatus))) {
         return 'dispatched';
     }
-
-    // Any item being cooked or dispatched -> Order in progress (cooking)
     if (items.some(i => ['cooking', 'dispatched'].includes(i.MenuStatus))) {
         return 'cooking';
     }
-
-    // Default status
     return 'pending';
 };
 
-/**
- * Returns the CSS classes for a status badge.
- * @param {string} status - The status to get color for
- * @returns {string} - CSS classes
- */
 export const getStatusColor = (status) => {
     const colors = {
         pending: 'badge-info text-white',
@@ -45,23 +22,15 @@ export const getStatusColor = (status) => {
         completed: 'badge-success text-white',
         received: 'badge-success text-white',
         cancelled: 'badge-error text-white',
-        waiting: 'badge-ghost text-slate-400',
     };
     return colors[status] || 'badge-ghost text-slate-500';
 };
 
-/**
- * Filters orders based on room number and recency.
- * @param {Array} orders - List of orders
- * @param {string} room - Room number
- * @param {number} [hours=12] - Number of hours to look back
- * @returns {Array} - Filtered orders
- */
 export const filterRecentOrders = (orders, room, hours = 12) => {
     if (!orders) return [];
     const cutoff = Math.floor(Date.now() / 1000) - (hours * 60 * 60);
     return orders.filter(o => {
-        const isOwner = o.RoomNumber === room;
+        const isOwner = String(o.RoomNumber) === String(room);
         if (!isOwner) return false;
 
         // Filter by time (handle pending server timestamps by using current time as fallback)
@@ -70,12 +39,6 @@ export const filterRecentOrders = (orders, room, hours = 12) => {
     });
 };
 
-/**
- * Sort orders by CreatedAt timestamp.
- * @param {Array} orders - List of orders
- * @param {'asc'|'desc'} [direction='desc'] - 'desc' = newest first, 'asc' = oldest first
- * @returns {Array} - New sorted array (does not mutate input)
- */
 export const sortOrdersByDate = (orders, direction = 'desc') => {
     if (!orders) return [];
     const factor = direction === 'asc' ? 1 : -1;
@@ -86,27 +49,19 @@ export const sortOrdersByDate = (orders, direction = 'desc') => {
     });
 };
 
-/**
- * คำนวณสถานะรวมของทั้งออเดอร์เพื่ออัปเดตและบันทึกลง Firestore (มองในแง่ ความคืบหน้าต่ำสุด)
- * ใช้ใน store ออเดอร์หลักเพื่อคอยติดตามความก้าวหน้าของทุกสินค้าในออเดอร์
- * ใช้กฎ "รายการอาหารที่คืบหน้าน้อยที่สุดกำหนดสถานะรวม" — เช่น ถ้ายังมีอาหารค้างอยู่ที่ pending ออเดอร์นั้นก็จะค้างที่ pending
- * 
- * @param {Array} items - รายการอาหารในออเดอร์
- * @returns {string} - 'pending' | 'cooking' | 'dispatched' | 'completed' | 'cancelled'
- */
 export const getProgressStatus = (items) => {
     if (!items?.length) return 'pending';
 
     // ถ้าทุก item ถูกยกเลิก → ออเดอร์ถูกยกเลิก
-    if (items.every(i => (i.MenuStatus || 'waiting') === 'cancelled')) return 'cancelled';
+    if (items.every(i => (i.MenuStatus || 'pending') === 'cancelled')) return 'cancelled';
 
     // ลำดับขั้นของสถานะ (เลขน้อย = ก้าวหน้าน้อย)
-    const rank = { waiting: 0, pending: 0, cooking: 1, dispatched: 2, received: 3 };
+    const rank = { pending: 0, cooking: 1, dispatched: 2, received: 3 };
     const rankToStatus = ['pending', 'cooking', 'dispatched', 'completed'];
 
     // หา rank ต่ำสุดในกลุ่ม items ที่ยังไม่ถูกยกเลิก
     const activeRanks = items
-        .filter(i => (i.MenuStatus || 'waiting') !== 'cancelled')
+        .filter(i => (i.MenuStatus || 'pending') !== 'cancelled')
         .map(i => rank[i.MenuStatus] ?? 0);
 
     if (activeRanks.length === 0) return 'cancelled';

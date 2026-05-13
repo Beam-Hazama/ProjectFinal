@@ -55,7 +55,7 @@ onUnmounted(() => {
                   </div>
                 </td>                
                 <td class="py-4 text-center">
-                  <div class="font-medium">{{ menu.Restaurant }}</div>
+                  <div class="font-medium">{{ menu.RestaurantName }}</div>
                 </td>                
                 <td class="py-4 text-center font-bold text-emerald-600">{{ menu.Price }} ฿</td>                
                 <td class="py-4 text-center">

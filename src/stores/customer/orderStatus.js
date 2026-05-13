@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { useOrderlistStore } from "@/stores/shared/orderlist";
+import { useOrderlistStore } from "@/stores/shared/orderList";
 import { useCartStore } from "@/stores/customer/cart";
 import { useMenuStore } from "@/stores/shared/menu";
 import { db } from "@/firebase";
@@ -10,7 +10,7 @@ import { filterRecentOrders } from "@/utils/orderHelpers";
 
 // สถานะของเมนูที่ตั้งเป็นค่าคงที่เพื่อให้ความหมายชัดเจน
 const FINISHED = ["received", "cancelled"];
-const ACTIVE_COOKING = ["pending", "cooking"];
+const ACTIVE_COOKING = ["cooking"];
 const COMPLETED = ["received", "cancelled"];
 
 // Helper functions สำหรับตรวจสอบสถานะ
@@ -77,48 +77,6 @@ export const useUserStatusStore = defineStore("userStatus", () => {
     }
   };
 
-  const reorder = async (order, router) => {
-    const validItems = (order.Menu || []).filter(
-      (item) => item.MenuStatus !== "cancelled",
-    );
-
-    cartStore.loadCart(room.value);
-
-    let addedCount = 0;
-    let unavailableNames = [];
-
-    for (const item of validItems) {
-      const menuId = item.MenuId;
-      try {
-        const menuRef = doc(db, "Menu", menuId);
-        const menuSnap = await getDoc(menuRef);
-
-        if (menuSnap.exists()) {
-          const menuData = menuSnap.data();
-          if (menuData.Status === "open") {
-            cartStore.addOrUpdateItem(item, item.Quantity, item.Note || "");
-            addedCount++;
-          } else {
-            unavailableNames.push(item.MenuName);
-          }
-        } else {
-          unavailableNames.push(item.MenuName);
-        }
-      } catch (err) {
-        console.error("Error checking menu availability:", err);
-        unavailableNames.push(item.MenuName);
-      }
-    }
-
-    if (unavailableNames.length > 0) {
-      alert(`เมนูต่อไปนี้หมดหรือถูกปิดการขายชั่วคราว ไม่สามารถสั่งได้ในขณะนี้`);
-    }
-
-    if (addedCount > 0) {
-      router.push(`/user/cart/${room.value}`);
-    }
-  };
-
   const getOrderProgress = (order) => {
     const items = order.Menu || [];
     if (items.length === 0) return 0;
@@ -134,7 +92,7 @@ export const useUserStatusStore = defineStore("userStatus", () => {
     const items = order.Menu || [];
     switch (stage) {
       case 0:
-        return items.filter((i) => !i.MenuStatus || i.MenuStatus === "waiting")
+        return items.filter((i) => !i.MenuStatus || i.MenuStatus === "pending")
           .length;
       case 1:
         return items.filter((i) => ACTIVE_COOKING.includes(i.MenuStatus))
@@ -160,7 +118,6 @@ export const useUserStatusStore = defineStore("userStatus", () => {
     roomOrders,
     formatPrice,
     markItemAsReceived,
-    reorder,
     getOrderProgress,
     getItemCountByStage,
     initUserSession,

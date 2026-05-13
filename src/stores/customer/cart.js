@@ -43,6 +43,7 @@ export const useCartStore = defineStore("cart", {
       if (roomNumber && roomNumber !== "-" && roomNumber !== "undefined") {
         this.room = roomNumber;
         localStorage.setItem("lastRoom", roomNumber);
+        this.loadCart(roomNumber); // อัปเดตและโหลดรายการอาหารในตะกร้าของห้องนี้ทันที
       }
     },
 
@@ -149,7 +150,7 @@ export const useCartStore = defineStore("cart", {
               ...i,
               cartItemId: i.cartItemId || makeCartItemId(menuId),
               MenuId: menuId,
-              MenuStatus: "waiting",
+              MenuStatus: "pending",
             };
           }),
           TotalPrice: totalPrice,

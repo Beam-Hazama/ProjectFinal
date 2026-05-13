@@ -42,9 +42,10 @@ exports.sendOrderPushNotification = onDocumentUpdated("Order/{orderId}", async (
   afterMenu.forEach(newItem => {
     const oldItem = beforeMenu.find(i => i.cartItemId === newItem.cartItemId);
     if (oldItem && oldItem.MenuStatus !== newItem.MenuStatus && statusMap[newItem.MenuStatus]) {
+      const menuName = newItem.MenuName || newItem.menuName || newItem.Name || 'รายการอาหาร';
       messagesToSend.push({
         title: `ออเดอร์ #${afterData.OrderNumber} อัปเดต!`,
-        body: `เมนู "${newItem.Name}" ${statusMap[newItem.MenuStatus]}`
+        body: `เมนู "${menuName}" ${statusMap[newItem.MenuStatus]}`
       });
     }
   });
@@ -71,47 +72,3 @@ exports.sendOrderPushNotification = onDocumentUpdated("Order/{orderId}", async (
   return null;
 });
 
-/*
-// Notify Restaurant when a NEW order arrives
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-
-exports.notifyRestaurantOnNewOrder = onDocumentCreated("Order/{orderId}", async (event) => {
-  const data = event.data.data();
-  if (!data || !data.Menu) return null;
-
-  // Get unique restaurants in this order
-  const restaurantsInOrder = [...new Set(data.Menu.map(item => item.Restaurant))];
-  
-  for (const restaurantName of restaurantsInOrder) {
-    try {
-      // Find the restaurant document to get their tokens
-      const restSnapshot = await admin.firestore()
-        .collection("Restaurant")
-        .where("Name", "==", restaurantName)
-        .limit(1)
-        .get();
-
-      if (restSnapshot.empty) continue;
-
-      const restData = restSnapshot.docs[0].data();
-      const tokens = restData.deviceTokens || [];
-
-      if (tokens.length > 0) {
-        const payload = {
-          notification: {
-            title: "มีออเดอร์ใหม่! 🔔",
-            body: `ออเดอร์ #${data.OrderNumber} มาถึงแล้ว กรุณาตรวจสอบรายการอาหาร`
-          },
-          tokens: tokens
-        };
-        const response = await admin.messaging().sendEachForMulticast(payload);
-        console.log(`Notified restaurant "${restaurantName}" (${response.successCount} messages).`);
-      }
-    } catch (err) {
-      console.error(`Failed to notify restaurant ${restaurantName}:`, err);
-    }
-  }
-
-  return null;
-});
-*/

@@ -1,17 +1,14 @@
 <script setup>
 import { onMounted, computed, ref, onUnmounted } from 'vue';
-import { useNow } from '@/composables/useNow';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
 
 const route = useRoute();
 const router = useRouter();
 const room = route.params.room || '-';
-const { menuStore, restaurantStore, cartStore, categoryStore } = useCustomerData(room);
-const { now } = useNow();
+const { categoryStore } = useCustomerData(room);
 
 const activeCategories = computed(() => {
-    // Return all categories directly to ensure they appear
     return categoryStore.list || [];
 });
 

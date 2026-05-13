@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import { formatPrice } from '@/utils/format';
-/* import { useRoute } from 'vue-router'; */
+
 import { useCartStore } from '@/stores/customer/cart';
 import { useMenuStore } from '@/stores/shared/menu';
 import ConfirmOrder from './ConfirmOrder.vue';
@@ -9,7 +9,7 @@ import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 
 const cartStore = useCartStore();
 const menuStore = useMenuStore();
-/* const route = useRoute(); */
+
 const confirmModal = ref(null);
 
 const room = computed(() => cartStore.room);
@@ -124,6 +124,10 @@ const closeConfirmModal = () => {
       <div class="flex justify-between text-gray-600">
         <span>ค่าอาหาร</span>
         <span>{{ formatPrice(cartStore.totalPrice) }} บาท</span>
+      </div>
+      <div class="flex justify-between text-gray-600">
+        <span>จำนวนทั้งหมด</span>
+        <span>{{ cartStore.totalQuantity }} รายการ</span>
       </div>
       <hr class="border-dashed border-gray-300 my-2" />
       <div class="flex justify-between items-end">

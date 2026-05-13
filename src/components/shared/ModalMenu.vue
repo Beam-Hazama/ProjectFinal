@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 const isShopClosed = computed(() => {
   if (!props.menu) return false;
-  const shop = restaurantStore.list.find(r => (r.RestaurantName) === props.menu.Restaurant);
+  const shop = restaurantStore.list.find(r => (r.RestaurantName) === props.menu.RestaurantName);
   return checkShopClosed(shop, now.value);
 });
 
@@ -51,7 +51,7 @@ watch(
     selections.value = {};
     if (menu.OptionGroups) {
       menu.OptionGroups.forEach((group, index) => {
-        if (group.maxChoices > 1) {
+        if (group.MaxChoices > 1) {
           selections.value[index] = [];
         } else {
           selections.value[index] = null;
@@ -72,7 +72,7 @@ const isFormValid = computed(() => {
     const group = props.menu.OptionGroups[i];
     if (group.isRequired) {
       const sel = selections.value[i];
-      if (group.maxChoices > 1) {
+      if (group.MaxChoices > 1) {
         if (!Array.isArray(sel) || sel.length === 0) return false;
       } else {
         if (!sel) return false;
@@ -133,8 +133,13 @@ const confirmAdd = () => {
             </div>
           </div>
           <div class="bg-white px-5 pt-4 pb-3 mt-4 border-b border-gray-100">
-            <div class="flex justify-between items-center mb-2">
-              <h2 class="text-[17px] font-bold text-gray-900 leading-tight w-2/3">{{ menu.MenuName }}</h2>
+            <div class="flex justify-between items-start">
+              <div class="w-2/3 flex flex-col">
+                <h2 class="text-[17px] font-bold text-gray-900 leading-tight">{{ menu.MenuName }}</h2>
+                <p v-if="menu.Description" class="text-[12.5px] text-gray-500 mt-1 leading-relaxed whitespace-pre-wrap">
+                  {{ menu.Description }}
+                </p>
+              </div>
               <div class="flex flex-col items-end">
                 <div v-if="menu.PromoPrice && Number(menu.PromoPrice) > 0" class="text-[18px] font-black text-red-500">
                   ฿{{ menu.PromoPrice }}
@@ -152,11 +157,11 @@ const confirmAdd = () => {
               <div class="mb-3 flex justify-between items-start">
                 <div>
                   <h3 class="font-bold text-gray-800 text-[15px]">
-                    {{ group.name }}
+                    {{ group.GroupName }}
                     <span v-if="group.isRequired" class="text-red-500 ml-1">*</span>
                   </h3>
                   <p class="text-[12px] text-gray-400">
-                    เลือกได้สูงสุด {{ group.maxChoices }} ข้อ
+                    เลือกได้สูงสุด {{ group.MaxChoices }} ข้อ
                   </p>
                 </div>
                 <div v-if="group.isRequired"
@@ -168,15 +173,15 @@ const confirmAdd = () => {
                 <label v-for="(choice, cIndex) in group.choices" :key="'choice-' + gIndex + '-' + cIndex"
                   class="flex items-center justify-between cursor-pointer group">
                   <div class="flex items-center gap-3">
-                    <input v-if="group.maxChoices > 1" type="checkbox" :value="choice.ChoiceName || choice.name" v-model="selections[gIndex]"
-                      :disabled="selections[gIndex].length >= group.maxChoices && !selections[gIndex].includes(choice.ChoiceName || choice.name)"
+                    <input v-if="group.MaxChoices > 1" type="checkbox" :value="choice.ChoiceName || choice.name" v-model="selections[gIndex]"
+                      :disabled="selections[gIndex].length >= group.MaxChoices && !selections[gIndex].includes(choice.ChoiceName || choice.name)"
                       class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white checked:bg-blue-600 transition-all cursor-pointer disabled:opacity-50">
                     <input v-else type="radio" :checked="selections[gIndex] === (choice.ChoiceName || choice.name)" :name="'grp-' + gIndex"
                       @click="toggleRadio(gIndex, choice.ChoiceName || choice.name)"
                       class="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-600 focus:ring-offset-0 bg-white transition-all cursor-pointer">
                     <span class="text-gray-700 text-[14px] font-medium">{{ choice.ChoiceName || choice.name }}</span>
                   </div>
-                  <span v-if="choice.price > 0" class="text-[14px] text-gray-600">+฿{{ choice.price }}</span>
+                  <span v-if="choice.ExtraPrice > 0" class="text-[14px] text-gray-600">+฿{{ choice.ExtraPrice }}</span>
                 </label>
               </div>
             </div>

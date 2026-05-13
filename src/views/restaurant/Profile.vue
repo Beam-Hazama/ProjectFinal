@@ -1,30 +1,12 @@
 <script setup>
-/* import { formatTimestamp } from '@/utils/format'; */
-import { onMounted, ref, watch, onUnmounted } from 'vue';
-import { useNow } from '@/composables/useNow';
-import { useAccountStore } from '@/stores/auth';
+import { onMounted } from 'vue';
 import { useProfileStore } from '@/stores/restaurant/profile';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
 
-const accountStore = useAccountStore();
 const profileStore = useProfileStore();
-const { now } = useNow(1000);
-
-watch(
-  () => accountStore.user,
-  (newUser) => {
-    if (newUser?.Restaurant) {
-      profileStore.fetchRestaurantByName();
-    }
-  },
-  { immediate: true }
-);
 
 onMounted(() => {
   profileStore.fetchRestaurantByName();
-});
-
-onUnmounted(() => {
 });
 </script>
 

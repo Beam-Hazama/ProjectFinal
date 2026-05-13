@@ -32,7 +32,7 @@ const sortedRestaurants = computed(() => {
     if (props.categoryFilter?.length > 0) {
         list = list.filter(shop =>
             menuStore.list.some(m =>
-                m.Restaurant === shop.RestaurantName &&
+                m.RestaurantName === shop.RestaurantName &&
                 props.categoryFilter.includes(m.Category)
             )
         );
@@ -42,7 +42,7 @@ const sortedRestaurants = computed(() => {
     if (props.promoOnly) {
         list = list.filter(shop =>
             menuStore.list.some(m =>
-                m.Restaurant === shop.RestaurantName &&
+                m.RestaurantName === shop.RestaurantName &&
                 m.PromoPrice && Number(m.PromoPrice) > 0
             )
         );
@@ -59,7 +59,7 @@ const goToRestaurantMenu = (restaurantName) => {
 const getRestaurantCategories = (restaurantName) => {
     if (!menuStore.list) return '';
     const categories = menuStore.list
-        .filter(m => m.Restaurant === restaurantName && m.Category)
+        .filter(m => m.RestaurantName === restaurantName && m.Category)
         .map(m => m.Category);
     const unique = [...new Set(categories)];
     if (unique.length === 0) return '';

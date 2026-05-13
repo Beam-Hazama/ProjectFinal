@@ -17,8 +17,6 @@ const userData = ref({
     Password: '',
     Phone: '',
     Address: '',
-    Status: 'active',
-    Role: 'restaurant',
     ImageUrl: '',
     Restaurant: '',
     Email: '',
@@ -83,8 +81,7 @@ const goBack = () => router.go(-1);
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-control">
-                                    <label class="label"><span class="label-text font-medium text-slate-600"> ชื่อ <span
-                                                class="text-red-500">*</span></span></label>
+                                    <label class="label"><span class="label-text font-medium text-slate-600"> ชื่อ </span></label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Firstname }}
                                     </div>
@@ -92,7 +89,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600"> นามสกุล
-                                            <span class="text-red-500">*</span>
+                                            
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
@@ -102,7 +99,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-bold text-slate-600">Username
-                                            <span class="text-red-500">*</span>
+                                            
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-medium">
@@ -116,14 +113,14 @@ const goBack = () => router.go(-1);
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700 font-mono">
-                                        {{ userData.Password || '-' }}
+                                        {{ userData.Password }}
                                     </div>
                                 </div>
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-bold text-slate-600">
                                             ร้านอาหาร
-                                            <span class="text-red-500">*</span>
+                                            
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
@@ -133,7 +130,7 @@ const goBack = () => router.go(-1);
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-bold text-slate-600">Email 
-                                            <span class="text-red-500">*</span>
+                                         
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full relative flex items-center bg-slate-50 text-slate-700">
@@ -144,7 +141,7 @@ const goBack = () => router.go(-1);
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
                                             เบอร์โทรศัพท์ 
-                                            <span class="text-red-500">*</span>
+                                            
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
@@ -155,7 +152,7 @@ const goBack = () => router.go(-1);
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
                                             อายุ 
-                                            <span class="text-red-500">*</span>
+                                           
                                         </span>
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
@@ -165,13 +162,10 @@ const goBack = () => router.go(-1);
                                 <div class="form-control md:col-span-2">
                                     <label class="label">
                                         <span class="label-text font-medium text-slate-600">
-                                            ที่อยู่ (Address) 
-                                            <span class="text-red-500">*</span>
+                                            ที่อยู่ 
                                         </span>
                                     </label>
-                                    <textarea rows="3" class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50" readonly="">
-                                        {{ userData.Address }}
-                                    </textarea>
+                                    <textarea rows="3" class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50" readonly="" :value="userData.Address"></textarea>
                                 </div>
                             </div>
                         </div>

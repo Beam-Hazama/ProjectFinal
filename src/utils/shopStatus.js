@@ -1,11 +1,4 @@
-/**
- * Computes the auto-status (open/close) of a restaurant based on its times and days.
- * @param {string} openTime - e.g. "08:00"
- * @param {string} closeTime - e.g. "20:00"
- * @param {Array} openDays - e.g. ["Monday", "Tuesday"]
- * @param {Date} [now=new Date()] - current time
- * @returns {string} - 'open' or 'close'
- */
+
 export const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date()) => {
     const currentDay = now.toLocaleString('en-US', { weekday: 'long' });
     if (openDays && Array.isArray(openDays) && openDays.length > 0) {
@@ -22,10 +15,10 @@ export const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date(
         const close = cH * 60 + cM;
         
         if (close > open) {
-            // Normal case (e.g. 08:00 - 20:00)
+            // Normal case (08:00 - 20:00)
             return (minutesNow >= open && minutesNow < close ? 'open' : 'close');
         } else {
-            // Overnight case (e.g. 18:00 - 02:00)
+            // Overnight case (18:00 - 02:00)
             return (minutesNow >= open || minutesNow < close ? 'open' : 'close');
         }
     } catch (e) {
@@ -33,19 +26,14 @@ export const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date(
     }
 };
 
-/**
- * Checks if a restaurant is closed, considering ManualStatus.
- * @param {Object} shop - The restaurant data
- * @param {Date} [now=new Date()] - current time
- * @returns {boolean} - true if closed, false if open
- */
+
 export const checkShopClosed = (shop, now = new Date()) => {
     if (!shop) return true;
     
-    // Support 3-state Status: 'open', 'close', 'auto'
+   
     if (shop.Status === 'open') return false;
     if (shop.Status === 'close') return true;
     
-    // Default to 'auto' or calculated status based on time
+    
     return getShopAutoStatus(shop.OpenTime, shop.CloseTime, shop.OpenDays, now) === 'close';
 };

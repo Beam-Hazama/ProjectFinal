@@ -1,7 +1,7 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
 import { onMounted, computed } from 'vue';
-import { useOrderlistStore } from '@/stores/shared/orderlist';
+import { useOrderlistStore } from '@/stores/shared/orderList';
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
 import { filterRecentOrders, sortOrdersByDate } from '@/utils/orderHelpers';
@@ -25,15 +25,17 @@ const userOrders = computed(() => {
 const myOrders = computed(() => {
     return userOrders.value.map(order => {
         const receivedItems = (order.Menu || []).filter(item => 
-            ['received', 'dispatched', 'cooking', 'pending', 'waiting'].includes(item.MenuStatus) || !item.MenuStatus
+            ['received', 'dispatched', 'cooking', 'pending'].includes(item.MenuStatus) || !item.MenuStatus
         );
         const subtotal = receivedItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
         const grandTotal = Math.max(0, subtotal - (order.discount || 0));
+        const totalQuantity = receivedItems.reduce((sum, item) => sum + item.Quantity, 0);
         return {
             ...order,
             receivedItems,
             subtotal,
-            grandTotal
+            grandTotal,
+            totalQuantity
         };
     }).filter(order => order.receivedItems.length > 0);
 });
@@ -114,8 +116,12 @@ onMounted(async () => {
                 <div class="p-5 bg-gradient-to-b from-slate-50/50 to-white/50 border-t border-dashed border-slate-200">
                     <div class="space-y-2 mb-4">
                         <div class="flex justify-between text-xs text-slate-500 font-bold">
-                            <span>ยอดรวมออเดอร์</span>
+                            <span>ค่าอาหาร</span>
                             <span>฿{{ order.subtotal.toLocaleString() }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 font-bold">
+                            <span>จำนวนรวม</span>
+                            <span>{{ order.totalQuantity }} รายการ</span>
                         </div>
                         <div v-if="order.discount" class="flex justify-between text-xs text-red-500 font-bold">
                             <span>ส่วนลดพิเศษ</span>

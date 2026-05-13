@@ -12,7 +12,7 @@ const { previewUrl, selectedFile, handleFileSelect, clearPreview } = useImagePre
 const localCategories = ref([]);
 const showModal = ref(false);
 const newCategoryName = ref('');
-const isSubmitting = ref(false);
+const isLoading = ref(false);
 
 onMounted(() => {
     categoryStore.loadCategories();
@@ -24,36 +24,31 @@ onUnmounted(() => {
 
 watch(() => categoryStore.list, (newList) => {
     localCategories.value = [...newList];
-}, { deep: true, immediate: true });
+}, { deep: true, immediate: true });              // deep= true = ให้รอตรวจจับทุกการเปลี่ยนแปลง / immediate= true = ให้ทำงานทันทีที่เปิดหน้า page
 
-const handleFileUpload = (event) => {
-    handleFileSelect(event);
-};
+
 
 const closeModal = () => {
     showModal.value = false;
     newCategoryName.value = '';
     clearPreview();
-    isSubmitting.value = false;
+    isLoading.value = false;
 };
 
 const addCategory = async () => {
-    if (!newCategoryName.value.trim() || !selectedFile.value) return;
-    
-    isSubmitting.value = true;
+    isLoading.value = true;
     const result = await categoryStore.addCategory(newCategoryName.value, selectedFile.value);
-    isSubmitting.value = false;
+    isLoading.value = false;
     
     if (result.success) {
         closeModal();
     } else {
-        alert(result.error || 'Failed to add category');
+        alert(result.error);
     }
 };
 
 const onDragEnd = async () => {
-    const orderedIds = localCategories.value.map(c => c.id);
-    await categoryStore.updateCategoryPosition(orderedIds);
+    await categoryStore.updateCategoryPosition(localCategories.value.map(category => category.id));
 };
 </script>
 
@@ -90,7 +85,7 @@ const onDragEnd = async () => {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                         </svg>
                                         คลิกเพื่อเลือกไฟล์รูปภาพ
-                                        <input type="file" class="hidden" @change="handleFileUpload" accept="image/*" />
+                                        <input type="file" class="hidden" @change="handleFileSelect" accept="image/*" />  <!-- ถ้าไม่มีตัว accept = จะไม่สามารถเลือกไฟล์รูปภาพได้ -->
                                     </label>
                                 </div>
                             </div>
@@ -105,9 +100,9 @@ const onDragEnd = async () => {
                             <button @click="closeModal"
                                 class="btn bg-red-500 hover:bg-red-600 text-white border-none shadow-md shadow-red-200 rounded-xl w-28 transition-all font-bold">Cancel</button>
                             <button @click="addCategory"
-                                :disabled="isSubmitting || !newCategoryName || !previewUrl"
+                                :disabled="isLoading || !newCategoryName || !previewUrl"
                                 class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-xl w-28 transition-all font-bold">
-                                <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
+                                <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
                                 <span v-else>Save</span>
                             </button>
                         </div>
@@ -125,9 +120,12 @@ const onDragEnd = async () => {
                                 <th class="py-4 text-center">Created At</th>
                                 <th class="py-4 text-center">Action</th>
                             </tr>
-                        </thead>                        
+                        </thead>            
+                        
+                        
+                        <!-- draggable วนลูปให้แล้ว -->
                         <draggable v-model="localCategories" item-key="id" tag="tbody" class="text-slate-600" handle=".drag-handle" @end="onDragEnd">
-                            <template #item="{ element: category }">
+                            <template #item="{ element: category }">     
                                 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors bg-white">
                                     <td class="pl-6 align-middle">
                                         <div class="drag-handle cursor-grab hover:text-blue-600 text-slate-400 p-2 opacity-50 hover:opacity-100 transition-opacity flex justify-center items-center">

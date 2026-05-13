@@ -8,7 +8,7 @@ import { formatPrice } from '@/utils/format';
 import RestaurantList from '@/components/shared/RestaurantList.vue';
 import BottomNavigation from '@/views/customer/BottomNavigation.vue';
 import MenuOrderModal from '@/components/shared/ModalMenu.vue';
-import { useQrcodeStore } from '@/stores/admin/qrcode';
+import { useQrcodeStore } from '@/stores/admin/qrCode';
 
 const route = useRoute();
 const router = useRouter();
@@ -27,9 +27,9 @@ const isFilterPromoOnly = ref(false);
 const { now } = useNow();
 
 const banners = [
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1543353071-10c8ba85a904?q=80&w=1000&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1000&auto=format&fit=crop'
+  'https://blog.hungryhub.com/wp-content/uploads/2023/02/Sansab-50-1024x683.jpg',
+  'https://www.shutterstock.com/image-photo/asian-food-background-various-ingredients-600nw-1383065213.jpg',
+  'https://syscoireland.com/wp-content/uploads/2021/01/World-Food-Large-Banner-2000x879px-V2.jpg'
 ];
 
 const currentSlide = ref(0);
@@ -52,7 +52,7 @@ const promotionMenus = computed(() => {
   return (menuStore.list || []).filter(item => {
     if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
     if (item.Status && item.Status !== 'open') return false;
-    return !restaurantStore.isShopClosedByName(item.Restaurant, now.value);
+    return !restaurantStore.isShopClosedByName(item.RestaurantName, now.value);
   });
 });
 
@@ -84,10 +84,10 @@ watch(() => route.params.room, async (newR) => {
       isLoading.value = true;
       isError.value = false;
       errorMessage.value = '';
-      
+
       const isValid = await qrStore.validateRoom(room.value);
       isValidLocation.value = isValid;
-      
+
       if (isValid) {
         await loadData();
       }
@@ -225,7 +225,8 @@ const applyFilters = () => {
           class="text-[12px] font-bold text-blue-600 hover:text-blue-700 active:scale-95 transition-all">ทั้งหมด</button>
       </div>
       <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar px-4">
-        <div v-for="cat in activeCategories" :key="cat.id" @click="router.push(`/user/category/${cat.Category}/${room}`)"
+        <div v-for="cat in activeCategories" :key="cat.id"
+          @click="router.push(`/user/category/${cat.Category}/${room}`)"
           class="flex flex-col items-center cursor-pointer group flex-shrink-0 w-[100px] sm:w-[110px]">
           <div
             class="w-full aspect-[2.8/4] rounded-[10px] bg-gray-100 overflow-hidden relative shadow-[0_4px_10px_rgba(0,0,0,0.06)]">
@@ -249,20 +250,19 @@ const applyFilters = () => {
         <div v-for="menu in promotionMenus" :key="menu.MenuId" @click="openMenuModal(menu)"
           class="flex-shrink-0 w-[150px] bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/60 overflow-hidden group transition-all duration-300 active:scale-95 cursor-pointer">
           <div class="h-[110px] w-full relative">
-            <img :src="menu.ImageUrl || 'https://placehold.co/150'" class="object-cover w-full h-full"
-              alt="Menu Image" />
+            <img :src="menu.ImageUrl" class="object-cover w-full h-full" alt="Menu Image" />
           </div>
           <div class="p-2.5">
             <div class="flex justify-between items-start">
               <div class="flex flex-col min-w-0 pr-2">
                 <h4 class="text-[12px] font-bold text-slate-800 truncate leading-tight">{{ menu.MenuName }}</h4>
-                <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.Restaurant }}</p>
+                <p class="text-[9px] text-slate-400 truncate mt-0.5 leading-tight">{{ menu.RestaurantName }}</p>
               </div>
               <div class="flex flex-col items-end shrink-0">
                 <span class="text-[14px] font-black text-red-500 leading-tight">฿{{ formatPrice(menu.PromoPrice)
-                  }}</span>
+                }}</span>
                 <span class="text-[10px] text-slate-300 line-through leading-tight">฿{{ formatPrice(menu.Price)
-                  }}</span>
+                }}</span>
               </div>
             </div>
           </div>

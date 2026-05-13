@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, } from "vue-router";
 import { useAccountStore } from '@/stores/auth';
+import { useCartStore } from '@/stores/customer/cart';
 
 const Login = () => import("@/views/auth/Login.vue");
 
@@ -25,7 +26,8 @@ const Restaurants = () => import("@/views/restaurant/RestaurantLayout.vue");
 const Restaurantorderlist = () => import("@/views/restaurant/OrderList.vue");
 const Restaurantmenulist = () => import("@/views/restaurant/MenuList.vue");
 const Restaurantprofile = () => import("@/views/restaurant/Profile.vue");
-const RestaurantMenuForm = () => import("@/views/restaurant/MenuForm.vue");
+const RestaurantAddMenu = () => import("@/views/restaurant/AddMenu.vue");
+const RestaurantEditMenu = () => import("@/views/restaurant/EditMenu.vue");
 const RestaurantDashboard = () => import("@/views/restaurant/Dashboard.vue");
 
 const RestaurantOrderHistory = () => import("@/views/restaurant/OrderHistory.vue");
@@ -231,13 +233,13 @@ const router = createRouter({
     {
       path: '/Restaurant/AddMenu',
       name: 'Restaurant Add Menu',
-      component: RestaurantMenuForm,
+      component: RestaurantAddMenu,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
     {
       path: '/Restaurant/EditMenu/:id',
       name: 'Restaurant Edit Menu',
-      component: RestaurantMenuForm,
+      component: RestaurantEditMenu,
       meta: { requiresAuth: true, role: 'restaurant' },
     },
 
@@ -258,6 +260,12 @@ const homeRouteByRole = (role) => {
 
 router.beforeEach(async (to, from, next) => {
   const accountStore = useAccountStore();
+  const cartStore = useCartStore();
+
+  // ดึงข้อมูลห้องจาก URL เสมอถ้ามีค่า (เช่น /user/status/5) เพื่อแก้ไขปัญหา State หายบนมือถือ
+  if (to.params.room) {
+    cartStore.setRoom(to.params.room);
+  }
 
   // เช็ค session เปลี่่ยนหน้า
   if (!accountStore.isAuthChecked) {

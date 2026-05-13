@@ -1,23 +1,21 @@
 <script setup>
 import { formatTimestamp, formatOpenDays } from '@/utils/format';
-import { onMounted, onUnmounted, ref } from 'vue';
-import { useNow } from '@/composables/useNow';
+import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useRestaurant } from '@/stores/shared/restaurant';
 
 const restaurantStore = useRestaurant();
-const { now } = useNow(1000);
 
-onMounted(async () => {
-  await restaurantStore.loadRestaurants();
+onMounted(() => {
+  restaurantStore.loadRestaurants();
 });
 
 onUnmounted(() => {
   restaurantStore.clearListener();
 });
-// Removed formatTimestampStore usage
+
 const deleteRestaurant = async (id) => {
   try {
     await restaurantStore.deleteRestaurantById(id);
@@ -26,6 +24,7 @@ const deleteRestaurant = async (id) => {
   }
 };
 </script>
+
 <template>
   <LayoutAdmin>
     <div class="p-6">
@@ -38,7 +37,6 @@ const deleteRestaurant = async (id) => {
           </svg> Add Restaurant
         </RouterLink>
       </div>
-      <!-- Loading State -->
       <div v-if="restaurantStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลร้านอาหาร...</p>

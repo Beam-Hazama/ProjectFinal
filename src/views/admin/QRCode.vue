@@ -3,7 +3,7 @@ import { formatTimestamp } from '@/utils/format';
 import { onMounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
 import AdminLayout from './AdminLayout.vue'
-import { useQrcodeStore } from '@/stores/admin/qrcode'
+import { useQrcodeStore } from '@/stores/admin/qrCode'
 
 const qrStore = useQrcodeStore()
 
@@ -61,14 +61,16 @@ onMounted(() => {
               </tbody>
             </table>
           </div>
-        </div>        
+        </div>  
+        
+        <!-- Add Room Modal -->
         <dialog :open="qrStore.isModalOpen" class="modal bg-black/50">
           <div class="modal-box shadow-2xl">
             <h3 class="font-bold text-lg mb-4 text-slate-700">Add New Room QR Code</h3>           
               <div class="space-y-4">
                 <div class="form-control">
                   <label class="label"><span class="label-text">Room Number</span></label>
-                  <input v-model="qrStore.roomForm.RoomNumber" type="text" placeholder="เช่น 101, A5, 204"
+                  <input v-model="qrStore.roomForm.RoomNumber" type="text" 
                     class="input input-bordered w-full bg-slate-50 focus:bg-white transition-colors text-slate-800" />
                 </div>
               </div>

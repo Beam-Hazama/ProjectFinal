@@ -1,9 +1,4 @@
-/**
- * Chart Configuration
- * ───────────────────
- * แยก UI styling ของ ApexCharts ออกจาก Store เพื่อลดความซับซ้อน
- * เน้นเฉพาะการจัดการข้อมูลใน Store และการแสดงผลในหน้า Config
- */
+
 
 export const salesChartOptions = (categories) => ({
   chart: {

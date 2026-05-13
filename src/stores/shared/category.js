@@ -7,7 +7,6 @@ import {
   serverTimestamp,
   deleteDoc,
   query,
-  where,
   writeBatch,
   getDocs,
 } from "firebase/firestore";
@@ -24,22 +23,19 @@ export const useCategoryStore = defineStore("category", {
 
   actions: {
     clearListener() {
-      this.unsubscribe?.();
+      if (this.unsubscribe) {     //ถ้าไม่มีโค้ดจะเกิดError
+        this.unsubscribe();
+      }
       this.unsubscribe = null;
       this.list = [];
     },
 
-    async loadCategories(restaurantName = null) {
+    //admin เรียกข้อมูลตลอดเวลา
+    async loadCategories() {
       this.clearListener();
 
       const categoryRef = collection(db, "Category");
-      let q;
-
-      if (restaurantName) {
-        q = query(categoryRef, where("Restaurant", "==", restaurantName));
-      } else {
-        q = query(categoryRef);
-      }
+      const q = query(categoryRef);
 
       this.unsubscribe = onSnapshot(q, (snapshot) => {
         let newList = snapshot.docs.map((doc) => {
@@ -48,40 +44,21 @@ export const useCategoryStore = defineStore("category", {
             id: doc.id,
             ...data,
             Category: data.Category,
-            Restaurant: data.Restaurant,
             ImageUrl: data.ImageUrl,
             CreatedAt: data.CreatedAt,
             Position: data.Position,
           };
         });
-
-        newList.sort((a, b) => {
-          const aPos = typeof a.Position === "number" ? a.Position : Infinity;
-          const bPos = typeof b.Position === "number" ? b.Position : Infinity;
-
-          if (aPos !== Infinity && bPos !== Infinity) {
-            return aPos - bPos;
-          }
-          if (aPos !== Infinity) return -1;
-          if (bPos !== Infinity) return 1;
-
-          const timeA = a.CreatedAt?.seconds || 0;
-          const timeB = b.CreatedAt?.seconds || 0;
-          return timeB - timeA;
-        });
-
+        
+        newList.sort((a, b) => a.Position - b.Position);
         this.list = newList;
       });
     },
-    async fetchCategories(restaurantName = null) {
-      const categoryRef = collection(db, "Category");
-      let q;
 
-      if (restaurantName) {
-        q = query(categoryRef, where("Restaurant", "==", restaurantName));
-      } else {
-        q = query(categoryRef);
-      }
+    //ลูกค้า เรียกข้อมูลครั้งเดียว ประหยัดเน็ต
+    async fetchCategories() {
+      const categoryRef = collection(db, "Category");
+      const q = query(categoryRef);
 
       const snapshot = await getDocs(q);
       let newList = snapshot.docs.map((doc) => {
@@ -90,48 +67,20 @@ export const useCategoryStore = defineStore("category", {
           id: doc.id,
           ...data,
           Category: data.Category,
-          Restaurant: data.Restaurant,
           ImageUrl: data.ImageUrl,
           CreatedAt: data.CreatedAt,
           Position: data.Position,
         };
       });
 
-      newList.sort((a, b) => {
-        const aPos = typeof a.Position === "number" ? a.Position : Infinity;
-        const bPos = typeof b.Position === "number" ? b.Position : Infinity;
-
-        if (aPos !== Infinity && bPos !== Infinity) {
-          return aPos - bPos;
-        }
-        if (aPos !== Infinity) return -1;
-        if (bPos !== Infinity) return 1;
-
-        const timeA = a.CreatedAt?.seconds || 0;
-        const timeB = b.CreatedAt?.seconds || 0;
-        return timeB - timeA;
-      });
-
+      newList.sort((a, b) => a.Position - b.Position);
       this.list = newList;
     },
 
 
     async addCategory(name, file) {
-      if (!name || !name.trim()) {
-        return { success: false, error: 'Name is required' };
-      }
-
       try {
-        let ImageUrl = "";
-
-        if (file) {
-          const newUrl = await uploadImage(file, "categories");
-          if (newUrl) ImageUrl = newUrl;
-        }
-
-        if (!ImageUrl) {
-           return { success: false, error: 'Image is required' };
-        }
+        const ImageUrl = await uploadImage(file, "categories");
 
         await addDoc(collection(db, "Category"), {
           Category: name.trim(),
@@ -155,13 +104,13 @@ export const useCategoryStore = defineStore("category", {
       }
     },
 
-    async updateCategoryPosition(orderedIds) {
-      const batch = writeBatch(db);
-      orderedIds.forEach((id, index) => {
+    async updateCategoryPosition(categoryId) {
+      const batch = writeBatch(db);                      //อัพเดต position ทีเดียว
+      categoryId.forEach((id, index) => {
         const ref = doc(db, "Category", id);
-        batch.update(ref, { Position: index });
+        batch.update(ref, { Position: index });           //กำหนดindex = position
       });
-      await batch.commit();
-    },
+      await batch.commit();                               //commit ทีเดียว
+    }, 
   },
 });

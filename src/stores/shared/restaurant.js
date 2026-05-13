@@ -46,7 +46,9 @@ export const useRestaurant = defineStore('Restaurant', {
     },
 
     clearListener() {
-      this.unsubscribe?.();
+      if (this.unsubscribe) {     //ถ้าไม่มีโค้ดจะเกิดError
+        this.unsubscribe();
+      }
       this.unsubscribe = null;
       this.list = [];
     },

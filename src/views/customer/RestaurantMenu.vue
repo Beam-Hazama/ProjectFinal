@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useMenuStore } from '@/stores/shared/menu';
 import { useCartStore } from '@/stores/customer/cart';
-import { useQrcodeStore } from '@/stores/admin/qrcode';
+import { useQrcodeStore } from '@/stores/admin/qrCode';
 import { useCategoryStore } from '@/stores/shared/category';
 import { useRestaurant } from '@/stores/shared/restaurant';
 import { formatOpenDays } from '@/utils/format';
@@ -39,7 +39,7 @@ const categoryOrder = (name) => {
 };
 
 const displayCategories = computed(() => {
-    const items = (menuStore.list || []).filter(i => i.Restaurant === restaurantName);
+    const items = (menuStore.list || []).filter(i => i.RestaurantName === restaurantName);
     const hasPromo = items.some(i => Number(i.PromoPrice) > 0);
     const cats = [...new Set(items.map(i => i.Category).filter(Boolean))]
                     .sort((a, b) => categoryOrder(a) - categoryOrder(b));
@@ -47,7 +47,7 @@ const displayCategories = computed(() => {
 });
 
 const groupedMenu = computed(() => {
-    const allItems = (menuStore.list || []).filter(item => item.Restaurant === restaurantName);
+    const allItems = (menuStore.list || []).filter(item => item.RestaurantName === restaurantName);
     const groups = {};
     displayCategories.value.forEach(cat => {
         let catItems;
@@ -59,7 +59,7 @@ const groupedMenu = computed(() => {
         if (searchQuery.value) {
             const query = searchQuery.value.toLowerCase();
             groups[cat] = catItems.filter(item =>
-                (item.Name && item.Name.toLowerCase().includes(query)) ||
+                (item.MenuName && item.MenuName.toLowerCase().includes(query)) ||
                 (item.Description && item.Description.toLowerCase().includes(query))
             );
         } else {
