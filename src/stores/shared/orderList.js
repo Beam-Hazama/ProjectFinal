@@ -6,7 +6,8 @@ import {
   onSnapshot,
   serverTimestamp,
   doc,
-  runTransaction,
+  getDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import { sortOrdersByDate, getProgressStatus } from "@/utils/orderHelpers";
@@ -25,29 +26,25 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     async updateOrderStatus(orderId, newStatus, restaurantName) {
       try {
         const orderRef = doc(db, "Order", orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return;
 
-        await runTransaction(db, async (transaction) => {
-          const orderSnap = await transaction.get(orderRef);
-          if (!orderSnap.exists()) return;
+        const orderData = orderSnap.data();
+        const updatedMenu = orderData.Menu.map((item) => {
+          const isMyRestaurant = item.RestaurantName === restaurantName;
+          const isNotCancelled = item.MenuStatus !== "cancelled";
+          if (isMyRestaurant && isNotCancelled) {
+            return { ...item, MenuStatus: newStatus };
+          }
+          return item;
+        });
 
-          const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map((item) => {
-            if (
-              item.RestaurantName === restaurantName &&
-              item.MenuStatus !== "cancelled"
-            ) {
-              return { ...item, MenuStatus: newStatus };
-            }
-            return item;
-          });
+        const globalStatus = getProgressStatus(updatedMenu);
 
-          const globalStatus = getProgressStatus(updatedMenu);
-
-          transaction.update(orderRef, {
-            Menu: updatedMenu,
-            OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp(),
-          });
+        await updateDoc(orderRef, {
+          Menu: updatedMenu,
+          OrderStatus: globalStatus,
+          UpdatedAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error updating order status:", error);
@@ -58,29 +55,29 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     async updateSingleMenuStatus(orderId, itemId, itemIndex, newStatus) {
       try {
         const orderRef = doc(db, "Order", orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return;
 
-        await runTransaction(db, async (transaction) => {
-          const orderSnap = await transaction.get(orderRef);
-          if (!orderSnap.exists()) return;
+        const orderData = orderSnap.data();
+        const updatedMenu = orderData.Menu.map((item, index) => {
+          let isMatch;
+          if (itemId) {
+            isMatch = item.cartItemId === itemId;
+          } else {
+            isMatch = index === itemIndex;
+          }
+          if (isMatch) {
+            return { ...item, MenuStatus: newStatus };
+          }
+          return item;
+        });
 
-          const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map((item, index) => {
-            const isMatch = itemId
-              ? item.cartItemId === itemId
-              : index === itemIndex;
-            if (isMatch) {
-              return { ...item, MenuStatus: newStatus };
-            }
-            return item;
-          });
+        const globalStatus = getProgressStatus(updatedMenu);
 
-          const globalStatus = getProgressStatus(updatedMenu);
-
-          transaction.update(orderRef, {
-            Menu: updatedMenu,
-            OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp(),
-          });
+        await updateDoc(orderRef, {
+          Menu: updatedMenu,
+          OrderStatus: globalStatus,
+          UpdatedAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error updating single item status:", error);
@@ -91,29 +88,24 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     async updateMultipleItemsStatus(orderId, updates) {
       try {
         const orderRef = doc(db, "Order", orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return;
 
-        await runTransaction(db, async (transaction) => {
-          const orderSnap = await transaction.get(orderRef);
-          if (!orderSnap.exists()) return;
+        const orderData = orderSnap.data();
+        const updatedMenu = orderData.Menu.map((item) => {
+          const update = updates.find((u) => u.cartItemId === item.cartItemId);
+          if (update) {
+            return { ...item, MenuStatus: update.newStatus };
+          }
+          return item;
+        });
 
-          const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map((item, index) => {
-            const update = updates.find((u) =>
-              u.itemId ? u.itemId === item.cartItemId : u.itemIndex === index,
-            );
-            if (update) {
-              return { ...item, MenuStatus: update.newStatus };
-            }
-            return item;
-          });
+        const globalStatus = getProgressStatus(updatedMenu);
 
-          const globalStatus = getProgressStatus(updatedMenu);
-
-          transaction.update(orderRef, {
-            Menu: updatedMenu,
-            OrderStatus: globalStatus,
-            UpdatedAt: serverTimestamp(),
-          });
+        await updateDoc(orderRef, {
+          Menu: updatedMenu,
+          OrderStatus: globalStatus,
+          UpdatedAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error updating multiple items:", error);
@@ -124,22 +116,19 @@ export const useOrderlistStore = defineStore("orderlistStore", {
     async cancelEntireOrder(orderId) {
       try {
         const orderRef = doc(db, "Order", orderId);
+        const orderSnap = await getDoc(orderRef);
+        if (!orderSnap.exists()) return;
 
-        await runTransaction(db, async (transaction) => {
-          const orderSnap = await transaction.get(orderRef);
-          if (!orderSnap.exists()) return;
+        const orderData = orderSnap.data();
+        const updatedMenu = orderData.Menu.map((item) => ({
+          ...item,
+          MenuStatus: "cancelled",
+        }));
 
-          const orderData = orderSnap.data();
-          const updatedMenu = orderData.Menu.map((item) => ({
-            ...item,
-            MenuStatus: "cancelled",
-          }));
-
-          transaction.update(orderRef, {
-            Menu: updatedMenu,
-            OrderStatus: "cancelled",
-            UpdatedAt: serverTimestamp(),
-          });
+        await updateDoc(orderRef, {
+          Menu: updatedMenu,
+          OrderStatus: "cancelled",
+          UpdatedAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error rejecting global order:", error);
@@ -155,7 +144,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       this.list = [];
     },
 
-    
+
     subscribeToQuery(queryRef) {
       this.unsubscribe = onSnapshot(queryRef, (snapshot) => {
         this.list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));

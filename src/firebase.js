@@ -24,7 +24,7 @@ try {
   console.error("Firebase Storage init failed:", err);
 }
 
-// FCM (Cloud Messaging) — ใช้สำหรับ background push
+// FCM 
 let messaging = null;
 const messagingPromise = (async () => {
   if (typeof window === "undefined") return null;

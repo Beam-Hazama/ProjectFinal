@@ -41,7 +41,7 @@ const requestNotificationPermission = async () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// ขอ FCM token (เรียกหลัง permission = granted)
+// ขอ FCM token (หลัง permission = granted)
 // ─────────────────────────────────────────────────────────────
 const getFCMToken = async () => {
   const messaging = await messagingPromise;
@@ -106,7 +106,7 @@ const listenForegroundMessages = async () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Helper: เปิดแจ้งเตือนแบบครบ flow (ลูกค้า)
+// เปิดแจ้งเตือนแบบครบ flow (ลูกค้า)
 // ─────────────────────────────────────────────────────────────
 const enableCustomerNotification = async (orderIds = []) => {
   const granted = await requestNotificationPermission();

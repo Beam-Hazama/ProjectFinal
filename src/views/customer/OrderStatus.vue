@@ -22,7 +22,7 @@ const notificationPermission = ref(
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const showIOSGuide = ref(false);
 
-const isRequestingPermission = ref(false);
+const isNotificationLoading = ref(false);
 
 const handleRequestPermission = async () => {
   if (isIOS && !isStandalone()) {
@@ -30,7 +30,7 @@ const handleRequestPermission = async () => {
     return;
   }
 
-  isRequestingPermission.value = true;
+  isNotificationLoading.value = true;
   try {
     const result = await requestPermissionForOrders(statusStore.roomOrders.map(o => o.id));
     if (result.status === 'granted') {
@@ -40,12 +40,11 @@ const handleRequestPermission = async () => {
   } catch (error) {
     console.error("Permission error:", error);
   } finally {
-    isRequestingPermission.value = false;
+    isNotificationLoading.value = false;
   }
 };
 
-// เมื่อ order list เปลี่ยน (order ใหม่เพิ่มเข้ามา) ให้ save token ไปทุก order อัตโนมัติ
-// ถ้า permission granted อยู่แล้ว จะไม่มี popup ขออนุญาตอีก
+
 const orderIds = computed(() => statusStore.roomOrders.map(o => o.id));
 watch(orderIds, (ids) => {
   autoSaveTokenToOrders(ids);
@@ -88,9 +87,9 @@ onMounted(() => {
             <span class="text-[10px] text-yellow-600">เพื่อไม่พลาดสถานะออเดอร์ของคุณ</span>
           </div>
         </div>
-        <button @click="handleRequestPermission" :disabled="isRequestingPermission" 
+        <button @click="handleRequestPermission" :disabled="isNotificationLoading" 
           class="btn btn-sm bg-yellow-500 hover:bg-yellow-600 text-white border-none shadow-sm rounded-lg px-4 flex items-center gap-1">
-          <span v-if="isRequestingPermission" class="loading loading-spinner loading-xs"></span>
+          <span v-if="isNotificationLoading" class="loading loading-spinner loading-xs"></span>
           เปิดเลย
         </button>
       </div>

@@ -15,11 +15,7 @@ const loading = ref(true);
 const selections = ref({});
 
 onMounted(async () => {
-    if (accountStore.user && accountStore.user.Restaurant) {
-        await orderStore.loadAllOrders(accountStore.user.Restaurant);
-    } else {
-        await orderStore.loadAllOrders();
-    }
+    await orderStore.loadAllOrders(accountStore.user?.Restaurant ?? null);
     loading.value = false;
 });
 
@@ -28,40 +24,30 @@ onUnmounted(() => {
 });
 
 const restaurantOrders = computed(() => {
-    if (!accountStore.user || !accountStore.user.Restaurant) return [];
+    if (!accountStore.user?.Restaurant) return [];
     const myRestaurant = accountStore.user.Restaurant;
-    if (!orderStore.sortedOrders) return [];
+
     return orderStore.sortedOrders.map(order => {
-        let dIdx = 0;
-        const myItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurant).map(item => ({
-            ...item,
-            uniqueKey: item.cartItemId || (item.MenuId + '-' + dIdx++)
-        }));
-        const myTotal = myItems.reduce((sum, item) => sum + (item.Price * item.Quantity), 0);
-        const localStatus = getCompletionStatus(myItems);
-        return {
-            ...order,
-            displayItems: myItems,
-            displayTotal: myTotal,
-            localStatus: localStatus
-        };
+        const displayItems = (order.Menu || [])
+            .filter(item => item.RestaurantName === myRestaurant)
+            .map(item => ({ ...item, uniqueKey: item.cartItemId }));
+        const displayTotal = displayItems.reduce((sum, item) => sum + item.Price * item.Quantity, 0);
+        const localStatus = getCompletionStatus(displayItems);
+        return { ...order, displayItems, displayTotal, localStatus };
     }).filter(order =>
         order.displayItems.length > 0 &&
         order.OrderStatus !== 'cancelled' &&
-        order.localStatus !== 'dispatched' &&
-        order.localStatus !== 'cancelled' &&
-        order.localStatus !== 'completed'
+        !['dispatched', 'cancelled', 'completed'].includes(order.localStatus)
     );
 });
 
 const toggleSelection = (orderId, itemId, type) => {
-    if (!selections.value[orderId]) {
-        selections.value[orderId] = {};
-    }
-    if (selections.value[orderId][itemId] === type) {
-        delete selections.value[orderId][itemId];
+    if (!selections.value[orderId]) selections.value[orderId] = {};
+    const current = selections.value[orderId];
+    if (current[itemId] === type) {
+        delete current[itemId];
     } else {
-        selections.value[orderId][itemId] = type;
+        current[itemId] = type;
     }
 };
 
@@ -77,45 +63,33 @@ const areAllItemsSelected = (order) => {
 };
 
 const hasPendingItems = (order) => {
-    return order.displayItems.some(i => !i.MenuStatus || i.MenuStatus === 'pending');
+    return order.displayItems.some(i => i.MenuStatus === 'pending');
 };
 
 const saveChanges = async (order) => {
     try {
         const orderSelections = selections.value[order.id];
-        if (!orderSelections || Object.keys(orderSelections).length === 0) return;
-
         const myRestaurant = accountStore.user?.Restaurant;
         if (!myRestaurant) return;
 
-        const latestOrder = orderStore.list.find(o => o.id === order.id);
-        if (!latestOrder) return;
-
         const itemUpdates = [];
         const menusToClose = new Set();
-        let dIdx = 0;
-        let menuIndex = 0;
-        for (const item of latestOrder.Menu || []) {
-            const currentItemIndex = menuIndex++;
+        for (const item of (order.Menu || [])) {
             if (item.RestaurantName !== myRestaurant) continue;
 
-            const itemKey = item.cartItemId || (item.MenuId + '-' + dIdx++);
-            const action = orderSelections[itemKey];
+            const action = orderSelections[item.cartItemId];
             if (!action) continue;
 
             let newStatus = item.MenuStatus;
-            if (action === 'advance') {
-                if (!item.MenuStatus || item.MenuStatus === 'pending') {
-                    newStatus = 'cooking';
-                }
+            if (action === 'advance' && item.MenuStatus === 'pending') {
+                newStatus = 'cooking';
             } else if (action === 'cancel') {
                 newStatus = 'cancelled';
-                if (item.MenuId) {
-                    menusToClose.add(item.MenuId);
-                }
+                if (item.MenuId) menusToClose.add(item.MenuId);
             }
+
             if (newStatus !== item.MenuStatus) {
-                itemUpdates.push({ itemId: item.cartItemId, itemIndex: currentItemIndex, newStatus });
+                itemUpdates.push({ cartItemId: item.cartItemId, newStatus });
             }
         }
         if (itemUpdates.length > 0) {
@@ -149,7 +123,7 @@ const deliverOrder = async (order) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6 font-sans">
-            <!-- Loading State -->
+            
             <div v-if="loading" class="flex flex-col items-center justify-center py-20">
                 <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
                 <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดรายการอาหาร...</p>
