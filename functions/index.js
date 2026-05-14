@@ -14,7 +14,6 @@ exports.sendOrderPushNotification = onDocumentUpdated(
     const beforeData = event.data.before.data();
     const afterData = event.data.after.data();
 
-    // For Customer: They store tokens in the Order document
     if (!afterData.deviceTokens || afterData.deviceTokens.length === 0) {
       console.log("No customer tokens found for order ", event.params.orderId);
       return null;

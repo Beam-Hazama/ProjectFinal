@@ -126,7 +126,7 @@ export const useCartStore = defineStore("cart", {
 
     async placeOrder() {
       try {
-        
+
         const cartItems = [...this.item];
         const room = this.room;
         const totalPrice = this.totalPrice;
@@ -136,7 +136,7 @@ export const useCartStore = defineStore("cart", {
           ),
         ];
 
-       
+
         const orderRef = doc(collection(db, "Order"));
         const finalOrderNumber = orderRef.id.slice(0, 8).toUpperCase();
 
@@ -158,7 +158,7 @@ export const useCartStore = defineStore("cart", {
           RestaurantsInOrder: restaurants,
         };
 
-        
+
         await setDoc(orderRef, orderData);
 
         this.clearCart();
