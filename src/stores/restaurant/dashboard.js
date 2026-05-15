@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { toDayKey } from '@/utils/format';
 
 import {
   getTimeRange,
+  getPreviousTimeRange,
   buildDailyRevenue,
   buildPeakHours,
   buildCategoryStats as getCategoryStats,
@@ -33,9 +35,25 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     orderStatuses: { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 },
     topMenuItems: [],
     recentOrders: [],
+    inactiveMenus: [],
+    financialData: [], // { date, revenue, commission, net }
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
+    totalCOGS: 0,
+    averagePrepTime: 0,
+    successRate: 0,
+    menuEngineeringData: [],
+    menuComboData: [],
+    averageRating: 0,
+    totalRatingsCount: 0,
+    reviews: [],
+
+    // Comparison metrics
+    prevTotalRevenue: 0,
+    prevTotalOrders: 0,
+    monthlyGoal: 0,
+    restaurantId: null,
     ordersLoading: true,
     menusLoading: true,
     unsubscribeOrders: null,
@@ -53,6 +71,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     categoryChartSeries: (state) => state.categoriesCount.map(c => c.count),
     peakHoursChartSeries: (state) => [{ name: 'จำนวนออเดอร์', data: state.ordersByHour.map(h => h.count) }],
     totalCommission: (state) => (state.totalRevenue * (state.commissionRate || 0)) / 100,
+    netProfit: (state) => state.totalRevenue - ((state.totalRevenue * (state.commissionRate || 0)) / 100) - state.totalCOGS,
     hasActiveFilters: (state) => state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0
   },
 
@@ -67,22 +86,43 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
     async loadDashboardData(restaurantName) {
       this.clearListeners();
+      // Try exact, then trim if not found
       this.currentRestaurant = restaurantName;
       
-     
       const resQuery = query(collection(db, 'Restaurant'), where('RestaurantName', '==', restaurantName));
+      
       this.unsubscribeRestaurant = onSnapshot(resQuery, (snapshot) => {
+        let canonicalName = restaurantName;
+        
         if (!snapshot.empty) {
-          const resData = snapshot.docs[0].data();
+          const doc = snapshot.docs[0];
+          const resData = doc.data();
+          this.restaurantId = doc.id;
           this.commissionRate = Number(resData.CommissionRate || 0);
-          this.applyFilters();
+          this.monthlyGoal = Number(resData.MonthlyGoal || 0);
+          canonicalName = resData.RestaurantName; // Use exact name from DB
+          this.currentRestaurant = canonicalName;
         }
+
+        // Now query orders with the name we found
+        this.setupOrdersListener(canonicalName);
       });
 
+      const menusQuery = query(collection(db, 'Menu'), where('RestaurantName', '==', restaurantName));
+      this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
+        this.allMenus = snapshot.docs.map(doc => ({ MenuId: doc.id, ...doc.data() }));
+        this.totalMenus = this.allMenus.length;
+        this.menusLoading = false;
+        this.applyFilters();
+      });
+    },
+
+    setupOrdersListener(name) {
+      this.unsubscribeOrders?.();
       
       const ordersQuery = query(
         collection(db, 'Order'),
-        where('RestaurantsInOrder', 'array-contains', restaurantName)
+        where('RestaurantsInOrder', 'array-contains', name)
       );
 
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
@@ -93,14 +133,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         console.error("Orders Snapshot Error:", error);
         this.isError = true;
         this.errorMessage = "ไม่สามารถโหลดข้อมูลออเดอร์ได้: " + error.message;
-      });
-
-      const menusQuery = query(collection(db, 'Menu'), where('RestaurantName', '==', restaurantName));
-      this.unsubscribeMenus = onSnapshot(menusQuery, (snapshot) => {
-        this.allMenus = snapshot.docs.map(doc => ({ MenuId: doc.id, ...doc.data() }));
-        this.totalMenus = this.allMenus.length;
-        this.menusLoading = false;
-        this.applyFilters();
       });
     },
 
@@ -134,17 +166,26 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       let revenue = 0;
       const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
       const menuMetricsMap = {};
+      let totalCOGS = 0;
+
+      // Create cost map
+      const menuCostMap = {};
+      this.allMenus.forEach(m => {
+          menuCostMap[m.MenuId] = Number(m.Cost || 0);
+      });
 
       validOrders.forEach(order => {
         let orderHasRestaurantItem = false;
         let orderRevenue = 0;
 
        
-        const isCompleted = order.OrderStatus === 'completed';
+        const status = (order.OrderStatus || '').toLowerCase();
+        const isCompleted = status === 'completed' || status === 'received';
 
         if (order.Menu) {
           order.Menu.forEach(item => {
-            if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant) {
+            const itemRestaurant = (item.RestaurantName || item.Restaurant || '').trim();
+            if (itemRestaurant === this.currentRestaurant?.trim()) {
              
               if (order.OrderStatus === 'cancelled') {
                 orderHasRestaurantItem = true;
@@ -160,10 +201,11 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
                 const itemRev = Number(item.Price || 0) * Number(item.Quantity || 1);
 
                 
-                if (isCompleted) {
-                  orderRevenue += itemRev;
-                  addMenuMetric(menuMetricsMap, menuId, item, itemRev);
-                }
+                  if (isCompleted) {
+                    orderRevenue += itemRev;
+                    totalCOGS += (Number(menuCostMap[menuId] || 0)) * Number(item.Quantity || 1);
+                    addMenuMetric(menuMetricsMap, menuId, item, itemRev);
+                  }
 
                 orderHasRestaurantItem = true;
               }
@@ -181,12 +223,16 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       });
 
       const ordersWithRestaurantItems = validOrders.filter(order => {
-        if (order.OrderStatus === 'cancelled') return false;
-        return order.Menu?.some(item => (item.RestaurantName || item.Restaurant) === this.currentRestaurant);
+        if ((order.OrderStatus || '').toLowerCase() === 'cancelled') return false;
+        return order.Menu?.some(item => (item.RestaurantName || item.Restaurant || '').trim() === this.currentRestaurant?.trim());
       });
 
       this.totalRevenue = revenue;
-      this.totalOrders = validOrders.filter(o => o.OrderStatus === 'completed').length;
+      this.totalOrders = validOrders.filter(o => {
+        const s = (o.OrderStatus || '').toLowerCase();
+        return s === 'completed' || s === 'received';
+      }).length;
+      this.totalCOGS = totalCOGS;
       this.orderStatuses = statusCounts;
       this.topMenuItems = getTopMenuItems(menuMetricsMap);
       this.recentOrders = getSortedRecentOrders(validOrders);
@@ -200,12 +246,234 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
       this.buildDailyRevenueChart(ordersWithRestaurantItems, startTime, endTime);
       this.buildPeakHoursChart(ordersWithRestaurantItems);
+
+      // Previous period comparison
+      const { start: pStart, end: pEnd } = getPreviousTimeRange(this.timeFilter, startTime, endTime);
+      const prevOrders = this.allOrders.filter(o => isOrderInTimeRange(o, pStart, pEnd));
+      
+      let prevRevenue = 0;
+      let prevOrdersCount = 0;
+      prevOrders.forEach(order => {
+        if (order.OrderStatus !== 'completed') return;
+        if (order.Menu) {
+            order.Menu.forEach(item => {
+                if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
+                    prevRevenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
+                    prevOrdersCount++; // This counts items, maybe should count orders?
+                }
+            });
+        }
+      });
+      // Correcting orders count to unique orders for the restaurant
+      const prevOrdersForRest = prevOrders.filter(o => (o.OrderStatus === 'completed' || o.OrderStatus === 'received') && o.Menu?.some(i => (i.RestaurantName || i.Restaurant) === this.currentRestaurant));
+      this.prevTotalRevenue = prevRevenue;
+      this.prevTotalOrders = prevOrdersForRest.length;
+
+      // Inactive menus (0 orders in last 14 days)
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const recentOrdersForInactiveCheck = this.allOrders.filter(o => {
+        const d = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
+        return d >= fourteenDaysAgo;
+      });
+      const activeMenuIds = new Set();
+      recentOrdersForInactiveCheck.forEach(o => o.Menu?.forEach(m => activeMenuIds.add(m.MenuId)));
+      this.inactiveMenus = this.allMenus
+        .filter(m => !activeMenuIds.has(m.MenuId))
+        .map(m => ({ id: m.MenuId, name: m.MenuName }));
+
+      // Financial Data by Day
+      const dailyFin = {};
+      const { start: dStart, end: dEnd } = getTimeRange(this.timeFilter, startTime, endTime);
+      const curr = new Date(dStart);
+      while(curr <= dEnd) {
+          dailyFin[toDayKey(new Date(curr))] = 0;
+          curr.setDate(curr.getDate() + 1);
+      }
+
+      ordersWithRestaurantItems.forEach(order => {
+          if (order.OrderStatus !== 'completed' && order.OrderStatus !== 'received') return;
+          const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+          const key = toDayKey(d);
+          if (dailyFin[key] !== undefined) {
+              let orderRev = 0;
+              order.Menu.forEach(item => {
+                  if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
+                      orderRev += (Number(item.Price || 0) * Number(item.Quantity || 1));
+                  }
+              });
+              dailyFin[key] += orderRev;
+          }
+      });
+
+      this.financialData = Object.entries(dailyFin)
+        .map(([date, revenue]) => {
+            const comm = (revenue * (this.commissionRate || 0)) / 100;
+            // Calculate COGS for this day
+            let dayCOGS = 0;
+            ordersWithRestaurantItems.forEach(order => {
+                if ((order.OrderStatus === 'completed' || order.OrderStatus === 'received') && toDayKey(order.CreatedAt?.toDate?.() || new Date(order.CreatedAt)) === date) {
+                    order.Menu.forEach(item => {
+                        if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
+                            dayCOGS += (menuCostMap[item.MenuId] || 0) * Number(item.Quantity || 1);
+                        }
+                    });
+                }
+            });
+            return { date, revenue, commission: comm, cogs: dayCOGS, net: revenue - comm - dayCOGS };
+        })
+        .filter(d => d.revenue > 0)
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      // 4. Efficiency Metrics (Prep Time & Success Rate)
+      const completedOrders = validOrders.filter(o => {
+        const s = (o.OrderStatus || '').toLowerCase();
+        return ['completed', 'received', 'dispatched'].includes(s);
+      });
+      const cancelledOrders = validOrders.filter(o => (o.OrderStatus || '').toLowerCase() === 'cancelled');
+      
+      // Calculate Average Prep Time
+      let totalPrepMinutes = 0;
+      let ordersWithTimestamps = 0;
+      
+      completedOrders.forEach(o => {
+          if (o.CreatedAt && o.CompletedAt) {
+              const start = o.CreatedAt.toDate ? o.CreatedAt.toDate() : new Date(o.CreatedAt);
+              const end = o.CompletedAt.toDate ? o.CompletedAt.toDate() : new Date(o.CompletedAt);
+              const diffMs = end - start;
+              if (diffMs > 0) {
+                  totalPrepMinutes += diffMs / (1000 * 60);
+                  ordersWithTimestamps++;
+              }
+          }
+      });
+      
+      this.averagePrepTime = ordersWithTimestamps > 0 ? Math.round(totalPrepMinutes / ordersWithTimestamps) : 0;
+      
+      // Calculate Success Rate
+      const totalDecided = completedOrders.length + cancelledOrders.length;
+      this.successRate = totalDecided > 0 ? Math.round((completedOrders.length / totalDecided) * 100) : 100;
+
+      // 5. Menu Engineering Matrix
+      this.calculateMenuEngineering(menuMetricsMap);
+
+      // 6. Menu Combo / Cross-sell Analysis
+      this.calculateMenuCombos(ordersWithRestaurantItems);
+
+      // 7. Ratings and Reviews
+      const ratedOrders = ordersWithRestaurantItems.filter(o => o.Rating > 0);
+      this.totalRatingsCount = ratedOrders.length;
+      this.averageRating = ratedOrders.length > 0 
+        ? ratedOrders.reduce((sum, o) => sum + o.Rating, 0) / ratedOrders.length 
+        : 0;
+      
+      this.reviews = ordersWithRestaurantItems
+        .filter(o => o.Feedback && o.Feedback.trim() !== '')
+        .map(o => ({
+          id: o.id,
+          rating: o.Rating,
+          feedback: o.Feedback,
+          date: o.ReviewedAt || o.CreatedAt,
+          room: o.RoomNumber,
+          orderNumber: o.OrderNumber
+        }))
+        .sort((a, b) => {
+          const dateA = a.date?.toDate?.() || new Date(a.date);
+          const dateB = b.date?.toDate?.() || new Date(b.date);
+          return dateB - dateA;
+        });
+    },
+
+    calculateMenuEngineering(menuMetricsMap) {
+      const items = Object.entries(menuMetricsMap).map(([id, stats]) => {
+        const menu = this.allMenus.find(m => String(m.MenuId || m.id) === String(id));
+        const cost = Number(menu?.Cost || 0);
+        const qty = Number(stats.qty || 0);
+        const rev = Number(stats.revenue || 0);
+        const price = qty > 0 ? rev / qty : 0;
+        const profit = price - cost;
+        return {
+          id,
+          name: stats.name,
+          quantity: stats.qty,
+          revenue: stats.revenue,
+          profit: profit,
+          totalProfit: profit * stats.qty,
+          category: stats.category
+        };
+      }).filter(item => item.quantity > 0);
+
+      if (items.length === 0) {
+        this.menuEngineeringData = [];
+        return;
+      }
+
+      // Calculate Averages
+      const avgProfit = items.reduce((sum, item) => sum + item.profit, 0) / items.length;
+      const avgQuantity = items.reduce((sum, item) => sum + item.quantity, 0) / items.length;
+
+      this.menuEngineeringData = items.map(item => {
+        const highProfit = item.profit >= avgProfit;
+        const highVolume = item.quantity >= avgQuantity;
+
+        let type = '';
+        if (highProfit && highVolume) type = 'Star';
+        else if (!highProfit && highVolume) type = 'Plowhorse';
+        else if (highProfit && !highVolume) type = 'Puzzle';
+        else type = 'Dog';
+
+        return { ...item, type, avgProfit, avgQuantity };
+      });
+    },
+
+    calculateMenuCombos(orders) {
+      const comboMap = {};
+      const menuNameMap = {};
+
+      orders.forEach(order => {
+        const status = (order.OrderStatus || '').toLowerCase();
+        if (status !== 'completed' && status !== 'received') return;
+
+        const items = (order.Menu || []).filter(item => {
+          const restaurant = (item.RestaurantName || item.Restaurant || '').trim();
+          return restaurant === this.currentRestaurant?.trim() && item.MenuStatus !== 'cancelled';
+        });
+
+        items.forEach(item => {
+          if (item.MenuId && item.MenuName) menuNameMap[item.MenuId] = item.MenuName;
+        });
+
+        const menuIds = [...new Set(items.map(i => i.MenuId).filter(Boolean))];
+
+        for (let i = 0; i < menuIds.length; i++) {
+          for (let j = i + 1; j < menuIds.length; j++) {
+            const a = menuIds[i] < menuIds[j] ? menuIds[i] : menuIds[j];
+            const b = menuIds[i] < menuIds[j] ? menuIds[j] : menuIds[i];
+            const key = `${a}|||${b}`;
+            comboMap[key] = (comboMap[key] || 0) + 1;
+          }
+        }
+      });
+
+      this.menuComboData = Object.entries(comboMap)
+        .map(([key, count]) => {
+          const [aId, bId] = key.split('|||');
+          return {
+            key,
+            menuA: { id: aId, name: menuNameMap[aId] || 'ไม่ทราบชื่อ' },
+            menuB: { id: bId, name: menuNameMap[bId] || 'ไม่ทราบชื่อ' },
+            count
+          };
+        })
+        .filter(c => c.count >= 2)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
     },
 
     buildDailyRevenueChart(orders, start, end) {
       this.revenueByDay = buildDailyRevenue(orders, (order) => {
         let orderRevenue = 0;
-        if (order.Menu && order.OrderStatus === 'completed') {
+        if (order.Menu && (order.OrderStatus === 'completed' || order.OrderStatus === 'received')) {
           order.Menu.forEach(item => {
             if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
               orderRevenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
@@ -222,6 +490,21 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
 
     buildPeakHoursChart(orders) {
       this.ordersByHour = buildPeakHours(orders);
+    },
+
+    async updateMonthlyGoal(amount) {
+      if (!this.restaurantId) return;
+      
+      const restRef = doc(db, 'Restaurant', this.restaurantId);
+      
+      try {
+        await updateDoc(restRef, {
+          MonthlyGoal: Number(amount)
+        });
+        this.monthlyGoal = Number(amount);
+      } catch (error) {
+        console.error("Error updating monthly goal:", error);
+      }
     }
   }
 });

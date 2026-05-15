@@ -32,6 +32,7 @@ export const useMenuFormStore = defineStore("menuForm", () => {
     Description: "",
     Category: "",
     Status: "",
+    Cost: "",
     OptionGroups: [],
   });
 
@@ -56,6 +57,7 @@ export const useMenuFormStore = defineStore("menuForm", () => {
         const res = menuSnap.data();
         Object.assign(MenuData, {
           ...res,
+          Cost: res.Cost || "",
           OptionGroups: res.OptionGroups || [],
         });
         imagePreview.value = res.ImageUrl || "";
@@ -74,6 +76,7 @@ export const useMenuFormStore = defineStore("menuForm", () => {
         Description: "",
         Category: "",
         Status: "",
+        Cost: "",
         OptionGroups: [],
       });
       selectedFile.value = null;
@@ -118,6 +121,7 @@ export const useMenuFormStore = defineStore("menuForm", () => {
         Description: MenuData.Description,
         Category: MenuData.Category,
         Status: MenuData.Status,
+        Cost: Number(MenuData.Cost) || 0,
         PromoPrice: MenuData.PromoPrice ? Number(MenuData.PromoPrice) : null,
         OptionGroups: cleanOptionGroups,
         UpdatedAt: serverTimestamp(),

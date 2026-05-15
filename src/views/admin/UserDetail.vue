@@ -19,8 +19,7 @@ const userData = ref({
     Address: '',
     ImageUrl: '',
     Restaurant: '',
-    Email: '',
-    Age: ''
+    Email: ''
 });
 onMounted(() => {
     fetchUserData();
@@ -146,17 +145,6 @@ const goBack = () => router.go(-1);
                                     </label>
                                     <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
                                         {{ userData.Phone }}
-                                    </div>
-                                </div>
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text font-medium text-slate-600">
-                                            อายุ 
-                                           
-                                        </span>
-                                    </label>
-                                    <div class="input input-bordered w-full flex items-center bg-slate-50 text-slate-700">
-                                        {{ userData.Age }}
                                     </div>
                                 </div>
                                 <div class="form-control md:col-span-2">

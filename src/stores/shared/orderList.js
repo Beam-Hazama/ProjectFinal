@@ -41,11 +41,17 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
         const globalStatus = getProgressStatus(updatedMenu);
 
-        await updateDoc(orderRef, {
+        const updateObj = {
           Menu: updatedMenu,
           OrderStatus: globalStatus,
           UpdatedAt: serverTimestamp(),
-        });
+        };
+
+        if (globalStatus === 'completed' || globalStatus === 'dispatched') {
+          updateObj.CompletedAt = serverTimestamp();
+        }
+
+        await updateDoc(orderRef, updateObj);
       } catch (error) {
         console.error("Error updating order status:", error);
         throw error;
@@ -74,11 +80,17 @@ export const useOrderlistStore = defineStore("orderlistStore", {
 
         const globalStatus = getProgressStatus(updatedMenu);
 
-        await updateDoc(orderRef, {
+        const updateObj = {
           Menu: updatedMenu,
           OrderStatus: globalStatus,
           UpdatedAt: serverTimestamp(),
-        });
+        };
+
+        if (globalStatus === 'completed' || globalStatus === 'dispatched') {
+          updateObj.CompletedAt = serverTimestamp();
+        }
+
+        await updateDoc(orderRef, updateObj);
       } catch (error) {
         console.error("Error updating single item status:", error);
         throw error;
@@ -101,12 +113,17 @@ export const useOrderlistStore = defineStore("orderlistStore", {
         });
 
         const globalStatus = getProgressStatus(updatedMenu);
-
-        await updateDoc(orderRef, {
+        const updateObj = {
           Menu: updatedMenu,
           OrderStatus: globalStatus,
           UpdatedAt: serverTimestamp(),
-        });
+        };
+
+        if (globalStatus === 'completed' || globalStatus === 'dispatched') {
+          updateObj.CompletedAt = serverTimestamp();
+        }
+
+        await updateDoc(orderRef, updateObj);
       } catch (error) {
         console.error("Error updating multiple items:", error);
         throw error;
@@ -129,6 +146,7 @@ export const useOrderlistStore = defineStore("orderlistStore", {
           Menu: updatedMenu,
           OrderStatus: "cancelled",
           UpdatedAt: serverTimestamp(),
+          CancelledAt: serverTimestamp(),
         });
       } catch (error) {
         console.error("Error rejecting global order:", error);
@@ -182,6 +200,19 @@ export const useOrderlistStore = defineStore("orderlistStore", {
         ref = collection(db, "Order");
       }
       this.subscribeToQuery(ref);
+    },
+    async submitOrderReview(orderId, rating, feedback) {
+      try {
+        const orderRef = doc(db, "Order", orderId);
+        await updateDoc(orderRef, {
+          Rating: Number(rating),
+          Feedback: feedback,
+          ReviewedAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Error submitting review:", error);
+        throw error;
+      }
     },
   },
 });

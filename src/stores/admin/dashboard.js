@@ -3,11 +3,15 @@ import {
   collection,
   onSnapshot,
   query,
+  doc,
+  getDoc,
+  setDoc
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import { toDayKey } from "@/utils/format";
 import {
   getTimeRange,
+  getPreviousTimeRange,
   buildDailyRevenue,
   buildPeakHours,
   buildCategoryStats as getCategoryStats,
@@ -73,6 +77,14 @@ export const useDashboardStore = defineStore("dashboardStore", {
     topMenuItems: [],
     recentOrders: [],
     orderStatuses: { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 },
+    inactiveMenus: [],
+    financialData: [], // { name, revenue, commission, net }
+    totalMonthlyGoal: 0,
+    adminMonthlyGoal: 0,
+    
+    // Comparison metrics
+    prevTotalRevenue: 0,
+    prevTotalOrders: 0,
 
     revenueByDay: [],
     categoriesCount: [],
@@ -89,6 +101,14 @@ export const useDashboardStore = defineStore("dashboardStore", {
     unsubscribeOrders: null,
     unsubscribeMenus: null,
     unsubscribeRestaurants: null,
+
+    // Comparison State
+    comparisonRestA: '',
+    comparisonRestB: '',
+    comparisonResults: {
+      restA: { revenue: 0, orders: 0, aov: 0, chartData: [] },
+      restB: { revenue: 0, orders: 0, aov: 0, chartData: [] }
+    }
   }),
 
   getters: {
@@ -177,6 +197,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       filteredOrders.forEach(order => {
         const orderRev = calculateOrderRevenue(order, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
         const status = order.OrderStatus || 'pending';
+        const isCompleted = status === 'completed';
         
         // นับสถานะเสมอ ถ้าออเดอร์อยู่ในช่วงเวลา
         if (statusCounts[status] !== undefined) statusCounts[status]++;
@@ -185,7 +206,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
           revenue += orderRev;
           if (orderRev > 0) filteredOrdersCount++;
           
-          if (order.Menu) {
+          if (order.Menu && isCompleted) {
             order.Menu.forEach(item => {
               const rName = item.RestaurantName || item.Restaurant;
               const isRightRest = this.restaurantFilters.length === 0 || this.restaurantFilters.includes(rName);
@@ -212,7 +233,24 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.totalOrders = filteredOrdersCount;
       this.orderStatuses = statusCounts;
 
+      // Sum Monthly Goals from all restaurants
+      this.totalMonthlyGoal = this.allRestaurants.reduce((sum, r) => sum + Number(r.MonthlyGoal || 0), 0);
+
       this.topRestaurants = Object.entries(restRevenue).map(([name, revenue]) => ({ name, revenue })).sort((a,b) => b.revenue - a.revenue).slice(0, 5);
+      
+      // Detailed Financial Data for Table
+      this.financialData = Object.entries(restRevenue).map(([name, revenue]) => {
+        const rate = restRateMap[name] || 0;
+        const comm = (revenue * rate) / 100;
+        return {
+          name,
+          revenue,
+          commission: comm,
+          net: revenue - comm,
+          rate
+        };
+      }).sort((a, b) => b.revenue - a.revenue);
+
       this.topMenuItems = getTopMenuItems(menuMetrics);
       this.recentOrders = getSortedRecentOrders(filteredOrders);
       this.availableCategories = extractUniqueCategories(this.allMenus);
@@ -225,10 +263,51 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.buildDailyRevenueChart(filteredOrders, start, end);
       this.buildPeakHoursChart(filteredOrders.filter(o => o.OrderStatus !== 'cancelled'));
       this.buildCategoryStats(this.allMenus);
+
+      // Previous period comparison
+      const { start: pStart, end: pEnd } = getPreviousTimeRange(this.timeFilter, start, end);
+      const prevOrders = this.allOrders.filter(o => isOrderInTimeRange(o, pStart, pEnd));
+      
+      let prevRevenue = 0;
+      let prevOrdersCount = 0;
+      prevOrders.forEach(order => {
+        const rev = calculateOrderRevenue(order, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
+        if (rev > 0) {
+          prevRevenue += rev;
+          prevOrdersCount++;
+        }
+      });
+      this.prevTotalRevenue = prevRevenue;
+      this.prevTotalOrders = prevOrdersCount;
+
+      // Inactive menus (0 orders in last 14 days)
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const recentOrdersForInactiveCheck = this.allOrders.filter(o => {
+        const d = o.CreatedAt?.toDate?.() || new Date(o.CreatedAt);
+        return d >= fourteenDaysAgo;
+      });
+      const activeMenuIds = new Set();
+      recentOrdersForInactiveCheck.forEach(o => o.Menu?.forEach(m => activeMenuIds.add(m.MenuId)));
+      this.inactiveMenus = this.allMenus
+        .filter(m => !activeMenuIds.has(m.MenuId))
+        .map(m => ({ id: m.MenuId, name: m.MenuName, restaurant: m.RestaurantName || m.Restaurant }));
     },
 
     async loadDashboardData() {
       this.clearListeners();
+      
+      // Load Admin Global Goal
+      const adminGoalRef = doc(db, 'Settings', 'Platform');
+      try {
+        const goalSnap = await getDoc(adminGoalRef);
+        if (goalSnap.exists()) {
+            this.adminMonthlyGoal = Number(goalSnap.data().AdminMonthlyGoal || 0);
+        }
+      } catch (err) {
+          console.error("Error loading admin goal:", err);
+      }
+
       const ordersQuery = query(collection(db, "Order"));
       this.unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
         this.allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -275,6 +354,55 @@ export const useDashboardStore = defineStore("dashboardStore", {
 
     buildPeakHoursChart(orders) {
       this.ordersByHour = buildPeakHours(orders);
+    },
+
+    setComparisonRestaurants(restA, restB) {
+      this.comparisonRestA = restA;
+      this.comparisonRestB = restB;
+      this.runComparison();
+    },
+
+    runComparison() {
+      if (!this.comparisonRestA || !this.comparisonRestB) return;
+
+      const { start, end } = getTimeRange(this.timeFilter, this.customStartDate, this.customEndDate);
+      const orders = this.allOrders.filter(o => isOrderInTimeRange(o, start, end));
+
+      const calcForRest = (restName) => {
+        let revenue = 0;
+        let ordersCount = 0;
+        const filters = [restName];
+        
+        orders.forEach(order => {
+          const rev = calculateOrderRevenue(order, filters);
+          if (rev > 0) {
+            revenue += rev;
+            ordersCount++;
+          }
+        });
+
+        const chartData = buildDailyRevenue(orders, (o) => calculateOrderRevenue(o, filters), start, end);
+        
+        return {
+          revenue,
+          orders: ordersCount,
+          aov: ordersCount > 0 ? revenue / ordersCount : 0,
+          chartData
+        };
+      };
+
+      this.comparisonResults.restA = calcForRest(this.comparisonRestA);
+      this.comparisonResults.restB = calcForRest(this.comparisonRestB);
+    },
+
+    async updateAdminMonthlyGoal(amount) {
+      const adminGoalRef = doc(db, 'Settings', 'Platform');
+      try {
+          await setDoc(adminGoalRef, { AdminMonthlyGoal: Number(amount) }, { merge: true });
+          this.adminMonthlyGoal = Number(amount);
+      } catch (err) {
+          console.error("Error updating admin goal:", err);
+      }
     }
   }
 });

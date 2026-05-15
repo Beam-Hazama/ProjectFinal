@@ -114,6 +114,13 @@ const goBack = () => router.go(-1);
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
+                                    <div class="form-control md:col-span-2">
+                                        <label class="label"><span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ (COGS)</span></label>
+                                        <div class="relative">
+                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-indigo-50 border-indigo-100 text-indigo-700 font-bold" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
+                                            <span class="absolute right-4 top-3 text-indigo-400 text-sm">฿</span>
+                                        </div>
+                                    </div>
                                     <div class="form-control md:col-span-6">
                                         <label class="label"><span class="label-text font-medium text-slate-600">รายละเอียด</span></label>
                                         <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Description" />

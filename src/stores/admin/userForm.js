@@ -22,7 +22,6 @@ const DEFAULT_USER = {
   Role: "restaurant",
   ImageUrl: "",
   Restaurant: "",
-  Age: "",
 };
 
 export const useUserFormStore = defineStore("userForm", {

@@ -31,6 +31,7 @@ const DEFAULT_RESTAURANT = {
   OpenTime: "",
   CloseTime: "",
   OpenDays: [...ALL_DAYS],
+  Status: "open",
 };
 
 export const useRestaurantFormStore = defineStore("restaurantForm", {
@@ -91,11 +92,7 @@ export const useRestaurantFormStore = defineStore("restaurantForm", {
           }
         }
 
-        const Status = getShopAutoStatus(
-          this.restaurantData.OpenTime,
-          this.restaurantData.CloseTime,
-          this.restaurantData.OpenDays,
-        );
+        const Status = this.restaurantData.Status;
 
         await addDoc(collection(db, "Restaurant"), {
           ...this.restaurantData,

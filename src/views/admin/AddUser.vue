@@ -25,7 +25,6 @@ const isFormValid = computed(() => {
         u.Address.trim() !== '' &&
         u.Email.trim() !== '' &&
         u.ImageUrl !== '' &&
-        u.Age !== '' &&
         u.Password !== ''
     );
 });
@@ -152,13 +151,7 @@ const goBack = () => router.go(-1);
                                         @input="formStore.userData.Phone = formStore.userData.Phone.replace(/[^0-9]/g, '')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
-                                <div class="form-control">
-                                    <label class="label"><span
-                                            class="label-text font-medium text-slate-600">อายุ</span></label>
-                                    <input type="text" v-model="formStore.userData.Age" maxlength="2"
-                                        @input="formStore.userData.Age = formStore.userData.Age.replace(/[^0-9]/g, '')"
-                                        class="input input-bordered w-full focus:input-primary bg-slate-50" />
-                                </div>
+
                                 <div class="form-control md:col-span-2">
                                     <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
                                         </span></label>

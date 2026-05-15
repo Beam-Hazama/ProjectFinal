@@ -16,8 +16,7 @@ export const getTimeRange = (filter, customStart, customEnd) => {
         start = new Date(now.getFullYear(), now.getMonth(), 1);
         start.setHours(0, 0, 0, 0);
     } else if (filter === 'all') {
-        start = new Date(now);
-        start.setDate(start.getDate() - 29);
+        start = new Date(2000, 0, 1);
         start.setHours(0, 0, 0, 0);
     } else if (filter === 'custom' && customStart) {
         start = new Date(customStart); 
@@ -28,6 +27,30 @@ export const getTimeRange = (filter, customStart, customEnd) => {
         ? new Date(new Date(customEnd).setHours(23, 59, 59, 999))
         : new Date(new Date(now).setHours(23, 59, 59, 999));
     
+    return { start, end };
+};
+
+export const getPreviousTimeRange = (filter, currentStart, currentEnd) => {
+    let start = new Date(currentStart);
+    let end = new Date(currentEnd);
+    const diff = currentEnd - currentStart;
+
+    if (filter === 'today') {
+        start.setDate(start.getDate() - 1);
+        end.setDate(end.getDate() - 1);
+    } else if (filter === '7days') {
+        start.setDate(start.getDate() - 7);
+        end.setDate(end.getDate() - 7);
+    } else if (filter === 'thisMonth') {
+        start = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
+        end = new Date(currentStart.getFullYear(), currentStart.getMonth(), 0);
+        end.setHours(23, 59, 59, 999);
+    } else {
+        // For custom and all, just shift by the same duration
+        start = new Date(currentStart.getTime() - diff - 1);
+        end = new Date(currentEnd.getTime() - diff - 1);
+    }
+
     return { start, end };
 };
 
@@ -87,7 +110,31 @@ export const buildCategoryStats = (menus) => {
 export const isOrderInTimeRange = (order, start, end) => {
     const createdAt = order.CreatedAt;
     if (!createdAt) return false;
-    const orderDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+    
+    let orderDate;
+    if (createdAt.toDate) {
+        orderDate = createdAt.toDate();
+    } else if (typeof createdAt === 'string' && createdAt.includes('/')) {
+        // Handle DD/MM/YYYY or DD/MM/BE
+        const parts = createdAt.split(' ');
+        const dateParts = parts[0].split('/');
+        let day = parseInt(dateParts[0]);
+        let month = parseInt(dateParts[1]) - 1;
+        let year = parseInt(dateParts[2]);
+        
+        // If year is BE (e.g. 2569), convert to AD (2026)
+        if (year > 2400) year -= 543;
+        
+        if (parts[1]) {
+            const timeParts = parts[1].split(':');
+            orderDate = new Date(year, month, day, parseInt(timeParts[0]), parseInt(timeParts[1]));
+        } else {
+            orderDate = new Date(year, month, day);
+        }
+    } else {
+        orderDate = new Date(createdAt);
+    }
+    
     return orderDate >= start && orderDate <= end;
 };
 
@@ -106,7 +153,7 @@ export const getTopMenuItems = (metricsMap, limit = 5) =>
 
 export const addMenuMetric = (map, menuId, item, itemRev) => {
     if (!map[menuId]) {
-        map[menuId] = { name: item.MenuName, qty: 0, revenue: 0, image: item.ImageUrl };
+        map[menuId] = { name: item.MenuName, qty: 0, revenue: 0, image: item.ImageUrl, category: item.Category };
     }
     map[menuId].qty += Number(item.Quantity || 1);
     map[menuId].revenue += itemRev;

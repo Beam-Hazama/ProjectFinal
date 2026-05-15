@@ -149,7 +149,8 @@ const goBack = () => router.go(-1);
                     <input type="text" inputmode="decimal"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                       v-model="formStore.restaurantData.Distance"
-                      @keypress="(e) => { const v = e.target.value; const [int, dec] = v.split('.'); if (!/[\d.]/.test(e.key)) { e.preventDefault(); return; } if (e.key === '.' && v.includes('.')) { e.preventDefault(); return; } if (e.key !== '.' && !v.includes('.') && (int || '').length >= 2) { e.preventDefault(); return; } if (e.key !== '.' && v.includes('.') && (dec || '').length >= 1) e.preventDefault() }" />
+                      @keypress="(e) => { const v = e.target.value; const [int, dec] = v.split('.'); if (!/[\d.]/.test(e.key)) { e.preventDefault(); return; } if (e.key === '.' && v.includes('.')) { e.preventDefault(); return; } if (e.key !== '.' && !v.includes('.') && (int || '').length >= 1) { e.preventDefault(); return; } if (e.key !== '.' && v.includes('.') && (dec || '').length >= 1) e.preventDefault() }"
+                      @input="(e) => { let v = e.target.value.replace(/[^0-9.]/g, ''); const d = v.indexOf('.'); if (d !== -1) v = v.slice(0, d+1) + v.slice(d+1).replace(/\./g,''); const p = v.split('.'); v = p.length === 2 ? p[0].slice(0,1) + '.' + p[1].slice(0,1) : p[0].slice(0,1); if (formStore.restaurantData.Distance !== v) formStore.restaurantData.Distance = v }" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
@@ -159,6 +160,26 @@ const goBack = () => router.go(-1);
                   <textarea
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
                     v-model="formStore.restaurantData.Address"></textarea>
+                </div>
+
+                <div class="form-control md:col-span-2">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">สถานะร้านปัจจุบัน</span>
+                  </label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button v-for="status in [
+                      { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
+                      { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
+                      { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
+                    ]" :key="status.v" type="button" @click="formStore.restaurantData.Status = status.v"
+                      class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" :class="[
+                        formStore.restaurantData.Status === status.v
+                          ? status.active
+                          : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      ]">
+                      {{ status.l }}
+                    </button>
+                  </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
