@@ -142,13 +142,13 @@ onMounted(() => {
                         { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
                         { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
                         { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
-                      ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.Status = status.v)"
+                      ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.StatusMode = status.v)"
                         class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" 
                         :class="[
-                          profileStore.RestaurantData.Status === status.v
+                          profileStore.RestaurantData.StatusMode === status.v
                             ? status.active
                             : 'bg-slate-100 text-slate-400 hover:bg-slate-200',
-                          !profileStore.isEditing ? (profileStore.RestaurantData.Status === status.v ? 'cursor-default' : 'opacity-50 cursor-not-allowed') : ''
+                          !profileStore.isEditing ? (profileStore.RestaurantData.StatusMode === status.v ? 'cursor-default' : 'opacity-50 cursor-not-allowed') : ''
                         ]">
                         {{ status.l }}
                       </button>

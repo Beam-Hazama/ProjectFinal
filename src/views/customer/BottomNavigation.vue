@@ -1,12 +1,14 @@
 <script setup>
-import { computed } from 'vue';
+import { computed,onMounted,onUnmounted } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import { useCartStore } from '@/stores/customer/cart';
+import { updateAllRestaurantStatuses } from '@/stores/customer/updateStatusRestaurant';
 
 const route = useRoute();
 const cartStore = useCartStore();
 
 const qrId = computed(() => cartStore.qrId);
+let timer = null
 
 const menuItems = computed(() => [
     {
@@ -39,6 +41,20 @@ const menuItems = computed(() => [
 const isActive = (name) => {
     return route.name === name;
 };
+
+onMounted(async () => {
+    await updateAllRestaurantStatuses();
+    timer = setInterval(() => {
+        updateAllRestaurantStatuses();
+    }, 60000);
+});
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+});
 </script>
 
 <template>    

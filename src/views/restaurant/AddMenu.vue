@@ -155,7 +155,7 @@ const goBack = () => router.go(-1);
                             <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
                                 <span>ตัวเลือกเพิ่มเติม</span>
                                 <button @click="addOptionGroup" class="btn btn-sm btn-ghost text-emerald-600 hover:bg-emerald-50 font-medium">
-                                    + เพิ่มหมวดหมู่
+                                    + เพิ่มตัวเลือก
                                 </button>
                             </h3>
                             <div class="space-y-6">
