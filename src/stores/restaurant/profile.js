@@ -4,6 +4,7 @@ import { db } from "@/firebase";
 import { useAccountStore } from "@/stores/auth";
 import { useRestaurant } from "@/stores/shared/restaurant";
 import { uploadImage } from "@/utils/upload";
+import { isMinimumTimeGap } from "@/utils/shopStatus";
 import { cleanupBlobUrl } from "@/composables/useImagePreview";
 import { DAYS_OF_WEEK } from "@/utils/constants";
 
@@ -97,6 +98,14 @@ export const useProfileStore = defineStore('restaurantProfile', {
 
     async saveProfile() {
       if (!this.docId) return;
+
+      // ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
+      if (this.RestaurantData.OpenTime && this.RestaurantData.CloseTime) {
+        if (!isMinimumTimeGap(this.RestaurantData.OpenTime, this.RestaurantData.CloseTime, 60)) {
+          alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง');
+          return;
+        }
+      }
 
       try {
         this.isSubmitting = true;

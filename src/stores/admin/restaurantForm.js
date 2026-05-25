@@ -9,7 +9,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { uploadImage } from "@/utils/upload";
-import { getShopAutoStatus } from "@/utils/shopStatus";
+import { isMinimumTimeGap } from "@/utils/shopStatus";
 
 const ALL_DAYS = [
   "Sunday",
@@ -56,6 +56,14 @@ export const useRestaurantFormStore = defineStore("restaurantForm", {
     async save(router) {
       try {
         this.isLoading = true;
+
+        // ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
+        if (this.restaurantData.OpenTime && this.restaurantData.CloseTime) {
+          if (!isMinimumTimeGap(this.restaurantData.OpenTime, this.restaurantData.CloseTime, 60)) {
+            alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง');
+            return false;
+          }
+        }
 
         // ตรวจสอบชื่อร้านซ้ำ
         const q = query(

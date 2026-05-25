@@ -5,6 +5,7 @@ import { useRestaurantFormStore } from '@/stores/admin/restaurantForm';
 import { useImagePreview } from '@/composables/useImagePreview';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { DAYS_OF_WEEK } from '@/utils/constants';
+import { isMinimumTimeGap } from '@/utils/shopStatus';
 
 const router = useRouter();
 const formStore = useRestaurantFormStore();
@@ -14,6 +15,12 @@ const daysOfWeek = DAYS_OF_WEEK;
 const { previewUrl: logoPreviewUrl, selectedFile: logoFile, handleFileSelect: handleLogoSelect } = useImagePreview();
 const { previewUrl: bgPreviewUrl, selectedFile: bgFile, handleFileSelect: handleBgSelect } = useImagePreview();
 
+// ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
+const isTimeGapInvalid = computed(() => {
+  const d = formStore.restaurantData;
+  if (!d.OpenTime || !d.CloseTime) return false;
+  return !isMinimumTimeGap(d.OpenTime, d.CloseTime, 60);
+});
 
 const isFormValid = computed(() => {
   const d = formStore.restaurantData;
@@ -26,7 +33,8 @@ const isFormValid = computed(() => {
     d.CloseTime !== '' &&
     d.OpenDays.length > 0 &&
     logoFile.value !== null &&
-    bgFile.value !== null
+    bgFile.value !== null &&
+    !isTimeGapInvalid.value
   );
 });
 
@@ -213,6 +221,12 @@ const goBack = () => router.go(-1);
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
+                  </div>
+                  <div v-if="isTimeGapInvalid" class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1 md:col-span-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง
                   </div>
                   <div class="form-control md:col-span-2">
                     <label class="label">

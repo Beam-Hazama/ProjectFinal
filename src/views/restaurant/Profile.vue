@@ -1,9 +1,17 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useProfileStore } from '@/stores/restaurant/profile';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
+import { isMinimumTimeGap } from '@/utils/shopStatus';
 
 const profileStore = useProfileStore();
+
+// ตรวจสอบเวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชม.
+const isTimeGapInvalid = computed(() => {
+  const { OpenTime, CloseTime } = profileStore.RestaurantData;
+  if (!OpenTime || !CloseTime) return false;
+  return !isMinimumTimeGap(OpenTime, CloseTime, 60);
+});
 
 onMounted(() => {
   profileStore.fetchRestaurantByName();
@@ -31,7 +39,7 @@ onMounted(() => {
             Edit
           </button>
 
-          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting"
+          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting || isTimeGapInvalid"
             class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300 font-bold min-w-[100px] disabled:bg-slate-200">
             <span v-if="profileStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
             <span v-else>Save</span>
@@ -165,6 +173,12 @@ onMounted(() => {
                       <input type="time" v-model="profileStore.RestaurantData.CloseTime"
                         :disabled="!profileStore.isEditing" class="input input-bordered w-full transition-all focus:border-indigo-500" />
                     </div>
+                  </div>
+                  <div v-if="isTimeGapInvalid && profileStore.isEditing" class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง
                   </div>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">วันเปิดให้บริการ</span></label>
