@@ -56,7 +56,7 @@ const saveGoal = async () => {
         </div>
         <div>
           <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">
-            {{ isAdmin ? 'เป้าหมายยอดขายรวมทั้งแพลตฟอร์ม' : 'เป้าหมายยอดขายเดือนนี้' }}
+            {{ isAdmin ? 'เป้าหมายยอดขายรวมทั้งแพลตฟอร์ม' : 'เป้าหมายยอดขาย' }}
           </h2>
           <div v-if="!isEditing" class="flex items-center gap-3">
             <p class="text-xl font-black text-slate-800">฿{{ goal.toLocaleString() }}</p>

@@ -92,7 +92,7 @@ const totalNetPayout = computed(() =>
       <!-- APPLY TO ALL -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
 
-        <div class="flex flex-col md:flex-row gap-4 items-end">
+        <div class="flex flex-col md:flex-row gap-4 items-start">
 
           <!-- RATE -->
           <div>
@@ -109,6 +109,10 @@ const totalNetPayout = computed(() =>
               @input="if (Number($event.target.value) > 30) { commissionStore.bulkRate = 30; $event.target.value = 30; } else if (Number($event.target.value) < 0) { commissionStore.bulkRate = 0; $event.target.value = 0; }"
               class="input input-bordered w-40"
             />
+            
+            <p class="text-xs text-slate-400 mt-2">
+              * กำหนดได้สูงสุดไม่เกิน 30%
+            </p>
 
           </div>
 
@@ -130,28 +134,26 @@ const totalNetPayout = computed(() =>
           </div>
 
           <!-- APPLY -->
-          <button
-            class="btn bg-indigo-500 hover:bg-indigo-600 text-white border-none"
-            :disabled="commissionStore.loading"
-            @click="commissionStore.applyCommissionToAll()"
-          >
+          <div class="pt-7">
+            <button
+              class="btn bg-indigo-500 hover:bg-indigo-600 text-white border-none"
+              :disabled="commissionStore.loading"
+              @click="commissionStore.applyCommissionToAll()"
+            >
 
-            <span
-              v-if="commissionStore.loading"
-              class="loading loading-spinner loading-sm"
-            ></span>
+              <span
+                v-if="commissionStore.loading"
+                class="loading loading-spinner loading-sm"
+              ></span>
 
-            <template v-else>
-              Apply To All
-            </template>
+              <template v-else>
+                Apply To All
+              </template>
 
-          </button>
+            </button>
+          </div>
 
         </div>
-
-        <p class="text-xs text-slate-400 mt-2">
-          * กำหนดได้สูงสุดไม่เกิน 30%
-        </p>
 
       </div>
 

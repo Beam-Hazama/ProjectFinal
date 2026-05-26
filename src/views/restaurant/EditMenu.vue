@@ -109,29 +109,29 @@ const goBack = () => router.go(-1);
                                 </div>
                                 <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลทั่วไป</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                                    <div class="form-control md:col-span-2">
+                                    <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร</span></label>
                                         <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.MenuName" />
                                     </div>
-                                    <div class="form-control md:col-span-2">
+                                    <div class="form-control md:col-span-3">
+                                        <label class="label"><span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ</span></label>
+                                        <div class="relative">
+                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
+                                            <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาปกติ</span></label>
                                         <div class="relative">
                                             <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Price" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
-                                    <div class="form-control md:col-span-2">
+                                    <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span></label>
                                         <div class="relative">
                                             <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700" v-model="MenuData.PromoPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
-                                        </div>
-                                    </div>
-                                    <div class="form-control md:col-span-2">
-                                        <label class="label"><span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ (COGS)</span></label>
-                                        <div class="relative">
-                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-indigo-50 border-indigo-100 text-indigo-700 font-bold" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
-                                            <span class="absolute right-4 top-3 text-indigo-400 text-sm">฿</span>
                                         </div>
                                     </div>
                                     <div class="form-control md:col-span-6">

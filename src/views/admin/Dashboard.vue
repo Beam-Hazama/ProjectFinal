@@ -8,7 +8,6 @@ import DashboardChartsSection from '@/components/dashboard/DashboardChartsSectio
 import DashboardListsSection from '@/components/dashboard/DashboardListsSection.vue';
 import RestaurantComparisonSection from '@/components/dashboard/RestaurantComparisonSection.vue';
 // import ActiveOrdersFeed from '@/components/dashboard/ActiveOrdersFeed.vue';
-import FinancialStatementSection from '@/components/dashboard/FinancialStatementSection.vue';
 import SalesGoalCard from '@/components/dashboard/SalesGoalCard.vue';
 
 const dashboardStore = useDashboardStore();
@@ -39,7 +38,6 @@ onUnmounted(() => {
         <DashboardSummaryStats :dashboardStore="dashboardStore" />
         <DashboardChartsSection :dashboardStore="dashboardStore" />
         <RestaurantComparisonSection :dashboardStore="dashboardStore" />
-        <FinancialStatementSection :dashboardStore="dashboardStore" :isAdmin="true" />
         <DashboardListsSection :dashboardStore="dashboardStore" />
       </div>
     </div>

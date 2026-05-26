@@ -14,6 +14,7 @@ const menuData = reactive({         //กัน error ค่าว่าง []
   ImageUrl: '',
   Price: 0,
   PromoPrice: null,
+  Cost: 0,
   RestaurantName: '',
   Description: '',
   Category: '',
@@ -83,7 +84,7 @@ onMounted(async () => {
                 ข้อมูลเมนูอาหาร
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div class="form-control md:col-span-2">
+                <div class="form-control md:col-span-3">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                         class="text-red-500">*</span></span>
@@ -93,7 +94,19 @@ onMounted(async () => {
                     {{ menuData.MenuName }}
                   </div>
                 </div>
-                <div class="form-control md:col-span-2">
+                <div class="form-control md:col-span-3">
+                  <label class="label">
+                    <span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ</span>
+                  </label>
+                  <div class="relative">
+                    <div
+                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 flex items-center justify-end">
+                      {{ menuData.Cost !== undefined ? menuData.Cost : 0 }}
+                    </div>
+                    <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
+                  </div>
+                </div>
+                <div class="form-control md:col-span-3">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ราคาปกติ <span
                         class="text-red-500">*</span></span>
@@ -106,7 +119,7 @@ onMounted(async () => {
                     <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                   </div>
                 </div>
-                <div class="form-control md:col-span-2">
+                <div class="form-control md:col-span-3">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
                   </label>
