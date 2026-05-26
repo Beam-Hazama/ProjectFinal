@@ -104,8 +104,9 @@ const totalNetPayout = computed(() =>
             <input
               type="number"
               min="0"
-              max="100"
+              max="30"
               v-model="commissionStore.bulkRate"
+              @input="if (Number($event.target.value) > 30) { commissionStore.bulkRate = 30; $event.target.value = 30; } else if (Number($event.target.value) < 0) { commissionStore.bulkRate = 0; $event.target.value = 0; }"
               class="input input-bordered w-40"
             />
 
@@ -148,48 +149,76 @@ const totalNetPayout = computed(() =>
 
         </div>
 
+        <p class="text-xs text-slate-400 mt-2">
+          * กำหนดได้สูงสุดไม่เกิน 30%
+        </p>
+
       </div>
 
       <!-- SUMMARY -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
         <!-- TOTAL REVENUE -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <div class="relative overflow-hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between">
+          <!-- Decorative BG -->
+          <div class="absolute right-0 top-0 w-32 h-32 bg-indigo-50 rounded-bl-full opacity-50 -mr-4 -mt-4"></div>
+          
+          <div class="relative z-10">
+            <p class="text-xs font-medium text-slate-400 mb-1">
+              ยอดขายรวม
+            </p>
+            <h3 class="text-2xl font-bold text-slate-800">
+              ฿{{ formatPrice(totalRevenue) }}
+            </h3>
+          </div>
 
-          <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-            รายได้รวม
-          </p>
-
-          <h3 class="text-3xl font-black text-slate-800">
-            ฿{{ formatPrice(totalRevenue) }}
-          </h3>
-
+          <div class="relative z-10 w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
         </div>
 
         <!-- TOTAL COMMISSION -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <div class="relative overflow-hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between">
+          <!-- Decorative BG -->
+          <div class="absolute right-0 top-0 w-32 h-32 bg-rose-50 rounded-bl-full opacity-50 -mr-4 -mt-4"></div>
+          
+          <div class="relative z-10">
+            <p class="text-xs font-medium text-slate-400 mb-1">
+              ค่าธรรมเนียมรวม
+            </p>
+            <h3 class="text-2xl font-bold text-rose-600">
+              ฿{{ formatPrice(totalCommissions) }}
+            </h3>
+          </div>
 
-          <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-            ค่าธรรมเนียมรวม
-          </p>
-
-          <h3 class="text-3xl font-black text-rose-600">
-            ฿{{ formatPrice(totalCommissions) }}
-          </h3>
-
+          <div class="relative z-10 w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
         </div>
 
         <!-- NET -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <div class="relative overflow-hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center justify-between">
+          <!-- Decorative BG -->
+          <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-50 rounded-bl-full opacity-50 -mr-4 -mt-4"></div>
+          
+          <div class="relative z-10">
+            <p class="text-xs font-medium text-slate-400 mb-1">
+              ยอดสุทธิรวม
+            </p>
+            <h3 class="text-2xl font-bold text-emerald-600">
+              ฿{{ formatPrice(totalNetPayout) }}
+            </h3>
+          </div>
 
-          <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">
-            ยอดสุทธิรวม
-          </p>
-
-          <h3 class="text-3xl font-black text-emerald-600">
-            ฿{{ formatPrice(totalNetPayout) }}
-          </h3>
-
+          <div class="relative z-10 w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
         </div>
 
       </div>

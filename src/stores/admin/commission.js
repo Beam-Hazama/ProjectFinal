@@ -66,13 +66,15 @@ export const useCommissionStore = defineStore('commission', {
       this.loading = true;
 
       try {
+        const clampedRate = Math.min(Number(this.bulkRate || 0), 30);
+
         const promises = Object.entries(this.nameToId).map(([name, id]) => {
           const restaurantRef = doc(db, 'Restaurant', id);
 
           return setDoc(
             restaurantRef,
             {
-              CommissionRate: Number(this.bulkRate || 0),
+              CommissionRate: clampedRate,
 
               CommissionCap: this.bulkCap === '' ? null : Number(this.bulkCap),
 
@@ -107,10 +109,11 @@ export const useCommissionStore = defineStore('commission', {
         const promises = Object.entries(this.localRates).map(([name, rate]) => {
           const id = this.nameToId[name] || name;
           const restaurantRef = doc(db, 'Restaurant', id);
+          const clampedRate = Math.min(Number(rate.rate || rate || 0), 30);
           return setDoc(
             restaurantRef,
             {
-              CommissionRate: Number(rate),
+              CommissionRate: clampedRate,
               UpdatedAt: new Date(),
             },
             { merge: true },
