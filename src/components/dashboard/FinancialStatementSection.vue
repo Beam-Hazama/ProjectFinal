@@ -32,7 +32,7 @@ const props = defineProps({
             <th class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-right">ยอดขายรวม</th>
             <th class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-center">GP (%)</th>
             <th class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-right">ค่าธรรมเนียม</th>
-            <th v-if="!isAdmin" class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-right text-indigo-500">ต้นทุน (COGS)</th>
+            <th v-if="!isAdmin" class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-right text-indigo-500">ต้นทุน</th>
             <th class="bg-transparent font-bold uppercase tracking-wider text-[10px] text-right">ยอดสุทธิ</th>
           </tr>
         </thead>

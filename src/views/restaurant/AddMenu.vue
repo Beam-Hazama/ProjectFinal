@@ -103,21 +103,21 @@ const goBack = () => router.go(-1);
                                     <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ</span></label>
                                         <div class="relative">
-                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
+                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
                                     <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาปกติ</span></label>
                                         <div class="relative">
-                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Price" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Price" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
                                     <div class="form-control md:col-span-3">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span></label>
                                         <div class="relative">
-                                            <input type="number" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700" v-model="MenuData.PromoPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700" v-model="MenuData.PromoPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
@@ -201,7 +201,7 @@ const goBack = () => router.go(-1);
                                                     </div>
                                                     <div class="form-control w-32">
                                                         <div class="relative">
-                                                            <input type="number" class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10" v-model="choice.ExtraPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                                            <input type="number" min="0" class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10" v-model="choice.ExtraPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
                                                             <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
                                                         </div>
                                                     </div>
