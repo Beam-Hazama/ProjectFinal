@@ -12,18 +12,18 @@ defineProps({
       <div class="dropdown w-full lg:w-max">
         <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 font-normal hover:bg-slate-50 w-full justify-between lg:min-w-[120px] h-[32px] min-h-[32px] px-3">
           <span v-if="dashboardStore.timeFilter === 'today'">วันนี้</span>
-          <span v-else-if="dashboardStore.timeFilter === '7days'">ย้อนหลัง 7 วัน</span>
+          <span v-else-if="dashboardStore.timeFilter === 'previousMonth'">เดือนก่อน</span>
           <span v-else-if="dashboardStore.timeFilter === 'thisMonth'">เดือนนี้</span>
           <span v-else-if="dashboardStore.timeFilter === 'all'">ทั้งหมด</span>
           <span v-else-if="dashboardStore.timeFilter === 'custom'">กำหนดเอง</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" /></svg>
         </label>
         <ul tabindex="0" class="dropdown-content z-[10] menu p-2 shadow-xl border border-slate-100 bg-base-100 rounded-box w-56 mt-2 flex-nowrap">
-          <li v-for="filter in ['today', '7days', 'thisMonth', 'all', 'custom']" :key="filter">
+          <li v-for="filter in ['today', 'previousMonth', 'thisMonth', 'all', 'custom']" :key="filter">
             <label class="label cursor-pointer flex justify-start gap-3 py-2" :class="{'bg-slate-100': dashboardStore.timeFilter === filter}">
               <input type="checkbox" :checked="dashboardStore.timeFilter === filter" @change="dashboardStore.setTimeFilter(filter); $event.target.blur()" class="checkbox checkbox-sm checkbox-primary rounded-full border-indigo-600" />
               <span class="label-text whitespace-normal font-medium leading-tight" :class="dashboardStore.timeFilter === filter ? 'text-slate-800' : 'text-slate-600'">
-                {{ filter === 'today' ? 'วันนี้' : filter === '7days' ? 'ย้อนหลัง 7 วัน' : filter === 'thisMonth' ? 'เดือนนี้' : filter === 'all' ? 'ทั้งหมด' : 'กำหนดเอง' }}
+                {{ filter === 'today' ? 'วันนี้' : filter === 'previousMonth' ? 'เดือนก่อน' : filter === 'thisMonth' ? 'เดือนนี้' : filter === 'all' ? 'ทั้งหมด' : 'กำหนดเอง' }}
               </span>
             </label>
           </li>

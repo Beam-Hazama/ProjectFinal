@@ -8,9 +8,8 @@ export const getTimeRange = (filter, customStart, customEnd) => {
     if (filter === 'today') {
         start = new Date(now); 
         start.setHours(0, 0, 0, 0);
-    } else if (filter === '7days') {
-        start = new Date(now); 
-        start.setDate(start.getDate() - 6); 
+    } else if (filter === 'previousMonth') {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         start.setHours(0, 0, 0, 0);
     } else if (filter === 'thisMonth') {
         start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -23,10 +22,25 @@ export const getTimeRange = (filter, customStart, customEnd) => {
         start.setHours(0, 0, 0, 0);
     }
     
-    const end = filter === 'custom' && customEnd
-        ? new Date(new Date(customEnd).setHours(23, 59, 59, 999))
-        : new Date(new Date(now).setHours(23, 59, 59, 999));
-    
+    let end;
+
+    if (filter === 'custom' && customEnd) {
+        end = new Date(new Date(customEnd).setHours(23, 59, 59, 999));
+
+    } else if (filter === 'previousMonth') {
+        end = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            0,
+            23,
+            59,
+            59,
+            999
+        );
+
+    } else {
+        end = new Date(new Date(now).setHours(23, 59, 59, 999));
+    }
     return { start, end };
 };
 
@@ -38,9 +52,17 @@ export const getPreviousTimeRange = (filter, currentStart, currentEnd) => {
     if (filter === 'today') {
         start.setDate(start.getDate() - 1);
         end.setDate(end.getDate() - 1);
-    } else if (filter === '7days') {
-        start.setDate(start.getDate() - 7);
-        end.setDate(end.getDate() - 7);
+    } else if (filter === 'previousMonth') {
+        start = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
+        end = new Date(
+            currentStart.getFullYear(),
+            currentStart.getMonth(),
+            0,
+            23,
+            59,
+            59,
+            999
+        );
     } else if (filter === 'thisMonth') {
         start = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
         end = new Date(currentStart.getFullYear(), currentStart.getMonth(), 0);

@@ -168,12 +168,12 @@ const goBack = () => router.go(-1);
                             <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2 flex justify-between items-center">
                                 <span>ตัวเลือกเพิ่มเติม</span>
                                 <button @click="addOptionGroup" class="btn btn-sm btn-ghost text-emerald-600 hover:bg-emerald-50 font-medium">
-                                    + เพิ่มหมวดหมู่
+                                    + เพิ่มตัวเลือก
                                 </button>
                             </h3>
                             <div class="space-y-6">
                                 <transition-group name="fade" tag="div" class="space-y-6">
-                                    <div v-for="(group, gIndex) in MenuData.OptionGroups" :key="'group-' + gIndex" class="relative pb-6 border-b border-slate-100 last:border-0 last:pb-0 group">
+                                    <div v-for="(group, gIndex) in MenuData.OptionGroups" :key="'group-' + gIndex" class="relative p-4 rounded-xl border border-slate-200 bg-slate-50/70 shadow-sm">
                                         <button @click="removeOptionGroup(gIndex)"
                                             class="absolute top-0 right-0 btn btn-square btn-sm btn-ghost text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors z-10"
                                             title="ลบหมวดหมู่">
@@ -243,7 +243,7 @@ const goBack = () => router.go(-1);
                                     <h4 class="text-lg font-bold text-slate-600 mb-1">ยังไม่มีตัวเลือกเพิ่มเติม</h4>
                                     <p class="text-slate-500 text-sm mb-6 text-center max-w-sm">เพิ่มหมวดหมู่ให้ลูกค้าปรับแต่งเมนู เช่น ท็อปปิ้งเสริม ระดับความเผ็ด</p>
                                     <button @click="addOptionGroup" class="btn btn-sm bg-white border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-600 font-medium">
-                                        + สร้างหมวดหมู่ตัวเลือก
+                                        + สร้างตัวเลือก
                                     </button>
                                 </div>
                             </div>
