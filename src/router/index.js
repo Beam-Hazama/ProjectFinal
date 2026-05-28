@@ -15,6 +15,7 @@ const Adminrestaurantuser = () => import("@/views/admin/RestaurantUser.vue");
 
 const AdminCategory = () => import("@/views/admin/Category.vue");
 const AdminCommission = () => import("@/views/admin/Commission.vue");
+const AdminCommissionDetail = () => import("@/views/admin/CommissionDetail.vue");
 
 const Menudetail = () => import("@/views/admin/MenuDetail.vue");
 const Restaurantdetail = () => import("@/views/admin/RestaurantDetail.vue");
@@ -151,6 +152,12 @@ const router = createRouter({
       path: '/Admin/Commission',
       name: 'Commission',
       component: AdminCommission,
+      meta: { requiresAuth: true, role: 'admin' },
+    },
+    {
+      path: '/Admin/Commission/Detail/:name',
+      name: 'Admin Commission Detail',
+      component: AdminCommissionDetail,
       meta: { requiresAuth: true, role: 'admin' },
     },
 

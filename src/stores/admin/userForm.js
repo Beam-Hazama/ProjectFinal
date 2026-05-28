@@ -21,6 +21,7 @@ const DEFAULT_USER = {
   Status: "active",
   Role: "restaurant",
   ImageUrl: "",
+  IdCardImageUrl: "",
   Restaurant: "",
 };
 
@@ -29,6 +30,7 @@ export const useUserFormStore = defineStore("userForm", {
     isLoading: false,
     restaurants: [],
     selectedFile: null,
+    selectedIdCardFile: null,
     userData: { ...DEFAULT_USER },
   }),
 
@@ -36,6 +38,7 @@ export const useUserFormStore = defineStore("userForm", {
     resetForm() {
       this.userData = { ...DEFAULT_USER };
       this.selectedFile = null;
+      this.selectedIdCardFile = null;
     },
 
     async loadRestaurants() {
@@ -77,10 +80,19 @@ export const useUserFormStore = defineStore("userForm", {
           }
         }
 
+        let finalIdCardImageUrl = this.userData.IdCardImageUrl;
+        if (this.selectedIdCardFile) {
+          const newUrl = await uploadImage(this.selectedIdCardFile, "idcards");
+          if (newUrl) {
+            finalIdCardImageUrl = newUrl;
+          }
+        }
+
         await addDoc(collection(db, "User"), {
           ...this.userData,
           Username: this.userData.Username.trim(),
           ImageUrl: finalImageUrl || "",
+          IdCardImageUrl: finalIdCardImageUrl || "",
           CreatedAt: serverTimestamp(),
           UpdatedAt: serverTimestamp(),
         });

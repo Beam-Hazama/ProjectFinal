@@ -9,6 +9,7 @@ const router = useRouter();
 const formStore = useUserFormStore();
 
 const { previewUrl, selectedFile, handleFileSelect } = useImagePreview();
+const { previewUrl: idCardPreviewUrl, selectedFile: idCardFile, handleFileSelect: handleIdCardSelect } = useImagePreview();
 
 onMounted(() => {
     formStore.loadRestaurants();
@@ -25,6 +26,7 @@ const isFormValid = computed(() => {
         u.Address.trim() !== '' &&
         u.Email.trim() !== '' &&
         u.ImageUrl !== '' &&
+        u.IdCardImageUrl !== '' &&
         u.Password !== ''
     );
 });
@@ -33,6 +35,12 @@ const handleFileUpload = (event) => {
     handleFileSelect(event);
     formStore.selectedFile = selectedFile.value;
     formStore.userData.ImageUrl = previewUrl.value;
+};
+
+const handleIdCardUpload = (event) => {
+    handleIdCardSelect(event);
+    formStore.selectedIdCardFile = idCardFile.value;
+    formStore.userData.IdCardImageUrl = idCardPreviewUrl.value;
 };
 
 const checkSaveUser = () => formStore.save(router);
@@ -63,7 +71,7 @@ const goBack = () => router.go(-1);
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
                     <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
-                        <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพประจำตัว </h3>
+                        <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพประจำตัว <span class="text-red-500">*</span></h3>
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
                             <div
                                 class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
@@ -86,6 +94,31 @@ const goBack = () => router.go(-1);
                                 </label>
                             </div>
                         </div>
+
+                        <!-- ID Card Image -->
+                        <h3 class="font-bold text-slate-700 mb-6 mt-8 w-full flex items-center gap-2"> รูปภาพบัตรประชาชน <span class="text-red-500">*</span></h3>
+                        <div class="flex flex-col items-center gap-5 w-full max-w-xs">
+                            <div
+                                class="w-64 h-40 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
+                                <img v-if="formStore.userData.IdCardImageUrl" :src="formStore.userData.IdCardImageUrl"
+                                    class="w-full h-full object-cover" />
+                                <div v-else class="text-slate-400 flex flex-col items-center">
+                                    <span class="text-sm font-medium">ไม่มีรูปภาพ</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-4 w-full">
+                                <label
+                                    class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-blue-600 hover:border-blue-400 gap-2 normal-case font-medium w-full h-12 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    คลิกเพื่อเลือกไฟล์รูปภาพ
+                                    <input type="file" class="hidden" @change="handleIdCardUpload" accept="image/*" />
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div class="p-8 lg:col-span-2 space-y-8">
                         <div>
@@ -101,34 +134,34 @@ const goBack = () => router.go(-1);
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-medium text-slate-600">ชื่อ</span></label>
+                                            class="label-text font-medium text-slate-600">ชื่อ <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="formStore.userData.Firstname"
                                         @input="formStore.userData.Firstname = formStore.userData.Firstname.replace(/[0-9]/g, '')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-medium text-slate-600">นามสกุล</span></label>
+                                            class="label-text font-medium text-slate-600">นามสกุล <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="formStore.userData.Lastname"
                                         @input="formStore.userData.Lastname = formStore.userData.Lastname.replace(/[0-9]/g, '')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-bold text-slate-600">Username</span></label>
+                                            class="label-text font-bold text-slate-600">Username <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="formStore.userData.Username"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label">
-                                        <span class="label-text font-medium text-slate-600">Password</span>
+                                        <span class="label-text font-medium text-slate-600">Password <span class="text-red-500">*</span></span>
                                     </label>
                                     <input type="password" v-model="formStore.userData.Password"
                                         class="input input-bordered w-full bg-slate-50 focus:input-primary" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-bold text-slate-600">ร้านอาหาร</span></label>
+                                            class="label-text font-bold text-slate-600">ร้านอาหาร <span class="text-red-500">*</span></span></label>
                                     <select v-model="formStore.userData.Restaurant"
                                         class="select select-bordered w-full">
                                         <option value="" disabled>-- เลือกร้านอาหาร --</option>
@@ -138,7 +171,7 @@ const goBack = () => router.go(-1);
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-medium text-slate-600">Email</span></label>
+                                            class="label-text font-medium text-slate-600">Email <span class="text-red-500">*</span></span></label>
                                     <div class="relative">
                                         <input type="email" v-model="formStore.userData.Email"
                                             class="input input-bordered w-full bg-slate-50 focus:input-primary text-left" />
@@ -146,14 +179,14 @@ const goBack = () => router.go(-1);
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span
-                                            class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span></label>
+                                            class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span class="text-red-500">*</span></span></label>
                                     <input type="text" v-model="formStore.userData.Phone" maxlength="10"
                                         @input="formStore.userData.Phone = formStore.userData.Phone.replace(/[^0-9]/g, '')"
                                         class="input input-bordered w-full focus:input-primary bg-slate-50" />
                                 </div>
 
                                 <div class="form-control md:col-span-2">
-                                    <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่
+                                    <label class="label"><span class="label-text font-medium text-slate-600">ที่อยู่ <span class="text-red-500">*</span>
                                         </span></label>
                                     <textarea v-model="formStore.userData.Address" rows="3"
                                         class="textarea textarea-bordered w-full focus:textarea-primary bg-slate-50"></textarea>

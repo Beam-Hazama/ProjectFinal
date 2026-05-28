@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, computed } from 'vue';
+import { onMounted, onUnmounted, computed, ref } from 'vue';
 import { useDashboardStore } from '@/stores/admin/dashboard';
 import { useCommissionStore } from '@/stores/admin/commission';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
@@ -7,6 +7,24 @@ import { formatPrice } from '@/utils/format';
 
 const dashboardStore = useDashboardStore();
 const commissionStore = useCommissionStore();
+
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth();
+
+const selectedMonth = ref(currentMonth);
+const selectedYear = ref(currentYear);
+
+const months = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+const years = computed(() => {
+  const arr = [];
+  for(let y = currentYear - 5; y <= currentYear + 1; y++) {
+    arr.push(y);
+  }
+  return arr;
+});
 
 onMounted(async () => {
   await dashboardStore.loadDashboardData();
@@ -18,8 +36,106 @@ onUnmounted(() => {
   dashboardStore.clearListeners();
 });
 
+const filteredRevenueByRestaurant = computed(() => {
+  const restMap = {};
+  dashboardStore.allRestaurants.forEach(r => {
+    if (r.RestaurantName) {
+      restMap[r.RestaurantName] = 0;
+    }
+  });
+
+  const start = new Date(selectedYear.value, selectedMonth.value, 1);
+  const end = new Date(selectedYear.value, selectedMonth.value + 1, 0, 23, 59, 59, 999);
+
+  if (dashboardStore.allOrders) {
+    dashboardStore.allOrders.forEach(order => {
+      const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+      if (d >= start && d <= end) {
+        if (order.Menu && order.OrderStatus === 'completed') {
+          order.Menu.forEach(item => {
+            const rName = item.RestaurantName || item.Restaurant;
+            if (item.MenuStatus !== 'cancelled' && restMap[rName] !== undefined) {
+              restMap[rName] += (Number(item.Price || 0) * Number(item.Quantity || 1));
+            }
+          });
+        }
+      }
+    });
+  }
+  
+  return Object.entries(restMap).map(([name, revenue]) => ({ name, revenue }));
+});
+
+const exportToExcel = (restaurantName) => {
+  const start = new Date(selectedYear.value, selectedMonth.value, 1);
+  const end = new Date(selectedYear.value, selectedMonth.value + 1, 0, 23, 59, 59, 999);
+
+  const orders = dashboardStore.allOrders.filter(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    return d >= start && d <= end;
+  }).sort((a, b) => {
+    const da = a.CreatedAt?.toDate?.() || new Date(a.CreatedAt);
+    const db = b.CreatedAt?.toDate?.() || new Date(b.CreatedAt);
+    return da - db;
+  });
+
+  const rows = [
+    ['Order Number', 'Date', 'Time', 'Menu Item', 'Quantity', 'Price']
+  ];
+
+  orders.forEach(order => {
+    if (order.Menu && order.OrderStatus === 'completed') {
+      order.Menu.forEach(menu => {
+        if ((menu.RestaurantName || menu.Restaurant) === restaurantName && menu.MenuStatus !== 'cancelled') {
+          const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+          const dateStr = d.toLocaleDateString('th-TH');
+          const timeStr = d.toLocaleTimeString('th-TH');
+          
+          rows.push([
+            `#${order.OrderNumber}`,
+            dateStr,
+            timeStr,
+            `"${(menu.MenuName || '').replace(/"/g, '""')}"`,
+            menu.Quantity,
+            menu.Price
+          ]);
+        }
+      });
+    }
+  });
+
+  let totalRevenue = 0;
+  for(let i = 1; i < rows.length; i++) {
+     totalRevenue += (Number(rows[i][4]) * Number(rows[i][5]));
+  }
+  
+  const config = commissionStore.rates[restaurantName] || {};
+  const rate = config.rate || 0;
+  const cap = config.cap;
+  let commissionAmount = (totalRevenue * rate) / 100;
+  if (cap !== null && cap !== undefined) {
+     commissionAmount = Math.min(commissionAmount, cap);
+  }
+
+  rows.push([]);
+  rows.push(['', '', '', '', 'Total Revenue', totalRevenue]);
+  rows.push(['', '', '', '', `Commission (${rate}%)`, commissionAmount]);
+  rows.push(['', '', '', '', 'Net Revenue', totalRevenue - commissionAmount]);
+
+  const csvContent = '\uFEFF' + rows.map(e => e.join(",")).join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  
+  link.setAttribute("href", url);
+  link.setAttribute("download", `${restaurantName}_commission_${selectedMonth.value + 1}_${selectedYear.value}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 const tableData = computed(() => {
-  return dashboardStore.revenueByRestaurant.map((item) => {
+  return filteredRevenueByRestaurant.value.map((item) => {
 
     const config =
       commissionStore.rates[item.name] || {};
@@ -83,10 +199,25 @@ const totalNetPayout = computed(() =>
     <div class="p-6">
 
       <!-- HEADER -->
-      <div class="mb-8">
+      <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 class="text-3xl font-bold text-slate-700">
           Commission
         </h1>
+        
+        <!-- FILTERS -->
+        <div class="flex items-center gap-3">
+          <select class="select select-bordered min-w-[140px]" v-model="selectedMonth">
+            <option v-for="(m, i) in months" :key="i" :value="i">
+              {{ m }}
+            </option>
+          </select>
+
+          <select class="select select-bordered" v-model="selectedYear">
+            <option v-for="y in years" :key="y" :value="y">
+              {{ y }}
+            </option>
+          </select>
+        </div>
       </div>
 
       <!-- APPLY TO ALL -->
@@ -106,6 +237,7 @@ const totalNetPayout = computed(() =>
               min="0"
               max="30"
               v-model="commissionStore.bulkRate"
+              @keydown="['e', 'E', '+', '-', '.'].includes($event.key) && $event.preventDefault()"
               @input="if (Number($event.target.value) > 30) { commissionStore.bulkRate = 30; $event.target.value = 30; } else if (Number($event.target.value) < 0) { commissionStore.bulkRate = 0; $event.target.value = 0; }"
               class="input input-bordered w-40"
             />
@@ -129,6 +261,7 @@ const totalNetPayout = computed(() =>
               v-model="commissionStore.bulkCap"
               placeholder="No limit"
               class="input input-bordered w-44"
+              @keydown="['e', 'E', '+', '-', '.'].includes($event.key) && $event.preventDefault()"
             />
 
           </div>
@@ -260,6 +393,14 @@ const totalNetPayout = computed(() =>
                   Net Revenue
                 </th>
 
+                <th class="text-center">
+                  Export
+                </th>
+
+                <th class="text-center">
+                  Action
+                </th>
+
               </tr>
 
             </thead>
@@ -326,6 +467,37 @@ const totalNetPayout = computed(() =>
 
                 </td>
 
+                <!-- EXPORT -->
+                <td class="text-center">
+                  <button
+                    @click="exportToExcel(shop.name)"
+                    class="btn btn-sm btn-ghost text-green-600 hover:bg-green-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Excel
+                  </button>
+                </td>
+
+                <!-- ACTION -->
+                <td class="text-center">
+                  <router-link
+                    :to="{
+                      name: 'Admin Commission Detail',
+                      params: { name: shop.name },
+                      query: { month: selectedMonth, year: selectedYear }
+                    }"
+                    class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    Details
+                  </router-link>
+                </td>
+
               </tr>
 
               <!-- LOADING -->
@@ -337,7 +509,7 @@ const totalNetPayout = computed(() =>
               >
 
                 <td
-                  colspan="6"
+                  colspan="8"
                   class="text-center py-20 text-slate-400"
                 >
 
@@ -377,6 +549,9 @@ const totalNetPayout = computed(() =>
                 <th class="text-right">
                   ฿{{ formatPrice(totalNetPayout) }}
                 </th>
+
+                <th></th>
+                <th></th>
 
               </tr>
 

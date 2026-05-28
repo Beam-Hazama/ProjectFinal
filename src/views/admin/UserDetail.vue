@@ -18,6 +18,7 @@ const userData = ref({
     Phone: '',
     Address: '',
     ImageUrl: '',
+    IdCardImageUrl: '',
     Restaurant: '',
     Email: ''
 });
@@ -63,7 +64,17 @@ const goBack = () => router.go(-1);
                             <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
                                 <img v-if="imagePreview || userData.ImageUrl" :src="imagePreview || userData.ImageUrl" class="w-full h-full object-cover" />
                                 <div v-else class="text-slate-400 flex flex-col items-center">
-                                    <span class="text-sm font-medium"> ไม่มีรูปภาพร้าน </span>
+                                    <span class="text-sm font-medium"> ไม่มีรูปภาพผู้ใช้งาน </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="font-bold text-slate-700 mb-6 mt-8 w-full flex items-center gap-2"> รูปภาพบัตรประชาชน </h3>
+                        <div class="flex flex-col items-center gap-5 w-full max-w-xs">
+                            <div class="w-64 h-40 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
+                                <img v-if="userData.IdCardImageUrl" :src="userData.IdCardImageUrl" class="w-full h-full object-cover" />
+                                <div v-else class="text-slate-400 flex flex-col items-center">
+                                    <span class="text-sm font-medium"> ไม่มีรูปภาพบัตรประชาชน </span>
                                 </div>
                             </div>
                         </div>
