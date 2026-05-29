@@ -62,12 +62,12 @@ const goBack = () => router.go(-1);
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
                     <!-- Image Section -->
-                    <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
+                    <div class="p-8 lg:col-span-1 bg-white flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            รูปภาพเมนู
+                            รูปภาพอาหาร
                         </h3>
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
                             <div class="w-64 h-64 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative group">
@@ -107,30 +107,23 @@ const goBack = () => router.go(-1);
                                         <span class="text-sm font-semibold text-slate-700">{{ formatTimestamp(MenuData.UpdatedAt) }}</span>
                                     </div>
                                 </div>
-                                <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลทั่วไป</h3>
+                                <h3 class="font-bold text-slate-700 mb-4 border-b border-slate-100 pb-2">ข้อมูลอาหาร</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                                    <div class="form-control md:col-span-3">
+                                    <div class="form-control md:col-span-2">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร</span></label>
                                         <input type="text" class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.MenuName" />
                                     </div>
-                                    <div class="form-control md:col-span-3">
-                                        <label class="label"><span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ</span></label>
-                                        <div class="relative">
-                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Cost" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" placeholder="0" />
-                                            <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
-                                        </div>
-                                    </div>
-                                    <div class="form-control md:col-span-3">
+                                    <div class="form-control md:col-span-2">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาปกติ</span></label>
                                         <div class="relative">
-                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Price" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                            <input type="number" min="0" max="999" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200" v-model="MenuData.Price" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" @input="() => { if(MenuData.Price && String(MenuData.Price).length > 3) MenuData.Price = String(MenuData.Price).slice(0, 3) }" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
-                                    <div class="form-control md:col-span-3">
+                                    <div class="form-control md:col-span-2">
                                         <label class="label"><span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span></label>
                                         <div class="relative">
-                                            <input type="number" min="0" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700" v-model="MenuData.PromoPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                            <input type="number" min="0" max="999" class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 text-slate-700" v-model="MenuData.PromoPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" @input="() => { if(MenuData.PromoPrice && String(MenuData.PromoPrice).length > 3) MenuData.PromoPrice = String(MenuData.PromoPrice).slice(0, 3) }" />
                                             <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                                         </div>
                                     </div>
@@ -214,7 +207,7 @@ const goBack = () => router.go(-1);
                                                     </div>
                                                     <div class="form-control w-32">
                                                         <div class="relative">
-                                                            <input type="number" min="0" class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10" v-model="choice.ExtraPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" />
+                                                            <input type="number" min="0" max="99" class="input input-sm input-bordered w-full pr-8 text-right focus:input-primary bg-slate-50 border-slate-200 h-10" v-model="choice.ExtraPrice" @keypress="!/^\d$/.test($event.key) && $event.preventDefault()" @input="() => { if(choice.ExtraPrice && String(choice.ExtraPrice).length > 2) choice.ExtraPrice = String(choice.ExtraPrice).slice(0, 2) }" />
                                                             <span class="absolute right-3 top-2.5 text-slate-400 text-sm">฿</span>
                                                         </div>
                                                     </div>

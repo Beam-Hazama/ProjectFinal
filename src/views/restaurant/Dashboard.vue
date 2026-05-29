@@ -7,15 +7,7 @@ import DashboardFilters from '@/components/dashboard/DashboardFilters.vue';
 import DashboardSummaryStats from '@/components/dashboard/DashboardSummaryStats.vue';
 import DashboardChartsSection from '@/components/dashboard/DashboardChartsSection.vue';
 import DashboardListsSection from '@/components/dashboard/DashboardListsSection.vue';
-// import ActiveOrdersFeed from '@/components/dashboard/ActiveOrdersFeed.vue';
 import FinancialStatementSection from '@/components/dashboard/FinancialStatementSection.vue';
-import SalesGoalCard from '@/components/dashboard/SalesGoalCard.vue';
-import OperationalEfficiencySection from '@/components/dashboard/OperationalEfficiencySection.vue';
-import MenuEngineeringSection from '@/components/dashboard/MenuEngineeringSection.vue';
-import CustomerFeedbackSection from '@/components/dashboard/CustomerFeedbackSection.vue';
-import MenuProfitabilityAlert from '@/components/dashboard/MenuProfitabilityAlert.vue';
-import MenuComboSection from '@/components/dashboard/MenuComboSection.vue';
-import RevenueForecastSection from '@/components/dashboard/RevenueForecastSection.vue';
 
 const dashboardStore = useRestaurantDashboardStore();
 const accountStore = useAccountStore();
@@ -49,7 +41,7 @@ watch(
         <div class="p-6">
             <DashboardFilters :dashboardStore="dashboardStore" />
 
-            <!-- <ActiveOrdersFeed :dashboardStore="dashboardStore" :restaurantName="accountStore.user?.Restaurant" class="mb-6" /> -->
+            <!-- ActiveOrdersFeed was removed -->
 
             <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
                 <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
@@ -72,12 +64,9 @@ watch(
                 </button>
             </div>
 
-            <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Top: Sales Goal Full Width -->
-                <div class="lg:col-span-12 order-1">
-                    <SalesGoalCard :dashboardStore="dashboardStore" :isAdmin="false" />
-                </div>
 
+
+            <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- Stats (Full Width) -->
                 <div class="lg:col-span-12 order-2">
                     <DashboardSummaryStats :dashboardStore="dashboardStore" />
@@ -85,30 +74,12 @@ watch(
 
                 <!-- Main Analytics: Revenue Trend & Peak Hours -->
                 <div class="lg:col-span-12 order-3">
-                    <DashboardChartsSection :dashboardStore="dashboardStore" />
-                </div>
-
-                <!-- Performance and Feedback -->
-                <div class="lg:col-span-6 order-4">
-                    <OperationalEfficiencySection :dashboardStore="dashboardStore" />
-                </div>
-                <div class="lg:col-span-6 order-5">
-                    <CustomerFeedbackSection :dashboardStore="dashboardStore" />
+                    <DashboardChartsSection :dashboardStore="dashboardStore" :isAdmin="false" />
                 </div>
 
 
-                <div class="lg:col-span-6 order-7">
-                    <MenuProfitabilityAlert :dashboardStore="dashboardStore" />
-                </div>
-                <div class="lg:col-span-6 order-8">
-                    <MenuComboSection :dashboardStore="dashboardStore" />
-                </div>
-
-                <!-- Financial Data & Predictions -->
-                <div class="lg:col-span-6 order-8">
-                    <RevenueForecastSection :dashboardStore="dashboardStore" />
-                </div>
-                <div class="lg:col-span-6 order-9">
+                <!-- Financial Data -->
+                <div class="lg:col-span-12 order-9">
                     <FinancialStatementSection :dashboardStore="dashboardStore" :isAdmin="false" />
                 </div>
 

@@ -9,7 +9,7 @@ const makeCartItemId = (id) =>
 export const useCartStore = defineStore("cart", {
   state: () => ({
     item: [],
-    room: localStorage.getItem("lastRoom") || null,
+    room: null,
     qrId: localStorage.getItem("lastQrId") || null,
   }),
 
@@ -41,7 +41,6 @@ export const useCartStore = defineStore("cart", {
     setRoom(roomNumber) {
       if (roomNumber && roomNumber !== "undefined") {
         this.room = roomNumber;
-        localStorage.setItem("lastRoom", roomNumber);
         this.loadCart(roomNumber);
       }
     },

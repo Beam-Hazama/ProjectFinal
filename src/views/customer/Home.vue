@@ -65,8 +65,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopCarousel();
-  restaurantStore.clearListener();
-  menuStore.clearListener();
+  // ไม่ทำการ clearListener ของร้านอาหารและเมนู เพื่อให้หน้าอื่นที่ดึงข้อมูลจาก store ตัวเดียวกันยังคงใช้ข้อมูลต่อไปได้
 });
 
 watch(() => route.params.qrId, async (newQrId) => {

@@ -15,11 +15,17 @@ const daysOfWeek = DAYS_OF_WEEK;
 const { previewUrl: logoPreviewUrl, selectedFile: logoFile, handleFileSelect: handleLogoSelect } = useImagePreview();
 const { previewUrl: bgPreviewUrl, selectedFile: bgFile, handleFileSelect: handleBgSelect } = useImagePreview();
 
-// ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
+// ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 5 ชั่วโมง
 const isTimeGapInvalid = computed(() => {
   const d = formStore.restaurantData;
   if (!d.OpenTime || !d.CloseTime) return false;
-  return !isMinimumTimeGap(d.OpenTime, d.CloseTime, 60);
+  return !isMinimumTimeGap(d.OpenTime, d.CloseTime, 300);
+});
+
+// ตรวจสอบวันเปิดให้บริการอย่างน้อย 5 วัน
+const isOpenDaysInvalid = computed(() => {
+  const d = formStore.restaurantData;
+  return d.OpenDays.length > 0 && d.OpenDays.length < 5;
 });
 
 const isFormValid = computed(() => {
@@ -31,10 +37,9 @@ const isFormValid = computed(() => {
     d.Address.trim() !== '' &&
     d.OpenTime !== '' &&
     d.CloseTime !== '' &&
-    d.OpenDays.length > 0 &&
+    d.OpenDays.length >= 5 &&
     logoFile.value !== null &&
-    bgFile.value !== null &&
-    !isTimeGapInvalid.value
+    bgFile.value !== null
   );
 });
 
@@ -73,10 +78,10 @@ const goBack = () => router.go(-1);
       </div>
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
-          <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center space-y-10">
+          <div class="p-8 lg:col-span-1 bg-white flex flex-col items-center space-y-10">
             <div class="w-full flex flex-col items-center">
               <h3 class="font-bold text-slate-700 mb-4 w-full flex items-center gap-2 justify-center lg:justify-start">
-                รูปภาพโลโก้ร้านอาหาร </h3>
+                รูปภาพโลโก้ร้านอาหาร <span class="text-red-500">*</span></h3>
               <div class="flex flex-col items-center gap-4 w-full max-w-xs">
                 <div
                   class="w-full h-44 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
@@ -102,7 +107,7 @@ const goBack = () => router.go(-1);
 
             <div class="w-full flex flex-col items-center">
               <h3 class="font-bold text-slate-700 mb-4 w-full flex items-center gap-2 justify-center lg:justify-start">
-                รูปภาพพื้นหลัง </h3>
+                รูปภาพพื้นหลัง <span class="text-red-500">*</span></h3>
               <div class="flex flex-col items-center gap-4 w-full max-w-xs">
                 <div
                   class="w-full h-44 rounded-2xl overflow-hidden shadow-md border-4 border-white bg-slate-200 flex items-center justify-center relative">
@@ -133,7 +138,7 @@ const goBack = () => router.go(-1);
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร</span>
+                    <span class="label-text font-medium text-slate-600">ชื่อร้านอาหาร <span class="text-red-500">*</span></span>
                   </label>
                   <input type="text"
                     class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
@@ -143,7 +148,7 @@ const goBack = () => router.go(-1);
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์</span>
+                      <span class="label-text font-medium text-slate-600">เบอร์โทรศัพท์ <span class="text-red-500">*</span></span>
                     </label>
                     <input type="text"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
@@ -152,48 +157,30 @@ const goBack = () => router.go(-1);
                   </div>
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร)</span>
+                      <span class="label-text font-medium text-slate-600">ระยะทาง (กิโลเมตร) <span class="text-red-500">*</span></span>
                     </label>
                     <input type="text" inputmode="decimal"
                       class="input input-bordered w-full focus:input-primary bg-slate-50 border-slate-200"
                       v-model="formStore.restaurantData.Distance"
                       @keypress="(e) => { const v = e.target.value; const [int, dec] = v.split('.'); if (!/[\d.]/.test(e.key)) { e.preventDefault(); return; } if (e.key === '.' && v.includes('.')) { e.preventDefault(); return; } if (e.key !== '.' && !v.includes('.') && (int || '').length >= 1) { e.preventDefault(); return; } if (e.key !== '.' && v.includes('.') && (dec || '').length >= 1) e.preventDefault() }"
-                      @input="(e) => { let v = e.target.value.replace(/[^0-9.]/g, ''); const d = v.indexOf('.'); if (d !== -1) v = v.slice(0, d+1) + v.slice(d+1).replace(/\./g,''); const p = v.split('.'); v = p.length === 2 ? p[0].slice(0,1) + '.' + p[1].slice(0,1) : p[0].slice(0,1); if (formStore.restaurantData.Distance !== v) formStore.restaurantData.Distance = v }" />
+                      @input="(e) => { let v = e.target.value.replace(/[^0-9.]/g, ''); const d = v.indexOf('.'); if (d !== -1) v = v.slice(0, d+1) + v.slice(d+1).replace(/\./g,''); const p = v.split('.'); v = p.length === 2 ? p[0].slice(0,1) + '.' + p[1].slice(0,1) : p[0].slice(0,1); if (Number(v) > 5) v = '5'; if (formStore.restaurantData.Distance !== v) formStore.restaurantData.Distance = v }" />
                   </div>
                 </div>
                 <div class="form-control md:col-span-2">
                   <label class="label">
-                    <span class="label-text font-medium text-slate-600">ที่อยู่ร้านอาหาร</span>
+                    <span class="label-text font-medium text-slate-600">ที่อยู่ร้านอาหาร <span class="text-red-500">*</span></span>
                   </label>
                   <textarea
                     class="textarea textarea-bordered w-full focus:input-primary bg-slate-50 border-slate-200 h-24"
                     v-model="formStore.restaurantData.Address"></textarea>
                 </div>
 
-                <div class="form-control md:col-span-2">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">สถานะร้านปัจจุบัน</span>
-                  </label>
-                  <div class="grid grid-cols-3 gap-2">
-                    <button v-for="status in [
-                      { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
-                      { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
-                      { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
-                    ]" :key="status.v" type="button" @click="formStore.restaurantData.Status = status.v"
-                      class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" :class="[
-                        formStore.restaurantData.Status === status.v
-                          ? status.active
-                          : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                      ]">
-                      {{ status.l }}
-                    </button>
-                  </div>
-                </div>
+
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">เวลาเปิด</span>
+                      <span class="label-text font-medium text-slate-600">เวลาเปิด <span class="text-red-500">*</span></span>
                     </label>
                     <div class="relative">
                       <input type="time"
@@ -209,7 +196,7 @@ const goBack = () => router.go(-1);
 
                   <div class="form-control">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">เวลาปิด</span>
+                      <span class="label-text font-medium text-slate-600">เวลาปิด <span class="text-red-500">*</span></span>
                     </label>
                     <div class="relative">
                       <input type="time"
@@ -222,15 +209,12 @@ const goBack = () => router.go(-1);
                       </svg>
                     </div>
                   </div>
-                  <div v-if="isTimeGapInvalid" class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1 md:col-span-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง
+                  <div class="md:col-span-2 mt-[-0.5rem]">
+                    <p class="text-[11px] text-slate-400 font-medium italic">* ตั้งเวลาเปิด-ปิดร้านห่างกันอย่างน้อย 5 ชั่วโมงขึ้นไป</p>
                   </div>
                   <div class="form-control md:col-span-2">
                     <label class="label">
-                      <span class="label-text font-medium text-slate-600">วันเปิดให้บริการ</span>
+                      <span class="label-text font-medium text-slate-600">วันเปิดให้บริการ <span class="text-red-500">*</span></span>
                     </label>
                     <div class="flex flex-wrap gap-2 mt-1">
                       <label v-for="day in daysOfWeek" :key="day.value"
@@ -246,8 +230,13 @@ const goBack = () => router.go(-1);
                         <span>{{ day.label }}</span>
                       </label>
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-2">หากไม่ได้เลือกวันใดวันหนึ่ง ร้านจะแสดงสถานะเป็น
-                      "ปิดชั่วคราว" ในวันนั้นอัตโนมัติ</div>
+                    <p class="text-[11px] text-slate-400 font-medium italic mt-2">* ตั้งค่าวันเปิดให้บริการอย่างน้อย 5 วันต่อสัปดาห์</p>
+                    <div v-if="isOpenDaysInvalid" class="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                      ต้องเลือกวันเปิดให้บริการอย่างน้อย 5 วัน
+                    </div>
                   </div>
                 </div>
               </div>

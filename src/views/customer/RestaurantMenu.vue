@@ -270,7 +270,7 @@ const scrollToCategory = (categoryName) => {
             </div>
         </div>        
         <div class="fixed bottom-6 right-6 z-50 animate-fade-in group">
-            <button @click="router.push(`/user/cart/${room}`)"
+            <button @click="router.push(`/user/cart/${qrId}`)"
                 class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:bg-blue-700 hover:-translate-y-1 hover:scale-105 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-6 h-6">

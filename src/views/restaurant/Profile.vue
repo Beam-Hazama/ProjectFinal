@@ -6,11 +6,17 @@ import { isMinimumTimeGap } from '@/utils/shopStatus';
 
 const profileStore = useProfileStore();
 
-// ตรวจสอบเวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชม.
+// ตรวจสอบเวลาเปิด-ปิดต้องห่างกันอย่างน้อย 5 ชม.
 const isTimeGapInvalid = computed(() => {
   const { OpenTime, CloseTime } = profileStore.RestaurantData;
   if (!OpenTime || !CloseTime) return false;
-  return !isMinimumTimeGap(OpenTime, CloseTime, 60);
+  return !isMinimumTimeGap(OpenTime, CloseTime, 300);
+});
+
+// ตรวจสอบวันเปิดให้บริการอย่างน้อย 5 วัน
+const isOpenDaysInvalid = computed(() => {
+  const days = profileStore.RestaurantData.OpenDays;
+  return days && days.length > 0 && days.length < 5;
 });
 
 onMounted(() => {
@@ -39,20 +45,20 @@ onMounted(() => {
             Edit
           </button>
 
-          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting || isTimeGapInvalid"
+          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting || isOpenDaysInvalid"
             class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300 font-bold min-w-[100px] disabled:bg-slate-200">
             <span v-if="profileStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
             <span v-else>Save</span>
           </button>
         </div>
       </div>
-      <div class="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden mb-10">
-        <div class="relative min-h-[280px] md:min-h-[320px] bg-indigo-600 flex items-center px-8 md:px-16 overflow-hidden">
+      <div class="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 overflow-hidden mb-10 flex flex-col lg:flex-row min-h-[600px]">
+        <div class="relative w-full lg:w-1/3 min-h-[320px] lg:min-h-auto bg-indigo-600 flex flex-col items-center justify-center p-8 overflow-hidden shrink-0">
           <img v-if="profileStore.backgroundPreview" :src="profileStore.backgroundPreview" class="absolute inset-0 w-full h-full object-cover" />
           <div v-else class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 animate-gradient-xy">
           </div>
-          <div class="absolute inset-0 bg-black/10"></div>
-          <div class="relative z-10 flex flex-col md:flex-row items-center gap-8 w-full">
+          <div class="absolute inset-0 bg-black/30"></div>
+          <div class="relative z-10 flex flex-col items-center gap-6 w-full mt-8 lg:mt-0">
             <div class="relative group">
               <div class="w-40 h-40 md:w-48 md:h-48 rounded-[2.5rem] overflow-hidden bg-white shadow-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                 <img v-if="profileStore.imagePreview" :src="profileStore.imagePreview" class="w-full h-full object-contain p-4" />
@@ -70,11 +76,11 @@ onMounted(() => {
                 </label>
               </div>
             </div>
-            <div class="text-center md:text-left space-y-4 flex-1">
-              <h2 class="text-3xl md:text-3xl font-black text-white tracking-tight drop-shadow-lg">
+            <div class="text-center space-y-4 w-full">
+              <h2 class="text-3xl md:text-3xl font-black text-white tracking-tight drop-shadow-lg break-words">
                 {{ profileStore.RestaurantData.RestaurantName }}
               </h2>
-              <div class="flex flex-wrap items-center justify-center md:justify-start gap-5">
+              <div class="flex flex-wrap items-center justify-center gap-5">
                 <div class="px-5 py-2.5 rounded-2xl font-bold text-sm shadow-inner transition-all flex items-center gap-3"
                   :class="profileStore.RestaurantData.Status === 'open' ? 'bg-emerald-100 text-emerald-700' : profileStore.RestaurantData.Status === 'close' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'">
                   <span class="w-2.5 h-2.5 rounded-full"
@@ -85,7 +91,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <div v-if="profileStore.isEditing" class="absolute top-6 right-6 z-20">
+          <div v-if="profileStore.isEditing" class="absolute top-4 right-4 z-20">
             <label class="btn btn-circle bg-white/20 hover:bg-white/40 border-0 text-white backdrop-blur-xl shadow-lg">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -97,8 +103,8 @@ onMounted(() => {
             </label>
           </div>
         </div>
-        <div class="pb-16 px-8 md:px-16 border-t border-slate-50 pt-12">
-          <div class="md:hidden mb-8">
+        <div class="w-full lg:w-2/3 p-8 lg:p-12 flex flex-col justify-center gap-12 bg-white">
+          <div class="md:hidden mb-2 text-center border-b border-slate-100 pb-6">
             <h2 class="text-2xl font-black text-slate-800">{{ profileStore.RestaurantData.RestaurantName }}</h2>
             <p class="text-slate-500 font-medium">{{ profileStore.RestaurantData.Phone }}</p>
           </div>
@@ -143,25 +149,7 @@ onMounted(() => {
                   เวลาเปิด-ปิดและสถานะ
                 </h3>
                 <div class="space-y-6">
-                  <div class="form-control">
-                    <label class="label"><span class="label-text font-bold text-slate-500">สถานะร้านปัจจุบัน</span></label>
-                    <div class="grid grid-cols-3 gap-2">
-                      <button v-for="status in [
-                        { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
-                        { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
-                        { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
-                      ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.StatusMode = status.v)"
-                        class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" 
-                        :class="[
-                          profileStore.RestaurantData.StatusMode === status.v
-                            ? status.active
-                            : 'bg-slate-100 text-slate-400 hover:bg-slate-200',
-                          !profileStore.isEditing ? (profileStore.RestaurantData.StatusMode === status.v ? 'cursor-default' : 'opacity-50 cursor-not-allowed') : ''
-                        ]">
-                        {{ status.l }}
-                      </button>
-                    </div>
-                  </div>
+
                   <div class="grid grid-cols-2 gap-4">
                     <div class="form-control">
                       <label class="label"><span class="label-text font-bold text-slate-500">เวลาเปิด</span></label>
@@ -174,12 +162,7 @@ onMounted(() => {
                         :disabled="!profileStore.isEditing" class="input input-bordered w-full transition-all focus:border-indigo-500" />
                     </div>
                   </div>
-                  <div v-if="isTimeGapInvalid && profileStore.isEditing" class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                    เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง
-                  </div>
+                  <p class="text-[11px] text-slate-400 font-medium italic mb-2 mt-[-0.5rem]">* ตั้งเวลาเปิด-ปิดร้านห่างกันอย่างน้อย 5 ชั่วโมงขึ้นไป</p>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">วันเปิดให้บริการ</span></label>
                     <div class="flex flex-wrap gap-2">
@@ -195,6 +178,13 @@ onMounted(() => {
                           :disabled="!profileStore.isEditing" class="hidden" />
                         {{ day.label }}
                       </label>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium italic mt-2 mb-2">* ตั้งค่าวันเปิดให้บริการอย่างน้อย 5 วันต่อสัปดาห์</p>
+                    <div v-if="isOpenDaysInvalid && profileStore.isEditing" class="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                      ต้องเลือกวันเปิดให้บริการอย่างน้อย 5 วัน
                     </div>
                   </div>
                 </div>

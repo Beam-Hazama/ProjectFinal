@@ -2,22 +2,33 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
+import { useNow } from '@/composables/useNow';
 import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
 const qrId = route.params.qrId;
-const { menuStore } = useCustomerData();
+const { menuStore, restaurantStore } = useCustomerData();
+const { now } = useNow();
 
 const isLoading = ref(true);
 
 const promotionMenus = computed(() => {
-    return (menuStore.list || []).filter(item =>
-        Number(item.PromoPrice) > 0 && item.Status === 'open'
-    );
+    return (menuStore.list || []).filter(item => {
+        if (!item.PromoPrice || Number(item.PromoPrice) <= 0) return false;
+        if (item.Status && item.Status !== 'open') return false;
+        // ถ้าข้อมูลร้านโหลดแล้ว ให้กรองร้านที่ปิดออก
+        if (restaurantStore.list.length > 0) {
+            return !restaurantStore.isShopClosedByName(item.RestaurantName, now.value);
+        }
+        return true;
+    });
 });
 
 onMounted(() => {
+    if (menuStore.list.length === 0) menuStore.loadMenu();
+    if (restaurantStore.list.length === 0) restaurantStore.loadRestaurants();
+
     setTimeout(() => {
         isLoading.value = false;
     }, 400);

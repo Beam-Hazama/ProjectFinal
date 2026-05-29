@@ -201,18 +201,5 @@ export const useOrderlistStore = defineStore("orderlistStore", {
       }
       this.subscribeToQuery(ref);
     },
-    async submitOrderReview(orderId, rating, feedback) {
-      try {
-        const orderRef = doc(db, "Order", orderId);
-        await updateDoc(orderRef, {
-          Rating: Number(rating),
-          Feedback: feedback,
-          ReviewedAt: serverTimestamp(),
-        });
-      } catch (error) {
-        console.error("Error submitting review:", error);
-        throw error;
-      }
-    },
   },
 });

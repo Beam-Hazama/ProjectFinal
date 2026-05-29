@@ -28,8 +28,8 @@ const ordersChange = computed(() => getChange(props.dashboardStore.totalOrders, 
         <span class="text-2xl font-black text-amber-600">{{ dashboardStore.orderStatuses.pending }}</span>
       </div>
       <div class="bg-blue-50 rounded-xl p-4 border border-blue-100 flex flex-col items-center justify-center text-center">
-        <span class="text-blue-500 text-xs font-bold mb-1 uppercase tracking-wider">กำลังเตรียม</span>
-        <span class="text-2xl font-black text-blue-600">{{ dashboardStore.orderStatuses.preparing || dashboardStore.orderStatuses.cooking || 0 }}</span>
+        <span class="text-blue-500 text-xs font-bold mb-1 uppercase tracking-wider">กำลังทำอาหาร</span>
+        <span class="text-2xl font-black text-blue-600">{{ dashboardStore.orderStatuses.cooking || 0 }}</span>
       </div>
       <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 flex flex-col items-center justify-center text-center">
         <span class="text-emerald-500 text-xs font-bold mb-1 uppercase tracking-wider">เสร็จสิ้น</span>
@@ -126,7 +126,6 @@ const ordersChange = computed(() => getChange(props.dashboardStore.totalOrders, 
             <div class="flex items-baseline gap-1">
               <h3 class="text-3xl font-black text-emerald-600">฿{{ (dashboardStore.netProfit || 0).toLocaleString() }}</h3>
             </div>
-            <p class="text-[9px] text-slate-400 mt-1 italic leading-tight">หักค่า GP และต้นทุนวัตถุดิบแล้ว</p>
           </div>
           <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

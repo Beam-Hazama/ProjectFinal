@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useOrderlistStore } from '@/stores/shared/orderList';
 import { getStatusColor } from '@/utils/orderHelpers';
@@ -10,8 +10,69 @@ const orderStore = useOrderlistStore();
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth();
+
+const selectedMonth = ref('all');
+const selectedYear = ref(currentYear);
+
+const allMonths = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+
+const availableYears = computed(() => {
+  if (!orderStore.sortedOrders || orderStore.sortedOrders.length === 0) {
+    return [currentYear];
+  }
+  const yearSet = new Set();
+  orderStore.sortedOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d)) yearSet.add(d.getFullYear());
+  });
+  const sortedYears = Array.from(yearSet).sort((a, b) => b - a);
+  return sortedYears.length > 0 ? sortedYears : [currentYear];
+});
+
+const availableMonths = computed(() => {
+  const options = [{ value: 'all', label: 'ทั้งหมด' }];
+  if (!orderStore.sortedOrders || orderStore.sortedOrders.length === 0) {
+    return options;
+  }
+  const monthSet = new Set();
+  orderStore.sortedOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d) && d.getFullYear() === selectedYear.value) {
+      monthSet.add(d.getMonth());
+    }
+  });
+  const sortedMonths = Array.from(monthSet).sort((a, b) => a - b).map(m => ({ value: m, label: allMonths[m] }));
+  return options.concat(sortedMonths);
+});
+
+watch(availableYears, (newYears) => {
+  if (newYears.length > 0 && !newYears.includes(selectedYear.value)) {
+    selectedYear.value = newYears[0];
+  }
+});
+
+watch(availableMonths, (newMonths) => {
+  if (newMonths.length > 0 && !newMonths.find(m => m.value === selectedMonth.value)) {
+    selectedMonth.value = 'all';
+  }
+});
+
 const historyOrders = computed(() => {
-    return orderStore.sortedOrders || [];
+    const orders = orderStore.sortedOrders || [];
+    return orders.filter(order => {
+        const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+        if (!d || isNaN(d)) return false;
+        
+        const yearMatch = d.getFullYear() === selectedYear.value;
+        const monthMatch = selectedMonth.value === 'all' || d.getMonth() === selectedMonth.value;
+        
+        return yearMatch && monthMatch;
+    });
 });
 
 onMounted(() => {
@@ -27,8 +88,23 @@ const openModal = (order) => {
 <template>
     <LayoutAdmin>
         <div class="p-6">
-            <div class="flex justify-between items-start mb-7">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-7 gap-4">
                 <div class="text-3xl font-bold text-slate-700">Order History</div>
+                
+                <!-- Filters -->
+                <div class="flex items-center gap-3">
+                    <select class="select select-bordered select-sm md:select-md min-w-[140px]" v-model="selectedMonth">
+                        <option v-for="m in availableMonths" :key="m.value" :value="m.value">
+                            {{ m.label }}
+                        </option>
+                    </select>
+
+                    <select class="select select-bordered select-sm md:select-md" v-model="selectedYear">
+                        <option v-for="y in availableYears" :key="y" :value="y">
+                            {{ y }}
+                        </option>
+                    </select>
+                </div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">

@@ -14,7 +14,6 @@ const menuData = reactive({         //กัน error ค่าว่าง []
   ImageUrl: '',
   Price: 0,
   PromoPrice: null,
-  Cost: 0,
   RestaurantName: '',
   Description: '',
   Category: '',
@@ -54,14 +53,14 @@ onMounted(async () => {
       </div>
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100 mb-4">
-          <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
+          <div class="p-8 lg:col-span-1 bg-white flex flex-col items-center">
             <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              รูปภาพเมนู
+              รูปภาพอาหาร
             </h3>
             <div class="flex flex-col items-center gap-5 w-full max-w-xs">
               <div
@@ -84,7 +83,7 @@ onMounted(async () => {
                 ข้อมูลเมนูอาหาร
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div class="form-control md:col-span-3">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ชื่อเมนูอาหาร <span
                         class="text-red-500">*</span></span>
@@ -94,19 +93,7 @@ onMounted(async () => {
                     {{ menuData.MenuName }}
                   </div>
                 </div>
-                <div class="form-control md:col-span-3">
-                  <label class="label">
-                    <span class="label-text font-medium text-slate-600">ต้นทุนวัตถุดิบ</span>
-                  </label>
-                  <div class="relative">
-                    <div
-                      class="input input-bordered w-full pr-10 text-right focus:input-primary bg-slate-50 border-slate-200 flex items-center justify-end">
-                      {{ menuData.Cost !== undefined ? menuData.Cost : 0 }}
-                    </div>
-                    <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
-                  </div>
-                </div>
-                <div class="form-control md:col-span-3">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ราคาปกติ <span
                         class="text-red-500">*</span></span>
@@ -119,7 +106,7 @@ onMounted(async () => {
                     <span class="absolute right-4 top-3 text-slate-400 text-sm">฿</span>
                   </div>
                 </div>
-                <div class="form-control md:col-span-3">
+                <div class="form-control md:col-span-2">
                   <label class="label">
                     <span class="label-text font-medium text-slate-600">ราคาโปรโมชั่น</span>
                   </label>

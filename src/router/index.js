@@ -22,6 +22,7 @@ const Restaurantdetail = () => import("@/views/admin/RestaurantDetail.vue");
 const Addrestaurant = () => import("@/views/admin/AddRestaurant.vue");
 const Userdetail = () => import("@/views/admin/UserDetail.vue");
 const Adduser = () => import("@/views/admin/AddUser.vue");
+const MockOrders = () => import("@/views/admin/MockOrders.vue");
 
 const Restaurants = () => import("@/views/restaurant/RestaurantLayout.vue");
 const Restaurantorderlist = () => import("@/views/restaurant/OrderList.vue");
@@ -108,6 +109,12 @@ const router = createRouter({
       path: '/Admin/Dashboard',
       name: 'Dashboard',
       component: Admindashboard,
+      meta: { requiresAuth: true, role: 'admin' },
+    },
+    {
+      path: '/Admin/MockOrders',
+      name: 'Mock Orders',
+      component: MockOrders,
       meta: { requiresAuth: true, role: 'admin' },
     },
     {

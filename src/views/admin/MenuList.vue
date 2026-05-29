@@ -1,11 +1,23 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
 import { useMenuStore } from '@/stores/shared/menu';
 
 const menuStore = useMenuStore();
+
+const selectedRestaurant = ref('');
+
+const uniqueRestaurants = computed(() => {
+  const restaurants = menuStore.list.map(menu => menu.RestaurantName).filter(Boolean);
+  return [...new Set(restaurants)].sort();
+});
+
+const filteredMenus = computed(() => {
+  if (!selectedRestaurant.value) return menuStore.list;
+  return menuStore.list.filter(menu => menu.RestaurantName === selectedRestaurant.value);
+});
 
 onMounted(() => {
   menuStore.loadMenu();
@@ -19,9 +31,18 @@ onUnmounted(() => {
 <template>
   <LayoutAdmin>
     <div class="p-6">      
-      <div class="flex justify-between items-start mb-7">
+      <div class="flex justify-between items-center mb-7">
         <h1 class="text-3xl font-bold text-slate-700">Menu List</h1>
-      </div>      
+        <div class="flex items-center gap-3">
+          <label class="text-sm font-medium text-slate-600">Restaurant:</label>
+          <select v-model="selectedRestaurant" class="select select-bordered select-sm focus:select-primary bg-white min-w-[200px]">
+            <option value="">All Restaurants</option>
+            <option v-for="restaurant in uniqueRestaurants" :key="restaurant" :value="restaurant">
+              {{ restaurant }}
+            </option>
+          </select>
+        </div>
+      </div>
       <div v-if="menuStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-indigo-600 mb-4"></span>
         <p class="text-slate-500 font-medium animate-pulse">กำลังโหลดข้อมูลเมนู...</p>
@@ -41,7 +62,7 @@ onUnmounted(() => {
               </tr>
             </thead>            
             <tbody class="text-slate-600">
-              <tr v-for="menu in menuStore.list" :key="menu.MenuId" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">                
+              <tr v-for="menu in filteredMenus" :key="menu.MenuId" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">                
                 <td class="py-4 pl-6">
                   <div class="flex items-center gap-4">
                     <div class="avatar">

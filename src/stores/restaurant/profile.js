@@ -101,8 +101,8 @@ export const useProfileStore = defineStore('restaurantProfile', {
 
       // ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
       if (this.RestaurantData.OpenTime && this.RestaurantData.CloseTime) {
-        if (!isMinimumTimeGap(this.RestaurantData.OpenTime, this.RestaurantData.CloseTime, 60)) {
-          alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง');
+        if (!isMinimumTimeGap(this.RestaurantData.OpenTime, this.RestaurantData.CloseTime, 300)) {
+          alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 5 ชั่วโมง');
           return;
         }
       }

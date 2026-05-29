@@ -13,6 +13,7 @@ import {
   getTimeRange,
   getPreviousTimeRange,
   buildDailyRevenue,
+  buildMonthlyRevenue,
   buildPeakHours,
   buildCategoryStats as getCategoryStats,
   isOrderInTimeRange,
@@ -75,7 +76,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
 
     topRestaurants: [],
     topMenuItems: [],
-    recentOrders: [],
     orderStatuses: { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 },
     inactiveMenus: [],
     financialData: [], // { name, revenue, commission, net }
@@ -103,8 +103,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
     unsubscribeRestaurants: null,
 
     // Comparison State
-    comparisonRestaurants: [],
-    comparisonResults: []
+    // (removed)
   }),
 
   getters: {
@@ -186,6 +185,11 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
       const menuMetrics = {};
       const restRevenue = {};
+      this.allRestaurants.forEach(r => {
+        if (r.RestaurantName) {
+          restRevenue[r.RestaurantName] = 0;
+        }
+      });
 
       const restRateMap = {};
       this.allRestaurants.forEach(r => restRateMap[r.RestaurantName] = Number(r.CommissionRate || 0));
@@ -232,7 +236,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       // Sum Monthly Goals from all restaurants
       this.totalMonthlyGoal = this.allRestaurants.reduce((sum, r) => sum + Number(r.MonthlyGoal || 0), 0);
 
-      this.topRestaurants = Object.entries(restRevenue).map(([name, revenue]) => ({ name, revenue })).sort((a,b) => b.revenue - a.revenue).slice(0, 5);
+      this.topRestaurants = Object.entries(restRevenue).map(([name, revenue]) => ({ name, revenue })).filter(r => r.revenue > 0).sort((a,b) => b.revenue - a.revenue);
       
       // Detailed Financial Data for Table
       this.financialData = Object.entries(restRevenue).map(([name, revenue]) => {
@@ -248,7 +252,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
       }).sort((a, b) => b.revenue - a.revenue);
 
       this.topMenuItems = getTopMenuItems(menuMetrics);
-      this.recentOrders = getSortedRecentOrders(filteredOrders);
       this.availableCategories = extractUniqueCategories(this.allMenus);
       
       this.availableMenus = this.allMenus
@@ -339,7 +342,10 @@ export const useDashboardStore = defineStore("dashboardStore", {
     },
 
     buildDailyRevenueChart(orders, start, end) {
-      this.revenueByDay = buildDailyRevenue(orders, (o) => 
+      const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+      const builder = diffDays > 40 ? buildMonthlyRevenue : buildDailyRevenue;
+
+      this.revenueByDay = builder(orders, (o) => 
         calculateOrderRevenue(o, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters)
       , start, end);
     },
@@ -352,58 +358,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.ordersByHour = buildPeakHours(orders);
     },
 
-    setComparisonRestaurants(restaurants) {
-      this.comparisonRestaurants = restaurants;
-      this.runComparison();
-    },
-
-    runComparison() {
-      if (!this.comparisonRestaurants.length) return;
-
-      const { start, end } = getTimeRange(
-        this.timeFilter,
-        this.customStartDate,
-        this.customEndDate
-      );
-
-      const orders = this.allOrders.filter(o =>
-        isOrderInTimeRange(o, start, end)
-      );
-
-      const calcForRest = (restName) => {
-        let revenue = 0;
-        let ordersCount = 0;
-
-        const filters = [restName];
-
-        orders.forEach(order => {
-          const rev = calculateOrderRevenue(order, filters);
-
-          if (rev > 0) {
-            revenue += rev;
-            ordersCount++;
-          }
-        });
-
-        const chartData = buildDailyRevenue(
-          orders,
-          (o) => calculateOrderRevenue(o, filters),
-          start,
-          end
-        );
-
-        return {
-          restaurant: restName,
-          revenue,
-          orders: ordersCount,
-          aov: ordersCount > 0 ? revenue / ordersCount : 0,
-          chartData
-        };
-      };
-
-      this.comparisonResults =
-        this.comparisonRestaurants.map(calcForRest);
-    },
 
     async updateAdminMonthlyGoal(amount) {
       const adminGoalRef = doc(db, 'Settings', 'Platform');

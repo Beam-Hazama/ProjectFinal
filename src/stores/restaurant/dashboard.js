@@ -7,6 +7,7 @@ import {
   getTimeRange,
   getPreviousTimeRange,
   buildDailyRevenue,
+  buildMonthlyRevenue,
   buildPeakHours,
   buildCategoryStats as getCategoryStats,
   isOrderInTimeRange,
@@ -40,15 +41,10 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
-    totalCOGS: 0,
     averagePrepTime: 0,
     successRate: 0,
     menuEngineeringData: [],
     menuComboData: [],
-    averageRating: 0,
-    totalRatingsCount: 0,
-    reviews: [],
-
     // Comparison metrics
     prevTotalRevenue: 0,
     prevTotalOrders: 0,
@@ -71,7 +67,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     categoryChartSeries: (state) => state.categoriesCount.map(c => c.count),
     peakHoursChartSeries: (state) => [{ name: 'จำนวนออเดอร์', data: state.ordersByHour.map(h => h.count) }],
     totalCommission: (state) => (state.totalRevenue * (state.commissionRate || 0)) / 100,
-    netProfit: (state) => state.totalRevenue - ((state.totalRevenue * (state.commissionRate || 0)) / 100) - state.totalCOGS,
+    netProfit: (state) => state.totalRevenue - ((state.totalRevenue * (state.commissionRate || 0)) / 100),
     hasActiveFilters: (state) => state.menuCategoryFilters.length > 0 || state.menuFilters.length > 0
   },
 
@@ -166,13 +162,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       let revenue = 0;
       const statusCounts = { pending: 0, cooking: 0, dispatched: 0, completed: 0, cancelled: 0 };
       const menuMetricsMap = {};
-      let totalCOGS = 0;
-
-      // Create cost map
-      const menuCostMap = {};
-      this.allMenus.forEach(m => {
-          menuCostMap[m.MenuId] = Number(m.Cost || 0);
-      });
 
       validOrders.forEach(order => {
         let orderHasRestaurantItem = false;
@@ -203,7 +192,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
                 
                   if (isCompleted) {
                     orderRevenue += itemRev;
-                    totalCOGS += (Number(menuCostMap[menuId] || 0)) * Number(item.Quantity || 1);
                     addMenuMetric(menuMetricsMap, menuId, item, itemRev);
                   }
 
@@ -232,7 +220,6 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
         const s = (o.OrderStatus || '').toLowerCase();
         return s === 'completed' || s === 'received';
       }).length;
-      this.totalCOGS = totalCOGS;
       this.orderStatuses = statusCounts;
       this.topMenuItems = getTopMenuItems(menuMetricsMap);
       this.recentOrders = getSortedRecentOrders(validOrders);
@@ -309,21 +296,14 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.financialData = Object.entries(dailyFin)
         .map(([date, revenue]) => {
             const comm = (revenue * (this.commissionRate || 0)) / 100;
-            // Calculate COGS for this day
-            let dayCOGS = 0;
-            ordersWithRestaurantItems.forEach(order => {
-                if ((order.OrderStatus === 'completed' || order.OrderStatus === 'received') && toDayKey(order.CreatedAt?.toDate?.() || new Date(order.CreatedAt)) === date) {
-                    order.Menu.forEach(item => {
-                        if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
-                            dayCOGS += (menuCostMap[item.MenuId] || 0) * Number(item.Quantity || 1);
-                        }
-                    });
-                }
-            });
-            return { date, revenue, commission: comm, cogs: dayCOGS, net: revenue - comm - dayCOGS };
+            return { date, revenue, commission: comm, net: revenue - comm };
         })
         .filter(d => d.revenue > 0)
-        .sort((a, b) => b.date.localeCompare(a.date));
+        .sort((a, b) => {
+            const [da, ma] = a.date.split('/');
+            const [db, mb] = b.date.split('/');
+            return (ma + da).localeCompare(mb + db);
+        });
 
       // 4. Efficiency Metrics (Prep Time & Success Rate)
       const completedOrders = validOrders.filter(o => {
@@ -360,38 +340,14 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       // 6. Menu Combo / Cross-sell Analysis
       this.calculateMenuCombos(ordersWithRestaurantItems);
 
-      // 7. Ratings and Reviews
-      const ratedOrders = ordersWithRestaurantItems.filter(o => o.Rating > 0);
-      this.totalRatingsCount = ratedOrders.length;
-      this.averageRating = ratedOrders.length > 0 
-        ? ratedOrders.reduce((sum, o) => sum + o.Rating, 0) / ratedOrders.length 
-        : 0;
-      
-      this.reviews = ordersWithRestaurantItems
-        .filter(o => o.Feedback && o.Feedback.trim() !== '')
-        .map(o => ({
-          id: o.id,
-          rating: o.Rating,
-          feedback: o.Feedback,
-          date: o.ReviewedAt || o.CreatedAt,
-          room: o.RoomNumber,
-          orderNumber: o.OrderNumber
-        }))
-        .sort((a, b) => {
-          const dateA = a.date?.toDate?.() || new Date(a.date);
-          const dateB = b.date?.toDate?.() || new Date(b.date);
-          return dateB - dateA;
-        });
     },
 
     calculateMenuEngineering(menuMetricsMap) {
       const items = Object.entries(menuMetricsMap).map(([id, stats]) => {
-        const menu = this.allMenus.find(m => String(m.MenuId || m.id) === String(id));
-        const cost = Number(menu?.Cost || 0);
         const qty = Number(stats.qty || 0);
         const rev = Number(stats.revenue || 0);
         const price = qty > 0 ? rev / qty : 0;
-        const profit = price - cost;
+        const profit = price;
         return {
           id,
           name: stats.name,
@@ -471,7 +427,10 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     },
 
     buildDailyRevenueChart(orders, start, end) {
-      this.revenueByDay = buildDailyRevenue(orders, (order) => {
+      const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+      const builder = diffDays > 40 ? buildMonthlyRevenue : buildDailyRevenue;
+
+      this.revenueByDay = builder(orders, (order) => {
         let orderRevenue = 0;
         if (order.Menu && (order.OrderStatus === 'completed' || order.OrderStatus === 'received')) {
           order.Menu.forEach(item => {

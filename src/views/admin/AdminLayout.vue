@@ -32,6 +32,7 @@ const menus = [
   { name: 'QR Code', routeName: 'QR Code', icon: ICONS.qr },
   { name: 'Category', routeName: 'Admin Category', icon: ICONS.category },
   { name: 'Commission', routeName: 'Commission', icon: ICONS.commission },
+  { name: 'Mock Orders', routeName: 'Mock Orders', icon: ICONS.list },
 ];
 
 const logout = async () => {

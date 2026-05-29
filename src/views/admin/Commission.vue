@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, computed, ref } from 'vue';
+import { onMounted, onUnmounted, computed, ref, watch } from 'vue';
 import { useDashboardStore } from '@/stores/admin/dashboard';
 import { useCommissionStore } from '@/stores/admin/commission';
 import LayoutAdmin from '@/views/admin/AdminLayout.vue';
@@ -14,16 +14,49 @@ const currentMonth = new Date().getMonth();
 const selectedMonth = ref(currentMonth);
 const selectedYear = ref(currentYear);
 
-const months = [
+const allMonths = [
   'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
   'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
 ];
-const years = computed(() => {
-  const arr = [];
-  for(let y = currentYear - 5; y <= currentYear + 1; y++) {
-    arr.push(y);
+
+const availableYears = computed(() => {
+  if (!dashboardStore.allOrders || dashboardStore.allOrders.length === 0) {
+    return [currentYear];
   }
-  return arr;
+  const yearSet = new Set();
+  dashboardStore.allOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d)) yearSet.add(d.getFullYear());
+  });
+  const sortedYears = Array.from(yearSet).sort((a, b) => b - a);
+  return sortedYears.length > 0 ? sortedYears : [currentYear];
+});
+
+const availableMonths = computed(() => {
+  if (!dashboardStore.allOrders || dashboardStore.allOrders.length === 0) {
+    return [{ value: currentMonth, label: allMonths[currentMonth] }];
+  }
+  const monthSet = new Set();
+  dashboardStore.allOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d) && d.getFullYear() === selectedYear.value) {
+      monthSet.add(d.getMonth());
+    }
+  });
+  const sortedMonths = Array.from(monthSet).sort((a, b) => a - b).map(m => ({ value: m, label: allMonths[m] }));
+  return sortedMonths.length > 0 ? sortedMonths : [{ value: currentMonth, label: allMonths[currentMonth] }];
+});
+
+watch(availableYears, (newYears) => {
+  if (newYears.length > 0 && !newYears.includes(selectedYear.value)) {
+    selectedYear.value = newYears[0];
+  }
+});
+
+watch(availableMonths, (newMonths) => {
+  if (newMonths.length > 0 && !newMonths.find(m => m.value === selectedMonth.value)) {
+    selectedMonth.value = newMonths[0].value;
+  }
 });
 
 onMounted(async () => {
@@ -207,13 +240,13 @@ const totalNetPayout = computed(() =>
         <!-- FILTERS -->
         <div class="flex items-center gap-3">
           <select class="select select-bordered min-w-[140px]" v-model="selectedMonth">
-            <option v-for="(m, i) in months" :key="i" :value="i">
-              {{ m }}
+            <option v-for="m in availableMonths" :key="m.value" :value="m.value">
+              {{ m.label }}
             </option>
           </select>
 
           <select class="select select-bordered" v-model="selectedYear">
-            <option v-for="y in years" :key="y" :value="y">
+            <option v-for="y in availableYears" :key="y" :value="y">
               {{ y }}
             </option>
           </select>

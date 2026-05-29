@@ -47,6 +47,58 @@ export const salesChartOptions = (categories) => ({
   },
 });
 
+export const salesByRestaurantChartOptions = (categories) => ({
+  chart: {
+    id: "restaurant-sales-bar-chart",
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    fontFamily: "inherit",
+    animations: { enabled: true, easing: 'easeinout', speed: 800 }
+  },
+  xaxis: {
+    categories: categories,
+    labels: { 
+      style: { colors: "#64748b", fontSize: "12px" },
+      trim: true,
+      rotate: -45
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false }
+  },
+  yaxis: {
+    labels: {
+      formatter: (value) => `฿${value.toLocaleString()}`,
+      style: { colors: "#64748b", fontSize: "12px" },
+    },
+  },
+  grid: {
+    borderColor: '#f1f5f9',
+    strokeDashArray: 4,
+  },
+  dataLabels: { enabled: false },
+  plotOptions: {
+    bar: { 
+      borderRadius: 6, 
+      columnWidth: "45%",
+      distributed: true,
+    },
+  },
+  colors: [
+    "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#6366f1", "#14b8a6", "#f43f5e"
+  ],
+  tooltip: {
+    theme: 'dark',
+    x: { show: true },
+    y: { 
+      formatter: (val) => "฿" + val.toLocaleString(),
+      title: { formatter: () => 'ยอดขาย: ' }
+    },
+    marker: { show: true },
+    style: { fontSize: '12px' }
+  },
+  legend: { show: false }
+});
+
 export const categoryChartOptions = (labels) => ({
   chart: {
     id: "category-donut-chart",

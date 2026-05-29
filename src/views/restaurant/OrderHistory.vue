@@ -1,6 +1,6 @@
 <script setup>
 import { formatTimestamp } from '@/utils/format';
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { useOrderlistStore } from '@/stores/shared/orderList';
 import { useAccountStore } from '@/stores/auth';
 import LayoutRestaurant from '@/views/restaurant/RestaurantLayout.vue';
@@ -12,6 +12,16 @@ const accountStore = useAccountStore();
 const selectedOrder = ref(null);
 const showModal = ref(false);
 
+const currentYear = new Date().getFullYear();
+
+const selectedMonth = ref('all');
+const selectedYear = ref(currentYear);
+
+const allMonths = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+
 onMounted(() => {
     orderStore.loadAllOrders(accountStore.user.Restaurant);
 });
@@ -20,11 +30,62 @@ onUnmounted(() => {
     orderStore.clearListener();
 });
 
+const availableYears = computed(() => {
+  if (!orderStore.sortedOrders || orderStore.sortedOrders.length === 0) {
+    return [currentYear];
+  }
+  const yearSet = new Set();
+  orderStore.sortedOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d)) yearSet.add(d.getFullYear());
+  });
+  const sortedYears = Array.from(yearSet).sort((a, b) => b - a);
+  return sortedYears.length > 0 ? sortedYears : [currentYear];
+});
+
+const availableMonths = computed(() => {
+  const options = [{ value: 'all', label: 'ทั้งหมด' }];
+  if (!orderStore.sortedOrders || orderStore.sortedOrders.length === 0) {
+    return options;
+  }
+  const monthSet = new Set();
+  orderStore.sortedOrders.forEach(order => {
+    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+    if (d && !isNaN(d) && d.getFullYear() === selectedYear.value) {
+      monthSet.add(d.getMonth());
+    }
+  });
+  const sortedMonths = Array.from(monthSet).sort((a, b) => a - b).map(m => ({ value: m, label: allMonths[m] }));
+  return options.concat(sortedMonths);
+});
+
+watch(availableYears, (newYears) => {
+  if (newYears.length > 0 && !newYears.includes(selectedYear.value)) {
+    selectedYear.value = newYears[0];
+  }
+});
+
+watch(availableMonths, (newMonths) => {
+  if (newMonths.length > 0 && !newMonths.find(m => m.value === selectedMonth.value)) {
+    selectedMonth.value = 'all';
+  }
+});
+
 const historyOrders = computed(() => {
     const myRestaurantName = accountStore.user?.Restaurant;
     if (!myRestaurantName) return [];
 
-    return orderStore.sortedOrders.map(order => {
+    const filtered = orderStore.sortedOrders.filter(order => {
+        const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+        if (!d || isNaN(d)) return false;
+        
+        const yearMatch = d.getFullYear() === selectedYear.value;
+        const monthMatch = selectedMonth.value === 'all' || d.getMonth() === selectedMonth.value;
+        
+        return yearMatch && monthMatch;
+    });
+
+    return filtered.map(order => {
         const shopItems = (order.Menu || []).filter(item => item.RestaurantName === myRestaurantName);
         const localStatus = getCompletionStatus(shopItems);
         return {
@@ -36,7 +97,7 @@ const historyOrders = computed(() => {
             }, 0),
             localStatus: localStatus
         };
-    });
+    }).filter(o => o.displayItems.length > 0);
 });
 
 const openModal = (order) => {
@@ -48,8 +109,23 @@ const openModal = (order) => {
 <template>
     <LayoutRestaurant>
         <div class="p-6">
-            <div class="flex justify-between items-start mb-7">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-7 gap-4">
                 <div class="text-3xl font-bold text-slate-700">Order History</div>
+                
+                <!-- Filters -->
+                <div class="flex items-center gap-3">
+                    <select class="select select-bordered select-sm md:select-md min-w-[140px]" v-model="selectedMonth">
+                        <option v-for="m in availableMonths" :key="m.value" :value="m.value">
+                            {{ m.label }}
+                        </option>
+                    </select>
+
+                    <select class="select select-bordered select-sm md:select-md" v-model="selectedYear">
+                        <option v-for="y in availableYears" :key="y" :value="y">
+                            {{ y }}
+                        </option>
+                    </select>
+                </div>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="overflow-x-auto">
@@ -162,21 +238,6 @@ const openModal = (order) => {
                             <span class="text-2xl font-bold text-emerald-600">
                                 {{selectedOrder.displayTotal?.toLocaleString()}} ฿
                             </span>
-                        </div>
-                        <!-- Customer Feedback Section -->
-                        <div v-if="selectedOrder.Rating" class="mt-6 pt-6 border-t border-slate-100">
-                            <div class="flex flex-col items-center p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Customer Feedback</span>
-                                <div class="flex gap-1 mb-2">
-                                    <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" 
-                                        :class="i <= selectedOrder.Rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                </div>
-                                <p v-if="selectedOrder.Feedback" class="text-sm text-slate-600 italic text-center font-medium">
-                                    "{{ selectedOrder.Feedback }}"
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -2,20 +2,34 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
+import { useNow } from '@/composables/useNow';
+import { checkShopClosed } from '@/utils/shopStatus';
 import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
 const categoryName = computed(() => route.params.category || '');
-const { menuStore } = useCustomerData();
+const { menuStore, restaurantStore } = useCustomerData();
+const { now } = useNow();
 
 const filteredMenus = computed(() => {
     if (!categoryName.value) return [];
-    return menuStore.list.filter(item => item.Category === categoryName.value);
+    return menuStore.list.filter(item => {
+        if (item.Category !== categoryName.value) return false;
+        
+        const restName = item.RestaurantName || item.Restaurant;
+        const rest = restaurantStore.list.find(r => r.RestaurantName === restName);
+        
+        // ถ้าไม่พบร้าน หรือร้านปิด จะไม่แสดงเมนูนี้
+        if (!rest || checkShopClosed(rest, now.value)) {
+            return false;
+        }
+        return true;
+    });
 });
 
 const goBack = () => {
-    router.push(`/user/all-categories/${route.params.qrId}`);
+    router.go(-1);
 };
 </script>
 

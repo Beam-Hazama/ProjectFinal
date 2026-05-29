@@ -102,6 +102,37 @@ export const buildDailyRevenue = (orders, getRevenueFromOrder, start, end) => {
 };
 
 
+export const buildMonthlyRevenue = (orders, getRevenueFromOrder, start, end) => {
+    const months = {};
+    const curr = new Date(start);
+    curr.setDate(1);
+    curr.setHours(0, 0, 0, 0);
+    const last = new Date(end);
+    
+    const monthNames = [
+        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ];
+
+    while (curr <= last || (curr.getFullYear() === last.getFullYear() && curr.getMonth() <= last.getMonth())) {
+        const key = `${monthNames[curr.getMonth()]}`;
+        months[key] = 0;
+        curr.setMonth(curr.getMonth() + 1);
+    }
+    
+    orders.forEach(order => {
+        if (!order.CreatedAt) return;
+        const date = order.CreatedAt.toDate?.() || new Date(order.CreatedAt);
+        const key = `${monthNames[date.getMonth()]}`;
+        if (months[key] !== undefined) {
+            months[key] += getRevenueFromOrder(order);
+        }
+    });
+    
+    return Object.entries(months).map(([date, revenue]) => ({ date, revenue }));
+};
+
+
 export const buildPeakHours = (orders) => {
     const hours = Array(24).fill(0);
     orders.forEach(order => {
@@ -170,12 +201,12 @@ export const getSortedRecentOrders = (orders, limit = 10) =>
         return timeB - timeA;
     }).slice(0, limit);
 
-export const getTopMenuItems = (metricsMap, limit = 5) =>
-    Object.values(metricsMap).sort((a, b) => b.qty - a.qty).slice(0, limit);
+export const getTopMenuItems = (metricsMap) =>
+    Object.values(metricsMap).sort((a, b) => b.revenue - a.revenue);
 
 export const addMenuMetric = (map, menuId, item, itemRev) => {
     if (!map[menuId]) {
-        map[menuId] = { name: item.MenuName, qty: 0, revenue: 0, image: item.ImageUrl, category: item.Category };
+        map[menuId] = { name: item.MenuName, qty: 0, revenue: 0, image: item.ImageUrl, category: item.Category, restaurantName: item.RestaurantName || item.Restaurant };
     }
     map[menuId].qty += Number(item.Quantity || 1);
     map[menuId].revenue += itemRev;

@@ -51,7 +51,7 @@ const goBack = () => router.go(-1);
 
 <template>
     <LayoutAdmin>
-        <div class="min-h-screen p-6 md:p-8 font-sans bg-slate-50/50">
+        <div class="font-sans">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-slate-800 tracking-tight">
@@ -70,7 +70,7 @@ const goBack = () => router.go(-1);
             </div>
             <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-0 lg:divide-x divide-slate-100">
-                    <div class="p-8 lg:col-span-1 bg-slate-50/30 flex flex-col items-center">
+                    <div class="p-8 lg:col-span-1 bg-white flex flex-col items-center">
                         <h3 class="font-bold text-slate-700 mb-6 w-full flex items-center gap-2"> รูปภาพประจำตัว <span class="text-red-500">*</span></h3>
                         <div class="flex flex-col items-center gap-5 w-full max-w-xs">
                             <div

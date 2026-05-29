@@ -6,9 +6,7 @@ import DashboardFilters from '@/components/dashboard/DashboardFilters.vue';
 import DashboardSummaryStats from '@/components/dashboard/DashboardSummaryStats.vue';
 import DashboardChartsSection from '@/components/dashboard/DashboardChartsSection.vue';
 import DashboardListsSection from '@/components/dashboard/DashboardListsSection.vue';
-import RestaurantComparisonSection from '@/components/dashboard/RestaurantComparisonSection.vue';
-// import ActiveOrdersFeed from '@/components/dashboard/ActiveOrdersFeed.vue';
-import SalesGoalCard from '@/components/dashboard/SalesGoalCard.vue';
+// Removed ActiveOrdersFeed
 
 const dashboardStore = useDashboardStore();
 
@@ -26,7 +24,7 @@ onUnmounted(() => {
     <div class="p-6">
       <DashboardFilters :dashboardStore="dashboardStore" />
       
-      <!-- <ActiveOrdersFeed :dashboardStore="dashboardStore" class="mb-6" /> -->
+      <!-- ActiveOrdersFeed was removed -->
 
       <div v-if="dashboardStore.isLoading" class="flex flex-col items-center justify-center py-20">
         <span class="loading loading-spinner loading-lg text-blue-600 mb-4"></span>
@@ -34,11 +32,9 @@ onUnmounted(() => {
       </div>
   
       <div v-else class="space-y-6">
-        <SalesGoalCard :dashboardStore="dashboardStore" :isAdmin="true" />
         <DashboardSummaryStats :dashboardStore="dashboardStore" />
-        <DashboardChartsSection :dashboardStore="dashboardStore" />
-        <RestaurantComparisonSection :dashboardStore="dashboardStore" />
-        <DashboardListsSection :dashboardStore="dashboardStore" />
+        <DashboardChartsSection :dashboardStore="dashboardStore" :isAdmin="true" />
+        <DashboardListsSection :dashboardStore="dashboardStore" :isAdmin="true" />
       </div>
     </div>
   </LayoutAdmin>

@@ -4,6 +4,7 @@ import { useOrderlistStore } from "@/stores/shared/orderList";
 import { useMenuStore } from "@/stores/shared/menu";
 import { formatPrice } from "@/utils/format";
 import { filterRecentOrders } from "@/utils/orderHelpers";
+import { useCartStore } from "@/stores/customer/cart";
 
 // สถานะของเมนูที่ตั้งเป็นค่าคงที่เพื่อให้ความหมายชัดเจน
 const FINISHED = ["received", "cancelled"];
@@ -19,6 +20,7 @@ const all = (items, statuses) =>
 export const useUserStatusStore = defineStore("userStatus", () => {
   const orderListStore = useOrderlistStore();
   const menuStore = useMenuStore();
+  const cartStore = useCartStore();
 
   const room = ref("");
 
@@ -69,7 +71,7 @@ export const useUserStatusStore = defineStore("userStatus", () => {
     }
 
     if (!stillHasActive) {
-      router.push(`/user/bill/${room.value}`);
+      router.push(`/user/bill/${cartStore.qrId}`);
     }
   };
 

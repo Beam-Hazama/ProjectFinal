@@ -59,8 +59,8 @@ export const useRestaurantFormStore = defineStore("restaurantForm", {
 
         // ตรวจสอบเวลาเปิด-ปิดห่างกันอย่างน้อย 1 ชั่วโมง
         if (this.restaurantData.OpenTime && this.restaurantData.CloseTime) {
-          if (!isMinimumTimeGap(this.restaurantData.OpenTime, this.restaurantData.CloseTime, 60)) {
-            alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 1 ชั่วโมง');
+          if (!isMinimumTimeGap(this.restaurantData.OpenTime, this.restaurantData.CloseTime, 300)) {
+            alert('เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 5 ชั่วโมง');
             return false;
           }
         }
