@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed ,watch} from 'vue';
 import { salesChartOptions, peakHoursChartOptions, salesByRestaurantChartOptions } from '@/utils/chartConfig';
 
 const props = defineProps({
@@ -12,20 +12,63 @@ const props = defineProps({
 
 const isReady = ref(false);
 
+const selectedRestaurants = ref([]);
+
+const restaurantList = computed(() => {
+  return props.dashboardStore.financialData || [];
+});
+
+watch(
+  () => props.dashboardStore.financialData,
+  (data) => {
+    if (data?.length && selectedRestaurants.value.length === 0) {
+      selectedRestaurants.value = data.map(
+        r => r.id || r.name
+      );
+    }
+  },
+  { immediate: true }
+);
+
+const filteredRestaurantData = computed(() => {
+  const data = props.dashboardStore.financialData || [];
+
+  return data.filter(r =>
+    selectedRestaurants.value.includes(
+      r.id || r.name
+    )
+  );
+});
+
+const selectAllRestaurants = () => {
+  selectedRestaurants.value =
+    restaurantList.value.map(
+      r => r.id || r.name
+    );
+};
+
+const clearAllRestaurants = () => {
+  selectedRestaurants.value = [];
+};
+
 const salesOptions = computed(() => salesChartOptions(props.dashboardStore.revenueByDay.map(d => d.date)));
 
 const peakHoursOptions = computed(() => peakHoursChartOptions(props.dashboardStore.ordersByHour.map(h => h.hour)));
 
 const restaurantSalesOptions = computed(() => {
-  const data = props.dashboardStore.financialData || [];
-  return salesByRestaurantChartOptions(data.map(d => d.name));
+  return salesByRestaurantChartOptions(
+    filteredRestaurantData.value.map(
+      d => d.name
+    )
+  );
 });
 
 const restaurantSalesSeries = computed(() => {
-  const data = props.dashboardStore.financialData || [];
   return [{
     name: 'ยอดขาย',
-    data: data.map(d => Math.round(d.revenue))
+    data: filteredRestaurantData.value.map(
+      d => Math.round(d.revenue)
+    )
   }];
 });
 
@@ -68,9 +111,52 @@ onMounted(() => {
         </svg>
         ยอดขายแต่ละร้าน
       </h2>
+      <div class="mb-4">
+  <div class="flex items-center justify-between mb-3">
+    <span class="text-sm font-medium text-slate-600">
+      เลือกร้านที่ต้องการแสดง
+    </span>
+
+    <div class="flex gap-2">
+      <button
+        type="button"
+        @click="selectAllRestaurants"
+        class="px-3 py-1 text-xs rounded-lg bg-indigo-100 text-indigo-600"
+      >
+        เลือกทั้งหมด
+      </button>
+
+      <button
+        type="button"
+        @click="clearAllRestaurants"
+        class="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-600"
+      >
+        ล้างทั้งหมด
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+    <label
+      v-for="restaurant in restaurantList"
+      :key="restaurant.id || restaurant.name"
+      class="flex items-center gap-2 text-sm cursor-pointer"
+    >
+      <input
+        type="checkbox"
+        :value="restaurant.id || restaurant.name"
+        v-model="selectedRestaurants"
+      />
+
+      <span>
+        {{ restaurant.name }}
+      </span>
+    </label>
+  </div>
+</div>
       <div class="h-72 w-full">
         <apexchart v-if="restaurantSalesSeries[0]?.data?.length > 0" 
-          :key="'rest-sales-' + dashboardStore.timeFilter + restaurantSalesSeries[0].data.length"
+          :key="'rest-sales-' + selectedRestaurants.join('-')"
           type="bar" height="100%"
           :options="restaurantSalesOptions" :series="restaurantSalesSeries">
         </apexchart>

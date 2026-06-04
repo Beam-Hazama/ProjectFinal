@@ -147,9 +147,29 @@ onMounted(() => {
                 <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
                   <span class="w-1.5 h-6 bg-purple-500 rounded-full"></span>
                   เวลาเปิด-ปิดและสถานะ
-                </h3>
+                </h3>                
                 <div class="space-y-6">
-
+                  
+                  <div class="form-control">
+                    <label class="label"><span class="label-text font-bold text-slate-500">สถานะร้านปัจจุบัน</span></label>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button v-for="status in [
+                        { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
+                        { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
+                        { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
+                      ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.StatusMode = status.v)"
+                        class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" 
+                        :class="[
+                          profileStore.RestaurantData.StatusMode === status.v
+                            ? status.active
+                            : 'bg-slate-100 text-slate-400 hover:bg-slate-200',
+                          !profileStore.isEditing ? (profileStore.RestaurantData.StatusMode === status.v ? 'cursor-default' : 'opacity-50 cursor-not-allowed') : ''
+                        ]">
+                        {{ status.l }}
+                      </button>
+                    </div>
+                  </div>
+                  
                   <div class="grid grid-cols-2 gap-4">
                     <div class="form-control">
                       <label class="label"><span class="label-text font-bold text-slate-500">เวลาเปิด</span></label>

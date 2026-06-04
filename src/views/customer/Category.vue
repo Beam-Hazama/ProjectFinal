@@ -26,7 +26,7 @@ onMounted ( () => {
     console.log('route.params.category =', route.params.category);
     console.log('categoryName =', categoryName.value);
 
-    
+
 })
 </script>
 
