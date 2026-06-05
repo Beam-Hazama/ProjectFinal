@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
+import { onMounted, ref, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 
@@ -8,7 +8,7 @@ import { useCartStore } from '@/stores/customer/cart';
 import { useQrcodeStore } from '@/stores/admin/qrCode';
 import { useCategoryStore } from '@/stores/shared/category';
 import { useRestaurant } from '@/stores/shared/restaurant';
-import { formatOpenDays } from '@/utils/format';
+
 
 import MenuList from '@/components/shared/BlockMenu.vue';
 
@@ -170,12 +170,7 @@ const scrollToCategory = (categoryName) => {
         <div class="relative z-20 px-4 -mt-8">
             <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-4 border border-slate-100">
                 <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl border border-blue-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span class="text-xs font-black">{{ formatOpenDays(currentRestaurant?.OpenDays) }}</span>
-                    </div>
+
                     <div v-if="currentRestaurant?.Distance" class="flex items-center gap-1.5 bg-slate-50 text-slate-600 px-3 py-1.5 rounded-xl border border-slate-100">
                         <span class="text-xs font-black">📍 {{ currentRestaurant.Distance }} กม.</span>
                     </div>

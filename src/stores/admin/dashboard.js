@@ -11,7 +11,6 @@ import { db } from "@/firebase";
 import { toDayKey } from "@/utils/format";
 import {
   getTimeRange,
-  getPreviousTimeRange,
   buildDailyRevenue,
   buildMonthlyRevenue,
   buildPeakHours,
@@ -82,10 +81,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
     totalMonthlyGoal: 0,
     adminMonthlyGoal: 0,
     
-    // Comparison metrics
-    prevTotalRevenue: 0,
-    prevTotalOrders: 0,
-
     revenueByDay: [],
     categoriesCount: [],
     ordersByHour: [],
@@ -249,7 +244,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
           net: revenue - comm,
           rate
         };
-      }).sort((a, b) => b.revenue - a.revenue);
+      });
 
       this.topMenuItems = getTopMenuItems(menuMetrics);
       this.availableCategories = extractUniqueCategories(this.allMenus);
@@ -263,21 +258,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
       this.buildPeakHoursChart(filteredOrders.filter(o => o.OrderStatus !== 'cancelled'));
       this.buildCategoryStats(this.allMenus);
 
-      // Previous period comparison
-      const { start: pStart, end: pEnd } = getPreviousTimeRange(this.timeFilter, start, end);
-      const prevOrders = this.allOrders.filter(o => isOrderInTimeRange(o, pStart, pEnd));
-      
-      let prevRevenue = 0;
-      let prevOrdersCount = 0;
-      prevOrders.forEach(order => {
-        const rev = calculateOrderRevenue(order, this.restaurantFilters, this.menuCategoryFilters, this.menuFilters);
-        if (rev > 0) {
-          prevRevenue += rev;
-          prevOrdersCount++;
-        }
-      });
-      this.prevTotalRevenue = prevRevenue;
-      this.prevTotalOrders = prevOrdersCount;
+
 
       // Inactive menus (0 orders in last 14 days)
       const fourteenDaysAgo = new Date();

@@ -1,16 +1,13 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCustomerData } from '@/composables/useCustomerData';
-import { useNow } from '@/composables/useNow';
-import { checkShopClosed } from '@/utils/shopStatus';
 import MenuList from '@/components/shared/BlockMenu.vue';
 
 const route = useRoute();
 const router = useRouter();
 const categoryName = computed(() => route.params.category || '');
-const { menuStore, restaurantStore } = useCustomerData();
-const { now } = useNow();
+const { menuStore } = useCustomerData();
 
 const filteredMenus = computed(() => {
     return menuStore.list.filter(
@@ -22,12 +19,7 @@ const goBack = () => {
     router.go(-1);
 };
 
-onMounted ( () => {
-    console.log('route.params.category =', route.params.category);
-    console.log('categoryName =', categoryName.value);
 
-
-})
 </script>
 
 <template>

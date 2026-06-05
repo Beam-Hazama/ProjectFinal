@@ -16,7 +16,7 @@ const isTimeGapInvalid = computed(() => {
 // ตรวจสอบวันเปิดให้บริการอย่างน้อย 5 วัน
 const isOpenDaysInvalid = computed(() => {
   const days = profileStore.RestaurantData.OpenDays;
-  return days && days.length > 0 && days.length < 5;
+  return !days || days.length < 5;
 });
 
 onMounted(() => {
@@ -45,7 +45,7 @@ onMounted(() => {
             Edit
           </button>
 
-          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting || isOpenDaysInvalid"
+          <button v-else @click="profileStore.saveProfile" :disabled="profileStore.isSubmitting || isOpenDaysInvalid || isTimeGapInvalid"
             class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-md shadow-emerald-200 rounded-lg px-6 transition-all duration-300 font-bold min-w-[100px] disabled:bg-slate-200">
             <span v-if="profileStore.isSubmitting" class="loading loading-spinner loading-sm"></span>
             <span v-else>Save</span>
@@ -154,8 +154,8 @@ onMounted(() => {
                     <label class="label"><span class="label-text font-bold text-slate-500">สถานะร้านปัจจุบัน</span></label>
                     <div class="grid grid-cols-3 gap-2">
                       <button v-for="status in [
-                        { v: 'open', l: 'เปิดตลอดเวลา', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
-                        { v: 'close', l: 'ปิดตลอดเวลา', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
+                        { v: 'open', l: 'เปิด24ชั่วโมง', active: '!bg-emerald-500 !text-white shadow-lg shadow-emerald-200' },
+                        { v: 'close', l: 'ปิดปรับปรุง', active: '!bg-red-500 !text-white shadow-lg shadow-red-200' },
                         { v: 'auto', l: 'อัตโนมัติ', active: '!bg-blue-500 !text-white shadow-lg shadow-blue-200' }
                       ]" :key="status.v" type="button" @click="profileStore.isEditing && (profileStore.RestaurantData.StatusMode = status.v)"
                         class="btn btn-sm h-12 border-none transition-all duration-300 rounded-xl font-bold" 
@@ -183,6 +183,12 @@ onMounted(() => {
                     </div>
                   </div>
                   <p class="text-[11px] text-slate-400 font-medium italic mb-2 mt-[-0.5rem]">* ตั้งเวลาเปิด-ปิดร้านห่างกันอย่างน้อย 5 ชั่วโมงขึ้นไป</p>
+                  <div v-if="isTimeGapInvalid && profileStore.isEditing" class="text-red-500 text-xs font-bold mb-4 mt-[-0.25rem] flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    เวลาเปิด-ปิดต้องห่างกันอย่างน้อย 5 ชั่วโมง
+                  </div>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">วันเปิดให้บริการ</span></label>
                     <div class="flex flex-wrap gap-2">

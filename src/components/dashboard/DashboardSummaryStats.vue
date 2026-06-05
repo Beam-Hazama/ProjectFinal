@@ -1,23 +1,10 @@
 <script setup>
-import { computed } from 'vue';
 
 const props = defineProps({
   dashboardStore: Object
 });
-
-const getChange = (current, previous) => {
-  if (!previous || previous === 0) return null;
-  const change = ((current - previous) / previous) * 100;
-  return {
-    value: Math.abs(change).toFixed(1),
-    isUp: change >= 0,
-    color: change >= 0 ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'
-  };
-};
-
-const revenueChange = computed(() => getChange(props.dashboardStore.totalRevenue, props.dashboardStore.prevTotalRevenue));
-const ordersChange = computed(() => getChange(props.dashboardStore.totalOrders, props.dashboardStore.prevTotalOrders));
 </script>
+
 
 <template>
   <div class="space-y-6">
@@ -51,11 +38,7 @@ const ordersChange = computed(() => getChange(props.dashboardStore.totalOrders, 
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">ยอดขายรวม</p>
             <div class="flex items-baseline gap-2">
               <span class="text-3xl font-black text-slate-800">฿{{ (dashboardStore.totalRevenue || 0).toLocaleString() }}</span>
-              <div v-if="revenueChange" :class="revenueChange.color" class="px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 text-[10px] font-black">
-                <svg v-if="revenueChange.isUp" xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" /></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd" /></svg>
-                {{ revenueChange.value }}%
-              </div>
+
             </div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
@@ -90,11 +73,7 @@ const ordersChange = computed(() => getChange(props.dashboardStore.totalOrders, 
             <p class="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">ออเดอร์ทั้งหมด</p>
             <div class="flex items-baseline gap-2">
               <h3 class="text-3xl font-black text-slate-800">{{ (dashboardStore.totalOrders || 0).toLocaleString() }}</h3>
-              <div v-if="ordersChange" :class="ordersChange.color" class="px-1.5 py-0.5 rounded-lg flex items-center gap-0.5 text-[10px] font-black">
-                <svg v-if="ordersChange.isUp" xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" /></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd" /></svg>
-                {{ ordersChange.value }}%
-              </div>
+
             </div>
           </div>
           <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm shrink-0">

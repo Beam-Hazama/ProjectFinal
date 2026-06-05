@@ -38,10 +38,12 @@ const openModal = (menu) => {
   }
 };
 
-// เรียงเมนู: ที่เปิดอยู่ก่อน, ที่ปิดอยู่ตามหลัง
+// เรียงเมนู: ที่เปิดอยู่ก่อน, ที่ปิดอยู่ตามหลัง (โดยซ่อนเมนูที่ร้านปิดแล้ว)
 const sortedMenus = computed(() => {
   if (!props.selectionRole) return [];
-  return [...props.selectionRole].sort((a, b) => isMenuAvailable(b) - isMenuAvailable(a));
+  return [...props.selectionRole]
+    .filter(menu => !isShopClosed(menu))
+    .sort((a, b) => isMenuAvailable(b) - isMenuAvailable(a));
 });
 </script>
 

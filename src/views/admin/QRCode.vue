@@ -32,6 +32,7 @@ onMounted(() => {
               <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                 <tr>
                   <th class="py-4 ">ROOM NUMBER</th>
+                  <th class="py-4 text-center">QR ID</th>
                   <th class="py-4 text-center">CREATED AT</th>
                   <th class="py-4 text-center">QR CODE</th>
                   <th class="py-4 text-center">ACTION</th>
@@ -40,6 +41,7 @@ onMounted(() => {
               <tbody class="text-slate-600">
                 <tr v-for="room in qrStore.rooms" :key="room.id" class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   <td class="py-4 font-bold text-indigo-600 ">{{ room.RoomNumber }}</td>
+                  <td class="py-4 text-center text-sm text-slate-400 font-mono">{{ room.id }}</td>
                   <td class="py-4 text-center text-sm">{{ formatTimestamp(room.CreatedAt) }}</td>
                   <td class="py-4 text-center">
                     <button @click="qrStore.printRoomQR(room)" class="btn btn-sm btn-ghost text-indigo-500 hover:bg-indigo-50 gap-2">

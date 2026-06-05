@@ -17,32 +17,35 @@ const allMonths = [
 ];
 
 const availableYears = computed(() => {
-  if (!props.dashboardStore.allOrders || props.dashboardStore.allOrders.length === 0) {
-    return [currentYear];
+  const yearSet = new Set([currentYear]);
+  if (props.dashboardStore.allOrders && props.dashboardStore.allOrders.length > 0) {
+    props.dashboardStore.allOrders.forEach(order => {
+      const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+      if (d && !isNaN(d)) yearSet.add(d.getFullYear());
+    });
   }
-  const yearSet = new Set();
-  props.dashboardStore.allOrders.forEach(order => {
-    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
-    if (d && !isNaN(d)) yearSet.add(d.getFullYear());
-  });
-  const sortedYears = Array.from(yearSet).sort((a, b) => b - a);
-  return sortedYears.length > 0 ? sortedYears : [currentYear];
+  return Array.from(yearSet).sort((a, b) => b - a);
 });
 
 const availableMonths = computed(() => {
-  const options = [{ value: 'all', label: 'ทั้งหมด' }];
-  if (!props.dashboardStore.allOrders || props.dashboardStore.allOrders.length === 0) {
-    return options.concat([{ value: currentMonth, label: allMonths[currentMonth] }]);
-  }
+  const options = [{ value: 'all', label: 'ทุกเดือน' }];
   const monthSet = new Set();
-  props.dashboardStore.allOrders.forEach(order => {
-    const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
-    if (d && !isNaN(d) && d.getFullYear() === selectedYear.value) {
-      monthSet.add(d.getMonth());
-    }
-  });
+  
+  if (selectedYear.value === currentYear) {
+    monthSet.add(currentMonth);
+  }
+  
+  if (props.dashboardStore.allOrders && props.dashboardStore.allOrders.length > 0) {
+    props.dashboardStore.allOrders.forEach(order => {
+      const d = order.CreatedAt?.toDate?.() || new Date(order.CreatedAt);
+      if (d && !isNaN(d) && d.getFullYear() === selectedYear.value) {
+        monthSet.add(d.getMonth());
+      }
+    });
+  }
+  
   const sortedMonths = Array.from(monthSet).sort((a, b) => a - b).map(m => ({ value: m, label: allMonths[m] }));
-  return options.concat(sortedMonths.length > 0 ? sortedMonths : [{ value: currentMonth, label: allMonths[currentMonth] }]);
+  return options.concat(sortedMonths);
 });
 
 watch(availableYears, (newYears) => {

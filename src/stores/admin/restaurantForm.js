@@ -104,6 +104,7 @@ export const useRestaurantFormStore = defineStore("restaurantForm", {
 
         await addDoc(collection(db, "Restaurant"), {
           ...this.restaurantData,
+          OpenDays: [...(this.restaurantData.OpenDays || [])],
           ImageUrl,
           BgUrl,
           Status,

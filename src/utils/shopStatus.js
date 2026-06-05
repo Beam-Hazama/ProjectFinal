@@ -1,5 +1,5 @@
 
-export const getTimeDiffMinutes = (openTime, closeTime) => {
+const getTimeDiffMinutes = (openTime, closeTime) => {
     if (!openTime || !closeTime) return 0;
     try {
         const [oH, oM] = openTime.split(':').map(Number);
@@ -21,7 +21,7 @@ export const isMinimumTimeGap = (openTime, closeTime, minMinutes = 300) => {
     return getTimeDiffMinutes(openTime, closeTime) >= minMinutes;
 };
 
-export const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date()) => {
+const getShopAutoStatus = (openTime, closeTime, openDays, now = new Date()) => {
     const currentDay = now.toLocaleString('en-US', { weekday: 'long' });
     if (openDays && Array.isArray(openDays) && openDays.length > 0) {
         if (!openDays.includes(currentDay)) return 'close';

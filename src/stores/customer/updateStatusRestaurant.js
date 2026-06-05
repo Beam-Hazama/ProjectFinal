@@ -24,9 +24,13 @@ export async function updateAllRestaurantStatuses() {
 
       let newStatus = 'close';
 
-      // บังคับเปิด
+      // บังคับเปิด 24 ชั่วโมง (แต่ต้องเป็นวันที่เปิดให้บริการ)
       if (mode === 'open') {
-        newStatus = 'open';
+        if (Array.isArray(restaurant.OpenDays) && restaurant.OpenDays.includes(currentDay)) {
+          newStatus = 'open';
+        } else {
+          newStatus = 'close';
+        }
       }
       // บังคับปิด
       else if (mode === 'close') {

@@ -123,23 +123,12 @@ export const useProfileStore = defineStore('restaurantProfile', {
 
         const mode = this.RestaurantData.StatusMode || 'auto';
 
-        // กำหนด Status สำหรับโหมด open / close
-        // ถ้าเป็น auto จะคำนวณภายหลังด้วย updateStatusByTime()
-        let statusToSave = this.RestaurantData.Status;
-
-        if (mode === 'open') {
-          statusToSave = 'open';
-        } else if (mode === 'close') {
-          statusToSave = 'close';
-        }
-
         // อัปเดต state
-        this.RestaurantData.Status = statusToSave;
         this.RestaurantData.StatusMode = mode;
         this.RestaurantData.ImageUrl = ImageUrl;
         this.RestaurantData.BgUrl = BgUrl;
 
-        // บันทึกข้อมูล
+        // บันทึกข้อมูลเบื้องต้นก่อน
         await updateDoc(doc(db, 'Restaurant', this.docId), {
           RestaurantName: this.RestaurantData.RestaurantName,
           Phone: this.RestaurantData.Phone,
@@ -149,21 +138,13 @@ export const useProfileStore = defineStore('restaurantProfile', {
           BgUrl,
           OpenTime: this.RestaurantData.OpenTime,
           CloseTime: this.RestaurantData.CloseTime,
-          OpenDays: this.RestaurantData.OpenDays,
-
-          // Status มีเฉพาะ open / close
-          Status: statusToSave,
-
-          // โหมดควบคุม
+          OpenDays: [...(this.RestaurantData.OpenDays || [])],
           StatusMode: mode,
-
           UpdatedAt: serverTimestamp(),
         });
 
-        // ถ้าเป็น auto ให้คำนวณสถานะจริงทันที
-        if (mode === 'auto') {
-          await this.updateStatusByTime();
-        }
+        // คำนวณสถานะจริงทันทีเสมอ ไม่ว่าจะเป็นโหมดใด
+        await this.updateStatusByTime();
 
         this.isEditing = false;
         this.selectedFile = null;
@@ -185,12 +166,19 @@ export const useProfileStore = defineStore('restaurantProfile', {
       const mode = restaurant.StatusMode || 'auto';
 
       let newStatus = 'close';
+      const now = new Date();
+      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
 
-      // บังคับเปิดตลอดเวลา
+      // บังคับเปิด 24 ชั่วโมง (แต่ต้องเป็นวันที่เปิดให้บริการ)
       if (mode === 'open') {
-        newStatus = 'open';
+        const isOpenDay = Array.isArray(restaurant.OpenDays) && restaurant.OpenDays.includes(currentDay);
+        if (isOpenDay) {
+          newStatus = 'open';
+        } else {
+          newStatus = 'close';
+        }
       }
-      // บังคับปิดตลอดเวลา
+      // บังคับปิดปรับปรุง
       else if (mode === 'close') {
         newStatus = 'close';
       }
@@ -200,13 +188,6 @@ export const useProfileStore = defineStore('restaurantProfile', {
         if (!restaurant.OpenTime || !restaurant.CloseTime) {
           newStatus = 'close';
         } else {
-          const now = new Date();
-
-          // วันปัจจุบัน เช่น Monday
-          const currentDay = now.toLocaleDateString('en-US', {
-            weekday: 'long',
-          });
-
           // ตรวจสอบว่าวันนี้เปิดร้านหรือไม่
           const isOpenDay =
             Array.isArray(restaurant.OpenDays) &&

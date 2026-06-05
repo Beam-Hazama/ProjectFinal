@@ -111,49 +111,35 @@ onMounted(() => {
         </svg>
         ยอดขายแต่ละร้าน
       </h2>
-      <div class="mb-4">
-  <div class="flex items-center justify-between mb-3">
-    <span class="text-sm font-medium text-slate-600">
-      เลือกร้านที่ต้องการแสดง
-    </span>
-
-    <div class="flex gap-2">
-      <button
-        type="button"
-        @click="selectAllRestaurants"
-        class="px-3 py-1 text-xs rounded-lg bg-indigo-100 text-indigo-600"
-      >
-        เลือกทั้งหมด
-      </button>
-
-      <button
-        type="button"
-        @click="clearAllRestaurants"
-        class="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-600"
-      >
-        ล้างทั้งหมด
-      </button>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-    <label
-      v-for="restaurant in restaurantList"
-      :key="restaurant.id || restaurant.name"
-      class="flex items-center gap-2 text-sm cursor-pointer"
-    >
-      <input
-        type="checkbox"
-        :value="restaurant.id || restaurant.name"
-        v-model="selectedRestaurants"
-      />
-
-      <span>
-        {{ restaurant.name }}
-      </span>
-    </label>
-  </div>
-</div>
+      <div class="mb-4 flex justify-end items-center">
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-sm bg-white border-slate-200 text-slate-600 hover:bg-slate-50 gap-2 font-medium shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            ตัวกรองร้านอาหาร <span class="badge badge-sm badge-indigo">{{ selectedRestaurants.length }}</span>
+          </label>
+          <div tabindex="0" class="dropdown-content z-[1] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-base-100 rounded-2xl w-80 mt-2 border border-slate-100">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+              <span class="text-sm font-bold text-slate-700">เลือกร้านที่ต้องการแสดง</span>
+              <div class="flex gap-2">
+                <button type="button" @click="selectAllRestaurants" class="px-2 py-1 text-[11px] rounded-md bg-indigo-50 text-indigo-600 font-bold hover:bg-indigo-100 transition-colors">
+                  เลือกทั้งหมด
+                </button>
+                <button type="button" @click="clearAllRestaurants" class="px-2 py-1 text-[11px] rounded-md bg-red-50 text-red-600 font-bold hover:bg-red-100 transition-colors">
+                  ล้างทั้งหมด
+                </button>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1 max-h-60 overflow-y-auto pr-1">
+              <label v-for="restaurant in restaurantList" :key="restaurant.id || restaurant.name" class="flex items-center gap-3 text-sm cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors group">
+                <input type="checkbox" :value="restaurant.id || restaurant.name" v-model="selectedRestaurants" class="checkbox checkbox-sm checkbox-primary rounded" />
+                <span class="font-medium text-slate-600 group-hover:text-slate-800 transition-colors">{{ restaurant.name }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="h-72 w-full">
         <apexchart v-if="restaurantSalesSeries[0]?.data?.length > 0" 
           :key="'rest-sales-' + selectedRestaurants.join('-')"

@@ -5,7 +5,6 @@ import { toDayKey } from '@/utils/format';
 
 import {
   getTimeRange,
-  getPreviousTimeRange,
   buildDailyRevenue,
   buildMonthlyRevenue,
   buildPeakHours,
@@ -45,9 +44,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
     successRate: 0,
     menuEngineeringData: [],
     menuComboData: [],
-    // Comparison metrics
-    prevTotalRevenue: 0,
-    prevTotalOrders: 0,
+
     monthlyGoal: 0,
     restaurantId: null,
     ordersLoading: true,
@@ -234,27 +231,7 @@ export const useRestaurantDashboardStore = defineStore('restaurantDashboard', {
       this.buildDailyRevenueChart(ordersWithRestaurantItems, startTime, endTime);
       this.buildPeakHoursChart(ordersWithRestaurantItems);
 
-      // Previous period comparison
-      const { start: pStart, end: pEnd } = getPreviousTimeRange(this.timeFilter, startTime, endTime);
-      const prevOrders = this.allOrders.filter(o => isOrderInTimeRange(o, pStart, pEnd));
-      
-      let prevRevenue = 0;
-      let prevOrdersCount = 0;
-      prevOrders.forEach(order => {
-        if (order.OrderStatus !== 'completed') return;
-        if (order.Menu) {
-            order.Menu.forEach(item => {
-                if ((item.RestaurantName || item.Restaurant) === this.currentRestaurant && item.MenuStatus !== 'cancelled') {
-                    prevRevenue += (Number(item.Price || 0) * Number(item.Quantity || 1));
-                    prevOrdersCount++; // This counts items, maybe should count orders?
-                }
-            });
-        }
-      });
-      // Correcting orders count to unique orders for the restaurant
-      const prevOrdersForRest = prevOrders.filter(o => (o.OrderStatus === 'completed' || o.OrderStatus === 'received') && o.Menu?.some(i => (i.RestaurantName || i.Restaurant) === this.currentRestaurant));
-      this.prevTotalRevenue = prevRevenue;
-      this.prevTotalOrders = prevOrdersForRest.length;
+
 
       // Inactive menus (0 orders in last 14 days)
       const fourteenDaysAgo = new Date();

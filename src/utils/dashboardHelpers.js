@@ -44,38 +44,6 @@ export const getTimeRange = (filter, customStart, customEnd) => {
     return { start, end };
 };
 
-export const getPreviousTimeRange = (filter, currentStart, currentEnd) => {
-    let start = new Date(currentStart);
-    let end = new Date(currentEnd);
-    const diff = currentEnd - currentStart;
-
-    if (filter === 'today') {
-        start.setDate(start.getDate() - 1);
-        end.setDate(end.getDate() - 1);
-    } else if (filter === 'previousMonth') {
-        start = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
-        end = new Date(
-            currentStart.getFullYear(),
-            currentStart.getMonth(),
-            0,
-            23,
-            59,
-            59,
-            999
-        );
-    } else if (filter === 'thisMonth') {
-        start = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
-        end = new Date(currentStart.getFullYear(), currentStart.getMonth(), 0);
-        end.setHours(23, 59, 59, 999);
-    } else {
-        // For custom and all, just shift by the same duration
-        start = new Date(currentStart.getTime() - diff - 1);
-        end = new Date(currentEnd.getTime() - diff - 1);
-    }
-
-    return { start, end };
-};
-
 
 export const buildDailyRevenue = (orders, getRevenueFromOrder, start, end) => {
     const days = {};

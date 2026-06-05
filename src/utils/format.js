@@ -21,12 +21,6 @@ export const formatFullDateTime = (timestamp) =>
   }) ?? '-';
 
 
-export const formatTime = (timestamp) => 
-  toDate(timestamp)?.toLocaleTimeString('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }) ?? '-';
-
 
 export const toDayKey = (date) => {
   const d = String(date.getDate()).padStart(2, '0');
