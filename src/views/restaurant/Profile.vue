@@ -191,9 +191,9 @@ onMounted(() => {
                   </div>
                   <div class="form-control">
                     <label class="label"><span class="label-text font-bold text-slate-500">วันเปิดให้บริการ</span></label>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="grid grid-cols-7 gap-1 lg:gap-2">
                       <label v-for="day in profileStore.daysOfWeek" :key="day.value"
-                        class="flex-1 min-w-[50px] text-center py-2.5 rounded-xl border-2 cursor-pointer transition-all font-bold text-sm"
+                        class="text-center py-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-sm sm:text-base"
                         :class="[
                           profileStore.RestaurantData.OpenDays.includes(day.value)
                             ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
