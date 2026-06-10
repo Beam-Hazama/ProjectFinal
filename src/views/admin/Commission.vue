@@ -144,11 +144,7 @@ const exportToExcel = (restaurantName) => {
   
   const config = commissionStore.rates[restaurantName] || {};
   const rate = config.rate || 0;
-  const cap = config.cap;
   let commissionAmount = (totalRevenue * rate) / 100;
-  if (cap !== null && cap !== undefined) {
-     commissionAmount = Math.min(commissionAmount, cap);
-  }
 
   rows.push([]);
   rows.push(['', '', '', '', 'Total Revenue', totalRevenue]);
@@ -176,28 +172,13 @@ const tableData = computed(() => {
     const rate =
       config.rate || 0;
 
-    const cap =
-      config.cap;
-
     let commission =
       (item.revenue * rate) / 100;
-
-    // cap
-    if (
-      cap !== null &&
-      cap !== undefined
-    ) {
-      commission = Math.min(
-        commission,
-        cap
-      );
-    }
 
     return {
       name: item.name,
       revenue: item.revenue,
       rate,
-      cap,
       commission,
       net: item.revenue - commission,
     };
@@ -265,11 +246,7 @@ const totalNetPayout = computed(() =>
               Commission Rate (%)
             </label>
 
-            <input
-              type="number"
-              min="0"
-              max="30"
-              v-model="commissionStore.bulkRate"
+            <input type="number" min="0" max="30" v-model="commissionStore.bulkRate"
               @keydown="['e', 'E', '+', '-', '.'].includes($event.key) && $event.preventDefault()"
               @input="if (Number($event.target.value) > 30) { commissionStore.bulkRate = 30; $event.target.value = 30; } else if (Number($event.target.value) < 0) { commissionStore.bulkRate = 0; $event.target.value = 0; }"
               class="input input-bordered w-40"
@@ -279,25 +256,7 @@ const totalNetPayout = computed(() =>
               * กำหนดได้สูงสุดไม่เกิน 30%
             </p>
 
-          </div>
-
-          <!-- CAP -->
-          <div>
-
-            <label class="block text-sm font-bold text-slate-700 mb-2">
-              Commission Cap
-            </label>
-
-            <input
-              type="number"
-              min="0"
-              v-model="commissionStore.bulkCap"
-              placeholder="No limit"
-              class="input input-bordered w-44"
-              @keydown="['e', 'E', '+', '-', '.'].includes($event.key) && $event.preventDefault()"
-            />
-
-          </div>
+          </div>        
 
           <!-- APPLY -->
           <div class="pt-7">
@@ -415,10 +374,6 @@ const totalNetPayout = computed(() =>
                 </th>
 
                 <th class="text-right">
-                  Cap
-                </th>
-
-                <th class="text-right">
                   Commission
                 </th>
 
@@ -466,23 +421,6 @@ const totalNetPayout = computed(() =>
                 <td class="text-right font-bold text-indigo-600">
 
                   {{ shop.rate }}%
-
-                </td>
-
-                <!-- CAP -->
-                <td class="text-right font-medium">
-
-                  <template v-if="shop.cap !== null">
-
-                    ฿{{ formatPrice(shop.cap) }}
-
-                  </template>
-
-                  <template v-else>
-
-                    -
-
-                  </template>
 
                 </td>
 

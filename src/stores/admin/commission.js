@@ -14,7 +14,6 @@ export const useCommissionStore = defineStore('commission', {
     isEditing: false,
 
     bulkRate: '',
-    bulkCap: '',
   }),
 
   actions: {
@@ -38,11 +37,6 @@ export const useCommissionStore = defineStore('commission', {
                 data.CommissionRate !== undefined
                   ? Number(data.CommissionRate)
                   : 0,
-
-              cap:
-                data.CommissionCap !== undefined && data.CommissionCap !== null
-                  ? Number(data.CommissionCap)
-                  : null,
             };
           });
           this.rates = newRates;
@@ -75,9 +69,6 @@ export const useCommissionStore = defineStore('commission', {
             restaurantRef,
             {
               CommissionRate: clampedRate,
-
-              CommissionCap: this.bulkCap === '' ? null : Number(this.bulkCap),
-
               UpdatedAt: new Date(),
             },
             { merge: true },

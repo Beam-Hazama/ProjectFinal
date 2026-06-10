@@ -33,11 +33,13 @@ watch(
 const filteredRestaurantData = computed(() => {
   const data = props.dashboardStore.financialData || [];
 
-  return data.filter(r =>
-    selectedRestaurants.value.includes(
-      r.id || r.name
+  return data
+    .filter(r =>
+      selectedRestaurants.value.includes(
+        r.id || r.name
+      )
     )
-  );
+    .sort((a, b) => b.revenue - a.revenue); // มาก → น้อย
 });
 
 const selectAllRestaurants = () => {
@@ -153,29 +155,6 @@ onMounted(() => {
             </svg>
           </div>
           <p class="text-sm font-medium">ยังไม่มีข้อมูลยอดขายร้านอาหาร</p>
-        </div>
-      </div>
-    </div>
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-      <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-        </svg>
-        วิเคราะห์ช่วงเวลาที่ออเดอร์เข้าสูงสุด (Peak Hours)
-      </h2>
-      <div class="h-72 w-full">
-        <apexchart v-if="dashboardStore.peakHoursChartSeries[0]?.data?.length > 0" 
-          :key="'peak-' + dashboardStore.timeFilter + dashboardStore.peakHoursChartSeries[0].data.length"
-          type="area" height="100%"
-          :options="peakHoursOptions" :series="dashboardStore.peakHoursChartSeries"></apexchart>
-        <div v-else class="flex flex-col items-center justify-center h-full text-slate-400 gap-3 py-10">
-          <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <p class="text-sm font-medium">ไม่มีข้อมูลช่วงเวลาออเดอร์</p>
         </div>
       </div>
     </div>
